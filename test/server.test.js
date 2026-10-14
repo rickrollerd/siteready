@@ -205,7 +205,7 @@ test('every downloaded SWMS carries a SiteReady reference that traces to the acc
 
 test('the prepared-for line names the business, its ABN and the reference', () => {
   const { preparedFor } = require('../docx-draft');
-  assert.equal(preparedFor({ name: 'Lee Fencing', abn: '51824753556' }, 'SR-ABCD-EFGH'), 'Prepared with SiteReady for Lee Fencing (ABN 51824753556). SiteReady reference SR-ABCD-EFGH.');
+  assert.equal(preparedFor({ name: 'Lee Fencing', abn: '51824753556' }, 'SR-ABCD-EFGH'), 'Prepared with SiteReady for Lee Fencing (ABN 51 824 753 556). SiteReady reference SR-ABCD-EFGH.');
   assert.equal(preparedFor({ name: 'Lee Fencing' }, ''), '');
 });
 

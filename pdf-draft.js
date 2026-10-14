@@ -2,11 +2,11 @@
 // print or send it. Worker signatures collected in the app are printed on it.
 const PDFDocument = require('pdfkit');
 const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./designs');
-const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
+const { tableRows: substanceRows, notRequiredLine, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
-const { revisionText, sharedNote, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT } = require('./docx-draft');
-const { checkedRows } = require('./human-check');
+const { revisionText, sharedNote, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines } = require('./docx-draft');
+const { checkedRows, preparedFromCheck } = require('./human-check');
 const { stepPpeRows } = require('./step-ppe');
 
 const INK = '#1C2430';
@@ -14,7 +14,8 @@ const MUTED = '#5C6773';
 const LINE = '#D5DBE3';
 const HEAD = '#F4F6F8';
 const MARGIN = 40;
-const FOOTER_SPACE = 34;
+// The footer's three lines sit in the bottom margin, below everything else on the page.
+const FOOTER_SPACE = 38;
 const PAD = 4;
 
 // The built-in PDF fonts cover Western European text. Anything else is replaced
@@ -33,7 +34,11 @@ function printable(text) {
 }
 
 function makeDoc() {
-  return new PDFDocument({ size: 'A4', layout: 'landscape', margins: { top: MARGIN, bottom: MARGIN, left: MARGIN, right: MARGIN }, bufferPages: true, info: { Title: 'Safe work method statement', Creator: 'SiteReady' } });
+  // The bottom margin keeps the footer clear: text that runs on (a long list of licences, a long
+  // paragraph) moves to the next page before it reaches the footer (messy round 4, A fault 2: the
+  // dogging licence line printed on top of the footer). Tables stop a little higher (bottom), so a
+  // row fitted to the page never runs into the margin.
+  return new PDFDocument({ size: 'A4', layout: 'landscape', margins: { top: MARGIN, bottom: MARGIN + FOOTER_SPACE - 6, left: MARGIN, right: MARGIN }, bufferPages: true, info: { Title: 'Safe work method statement', Creator: 'SiteReady' } });
 }
 
 function contentWidth(doc) {
@@ -46,6 +51,9 @@ function bottom(doc) {
 
 function text(doc, value, options = {}) {
   doc.font(options.bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(options.size || 10).fillColor(options.color || INK);
+  // A short paragraph that does not fit above the footer starts on the next page, whole.
+  const height = doc.heightOfString(printable(value), { width: contentWidth(doc), ...options.textOptions });
+  if (doc.y + height > bottom(doc) && height < bottom(doc) - MARGIN - 80) doc.addPage();
   doc.text(printable(value), MARGIN, doc.y, { width: contentWidth(doc), ...options.textOptions });
   if (options.after) doc.moveDown(options.after);
 }
@@ -197,11 +205,14 @@ function registers(doc, draft, w) {
   // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
   // D256, D257). A type of substance with no product does not print.
   const products = substanceRows(draft);
+  // Types ticked "Not required" with the reason given (D292 item 3) print under the table, or alone.
+  const notRequired = notRequiredLine(draft);
+  if (products.length || notRequired) heading(doc, SUBSTANCES_TITLE);
   if (products.length) {
-    heading(doc, SUBSTANCES_TITLE);
     text(doc, SUBSTANCES_NOTE, { size: 8.5, color: MUTED });
     table(doc, { widths: [130, 125, w - 130 - 125 - 110 - 110 - 95, 110, 110, 95], header: SUBSTANCES_HEAD, rows: products.map((cells) => row(...cells.map((value) => value || ' '))) });
   }
+  if (notRequired) text(doc, notRequired, { size: 9, after: 0.3 });
   heading(doc, 'Licences, tickets and training');
   text(doc, 'Needed for this task:', { bold: true });
   for (const item of draft.qualifications || []) text(doc, `•  ${item}`);
@@ -327,7 +338,8 @@ function draftToPdf(draft, options = {}) {
     }
 
     heading(doc, 'Prepared by');
-    table(doc, { widths: pairWidths, rows: [pair('Name and position', draft.preparedBy || ''), pair('Signature', ''), pair('Date', draft.preparedBy ? draft.date : ''), pair('Date given to the principal contractor', '')] });
+    const by = preparedFromCheck(draft, options.confirmation);
+    table(doc, { widths: pairWidths, rows: [pair('Name and position', by ? by.name : ''), pair('Signature', ''), pair('Date', by ? by.date : ''), pair('Date given to the principal contractor', '')] });
 
     // Who checked it part by part before it was downloaded or saved (D286).
     const checked = checkedRows(options.confirmation);
@@ -344,7 +356,7 @@ function draftToPdf(draft, options = {}) {
       table(doc, {
         widths: pairWidths,
         rows: [pair('Principal contractor', draft.principalContractor), pair('Reviewed by (name and company)', [review.name, review.company].filter(Boolean).join(', ')),
-          pair('Outcome', PC_OUTCOMES.map(([id, label]) => `${review.response === id ? '[x]' : '[ ]'} ${label}`).join('     ')), pair(PC_TEXT[review.response] || 'Comments', review.text || 'None'), pair('Date', review.date || '')],
+          pair('Outcome', PC_OUTCOMES.map(([id, label]) => `${review.response === id ? '[x]' : '[ ]'} ${label}`).join('     ')), pair(PC_TEXT[review.response] || 'Comments', conditionLines(review.text) || 'None'), pair('Date', review.date || '')],
       });
     } else {
       if (options.reviewLink) text(doc, reviewInvite(options.reviewLink), { size: 9, color: MUTED, after: 0.3 });
@@ -369,6 +381,8 @@ function draftToPdf(draft, options = {}) {
   const pages = doc.bufferedPageRange();
   for (let i = 0; i < pages.count; i += 1) {
     doc.switchToPage(i);
+    // The footer is written in the bottom margin: with the margin set aside, it never starts a page.
+    doc.page.margins.bottom = 0;
     const y = doc.page.height - MARGIN - 20;
     doc.font('Helvetica').fontSize(7.5).fillColor(MUTED);
     // With a SiteReady reference, the footer takes a third line: who the SWMS was prepared for.

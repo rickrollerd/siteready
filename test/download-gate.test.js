@@ -33,10 +33,10 @@ const ids = (input) => gaps(input).gaps.map((gap) => gap.id);
 test('a SWMS with every site question and key person blank lists each one as needed before download', () => {
   const list = gaps(FENCE).gaps;
   // The works manager and contact phone too (D289).
-  assert.deepEqual(list.map((gap) => gap.id), ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'worksManager', 'worksManagerPhone', 'firstAider', 'musterPoint',
+  assert.deepEqual(list.map((gap) => gap.id), ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'worksManager', 'worksManagerPhone', 'firstAider', 'musterPoint', 'hospital',
     'site.liveServices', 'site.publicInterface', 'site.otherTrades', 'site.ground', 'site.access']);
   // Each says where it is answered on the page and what is needed, in plain words.
-  assert.deepEqual(list.map((gap) => gap.field), ['workplace', 'principal', 'compliance-responsible', 'reviewer', 'works-manager', 'works-manager-phone', 'first-aider', 'muster-point',
+  assert.deepEqual(list.map((gap) => gap.field), ['workplace', 'principal', 'compliance-responsible', 'reviewer', 'works-manager', 'works-manager-phone', 'first-aider', 'muster-point', 'hospital',
     'site-liveServices', 'site-publicInterface', 'site-otherTrades', 'site-ground', 'site-access']);
   for (const gap of list) assert.ok(gap.need.length > 20 && !/\u2014/.test(gap.need), gap.id);
   assert.match(gateMessage(list), /^SiteReady does not produce a SWMS until the site questions are answered/);

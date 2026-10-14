@@ -472,6 +472,8 @@
     .method-change select, .method-change input[type="text"], .method-change textarea { width: 100%; box-sizing: border-box; }
     /* A blank (____) left in an answer: the box outlined red and a bold red warning naming what to fill (D241, D245). */
     textarea.has-blank, textarea.has-blank[aria-invalid="true"], textarea.has-blank:focus { border: 2px solid #b00020 !important; box-shadow: 0 0 0 1px #b00020; }
+    .blank-slot-input.bad { border: 2px solid #b00020; background: #fff5f5; }
+    .blank-slot-note { color: #8a2b2b; font-weight: 600; margin: 6px 0 0; }
     textarea.has-blank:focus { outline-color: #b00020; }
     .blank-warning { color: #b00020; font-weight: 700; margin: 6px 0 0; }
     /* An answer with blanks as its sentence, a labelled box in each blank, red while empty (D261). */
@@ -772,13 +774,13 @@
       </div>
       <div class="field hidden" id="scaffold-supervisor-field">
         <label for="scaffold-supervisor">Scaffold supervisor
-          <span class="hint">The scaffolding company's supervisor who hands over and tags the scaffold. Asked for only when this SWMS involves a scaffold.</span>
+          <span class="hint">The scaffold supervisor who hands over and tags the scaffold: the scaffolding company's, or your own if your crew erects it. Asked for only when this SWMS involves a scaffold.</span>
         </label>
         <input id="scaffold-supervisor" type="text" autocomplete="off" placeholder="If not known yet, find out before download">
       </div>
       <div class="field">
-        <label for="hospital">Hospital
-          <span class="hint">The nearest hospital with an emergency department.</span>
+        <label for="hospital">Hospital or medical centre
+          <span class="hint">The nearest hospital or medical centre with an emergency department. Needed before download.</span>
         </label>
         <input id="hospital" type="text" autocomplete="off">
         <button type="button" class="pick-button" id="hospital-find">Find nearest from the job address</button>
@@ -790,6 +792,7 @@
         </label>
         <input id="first-aider" type="text" autocomplete="off">
       </div>
+      <p class="warning hidden" id="people-same" role="status"></p>
       <div class="field">
         <label for="muster-point">Muster point
           <span class="hint">Where everyone meets in an emergency. Ask the main contractor. Needed before download.</span>
@@ -891,6 +894,7 @@
     <form id="facts" class="panel hidden">
       <p class="warning hidden" id="fall-warning"></p>
       <p class="warning hidden" id="steps-notice" role="status"></p>
+      <div id="own-early"></div>
       <h2>Job steps</h2>
       <p class="lede" style="margin-bottom:12px">Ticked steps go into the SWMS. SiteReady ticks the ones it found in the task. Untick any that are not part of this job, and add any that are missing. Steps marked recommended are called for by the task's words; if you untick one, make sure that risk is covered another way.</p>
       <ul class="step-list" id="steps-block"></ul>

@@ -119,6 +119,7 @@ function makeDocument() {
   }
 
   doc = {
+    stateTicked: 'qld',
     body: new Element('body'),
     getElementById(id) {
       if (!byId.has(id)) byId.set(id, new Element(id === 'task' ? 'textarea' : 'div', id));
@@ -127,6 +128,9 @@ function makeDocument() {
     querySelector(selector) {
       const id = /^#([\w-]+)$/.exec(selector);
       if (id) return doc.getElementById(id[1]);
+      // A state is ticked, as once the job address is picked (D292: none is ticked on a fresh page, and
+      // Continue waits for one). Tests about something else start with Queensland.
+      if (selector === 'input[name="state"]:checked') return doc.stateTicked ? Object.assign(new Element('input'), { value: doc.stateTicked, checked: true }) : null;
       // A radio or box by name is there but not ticked.
       return /^input\[name=/.test(selector) && !selector.includes(':checked') ? new Element('input') : null;
     },

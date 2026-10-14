@@ -29,7 +29,7 @@ function drafted(task, extra = {}) {
 test('a task with no job steps of its own is told at the questions that it will not be drafted', () => {
   const rail = ask('Thermite weld the rail joints');
   assert.equal(rail.kind, 'questions');
-  assert.equal(rail.standDown.message, 'SiteReady has no job steps for this work yet, so it will not draft this SWMS. The steps found for where the work is done (Work in the rail corridor) are not the work itself, so they are not ticked. To go on, add the job steps that cover the work itself under Job steps, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.');
+  assert.equal(rail.standDown.message, 'SiteReady has no job steps for this work yet, so it will not draft this SWMS. The steps found for where the work is done (Work in the rail corridor) are not the work itself, so they are not ticked. To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".');
   assert.deepEqual(rail.steps.suggested, ['railCorridor']);
   assert.deepEqual(rail.steps.chosen, [], 'the rail corridor is not ticked as if it were the work');
   assert.deepEqual(rail.steps.around, ['railCorridor']);
@@ -78,7 +78,7 @@ test('the user\'s own picks stay as made; a step for the work itself lifts the n
   assert.equal(withWork.standDown, undefined);
   assert.equal(drafted('Install bridge expansion joints on the overpass', { kinds: ['road', 'workAbove', 'hotWork'] }).kind, 'draft');
   const none = ask('Install cable trays in the ceiling from a scissor lift', { kinds: [] });
-  assert.equal(none.standDown.message, 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps.');
+  assert.equal(none.standDown.message, 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps, or write your own step for the work with "Write a step for this".');
   assert.equal(drafted('Install cable trays in the ceiling from a scissor lift', { kinds: [] }).kind, 'stand-down');
 });
 

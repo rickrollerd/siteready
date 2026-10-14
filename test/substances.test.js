@@ -190,7 +190,9 @@ test('D277: each type SiteReady suggests needs a product or the tick "Not requir
   // All ticked: nothing asked, and the draft, the print and the builder check are as before.
   const all = d.substances.items.map((item) => item.product);
   const ticked = draftBody({ ...base(POUR), substancesNotUsed: all });
-  assert.deepEqual(types(ticked), []);
+  // The task names curing compound, so its tick needs a short reason (D292 item 3); with one, nothing is asked.
+  assert.deepEqual(types(ticked).map((gap) => gap.need), ['Curing compound or release agent: your task or answers name "curing compound". Add the product you use, or give a short reason it is not required, for example "supplied and applied by others".']);
+  assert.deepEqual(types(draftBody({ ...base(POUR), substancesNotUsed: all, substancesNotUsedWhy: { 'Curing compounds and form release agents': 'Supplied and applied by the concreter' } })), []);
   assert.deepEqual(prepareDraft(ticked), d);
   assert.deepEqual(checkSwms(fromDraft(prepareDraft(ticked), { state: 'qld' }), { state: 'qld' }), checkSwms(fromDraft(d, { state: 'qld' }), { state: 'qld' }));
   assert.equal(substances.tableRows(prepareDraft(ticked)).length, 0);

@@ -16,7 +16,8 @@ const { loadPage, settle, FakeEvent, checkAll } = require('./fake-dom');
 
 const FACTS = { safetyDataSheet: 'The diesel safety data sheet is kept at the work area.' };
 // The types of hazardous substance are ticked "Not required" (D277): these tests are about the tick above the draft.
-const GENERATOR = { state: 'qld', task: 'Install the generator and leak test the fuel line.', fallRisk: 'no', residential: 'no', date: '6 October 2026', facts: FACTS, substancesNotUsed: require('../public/substance-rules').TYPES };
+// The task names fuel, so "Not required" gives a reason (D292 item 3).
+const GENERATOR = { state: 'qld', task: 'Install the generator and leak test the fuel line.', fallRisk: 'no', residential: 'no', date: '6 October 2026', facts: FACTS, substancesNotUsed: require('../public/substance-rules').TYPES, substancesNotUsedWhy: { 'Fuels (diesel, petrol)': 'The hire company fuels the generator' } };
 const draft = (task, extra = {}) => prepareDraft({ ...GENERATOR, task, ...extra });
 
 test('a part of the task with no job steps is listed in the user\'s words', () => {

@@ -39,7 +39,7 @@
     const file = event.dataTransfer.files[0];
     $('scope-error').textContent = '';
     if (!ACCEPTED.test(file.name)) {
-      $('scope-error').textContent = 'Drop a Word (.docx), PDF or text file.';
+      $('scope-error').textContent = NOT_A_SCOPE;
       return;
     }
     dropped = file;
@@ -47,11 +47,20 @@
     $('scope-drop-note').textContent = `${file.name} is attached. Press "Find the tasks that need a SWMS" to read it.`;
     $('scope-file-clear').classList.remove('hidden');
   });
+  // A picture chosen for the scope (messy round 4, run 7: a PNG got no message) is said plainly and taken off.
+  const NOT_A_SCOPE = 'SiteReady reads a scope from a Word file (.docx), a PDF or a text file. A photo or picture of a scope cannot be read: attach the document, or paste its words in the box below.';
   $('scope-file').addEventListener('change', () => {
     dropped = null;
+    $('scope-error').textContent = '';
+    const file = $('scope-file').files[0];
+    if (file && !ACCEPTED.test(file.name)) {
+      $('scope-file').value = '';
+      $('scope-error').textContent = NOT_A_SCOPE;
+    }
     $('scope-drop-note').textContent = 'or drag the file here';
     $('scope-file-clear').classList.toggle('hidden', !$('scope-file').files.length);
   });
+  S.scopeDropped = () => Boolean(dropped);
   // A wrong file is taken off, with the tasks read from it.
   $('scope-file-clear').addEventListener('click', () => {
     dropped = null;
@@ -612,8 +621,17 @@
     // A SWMS prepared before comes back as it was left: its answers, steps and the user's changes.
     // Once saved, its changes save as its next revision.
     if (item.body) {
-      // To check it, the draft is shown as it will print, with Change this step on each step.
+      // To check it, the draft is shown as it will print, with Change this step on each step. With no
+      // reply from the server (a 502), it says so with Try again and keeps the SWMS as prepared (messy
+      // round 4, A fault 5: it fell back to its task form with no word).
+      const failed = (error) => {
+        const bar = $('check-bar');
+        const text = `${error && error.message && !error.serverDown ? `${error.message} ` : 'SiteReady could not reach the server, so this SWMS could not be opened. '}It is kept as prepared.`;
+        if (bar) { bar.insertAdjacentHTML('beforeend', `<p class="error" role="alert" id="project-open-error">${esc(text)} <button type="button" class="link" data-project-open="${index}">Try again</button></p>`); bar.classList.remove('hidden'); bar.scrollIntoView({ block: 'start' }); }
+        else if ($('project-error')) $('project-error').textContent = text;
+      };
       S.fillForm(item.body).then((ok) => {
+        if (!ok) { failed({ message: ($('start-error') && $('start-error').textContent) || 'This SWMS could not be opened.' }); return; }
         if (item.swmsId) S.editing = { id: item.swmsId, title: item.title };
         if (ok && project.stage === 'check' && S.prepare) {
           S.prepare({ scroll: false }).then(() => {
@@ -626,9 +644,9 @@
             const bar = $('check-bar');
             if (bar && !bar.classList.contains('hidden')) bar.scrollIntoView({ block: 'start' });
             if (S.markStage) S.markStage('draft');
-          });
+          }, failed);
         }
-      });
+      }, failed);
       return;
     }
     // With the site details already filled in, go straight to this SWMS's questions.
@@ -651,11 +669,36 @@
     return true;
   }
 
+  // A saved SWMS opened to change from My SWMS ("Fix this in SiteReady") that is not one of the project's
+  // own puts the project aside until the user goes back to it (messy round 4, A fault 11).
+  let paused = false;
+  S.projectForSaved = (id) => {
+    if (!project) return;
+    const at = project.items.findIndex((item) => item.swmsId === id);
+    if (at >= 0) {
+      paused = false;
+      project.current = at;
+      project.stage = 'check';
+      saveProject();
+      showSingle(true);
+      renderProject();
+      return;
+    }
+    paused = true;
+    renderProject();
+  };
   function renderProject() {
     const panel = $('project-panel');
     const now = $('project-now');
     const bar = $('check-bar');
     if (!project) { panel.classList.add('hidden'); now.classList.add('hidden'); if (bar) bar.classList.add('hidden'); return; }
+    if (paused) {
+      panel.classList.add('hidden');
+      now.classList.add('hidden');
+      showSingle(true);
+      if (bar) { bar.innerHTML = '<p>You are changing a saved SWMS. Your project is kept as it was.</p><div class="actions"><button type="button" class="secondary" data-project-resume>Back to the project</button></div>'; bar.classList.remove('hidden'); }
+      return;
+    }
     // The one-go page and the review list (project-go.js).
     if ((project.stage === 'questions' || project.stage === 'review') && window.SiteReadyProjectGo) {
       now.classList.add('hidden');
@@ -674,10 +717,12 @@
     }
     // While one SWMS is checked, the project box is short: the list is one press away.
     if (project.stage === 'check') {
-      const ready = project.items.filter((item) => item.status === 'ready').length;
+      // Counted as the list counts them: prepared, not waiting to be prepared again, and checked part by
+      // part (messy round 4, run 3: "2 of 2 ready to download" here, while the list said none).
+      const ready = project.items.filter((item) => item.status === 'ready' && !item.stale && checkOf(item)).length;
       now.classList.add('hidden');
       panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2></div>
-        <p class="meta">Checking SWMS ${project.current + 1} of ${project.items.length}. ${ready} of ${project.items.length} ready to download.</p>
+        <p class="meta">Checking SWMS ${project.current + 1} of ${project.items.length}. ${ready ? `${ready} of ${project.items.length} ready to download.` : 'None ready to download yet: each needs its check under its draft.'}</p>
         <div class="actions"><button type="button" class="secondary" data-project-review>Back to the list of SWMS</button></div>
         <p class="error" id="project-error"></p>`;
       panel.classList.remove('hidden');
@@ -737,7 +782,7 @@
   S.projectCheckOf = checkOf;
 
   // The project's other SWMS, by title, for saying which one covers work this SWMS has no steps for.
-  S.projectOthers = () => (project ? project.items.filter((_item, index) => index !== project.current).map((item) => item.title) : []);
+  S.projectOthers = () => (project && !paused ? project.items.filter((_item, index) => index !== project.current).map((item) => item.title) : []);
   // Owner, D289: in a project, work named as "covered in" another SWMS of the project moves into it, and
   // that SWMS must then give its steps. The work each SWMS has had moved into it: [{ part, from }].
   function movedInto(index) {
@@ -751,8 +796,67 @@
     });
     return out.length ? out : undefined;
   }
-  S.projectMovedIn = () => (project && project.stage === 'check' ? movedInto(project.current) : undefined);
+  S.projectMovedIn = () => (project && !paused && project.stage === 'check' ? movedInto(project.current) : undefined);
+  // Products given in another SWMS of the project, offered in this one (owner, D292): [{ row, from }].
+  S.projectProducts = () => {
+    if (!project || paused || project.stage !== 'check') return [];
+    const out = [];
+    project.items.forEach((item, index) => {
+      if (index === project.current || !item.body || !Array.isArray(item.body.substances)) return;
+      for (const row of item.body.substances) if (row && String(row.product || '').trim() && !out.some((other) => sameWork(other.row.product, row.product))) out.push({ row, from: `SWMS ${index + 1}` });
+    });
+    return out;
+  };
+  // A step written for work, moved with the work from one SWMS of the project to another (messy round 4,
+  // A fault 4: one piece of work was written twice). Each SWMS changed is prepared again.
+  const sameWork = (a, b) => String(a || '').replace(/\s+/g, ' ').trim().toLowerCase() === String(b || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const byTitle = (title) => (project ? project.items.findIndex((item, index) => index !== project.current && item.title === title) : -1);
+  const ownStepsOf = (item) => (item.body && Array.isArray(item.body.ownSteps) ? item.body.ownSteps : Array.isArray(item.ownSteps) ? item.ownSteps : []);
+  function setOwnSteps(at, list, why) {
+    const item = project.items[at];
+    const next = list.length ? list : undefined;
+    item.ownSteps = next;
+    if (item.body) item.body = { ...item.body, ownSteps: next };
+    if (item.kind) { item.stale = why; if (window.SiteReadyProjectGo && window.SiteReadyProjectGo.uncheck) window.SiteReadyProjectGo.uncheck(item); }
+  }
+  S.projectGiveStep = (title, step) => {
+    const at = byTitle(title);
+    if (at < 0 || !step) return false;
+    const list = ownStepsOf(project.items[at]).filter((other) => !sameWork(other.name, step.name));
+    setOwnSteps(at, [...list, { ...step }], `Work was moved here from SWMS ${project.current + 1}, with your step for it.`);
+    saveProject();
+    return true;
+  };
+  S.projectTakeStep = (title, part) => {
+    const at = byTitle(title);
+    if (at < 0) return null;
+    const list = ownStepsOf(project.items[at]);
+    const step = list.find((other) => sameWork(other.part, part));
+    if (!step) return null;
+    setOwnSteps(at, list.filter((other) => other !== step), `Work was moved back to SWMS ${project.current + 1}, with your step for it.`);
+    saveProject();
+    return { ...step };
+  };
+  // Work moved into this SWMS, sent back to the SWMS it came from: the move is undone there.
+  S.projectSendBack = (part, step) => {
+    const me = project && project.items[project.current];
+    if (!me) return false;
+    const at = project.items.findIndex((other, index) => index !== project.current && other.body && Object.entries(other.body.notCoveredElsewhere || {}).some(([key, title]) => title === me.title && sameWork(key, part)));
+    if (at < 0) return false;
+    const origin = project.items[at];
+    const key = Object.keys(origin.body.notCoveredElsewhere || {}).find((name) => sameWork(name, part));
+    const elsewhere = { ...(origin.body.notCoveredElsewhere || {}) };
+    delete elsewhere[key];
+    const keepOut = (list) => (Array.isArray(list) ? list.filter((name) => !sameWork(name, part)) : list);
+    origin.body = { ...origin.body, notCoveredElsewhere: Object.keys(elsewhere).length ? elsewhere : undefined, notCoveredConfirmed: keepOut(origin.body.notCoveredConfirmed), movedOut: keepOut(origin.body.movedOut) };
+    const list = ownStepsOf(origin);
+    setOwnSteps(at, step ? [...list.filter((other) => !sameWork(other.name, step.name)), { ...step }] : list, `Work you moved to SWMS ${project.current + 1} was sent back: write its step here, or say which SWMS covers it.`);
+    origin.status = statusOf(origin);
+    saveProject();
+    return true;
+  };
   S.onCoverTick = (confirmed, elsewhere) => {
+    if (paused) return;
     const item = project && project.items[project.current];
     if (!item || !item.body || $('task').value.trim() !== item.body.task.trim()) return;
     const before = project.items.map((_other, at) => JSON.stringify(movedInto(at) || []));
@@ -778,6 +882,7 @@
   // As the user answers under the draft (app.js), the SWMS in the project takes the answers that print
   // as given, and what it still needs. A change that needs the draft prepared again waits for it.
   S.onAnswers = ({ task, needs, answers, stale }) => {
+    if (paused) return;
     const item = project && project.items[project.current];
     const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
     if (stale || !item || !item.body || item.kind !== 'draft' || same(task) !== same(item.body.task)) return;
@@ -802,10 +907,20 @@
     const kept = Object.fromEntries(Object.entries(body.emergency).filter(([id]) => asked.includes(id)));
     return { ...body, emergency: Object.keys(kept).length ? kept : undefined };
   };
+  function keepDesigns(rows) {
+    if (!project || !Array.isArray(rows)) return;
+    project.shared = project.shared || { site: null, designs: {}, emergency: {} };
+    project.shared.designs = project.shared.designs || {};
+    for (const row of rows) {
+      if (!row || typeof row.id !== 'string' || !row.status || /^(?:added|method)-\d+$/.test(row.id)) continue;
+      const { file: _file, read: _read, ...kept } = row;
+      project.shared.designs[row.id] = { ...(project.shared.designs[row.id] || {}), ...kept };
+    }
+  }
   S.askedEmergency = askedEmergency;
   S.keptEmergency = keptEmergency;
   S.onDraft = (draft, body) => {
-    if (!project) return;
+    if (!project || paused) return;
     const item = project.items[project.current];
     // The task box has one sentence to a line (useTask), so spacing is not compared.
     const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
@@ -828,6 +943,10 @@
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];
+    item.highAfter = (draft.jobSteps || []).map((step, at) => (step.risk && step.risk.after && step.risk.after.level === 'High' ? `step ${at + 1} (${step.step})` : '')).filter(Boolean);
+    // A design answered in this SWMS ("Not issued yet") is the project's answer for it too: the one-go
+    // page shows it, and Prepare all keeps it (messy round 4, run 3: it was lost on reopening).
+    keepDesigns(body.designs);
     // What is left to answer before download (goal 2): the site questions and blanks, or, for a SWMS
     // not finished, the answers it still needs.
     item.needs = draft.kind === 'stand-down'
@@ -859,6 +978,15 @@
     const open = event.target.closest('[data-project-open]');
     if (open) { openItem(Number(open.dataset.projectOpen), { toNeed: open.dataset.projectNeed !== undefined, toCover: open.dataset.projectCover !== undefined }); return; }
     if (event.target.closest('[data-project-review]')) { backToReview(); return; }
+    if (event.target.closest('[data-project-resume]')) {
+      paused = false;
+      S.editing = null;
+      const result = $('result');
+      if (result) { result.classList.add('hidden'); result.innerHTML = ''; }
+      renderProject();
+      requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+      return;
+    }
     if (event.target.closest('#project-close, #project-fresh')) {
       closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.');
       return;
@@ -935,5 +1063,9 @@
     changeChoice: () => changeChoice(),
   };
 
+  // On a computer the scope section starts open, so a person whose way in is a scope sees where to
+  // attach it (messy round 4, run 1: it started closed and the scope went into the logo box). A project
+  // in progress keeps it closed; on a phone it starts closed, to keep the page short.
+  if (!project && window.matchMedia && window.matchMedia('(min-width: 900px)').matches) $('scope-panel').open = true;
   renderProject();
 })();

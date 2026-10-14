@@ -666,6 +666,8 @@ function registersFor(draft, input = {}) {
   return {
     plant: listed.map((item) => localPlant(item, stateId)).map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
     plantInferred,
+    // The user has confirmed the plant: plant SiteReady was not sure of counts once ticked (emergency.js).
+    plantChosen: Boolean(input.plantChoice && typeof input.plantChoice === 'object'),
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
     qualifications,

@@ -119,7 +119,7 @@
   function blankLabel(before, after) {
     const named = NAMED.find((item) => item.label && before.endsWith(item.before) && after.startsWith(item.after));
     if (named) return named.label;
-    const lead = before.replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter((word) => word && !/^(?:the|a|an|of|to|is|are|and|or|for|with|on|in|at|least|than)$/i.test(word)).slice(-2).join(' ').toLowerCase();
+    const lead = before.split(/_{3,}/).pop().replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter((word) => word && !/^(?:the|a|an|of|to|is|are|and|or|for|with|on|in|at|least|than)$/i.test(word)).slice(-2).join(' ').toLowerCase();
     for (const [pattern, label] of UNIT_LABELS) {
       if (!pattern.test(after)) continue;
       // A pressure or load: "test pressure (kPa)", "bearing pressure (kPa)".
@@ -152,11 +152,37 @@
     return out;
   }
 
-  // The warning under the box, or '' when no blank is left.
+  // The warning under the box, or '' when no blank is left: each blank once, by its label (messy round
+  // 4, run 7: the blanks were named by overlapping runs of the words around them), and an answer typed
+  // in a blank that is no answer yet ("dont no", "TBC") called out.
+  const HELD = /\b(?:(?:i )?(?:dont|don't|don’t|do not) (?:know|no)|dunno|not sure|no idea|tb[acd])\b/i;
+  const UNITS = new Set(UNIT_LABELS.map(([, label]) => label));
+  // Each blank's name for the warning: the full name from the list above, else its box's label, with
+  // the words before it for a bare unit ("exclusion zone (metres)").
+  function warningNames(text) {
+    const value = String(text || '');
+    const out = [];
+    const pattern = /_{3,}/g;
+    let match;
+    while ((match = pattern.exec(value))) {
+      const before = value.slice(0, match.index);
+      const after = value.slice(match.index + match[0].length);
+      const named = NAMED.find((item) => before.endsWith(item.before) && after.startsWith(item.after));
+      if (named) { out.push(named.what); continue; }
+      const label = blankLabel(before, after);
+      const lead = before.split(/_{3,}/).pop().replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter((word) => word && !/^(?:the|a|an|of|to|is|are|and|or|for|with|on|in|at|least|than)$/i.test(word)).slice(-2).join(' ').toLowerCase();
+      out.push(UNITS.has(label) && lead ? `${lead} (${label})` : label);
+    }
+    return out;
+  }
   function blankWarning(text) {
-    const names = blankNames(text);
-    if (!names.length) return '';
-    return `${names.length === 1 ? 'Fill in the blank' : 'Fill in the blanks'}: ${names.join('; ')}.`;
+    const labels = warningNames(text);
+    if (!labels.length) return '';
+    const counts = new Map();
+    for (const label of labels) counts.set(label, (counts.get(label) || 0) + 1);
+    const names = [...counts].map(([label, count]) => (count > 1 ? `${label} (${count} blanks)` : label));
+    const held = HELD.exec(String(text || ''));
+    return `${labels.length === 1 ? 'Fill in the blank' : 'Fill in the blanks'}: ${names.join('; ')}.${held ? ` "${held[0]}" is not an answer: put in what applies on this job.` : ''}`;
   }
 
   const api = { QUESTION_DESIGNS, designIds, fillDesign, filledFrom, blankNames, blankLabels, blankWarning, NOT_ISSUED };

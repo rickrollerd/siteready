@@ -292,6 +292,8 @@ function draftBody(body) {
     substances: substances(body.substances),
     // The types of substance SiteReady suggests that the user ticked "Not required" (D277).
     substancesNotUsed: Array.isArray(body.substancesNotUsed) ? (() => { const { TYPES } = require('./public/substance-rules'); const out = [...new Set(body.substancesNotUsed.filter((type) => TYPES.includes(type)))]; return out.length ? out : undefined; })() : undefined,
+    // The short reason given for a type ticked "Not required" that the user's own words name (D292).
+    substancesNotUsedWhy: body.substancesNotUsedWhy && typeof body.substancesNotUsedWhy === 'object' && !Array.isArray(body.substancesNotUsedWhy) ? (() => { const { TYPES } = require('./public/substance-rules'); const out = Object.entries(body.substancesNotUsedWhy).filter(([type, why]) => TYPES.includes(type) && typeof why === 'string' && why.trim()).map(([type, why]) => [type, textField(why, 200)]); return out.length ? Object.fromEntries(out) : undefined; })() : undefined,
     // Clothing ids saved before one garment went to each tick box (D248) are read as the new ones.
     ppe: Array.isArray(body.ppe) ? currentPpeIds(body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40))) : undefined,
     ppeSteps: ppeSteps(body.ppeSteps),

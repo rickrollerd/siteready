@@ -66,7 +66,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
 // A SWMS checked part by part under its draft (D286), unless the test says otherwise.
 const CHECK = { parts: { steps: true, hazards: true, plant: true, emergency: true, site: true }, partHashes: { steps: 'a', hazards: 'b', plant: 'c', emergency: 'd', site: 'e' }, name: 'Sam Lee', role: 'Supervisor', ack: true };
 const item = (title, extra = {}) => ({ title, task: `${title} work.`, fallRisk: 'yes', kind: 'draft', status: 'ready', needs: [], check: CHECK, body: { task: `${title} work.`, state: 'qld', workplace: '1 A St, Brisbane QLD 4000', principalContractor: 'B', company: 'Co' }, ...extra });
-const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B', 'compliance-responsible': 'S', reviewer: 'S', 'works-manager': 'W', 'works-manager-phone': '0412 345 678', 'first-aider': 'J', 'muster-point': 'Gate' };
+const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B', 'compliance-responsible': 'S', reviewer: 'S', 'works-manager': 'W', 'works-manager-phone': '0412 345 678', 'first-aider': 'J', 'muster-point': 'Gate', hospital: 'Royal Brisbane and Women\'s Hospital' };
 
 test('with some SWMS not ready, the ready ones download, and each one not ready is named with what it needs (D278)', () => {
   const p = page({ people: PEOPLE });
