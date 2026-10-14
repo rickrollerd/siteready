@@ -142,6 +142,45 @@ function designs(value) {
   return out.length ? out : undefined;
 }
 
+// The hazardous products the user listed (substances.js, owner D256): "sub-1" and so on, each with its
+// type, its details from its safety data sheet (name, supplier, quantity, issue date, and its hazard
+// statements, controls, first aid, and storage and spills, one a line), the step the user chose for it,
+// its SDS file, what was read from the file, and whether the user ticked that the row matches the SDS.
+const SUBSTANCE_ID = /^sub-\d{1,2}$/;
+const SDS_READ = ['product', 'supplier', 'hazards', 'controls', 'firstAid', 'storage', 'sdsDate'];
+function substances(value) {
+  if (!Array.isArray(value)) return undefined;
+  const lines = (list) => (Array.isArray(list) ? list : typeof list === 'string' ? list.split(/\r?\n/) : []).filter((item) => typeof item === 'string')
+    .map((item) => textField(item.replace(/\s+/g, ' '), 600)).filter(Boolean).slice(0, 12);
+  const seen = new Set();
+  const out = value.filter((item) => item && typeof item === 'object' && !Array.isArray(item) && typeof item.id === 'string' && SUBSTANCE_ID.test(item.id)).slice(0, 20).map((item) => {
+    const file = item.file && typeof item.file === 'object' && typeof item.file.id === 'string' && FILE_ID.test(item.file.id)
+      ? { id: item.file.id, name: textField(item.file.name, 200), type: textField(item.file.type, 40), size: Math.max(0, Math.min(Number(item.file.size) || 0, 1e9)) } : undefined;
+    const readFields = item.read && typeof item.read === 'object' && Array.isArray(item.read.fields) ? SDS_READ.filter((key) => item.read.fields.includes(key)) : [];
+    return {
+      id: item.id,
+      type: textField(item.type, 120),
+      product: textField(String(item.product || '').replace(/\s+/g, ' '), 200),
+      supplier: textField(String(item.supplier || '').replace(/\s+/g, ' '), 200),
+      quantity: textField(item.quantity, 60),
+      sdsDate: textField(item.sdsDate, 20),
+      hazards: lines(item.hazards),
+      controls: lines(item.controls),
+      firstAid: lines(item.firstAid),
+      storage: lines(item.storage),
+      step: textField(item.step, 300),
+      ...(file ? { file } : {}),
+      ...(readFields.length ? { read: { fields: readFields } } : {}),
+      confirmed: item.confirmed === true,
+    };
+  }).filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+  return out.length ? out : undefined;
+}
+
 // The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
 // Where the user put each PPE item (D247): an item id to 'all' (moved to all work) or to the names
 // of the steps it is worn in. Items not listed follow SiteReady's suggestion.
@@ -246,6 +285,9 @@ function draftBody(body) {
     plantChoice: plantChoice(body.plantChoice),
     emergency: emergencyAnswers(body.emergency),
     designs: designs(body.designs),
+    substances: substances(body.substances),
+    // The types of substance SiteReady suggests that the user ticked "Not used on this job" (D277).
+    substancesNotUsed: Array.isArray(body.substancesNotUsed) ? (() => { const { TYPES } = require('./public/substance-rules'); const out = [...new Set(body.substancesNotUsed.filter((type) => TYPES.includes(type)))]; return out.length ? out : undefined; })() : undefined,
     // Clothing ids saved before one garment went to each tick box (D248) are read as the new ones.
     ppe: Array.isArray(body.ppe) ? currentPpeIds(body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40))) : undefined,
     ppeSteps: ppeSteps(body.ppeSteps),

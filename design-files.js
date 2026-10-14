@@ -165,9 +165,14 @@ async function saveUpload({ companyId, userId, data, name }) {
 // The file row, only for the business that holds it.
 const ownFile = (companyId, id) => db.one('SELECT * FROM design_files WHERE id = $1 AND company_id = $2', [String(id || ''), companyId]);
 
+// The file ids a SWMS input names: its designs' and written methods' files (designs.js), and its
+// hazardous products' safety data sheets (substances.js, D256), kept the same way.
+function fileIds(input) {
+  return [...new Set([...require('./designs').fileIds(input), ...require('./substances').fileIds(input)])];
+}
+
 // The file ids a SWMS input names that the business does not hold (gone, or never theirs).
 async function missingFiles(companyId, input) {
-  const { fileIds } = require('./designs');
   const missing = [];
   for (const id of fileIds(input)) if (!(await ownFile(companyId, id))) missing.push(id);
   return missing;
@@ -176,13 +181,13 @@ async function missingFiles(companyId, input) {
 async function needFiles(companyId, input) {
   const missing = await missingFiles(companyId, input);
   if (!missing.length) return;
-  const rows = (input.designs || []).filter((row) => row.file && missing.includes(row.file.id)).map((row) => row.what || (/^method-/.test(row.id) ? 'a written methodology' : 'a design'));
+  const rows = [...(input.designs || []).filter((row) => row.file && missing.includes(row.file.id)).map((row) => row.what || (/^method-/.test(row.id) ? 'a written methodology' : 'a design')),
+    ...(input.substances || []).filter((row) => row.file && missing.includes(row.file.id)).map((row) => `the safety data sheet of ${row.product || 'a product'}`)];
   throw fail(400, `The file attached to ${rows.join('; ')} is no longer held. Attach it again, or save without the file.`);
 }
 
 // Records that a saved revision names its files, so they are kept with it.
 async function recordUses(companyId, swmsId, revision, input) {
-  const { fileIds } = require('./designs');
   for (const id of fileIds(input)) {
     if (!(await ownFile(companyId, id))) continue;
     const seen = await db.one('SELECT file_id FROM design_file_uses WHERE file_id = $1 AND swms_id = $2 AND revision = $3', [id, swmsId, revision]);

@@ -79,7 +79,9 @@ const shape = (draft, withControls = true) => JSON.stringify({
 });
 
 test('the answers that need no new draft change nothing in the SWMS but where they print; a site answer can', () => {
-  assert.deepEqual(AS_GIVEN.filter((key) => !['emergency', 'fills'].includes(key)).sort(), ['complianceResponsible', 'firstAider', 'hospital', 'musterPoint', 'preparedBy', 'principalContractor', 'reviewDate', 'reviewer', 'scaffoldSupervisor', 'siteManager', 'swmsRef', 'workplace', 'worksManager', 'worksManagerPhone'].sort());
+  // The types of substance ticked "Not used on this job" (D277) are read by the gate only.
+  assert.ok(AS_GIVEN.includes('substancesNotUsed'));
+  assert.deepEqual(AS_GIVEN.filter((key) => !['emergency', 'fills', 'substancesNotUsed'].includes(key)).sort(), ['complianceResponsible', 'firstAider', 'hospital', 'musterPoint', 'preparedBy', 'principalContractor', 'reviewDate', 'reviewer', 'scaffoldSupervisor', 'siteManager', 'swmsRef', 'workplace', 'worksManager', 'worksManagerPhone'].sort());
   const people = { workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'Not applicable', complianceResponsible: 'Sam Lee', reviewer: 'Jo Doe', scaffoldSupervisor: 'Pat Doyle', firstAider: 'Jo Smith', musterPoint: 'Front gate', siteManager: 'Kim', worksManager: 'Lee', worksManagerPhone: '0400 000 000', hospital: 'Royal Brisbane', reviewDate: '1 December 2026', preparedBy: 'Sam Lee', swmsRef: 'SW-12' };
   const tasks = [FENCE, LIVE,
     { state: 'nsw', task: 'Erect a mobile scaffold and paint the ceiling of the foyer.', fallRisk: 'yes', facts: { safetyDataSheet: 'The paint safety data sheet is kept at the work area.', fallControl: 'Mobile scaffold with full guardrails, wheels locked.' } },
@@ -108,7 +110,8 @@ test('the answers that need no new draft change nothing in the SWMS but where th
 // blanks as typed on the page.
 const LIVE_READY = ready({ ...LIVE, site: ANSWERED.site });
 function server(body) {
-  const input = { ...LIVE_READY, ...Object.fromEntries(AS_GIVEN.map((key) => [key, body[key]])) };
+  // The substance types the test ticks "Not used on this job" stand: this page loads no substances card.
+  const input = { ...LIVE_READY, ...Object.fromEntries(AS_GIVEN.map((key) => [key, body[key]])), substancesNotUsed: body.substancesNotUsed || LIVE_READY.substancesNotUsed };
   const draft = prepareDraft(draftBody(input));
   const checks = gateChecks(draftBody(input), draft);
   return { ...draft, controlLegal: draft.jobSteps.map((step) => step.controls.map(() => '')), gate: checks.filter((check) => check.need).map(({ rule: _rule, ...gap }) => gap), gateChecks: checks };
@@ -196,7 +199,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
   assert.equal(sent.musterPoint, 'Gate 2 car park');
   assert.ok(Object.values(sent.emergency).every((answer) => /answer for this site/.test(answer)));
   assert.ok(Object.values(sent.fills).every((answers) => answers.every((answer) => answer === 'Electrical supervisor')));
-  const input = { ...LIVE_READY, ...Object.fromEntries(AS_GIVEN.map((key) => [key, sent[key]])) };
+  const input = { ...LIVE_READY, ...Object.fromEntries(AS_GIVEN.map((key) => [key, sent[key]])), substancesNotUsed: sent.substancesNotUsed || LIVE_READY.substancesNotUsed };
   assert.deepEqual(downloadGaps(draftBody(input), prepareDraft(draftBody(input))), []);
 });
 

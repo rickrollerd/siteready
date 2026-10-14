@@ -10,6 +10,7 @@ const vm = require('node:vm');
 
 const SOURCE = fs.readFileSync(path.join(__dirname, '..', 'public', 'project-go.js'), 'utf8');
 const FILL = fs.readFileSync(path.join(__dirname, '..', 'public', 'design-fill.js'), 'utf8');
+const RULES = fs.readFileSync(path.join(__dirname, '..', 'public', 'substance-rules.js'), 'utf8');
 const settle = () => new Promise((resolve) => { setTimeout(resolve, 30); });
 
 function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answer = () => ({}) } = {}) {
@@ -47,6 +48,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
   context.globalThis = context;
   vm.runInContext(FILL, context);
   window.SiteReadyDesignFill = context.SiteReadyDesignFill;
+  vm.runInContext(RULES, context);
   vm.runInContext(SOURCE, context);
   const hooks = { saved: 0, rendered: 0, save() { this.saved += 1; }, render() { this.rendered += 1; }, statusOf: (item) => (item.kind !== 'draft' || (item.needs || []).length ? 'needs' : 'ready') };
   // A stand-in event: its target answers closest() for the attributes the page looks for.
@@ -92,6 +94,25 @@ test('with none ready, the button is off and the list says what each needs', () 
   assert.match(panel.innerHTML, /None of the SWMS is ready to download yet\. Each one in the list above says what it still needs\./);
   assert.match(panel.innerHTML, /Not finished: Load limits need more\./);
   assert.match(panel.innerHTML, /Before download, open it to give: Plant and equipment\./);
+});
+
+test('the types of hazardous substance a SWMS waits for are said once, with what to do (D277), in the list and the not ready list', () => {
+  const p = page({ people: PEOPLE });
+  const types = ['Hazardous substance: cement, concrete, grout and mortar', 'Hazardous substance: fuels (diesel, petrol)'];
+  const project = { stage: 'review', shared: { emergency: {}, designs: {} }, items: [
+    item('Formwork', { status: 'needs', needs: ['Plant and equipment', ...types] }),
+    item('Placement', { status: 'needs', needs: [types[0], 'Hazardous substance: CureCoat 40'] }),
+    item('Clean up', { status: 'needs', needs: [types[1]] }),
+    item('Edge protection')] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  const html = panel.innerHTML.replace(/&quot;/g, '"');
+  assert.match(html, /Before download, open it to give: Plant and equipment\. Then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\./);
+  // A product's own item stays as it is.
+  assert.match(html, /Before download, open it to give: Hazardous substance: CureCoat 40\. Then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar\./);
+  assert.match(html, /Before download, open it and, for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\./);
+  assert.match(html, /<li>SWMS 1 \(Formwork\): give plant and equipment; then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="0">Go to it<\/button><\/li>/);
+  assert.match(html, /<li>SWMS 3 \(Clean up\): for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="2">Go to it<\/button><\/li>/);
 });
 
 test('details every SWMS shares are asked for once above the list, including the company ABN', () => {

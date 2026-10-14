@@ -648,12 +648,26 @@
     const abn = String(profile.abn || '').replace(/\D/g, '');
     return name && abn ? '' : !name && !abn ? 'Company name and ABN' : !name ? 'Company name' : 'ABN';
   }
+  // The types of hazardous substance a SWMS waits for (substances.js, D277), said once with what to do,
+  // not as one "Hazardous substance: ..." item each.
+  const TYPE_LABEL = 'Hazardous substance: ';
+  const TYPE_DO = 'for each hazardous substance, add the product you use or tick "Not used on this job"';
+  function splitTypes(labels) {
+    const rules = window.SiteReadySubstanceRules;
+    const names = new Set(rules ? rules.TYPES.map(rules.promptName) : []);
+    const isType = (label) => label.startsWith(TYPE_LABEL) && names.has(label.slice(TYPE_LABEL.length));
+    return { give: labels.filter((label) => !isType(label)), types: labels.filter(isType).map((label) => label.slice(TYPE_LABEL.length)) };
+  }
   function itemState(item) {
     const own = (item.needs || []).filter((label) => !SHARED_LABELS.has(label) && !(SITE_LABEL.test(label) && !item.siteOwn));
     if (item.status === 'ready') return { ready: true, text: 'Ready to download.' };
     if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.join('; ')} need more.` };
     if (item.status === 'write' || item.status === 'tick') return { ready: false, text: 'Needs your own step, or the SWMS that covers it named, for work SiteReady has no job steps for.' };
-    return { ready: false, text: own.length ? `Before download, open it to give: ${own.join('; ')}.` : 'Waiting only for the details above.' };
+    const { give, types } = splitTypes(own);
+    const typesText = types.length ? `${TYPE_DO}: ${types.join('; ')}` : '';
+    const text = give.length ? `Before download, open it to give: ${give.join('; ')}.${typesText ? ` Then, ${typesText}.` : ''}`
+      : typesText ? `Before download, open it and, ${typesText}.` : 'Waiting only for the details above.';
+    return { ready: false, text, give, types };
   }
   function sharedNeeds() {
     // A person's box left empty, or given an answer a SWMS does not accept ("TBA").
@@ -666,6 +680,7 @@
   // every SWMS ready by then in one zip; one unchanged since it was last downloaded keeps its revision.
   const lowerFirst = (text) => String(text).replace(/^[A-Z](?=[a-z])/, (letter) => letter.toLowerCase());
   const needsText = (state) => {
+    if (state.types && state.types.length) return [state.give.length ? `give ${state.give.map(lowerFirst).join('; ')}` : '', `${TYPE_DO}: ${state.types.join('; ')}`].filter(Boolean).join('; then, ');
     const text = state.text.replace(/\.$/, '');
     const give = /^Before download, open it to give: (.*)$/.exec(text);
     return give ? `give ${give[1].split('; ').map(lowerFirst).join('; ')}` : lowerFirst(text);

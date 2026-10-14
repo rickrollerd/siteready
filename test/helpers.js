@@ -49,7 +49,11 @@ function ready(input) {
     const emergency = Object.fromEntries((draft.emergencyQuestions || []).map((item) => [item.id, `${item.short} answer for this site`]));
     // Each design the steps rely on is named (designs.js), unless the test gives its own answers.
     const designs = input.designs || ((draft.designs || []).length ? draft.designs.map((row) => ({ id: row.id, what: row.what, status: 'given', by: 'Smith Engineering', number: `SE-${row.id.toUpperCase()}-101`, revision: 'C', date: '2026-10-03' })) : undefined);
-    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}) };
+    // Each type of hazardous substance SiteReady suggests is ticked "Not used on this job" (D277), unless
+    // the test gives its own products or ticks.
+    const types = (draft.substances && draft.substances.items) || [];
+    const notUsed = input.substancesNotUsed || (input.substances || !types.length ? undefined : types.map((item) => item.product));
+    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: notUsed } : {}) };
   }
   return out;
 }
