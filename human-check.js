@@ -116,6 +116,14 @@ function checkedRows(confirmation) {
   ];
 }
 
+// "Prepared by" left empty prints the name and role given at download (messy round 4: it printed empty
+// while the name was only in the footer): { name, date }, or null.
+function preparedFromCheck(draft, confirmation) {
+  if (draft && String(draft.preparedBy || '').trim()) return { name: draft.preparedBy, date: draft.date };
+  if (!isPartCheck(confirmation)) return null;
+  return { name: [confirmation.name, confirmation.role].filter(Boolean).join(', '), date: confirmation.date || (draft && draft.date) || '' };
+}
+
 // The footer line: "Checked by {name}, {role}, {date}".
 const checkedLine = (confirmation) => (isPartCheck(confirmation) ? `Checked by ${confirmation.name}, ${confirmation.role}, ${confirmation.date}` : '');
 
@@ -127,4 +135,4 @@ function errorFields(error) {
   };
 }
 
-module.exports = { OLD_CHECK_UNTIL, REFRESH, builderCheck, selfCheck, confirm, isOldShape, oldShapeAllowed, isPartCheck, checkedRows, checkedLine, errorFields, mustFixMessage, longDate };
+module.exports = { OLD_CHECK_UNTIL, REFRESH, builderCheck, selfCheck, confirm, isOldShape, oldShapeAllowed, isPartCheck, checkedRows, checkedLine, errorFields, mustFixMessage, longDate, preparedFromCheck };

@@ -65,7 +65,7 @@ test('each blank left is named in the warning (D245); none left, no warning', ()
   assert.equal(fill.blankWarning(standard('loadLimits', 'Engineer\'s drawing')), 'Fill in the blanks: the drawing number; the load limit in kPa; who checks the loads before loading starts.');
   assert.equal(fill.blankWarning(standard('excavationPlan', 'Geotechnical design')), 'Fill in the blanks: the design number; its revision; the steepest batter angle; the traffic management plan (TMP) number.');
   // A blank in words SiteReady does not know is named by the words around it.
-  assert.equal(fill.blankWarning('The exclusion zone is ____ m around the rig.'), 'Fill in the blank: the blank in "The exclusion zone is ____ m around the rig.".');
+  assert.equal(fill.blankWarning('The exclusion zone is ____ m around the rig.'), 'Fill in the blank: exclusion zone (metres).');
   assert.equal(fill.blankWarning('Checked and signed off by Pat Lee before the pour.'), '');
 });
 

@@ -312,7 +312,8 @@ test('accepted suggestions go in as job steps and own steps; skipped or unused c
   assert.deepEqual(prepareDraft(draftBody({ ...input })), before);
   assert.ok(!before.jobSteps.some((step) => step.step === 'Install the lift rails, car and machine'));
   // Accepted library match (Extend the guide rails: liftInstall), added to the steps chosen.
-  const accepted = prepareDraft(draftBody({ ...input, kinds: ['liftShaft', 'liftInstall'] }));
+  // Its steps tick a harness, so the harness question is answered with them (round 4: asked from the steps).
+  const accepted = prepareDraft(draftBody({ ...input, kinds: ['liftShaft', 'liftInstall'], facts: { ...input.facts, harnessSystem: 'Full body harness on a restraint lanyard to the engineer-rated anchor in the shaft, inspected every 6 months, users trained by ABC Training.' } }));
   assert.ok(accepted.jobSteps.some((step) => step.step === 'Install the lift rails, car and machine'));
   // Accepted "Your step" (Raise the machine platform): the methodology's own words, marked as the user's own.
   const raise = JUMP_LIFT_READING.steps[5];

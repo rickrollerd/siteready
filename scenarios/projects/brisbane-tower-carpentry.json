@@ -45,7 +45,8 @@
       "task": "Install timber handrails and balcony screens near the balcony edges and stair voids, using drop saws and nail guns.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Balcony balustrades and void edge protection stay in place, except where opened one section at a time under the permit procedure in this SWMS."
+        "fallControl": "Balcony balustrades and void edge protection stay in place, except where opened one section at a time under the permit procedure in this SWMS.",
+    "harnessSystem": "Where a section of edge protection is opened, workers wear a full body harness on a restraint lanyard set so they cannot reach the edge, clipped to anchors rated by the anchor installer. Harnesses are inspected by a competent person every 6 months and users are trained in working at heights."
       },
       "expect": {
         "highRisk": [

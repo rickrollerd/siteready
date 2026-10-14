@@ -4,10 +4,10 @@ const {
 } = require('docx');
 const { stepPpeRows } = require('./step-ppe');
 const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./designs');
-const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
+const { tableRows: substanceRows, notRequiredLine, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
-const { checkedRows, checkedLine } = require('./human-check');
+const { checkedRows, checkedLine, preparedFromCheck } = require('./human-check');
 
 const FONT = 'Calibri';
 const INK = '1C2430';
@@ -167,13 +167,14 @@ function boxCell(items, width) {
   });
 }
 
-function preparedBy(draft) {
+function preparedBy(draft, confirmation) {
+  const by = preparedFromCheck(draft, confirmation);
   return [
     sectionHeading('Prepared by'),
     signTable([
-      ['Name and position', draft.preparedBy || ''],
+      ['Name and position', by ? by.name : ''],
       ['Signature', ''],
-      ['Date', draft.preparedBy ? draft.date : ''],
+      ['Date', by ? by.date : ''],
       ['Date given to the principal contractor', ''],
     ]),
   ];
@@ -194,6 +195,8 @@ function checkedBy(confirmation) {
 // the review box prints them.
 const PC_OUTCOMES = [['approved', 'Approved'], ['conditions', 'Approved with conditions'], ['changes', 'Not approved']];
 const PC_TEXT = { approved: 'Comments', conditions: 'Conditions', changes: 'Changes needed' };
+// Numbered conditions print each on its own line (messy round 4: four printed as one paragraph).
+const conditionLines = (text) => String(text || '').replace(/(\S)[ \t]+(?=\(?\d{1,2}[.)][ \t]+\S)/g, '$1\n');
 
 // The box filled with the response the reviewer returned on this revision in SiteReady (D290): the
 // outcome, the reviewer and their company, the date and any conditions or changes needed.
@@ -205,7 +208,7 @@ function reviewedBox(draft, review) {
       ['Principal contractor', draft.principalContractor || ''],
       ['Reviewed by (name and company)', [review.name, review.company].filter(Boolean).join(', ')],
       ['Outcome', PC_OUTCOMES.map(([id, label]) => ({ label, ticked: review.response === id }))],
-      [PC_TEXT[review.response] || 'Comments', review.text || 'None'],
+      [PC_TEXT[review.response] || 'Comments', conditionLines(review.text) || 'None'],
       ['Date', review.date || ''],
     ]),
   ];
@@ -376,11 +379,14 @@ function registerBlocks(draft) {
   // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
   // D256, D257). A type of substance with no product does not print.
   const products = substanceRows(draft);
+  // Types ticked "Not required" with the reason given (D292 item 3) print under the table, or alone.
+  const notRequired = notRequiredLine(draft);
+  if (products.length || notRequired) blocks.push(sectionHeading(SUBSTANCES_TITLE));
   if (products.length) {
-    blocks.push(sectionHeading(SUBSTANCES_TITLE));
     blocks.push(para(SUBSTANCES_NOTE, { size: 19, color: MUTED, before: 0, after: 80 }));
     blocks.push(gridTable(SUBSTANCES_HEAD, [2600, 2500, 3700, 2200, 2200, CONTENT_WIDTH - 13200], products));
   }
+  if (notRequired) blocks.push(para(notRequired, { size: 20, before: 60, after: 80 }));
   blocks.push(sectionHeading('Licences, tickets and training'));
   blocks.push(para('Needed for this task:', { size: 20, bold: true, before: 0, after: 40 }));
   for (const item of draft.qualifications || []) blocks.push(para(`•  ${item}`, { size: 20, before: 0, after: 20 }));
@@ -541,7 +547,7 @@ function childrenFor(draft, options = {}) {
     blocks.push(signTable(draft.references.map((item) => [item.label, item.text])));
   }
 
-  blocks.push(...preparedBy(draft));
+  blocks.push(...preparedBy(draft, options.confirmation));
   blocks.push(...checkedBy(options.confirmation));
   blocks.push(...principalContractorReview(draft, options));
   blocks.push(...workerSignOn(draft, options.signons || []));
@@ -606,7 +612,8 @@ function reviewedNote(review) {
 // revision. A saved SWMS's reference names the revision it was printed for.
 function preparedFor(company, ref, revision) {
   if (!ref) return '';
-  const abn = company && company.abn ? ` (ABN ${company.abn})` : '';
+  const digits = company && company.abn ? String(company.abn).replace(/\D/g, '') : '';
+  const abn = company && company.abn ? ` (ABN ${digits.length === 11 ? `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}` : company.abn})` : '';
   return `Prepared with SiteReady for ${(company && company.name) || 'the business named above'}${abn}. SiteReady reference ${ref}${revision ? `, revision ${revision}` : ''}.`;
 }
 
@@ -680,4 +687,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, draftToDocx, draftedNote, revisionText };
+module.exports = { sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines, draftToDocx, draftedNote, revisionText };

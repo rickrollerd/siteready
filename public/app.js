@@ -15,14 +15,29 @@ async function readJson(response) {
     throw Object.assign(new Error(SERVER_DOWN), { serverDown: true });
   }
 }
-async function postJson(route, body) {
-  let response;
-  try {
-    response = await fetch(api(route), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: typeof body === 'string' ? body : JSON.stringify(body) });
-  } catch {
-    throw Object.assign(new Error(SERVER_DOWN), { serverDown: true });
+// Asking for the questions or a draft changes nothing on the server, so a host's error (502, 503, 504)
+// or a reply that is not SiteReady's is asked again twice before the page says so (messy round 4,
+// A fault 5: a 502 on the questions sent a prepared SWMS back to its task form).
+const RETRIED = new Set(['/api/draft/questions', '/api/draft']);
+const pause = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+async function postJson(route, body, { tries = RETRIED.has(route) ? 3 : 1 } = {}) {
+  const sent = typeof body === 'string' ? body : JSON.stringify(body);
+  for (let attempt = 1; ; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(api(route), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: sent });
+    } catch (error) {
+      if (attempt < tries && !(error && error.noSignal)) { await pause(attempt * 700); continue; }
+      throw Object.assign(new Error(SERVER_DOWN), { serverDown: true });
+    }
+    if (attempt < tries && [502, 503, 504].includes(response.status)) { await pause(attempt * 700); continue; }
+    try {
+      return { response, data: await readJson(response) };
+    } catch (error) {
+      if (attempt < tries) { await pause(attempt * 700); continue; }
+      throw error;
+    }
   }
-  return { response, data: await readJson(response) };
 }
 
 const statesEl = document.getElementById('states');
@@ -416,6 +431,7 @@ function payload() {
     // Each hazardous product the user listed, from its safety data sheet (substances.js, D256).
     substances: window.SiteReadySubstances ? window.SiteReadySubstances.payload() : undefined,
     substancesNotUsed: window.SiteReadySubstances ? window.SiteReadySubstances.notUsedPayload() : undefined,
+    substancesNotUsedWhy: window.SiteReadySubstances && window.SiteReadySubstances.notUsedWhyPayload ? window.SiteReadySubstances.notUsedWhyPayload() : undefined,
     facts,
     site,
   };
@@ -434,9 +450,10 @@ async function loadStates() {
     </li>
   `).join('');
   stateList = data.states;
-  const first = statesEl.querySelector('input:not(:disabled)');
-  if (first) first.checked = true;
-  statesEl.querySelectorAll('input').forEach((input) => input.addEventListener('change', showFallExplanation));
+  // No state is ticked on a fresh page (owner, D292 item 1: Queensland was ticked before any address was
+  // typed, and a Canberra job printed Queensland law). It is set by picking the job address from its
+  // list, or by ticking it; Continue and the download wait for it.
+  statesEl.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => { showFallExplanation(); stateChosen(); }));
   showFallExplanation();
 }
 
@@ -471,11 +488,30 @@ let stateKept = '';
 // address (messy round 3: "State set to Queensland from the job address" was missed, and a Hobart job
 // nearly used Queensland law). A state other than the one expected is never set without a word: the
 // note asks, with a button to keep it.
+// The state ticked, or ''.
+const stateNow = () => (document.querySelector('input[name="state"]:checked') || {}).value || '';
+// The plain question when the address typed does not say its state and none is ticked (D292 item 1).
+const STATE_ASK = 'Which state or territory is this job in? Pick the job address from the list under the box, or tick the state below.';
+function stateChosen() {
+  const note = document.getElementById('state-ask');
+  if (note && stateNow()) { note.textContent = ''; note.classList.add('hidden'); }
+  if (stateNow() && !window.SiteReadyAddress?.stateFromAddress(workplaceEl.value).state && workplaceEl.value.trim()) applyAddressState();
+}
 function applyAddressState() {
   const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
   workplaceState.classList.remove('state-warning', 'state-said');
   if (!found.state) {
-    workplaceState.textContent = workplaceEl.value.trim() ? 'Include the state or postcode in the job address, so the right state law is used.' : '';
+    // Typed with no state and not picked from the list: the state is asked plainly, or the one ticked
+    // is said so it can be checked (messy round 4, run 7: "12 london circut canbera" kept Queensland).
+    const ticked = stateNow();
+    if (!workplaceEl.value.trim()) { workplaceState.textContent = ''; return; }
+    if (ticked) {
+      workplaceState.innerHTML = `<strong>This SWMS uses ${esc(STATE_LAW[ticked] || `${stateName(ticked)} law`)}.</strong> The address does not say its state: check the state ticked below is where the job is, or pick the address from the list.`;
+      workplaceState.classList.add('state-said');
+      return;
+    }
+    workplaceState.innerHTML = `<strong>${esc(STATE_ASK)}</strong>`;
+    workplaceState.classList.add('state-warning');
     return;
   }
   const expected = expectedState();
@@ -681,11 +717,55 @@ function craneAnswered() {
   return true;
 }
 
+// "Continue" with a scope attached and no task (messy round 4, run 3: the browser said only "Please fill
+// out this field"): the scope is read with its own button.
+const scopeWaiting = () => {
+  const file = document.getElementById('scope-file');
+  const text = document.getElementById('scope-text');
+  return Boolean((file && file.files && file.files.length) || (text && text.value.trim()) || (window.SiteReady && window.SiteReady.scopeDropped && window.SiteReady.scopeDropped()));
+};
+document.getElementById('continue').addEventListener('click', (event) => {
+  if (document.getElementById('task').value.trim() || !scopeWaiting()) return;
+  event.preventDefault();
+  const panel = document.getElementById('scope-panel');
+  if (panel) panel.open = true;
+  const read = document.getElementById('scope-read');
+  document.getElementById('start-error').innerHTML = `You attached a scope. To have it read, press <button type="button" class="link" data-go-scope-read>Find the tasks that need a SWMS</button> under it. For one task, write it in the Task box instead.`;
+  if (read) read.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest || !event.target.closest('[data-go-scope-read]')) return;
+  const read = document.getElementById('scope-read');
+  if (read) { read.scrollIntoView({ behavior: 'smooth', block: 'center' }); read.focus({ preventScroll: true }); }
+});
+// No state ticked: asked plainly at the state list, which Continue waits for (D292 item 1).
+function stateAnswered() {
+  if (stateNow()) return true;
+  applyAddressState();
+  if (stateNow()) return true;
+  let note = document.getElementById('state-ask');
+  if (!note) {
+    note = document.createElement('p');
+    note.id = 'state-ask';
+    note.className = 'error';
+    note.setAttribute('role', 'alert');
+    statesEl.after(note);
+  }
+  note.textContent = STATE_ASK;
+  note.classList.remove('hidden');
+  document.getElementById('start-error').textContent = STATE_ASK;
+  statesEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const first = statesEl.querySelector('input:not(:disabled)');
+  if (first) first.focus({ preventScroll: true });
+  return false;
+}
+
 document.getElementById('start').addEventListener('submit', (event) => {
   event.preventDefault();
   document.getElementById('start-error').textContent = '';
+  // The state always follows the job address; with none, it is asked for.
+  if (!stateAnswered()) return;
   if (!craneAnswered()) return;
-  // The state always follows the job address.
   applyAddressState();
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
   // The steps picked or left out for this same task are kept, so Continue on a reopened SWMS
@@ -710,7 +790,15 @@ document.getElementById('start').addEventListener('submit', (event) => {
   if (scope && scope.scope) scopeWordsNow = scope.scope;
   else if (!scope) scopeWordsNow = null;
   // With no signal the plain message shows here, not nothing (goal 7).
-  loadQuestions().catch((error) => { document.getElementById('start-error').textContent = error.message; });
+  loadQuestions().catch((error) => {
+    const said = document.getElementById('start-error');
+    if (error.serverDown) said.innerHTML = `${esc(error.message)} <button type="button" class="link" data-retry-continue>Try again</button>`;
+    else said.textContent = error.message;
+  });
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest || !event.target.closest('[data-retry-continue]')) return;
+  document.getElementById('start').requestSubmit(document.getElementById('continue'));
 });
 
 // Job steps: null follows the steps SiteReady finds in the task; a list is the user's own picks.
@@ -1198,11 +1286,20 @@ function drawBlankForm(box) {
     form = made;
   }
   box.classList.add('hidden');
+  // A blank filled with no answer ("me", "dont no", "TBC") is refused at its box, by its label (messy
+  // round 4, runs 7 and 9: "trained by me" printed).
+  const said = [];
   form.querySelectorAll('[data-blank-n]').forEach((input) => {
     const value = values[Number(input.dataset.blankN)] || '';
     if (document.activeElement !== input && input.value !== value) input.value = value;
     input.classList.toggle('empty', !input.value.trim());
+    const why = input.value.trim() && window.SiteReadyGate ? window.SiteReadyGate.notAnswer(input.value) : '';
+    input.classList.toggle('bad', Boolean(why));
+    if (why) said.push(`${input.getAttribute('aria-label') || 'This blank'}: ${why}`);
   });
+  let note = form.querySelector('.blank-slot-note');
+  if (!note && said.length) { note = document.createElement('p'); note.className = 'blank-slot-note'; note.setAttribute('role', 'status'); form.appendChild(note); }
+  if (note) { const text = said.join(' '); if (note.textContent !== text) note.textContent = text; note.hidden = !said.length; }
 }
 // A box in the sentence: the answer gets what is typed in that blank's place.
 document.addEventListener('input', (event) => {
@@ -1232,7 +1329,7 @@ document.addEventListener('click', (event) => {
 function answerTarget(el) {
   const form = el && el.id ? document.getElementById(`${el.id}-form`) : null;
   if (!form || !el.classList.contains('hidden')) return el;
-  return form.querySelector('.blank-slot-input.empty') || form.querySelector('.blank-slot-input') || el;
+  return form.querySelector('.blank-slot-input.bad') || form.querySelector('.blank-slot-input.empty') || form.querySelector('.blank-slot-input') || el;
 }
 function showAllBlanks() {
   document.querySelectorAll('#required-block textarea[data-fact], #site-block textarea[data-site]').forEach(showBlanks);
@@ -1341,9 +1438,12 @@ document.getElementById('required-block').addEventListener('input', (event) => {
 });
 // "Go to" beside an answer a stood-down draft still needs: the box is brought into view and focused.
 function goToAnswer(id) {
-  const box = document.getElementById(`fact-${id}`) || document.querySelector(`#required-block [data-q="${id}"] input, #required-block [data-q="${id}"]`);
-  if (!box) return;
+  const found = document.getElementById(`fact-${id}`) || document.querySelector(`#required-block [data-q="${id}"] input, #required-block [data-q="${id}"]`);
+  if (!found) return;
   factsForm.classList.remove('hidden');
+  // An answer shown as its sentence with boxes (D261) is reached at its first empty blank: the answer
+  // box itself is hidden, so the phone did not move (messy round 4, run 9).
+  const box = answerTarget(found);
   box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   if (box.focus) box.focus({ preventScroll: true });
 }
@@ -1373,7 +1473,8 @@ async function askOnce() {
     const { response, data } = await postJson('/api/draft/questions', payload());
     if (!response.ok || seq !== askSeq) return;
     if (seq !== askSeq || !Array.isArray(data.required)) return;
-    questions = { ...questions, required: data.required, weak: data.weak || [] };
+    questions = { ...questions, required: data.required, weak: data.weak || [], standDown: data.standDown, notCovered: data.notCovered, notCoveredLeft: data.notCoveredLeft };
+    showStandDown(data);
     weakNotes = weakMap(data.weak);
     drawRequired(data.required);
     drawDesigns(data.designs || []);
@@ -1412,9 +1513,7 @@ async function loadQuestions(options = {}) {
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
   // Work SiteReady has no job steps for is stood down: the user hears it here, not only at the draft.
-  const notice = document.getElementById('steps-notice');
-  notice.textContent = (data.standDown && data.standDown.message) || '';
-  notice.classList.toggle('hidden', !notice.textContent);
+  showStandDown(data);
   weakNotes = weakMap(data.weak);
   if (fresh) {
     factMemory = {};
@@ -1476,6 +1575,7 @@ function fillFields(values) {
     else el.value = values[key] || '';
   });
   applyAddressState();
+  showSameName();
 }
 
 // The task and site details of a SWMS, without asking the server for its questions.
@@ -1514,7 +1614,7 @@ function fillStart(input) {
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
   ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
-  if (window.SiteReadySubstances) window.SiteReadySubstances.load(input.substances, input.substancesNotUsed);
+  if (window.SiteReadySubstances) window.SiteReadySubstances.load(input.substances, input.substancesNotUsed, input.substancesNotUsedWhy);
   designsFound = [];
   designsKept = new Map();
   // This SWMS's own answers are drawn fresh, even for the same designs as the last one shown.
@@ -1544,9 +1644,12 @@ async function fillForm(input, options = {}) {
     const saved = input.ppe.flatMap((id) => OLD[id] || [id]);
     const rows = new Set([...document.querySelectorAll('[data-ppe-step]')].map((el) => el.value));
     document.querySelectorAll('[data-ppe], [data-ppe-step]').forEach((el) => { el.checked = saved.includes(el.value) && !(el.matches('[data-ppe]') && rows.has(el.value)); });
-    // The questions follow the SWMS's own PPE (a harness or life jacket brings its questions).
-    await askAgain();
   }
+  // The questions follow the SWMS's own answers and PPE: a harness named in the fall control answer, or
+  // ticked, brings its question, with the answer it was given (messy round 4, A fault 3: the harness
+  // answer given on the project page showed "Not answered yet" once the SWMS was opened, as the draft
+  // was asked for before the question was on the page).
+  await askAgain();
   return true;
 }
 
@@ -1657,7 +1760,7 @@ async function loadPresets() {
 function showPresetNote(item) {
   const gaps = (item && item.gaps) || [];
   let text = '';
-  if (item && item.coverage === 'none' && !(item.kinds || []).length) text = 'SiteReady has no job steps for this task yet. Pick the job steps that cover it under Job steps, or write this SWMS yourself.';
+  if (item && item.coverage === 'none' && !(item.kinds || []).length) text = 'SiteReady has no job steps for this task yet. Pick the job steps that cover it under Job steps, or write your own step for it with "Write a step for this" after Continue.';
   else if (gaps.length) text = `SiteReady has no job steps yet for: ${gaps.join('; ')}. You will be asked to add your own steps for this, or cover it in a separate SWMS.`;
   presetNote.textContent = text;
   presetNote.classList.toggle('hidden', !text);
@@ -1829,12 +1932,27 @@ function companyGap() {
   const field = !name ? 'profile-company' : 'profile-abn';
   const missing = !name && !abn ? 'company name and ABN' : !name ? 'company name' : 'ABN';
   // "Company name and ABN", not "Company company name and ABN" (messy round 3).
-  return { id: 'company', kind: 'company', field, label: `${missing.charAt(0).toUpperCase()}${missing.slice(1)}`, need: `Add your ${missing} under Company profile${profileDiffers(typed) ? ' and press Save profile' : ''}. They print on every SWMS.` };
+  // The profile saves itself once both are in (messy round 4: "press Save profile" was said of it).
+  return { id: 'company', kind: 'company', field, label: `${missing.charAt(0).toUpperCase()}${missing.slice(1)}`, need: `Add your ${missing} under Company profile.${profileDiffers(typed) ? ' It saves itself once the company name and the 11 digit ABN are both filled in.' : ''} They print on every SWMS.` };
 }
 
+// Questions about plant the user has unticked, but not yet confirmed, are not asked (messy round 4, run
+// 4: the scaffold supervisor and two EWP emergency answers were asked with the EWP unticked). The
+// server asks again once the plant is confirmed.
+const EWP_PLANT = /elevating work platform|^Scissor lift/i;
+function plantUnticked(check) {
+  if (!document.getElementById('plant-panel') || !plantPending) return false;
+  const ticks = plantPending.ticks || plantTicksNow();
+  const names = Object.keys(ticks);
+  if (!names.length) return false;
+  const anyTicked = (pattern) => names.some((name) => pattern.test(name) && ticks[name]) || plantOwn().some((item) => pattern.test(item.item));
+  if (/^emergency\.ewp/.test(check.id || '')) return names.some((name) => EWP_PLANT.test(name)) && !anyTicked(EWP_PLANT);
+  if (check.id === 'scaffoldSupervisor') return names.some((name) => /\bscaffold/i.test(name)) && !anyTicked(/\bscaffold/i);
+  return false;
+}
 function outstanding(data) {
   if (!data || data.kind !== 'draft') return [];
-  const gaps = shownChecks.filter((check) => check.kind !== 'cover').map((check) => ({ ...check, need: liveNeed(check) })).filter((check) => check.need);
+  const gaps = shownChecks.filter((check) => check.kind !== 'cover' && !plantUnticked(check)).map((check) => ({ ...check, need: liveNeed(check) })).filter((check) => check.need);
   const company = companyGap();
   if (company) gaps.unshift(company);
   // A part the user wrote a step for needs no tick. Work that is all the task's work (D211) needs the
@@ -1868,6 +1986,8 @@ const setHtml = (el, html) => { if (el && el.innerHTML !== html) el.innerHTML = 
 let gateDrawn = '';
 function showGate() {
   shownGaps = outstanding(shownDraft);
+  // The EWP's emergency questions are put away while the EWP is unticked.
+  document.querySelectorAll('[data-emergency^="ewp"]').forEach((el) => { const field = el.closest('.field'); if (field) field.classList.toggle('hidden', plantUnticked({ id: `emergency.${el.dataset.emergency}` })); });
   const S = window.SiteReady || {};
   const drawn = JSON.stringify(shownGaps.map((gap) => [gap.label, gap.need]));
   if (drawn !== gateDrawn) {
@@ -2394,11 +2514,14 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     ${head}`;
   }
   if (draft.kind === 'stand-down') {
+    // For want of job steps, the user can write their own (messy round 4, B fault 1).
+    const noSteps = (draft.missing || []).some((item) => /^Job steps for this work:/.test(item));
     return `${head}
       <h4>Stood down</h4>
       <p>${esc(draft.statement)}</p>
       <p><strong>Missing</strong></p>
       <ul>${draft.missing.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>
+      ${noSteps && movable ? '<div class="actions"><button type="button" data-own-early-go>Write a step for this</button></div>' : ''}
       <p>No method is included.</p>`;
   }
   const risks = draft.highRisk.length
@@ -2556,8 +2679,13 @@ document.getElementById('hospital-find').addEventListener('click', async () => {
 document.getElementById('hospital-list').addEventListener('click', (event) => {
   const button = event.target.closest('[data-care]');
   if (!button) return;
-  document.getElementById('hospital').value = button.dataset.care;
+  const hospital = document.getElementById('hospital');
+  hospital.value = button.dataset.care;
   document.getElementById('hospital-list').classList.add('hidden');
+  // The hospital is needed before download (D292): the list before download, and the project page's
+  // list of details still to give, follow it at once.
+  hospital.dispatchEvent(new Event('input', { bubbles: true }));
+  hospital.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
 // Each box remembers what was typed in the last few SWMS on this device, and offers it
@@ -2702,11 +2830,18 @@ function notCoveredBlock(data) {
   // covered elsewhere, comes off (messy round 3: the banner kept listing items already dealt with).
   const left = parts.filter((part) => !(ownFor(part) && written.has(part)) && (main.has(part) || !coverNamed(part)));
   const one = left.length === 1;
+  const others = otherSwms();
   const rows = parts.map((part, index) => {
     const mine = ownFor(part);
     const from = moved.get(sameWords(part));
-    const fromNote = from ? `<span class="meta"> Moved here from ${esc(from)}, which you said this SWMS covers.</span>` : '';
+    // Work moved in can be sent back to the SWMS it came from, which undoes the move: it is never
+    // passed on again (messy round 4, A fault 4: work went back and forth between SWMS).
+    const fromNote = from ? `<span class="meta"> Moved here from ${esc(from)}, which you said this SWMS covers. <button type="button" class="link" data-cover-return="${index}">Not covered here: send it back to ${esc(from.replace(/ \(.*$/, ''))}</button></span>` : '';
     if (mine && written.has(part)) return `<li data-cover-part="${index}"><strong>${esc(part)}</strong>${fromNote}<span class="cover-tools"><span class="cover-done">Done: your step "${esc(mine.name)}" is in the job steps below.</span> <button type="button" class="link" data-own-change="${esc(mine.name)}">Change your step</button></span></li>`;
+    // Work moved to another SWMS of the project is written there, not here: no "Write a step for this"
+    // (messy round 4: a step was written under a moved item by mistake). It can be moved back.
+    const movedTo = !main.has(part) && coverNamed(part) && others.includes(namedElsewhere(part)) ? namedElsewhere(part) : '';
+    if (movedTo) return `<li data-cover-part="${index}"><strong>${esc(part)}</strong><span class="cover-tools"><span class="cover-done">Moved to: ${esc(movedTo)}. Its steps are written in that SWMS.</span> <button type="button" class="link" data-cover-back="${index}">Move it back here</button></span></li>`;
     const write = `<button type="button" class="small" data-own-write="${index}">${mine ? 'Finish your step for this' : 'Write a step for this'}</button>`;
     return `<li data-cover-part="${index}"><strong>${esc(part)}</strong>${fromNote}<span class="cover-tools">${write}</span>${main.has(part) ? '' : coverWhere(part, index)}</li>`;
   }).join('');
@@ -2730,6 +2865,33 @@ function redrawCover(focusId) {
   const back = focusId && document.getElementById(focusId);
   if (back) back.focus();
 }
+// "Move it back here" undoes a move, and "send it back" undoes a move made from another SWMS of the
+// project (D289): the work returns to the SWMS it came from, with any step written for it.
+document.addEventListener('click', async (event) => {
+  const back = event.target.closest && event.target.closest('[data-cover-back]');
+  const ret = event.target.closest && event.target.closest('[data-cover-return]');
+  if ((!back && !ret) || !shownDraft) return;
+  const part = coverParts(shownDraft)[Number((back || ret).dataset.coverBack || (back || ret).dataset.coverReturn)];
+  if (!part) return;
+  const S = window.SiteReady || {};
+  if (back) {
+    const was = namedElsewhere(part);
+    coverElsewhere = { ...(coverElsewhere || {}) };
+    delete coverElsewhere[part];
+    coverMovedKept.delete(part);
+    carryOwnStep(part, was, '');
+    syncCoverTicked();
+  } else if (S.projectSendBack) {
+    const mine = ownFor(part);
+    if (!S.projectSendBack(part, mine || null)) return;
+    if (mine) { ownSteps = (ownSteps || []).filter((item) => item !== mine); if (!ownSteps.length) ownSteps = null; }
+  }
+  keepUnsaved();
+  await prepareDraft({ scroll: false, keep: '.not-covered' });
+  const block = resultEl.querySelector('.not-covered');
+  if (block) block.insertAdjacentHTML('afterbegin', `<p class="meta" role="status">${esc(back ? `"${part}" is back in this SWMS. Write its step here, or say which SWMS covers it.` : `"${part}" is sent back to the SWMS it came from, and comes off this SWMS.`)}</p>`);
+});
+
 // "Go to the box", beside the buttons that wait for it: the first part still to deal with.
 document.addEventListener('click', (event) => {
   if (!event.target.closest('[data-cover-jump]')) return;
@@ -2738,12 +2900,29 @@ document.addEventListener('click', (event) => {
   box.closest('.not-covered').scrollIntoView({ behavior: 'smooth', block: 'center' });
   box.focus({ preventScroll: true });
 });
+// A step written here for work then moved to another SWMS of the project goes with it, and comes back
+// with it, so one piece of work is never written twice (messy round 4, A fault 4).
+function carryOwnStep(part, from, to) {
+  const S = window.SiteReady || {};
+  if (from && otherSwms().includes(from) && !ownFor(part) && S.projectTakeStep) {
+    const back = S.projectTakeStep(from, part);
+    if (back) ownSteps = [...(ownSteps || []), back];
+  }
+  if (to && otherSwms().includes(to)) {
+    const mine = ownFor(part);
+    if (mine && S.projectGiveStep && S.projectGiveStep(to, mine)) {
+      ownSteps = (ownSteps || []).filter((item) => item !== mine);
+      if (!ownSteps.length) ownSteps = null;
+    }
+  }
+}
 document.addEventListener('change', (event) => {
   const pick = event.target.closest && event.target.closest('[data-cover-where]');
   if (!pick || !shownDraft) return;
   const part = coverParts(shownDraft)[Number(pick.dataset.coverWhere)];
   if (!part) return;
   const movedBefore = JSON.stringify(coverMovedSent() || []);
+  const was = namedElsewhere(part);
   coverElsewhere = { ...(coverElsewhere || {}) };
   coverMovedKept.delete(part);
   if (pick.value === COVER_TYPED) {
@@ -2753,6 +2932,7 @@ document.addEventListener('change', (event) => {
     coverTyping.delete(part);
     if (pick.value) coverElsewhere[part] = pick.value; else delete coverElsewhere[part];
   }
+  carryOwnStep(part, was !== namedElsewhere(part) ? was : '', namedElsewhere(part) !== was ? namedElsewhere(part) : '');
   syncCoverTicked();
   redrawCover(pick.value === COVER_TYPED ? `cover-name-${pick.dataset.coverWhere}` : pick.id);
   showGate();
@@ -2789,6 +2969,15 @@ function backToSpot(spot) {
   const moved = el.getBoundingClientRect().top - spot.top;
   if (Math.abs(moved) >= 1) window.scrollTo(0, window.scrollY + moved);
 }
+// The principal contractor's conditions or changes, above the draft while it is fixed (messy round 4,
+// A fault 11: they were not on screen while fixing), each numbered one on its own line.
+function fixingHtml() {
+  const S = window.SiteReady || {};
+  const review = S.editing && S.editing.review;
+  if (!review || !review.text) return '';
+  const text = S.conditionLines ? S.conditionLines(review.text) : review.text;
+  return `<div class="pc-review pc-back" id="fix-review-top" role="region" aria-label="The principal contractor's review"><p><strong>Fixing for the principal contractor's review:</strong> ${esc(review.label)}, ${esc(review.name)}, ${esc(review.company)}, ${esc(review.date)}.</p><div class="pc-text"><strong>${review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(text)}</div><p class="meta">Make the changes in the draft below, then save it as a new revision at the bottom and send the principal contractor its new reference.</p></div>`;
+}
 async function prepareDraft({ scroll = true, keep = '' } = {}) {
   const spot = screenSpot(keep);
   // Plant ticks or removals not yet confirmed are used, so "Update the draft" does not undo them.
@@ -2823,7 +3012,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     const scaffoldField = document.getElementById('scaffold-supervisor-field');
     if (scaffoldField) scaffoldField.classList.toggle('hidden', !shownChecks.some((check) => check.id === 'scaffoldSupervisor'));
     gateDrawn = '';
-    resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
+    resultEl.innerHTML = `${fixingHtml()}${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
     // A stood down draft names the facts still needed; each is asked for on the page, with what it
     // needs said under its box.
@@ -3343,7 +3532,7 @@ const OWN_HIERARCHY = 'Write them in hierarchy order: first remove the hazard, t
 const linesOf = (text) => String(text || '').split(/\n+/).map((line) => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
 const startName = (part) => String(part || '').replace(/\s+/g, ' ').trim().replace(/^[a-z]/, (letter) => letter.toUpperCase());
 function closeOwnForm() {
-  resultEl.querySelectorAll('.own-step-form, .own-form-row').forEach((el) => el.remove());
+  document.querySelectorAll('.own-step-form, .own-form-row').forEach((el) => el.remove());
 }
 // holder: the element the form goes after. item: the step being changed, or null for a new one for part.
 function ownStepForm(holder, item, part) {
@@ -3378,7 +3567,22 @@ function ownStepForm(holder, item, part) {
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   form.querySelector('#own-name').focus({ preventScroll: true });
 }
-function saveOwnStep(form) {
+// What keeps a step the user wrote from saving, as [box, message], or null. The project page uses it too.
+function ownStepProblem(next, list, was) {
+  // A line of a word or two ("Gloves") does not tell the crew what to do, and "TBC" or "dont know" is
+  // not an answer (messy round 3), said as the download check says it for answers.
+  const thin = (lines, least) => lines.find((line) => line.split(/\s+/).length < least || (window.SiteReadyGate && window.SiteReadyGate.notAnswer(line)));
+  const thinHazard = thin(next.hazards, 2);
+  const thinControl = thin(next.controls, 3);
+  const why = (line, what) => ((window.SiteReadyGate && window.SiteReadyGate.notAnswer(line)) || `"${line.slice(0, 60)}" is too short to act on.`) + ` ${what}`;
+  return !next.name ? ['own-name', 'Give the job step a name.']
+    : !next.hazards.length ? ['own-hazards', 'Write at least one hazard. A step needs a hazard and a control to print.']
+      : !next.controls.length ? ['own-controls', 'Write at least one control. A step needs a hazard and a control to print.']
+        : thinHazard ? ['own-hazards', why(thinHazard, 'Say what could go wrong, for example "Hand cut on sharp mesh edges".')]
+          : thinControl ? ['own-controls', why(thinControl, 'Say what is done and how, for example "Wear cut-resistant gloves when handling the mesh".')]
+            : (list || []).some((other) => other.name !== was && sameWords(other.name) === sameWords(next.name)) ? ['own-name', 'You already have a step with this name. Give this one another name.'] : null;
+}
+function saveOwnStep(form, after = afterOwnChange) {
   const error = form.querySelector('[data-own-error]');
   const was = form.dataset.ownWas;
   const next = {
@@ -3388,18 +3592,7 @@ function saveOwnStep(form) {
     controls: linesOf(form.querySelector('#own-controls').value).slice(0, 30),
     who: form.querySelector('#own-who').value.replace(/\s+/g, ' ').trim().slice(0, 120),
   };
-  // A line of a word or two ("Gloves") does not tell the crew what to do, and "TBC" or "dont know" is
-  // not an answer (messy round 3), said as the download check says it for answers.
-  const thin = (lines, least) => lines.find((line) => line.split(/\s+/).length < least || (window.SiteReadyGate && window.SiteReadyGate.notAnswer(line)));
-  const thinHazard = thin(next.hazards, 2);
-  const thinControl = thin(next.controls, 3);
-  const why = (line, what) => ((window.SiteReadyGate && window.SiteReadyGate.notAnswer(line)) || `"${line.slice(0, 60)}" is too short to act on.`) + ` ${what}`;
-  const wrong = !next.name ? ['own-name', 'Give the job step a name.']
-    : !next.hazards.length ? ['own-hazards', 'Write at least one hazard. A step needs a hazard and a control to print.']
-      : !next.controls.length ? ['own-controls', 'Write at least one control. A step needs a hazard and a control to print.']
-        : thinHazard ? ['own-hazards', why(thinHazard, 'Say what could go wrong, for example "Hand cut on sharp mesh edges".')]
-          : thinControl ? ['own-controls', why(thinControl, 'Say what is done and how, for example "Wear cut-resistant gloves when handling the mesh".')]
-        : (ownSteps || []).some((other) => other.name !== was && sameWords(other.name) === sameWords(next.name)) ? ['own-name', 'You already have a step with this name. Give this one another name.'] : null;
+  const wrong = ownStepProblem(next, ownSteps, was);
   if (wrong) {
     error.textContent = wrong[1];
     form.querySelector(`#${wrong[0]}`).focus();
@@ -3411,7 +3604,7 @@ function saveOwnStep(form) {
   ownSteps = list;
   // A renamed step keeps its place in the order the user chose.
   if (was && was !== next.name && stepOrder) stepOrder = stepOrder.map((name) => (name === `${was} (Our own step)` ? `${next.name} (Our own step)` : name));
-  afterOwnChange(next.name);
+  after(next.name);
 }
 function removeOwnStep(name) {
   ownSteps = (ownSteps || []).filter((other) => other.name !== name);
@@ -3467,6 +3660,83 @@ resultEl.addEventListener('click', (event) => {
   const form = event.target.closest('.own-step-form');
   if (form && event.target.closest('[data-own-save]')) { saveOwnStep(form); return; }
   if (form && event.target.closest('[data-own-cancel]')) closeOwnForm();
+});
+
+// ---- Steps the user writes before the SWMS is prepared (messy round 4, B fault 1) ----
+
+// Work SiteReady has no job steps for stood the SWMS down, and the user's own steps were offered only
+// once a SWMS was prepared, so a SWMS of the user's own steps could never be prepared. Where the
+// questions say the SWMS would be stood down for want of job steps, or the user has written steps,
+// the questions page lists them and offers "Write a step for this": the steps go with the draft.
+function showStandDown(data) {
+  const notice = document.getElementById('steps-notice');
+  const message = (data && data.standDown && data.standDown.message) || '';
+  notice.textContent = message;
+  notice.classList.toggle('hidden', !message);
+  drawOwnEarly(data);
+}
+let ownEarlyNote = '';
+function drawOwnEarly(data) {
+  const box = document.getElementById('own-early');
+  if (!box) return;
+  const stood = Boolean(data && data.standDown);
+  const mine = ownSteps || [];
+  if (!stood && !mine.length) { if (box.innerHTML) box.innerHTML = ''; return; }
+  // The work to write a step for: what SiteReady has no job steps for, else the work as a whole.
+  const parts = ((data && data.notCoveredLeft) || []).filter((part) => !ownFor(part));
+  const writes = parts.length
+    ? parts.map((part, n) => `<li><strong>${esc(part)}</strong> <button type="button" class="small" data-own-early="${n}">Write a step for this</button></li>`).join('')
+    : `<li><button type="button" class="small" data-own-early="">Write a step for this</button><span class="meta"> Write what is done, what could go wrong and how it is controlled.</span></li>`;
+  const html = `<div class="note own-early"><p><strong>Your own steps</strong></p>
+    ${mine.length ? `<ul class="own-early-list">${mine.map((item) => `<li>${esc(item.name)}${item.part ? ` <span class="meta">(for: ${esc(item.part)})</span>` : ''} <button type="button" class="link" data-own-early-change="${esc(item.name)}">Change</button> <button type="button" class="link" data-own-early-remove="${esc(item.name)}">Remove</button></li>`).join('')}</ul>` : ''}
+    ${stood ? `<p class="meta">${mine.length ? 'SiteReady still has no job steps for this work.' : 'You can write the steps for this work yourself: a SWMS of your own steps is prepared like any other.'} Each step needs a hazard and a control. A step of a word or two is not enough.</p><ul class="own-early-writes">${writes}</ul>` : `<p class="meta">They go into the SWMS when you press Prepare the statement. <button type="button" class="link" data-own-early="">Write another step</button></p>`}
+    <p class="meta own-early-status" role="status">${esc(ownEarlyNote)}</p></div>`;
+  box.dataset.parts = JSON.stringify(parts);
+  if (box.innerHTML !== html) box.innerHTML = html;
+}
+factsForm.addEventListener('click', (event) => {
+  const box = document.getElementById('own-early');
+  const write = event.target.closest('[data-own-early]');
+  if (write) {
+    event.preventDefault();
+    const parts = JSON.parse((box && box.dataset.parts) || '[]');
+    const part = write.dataset.ownEarly === '' ? '' : parts[Number(write.dataset.ownEarly)] || '';
+    ownStepForm(write.closest('li') || write, ownFor(part) || null, part);
+    return;
+  }
+  const change = event.target.closest('[data-own-early-change]');
+  if (change) {
+    const item = (ownSteps || []).find((other) => other.name === change.dataset.ownEarlyChange);
+    if (item) ownStepForm(change.closest('li') || change, item, item.part);
+    return;
+  }
+  const remove = event.target.closest('[data-own-early-remove]');
+  if (remove) {
+    ownSteps = (ownSteps || []).filter((other) => other.name !== remove.dataset.ownEarlyRemove);
+    if (!ownSteps.length) ownSteps = null;
+    ownEarlyNote = 'Step removed.';
+    afterOwnEarly();
+    return;
+  }
+  const form = event.target.closest('.own-step-form');
+  if (form && event.target.closest('[data-own-save]')) { event.preventDefault(); saveOwnStep(form, (name) => { ownEarlyNote = `Saved your step "${name}". It goes into the SWMS when you press Prepare the statement.`; afterOwnEarly(); }); return; }
+  if (form && event.target.closest('[data-own-cancel]')) closeOwnForm();
+});
+// The questions are asked again with the steps, so the notice that the SWMS would be stood down goes.
+async function afterOwnEarly() {
+  closeOwnForm();
+  drawOwnEarly(questions);
+  keepUnsaved();
+  await askAgain();
+  const box = document.getElementById('own-early');
+  if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+// The stood-down draft's button goes to the same place.
+document.addEventListener('click', (event) => {
+  if (!event.target.closest || !event.target.closest('[data-own-early-go]')) return;
+  const first = document.querySelector('#own-early [data-own-early]');
+  factsForm.classList.remove('hidden');
+  if (first) { first.scrollIntoView({ behavior: 'smooth', block: 'center' }); first.focus({ preventScroll: true }); first.click(); }
 });
 
 // What the server did with the user's changes: those refused, those made on a line SiteReady has
@@ -3888,13 +4158,25 @@ window.SiteReady = Object.assign(window.SiteReady || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
-  drawBlankForm, answerTarget, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },
+  drawBlankForm, answerTarget, ownStepProblem, OWN_HIERARCHY, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });
 
 addPrincipals([], false);
 document.getElementById('principal').addEventListener('change', (event) => addPrincipals([event.target.value], true));
+
+// One name in every person's box is said under them, as a warning (messy round 4, run 2).
+function showSameName() {
+  const note = document.getElementById('people-same');
+  const rules = window.SiteReadyGate;
+  if (!note || !rules || !rules.sameNameWarning) return;
+  const now = payload();
+  const text = rules.sameNameWarning(now);
+  if (note.textContent !== text) note.textContent = text;
+  note.classList.toggle('hidden', !text);
+}
+['works-manager', 'compliance-responsible', 'reviewer', 'first-aider'].forEach((id) => { const el = document.getElementById(id); if (el) el.addEventListener('input', showSameName); });
 
 // Work left unsaved on this device comes back once the states are in and the page's other scripts
 // (the account's buttons) have run: with the states kept by the phone, they can be in first.

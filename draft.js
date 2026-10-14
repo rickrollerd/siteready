@@ -527,9 +527,15 @@ function acceptedText(text) {
 }
 
 // The subcontractor's saved details, as one line for the page header.
+// An ABN prints spaced as the register shows it, "12 345 678 901" (messy round 4: it printed as typed).
+function abnSpaced(value) {
+  const text = blankName(value).replace(/^ABN\s*/i, '');
+  const digits = text.replace(/\D/g, '');
+  return digits.length === 11 && /^[\d\s-]+$/.test(text) ? `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}` : text;
+}
 function companyDetails(input) {
   return [
-    input.companyAbn && `ABN ${blankName(input.companyAbn).replace(/^ABN\s*/i, '')}`,
+    input.companyAbn && `ABN ${abnSpaced(input.companyAbn)}`,
     blankName(input.companyAddress),
     blankName(input.companyPhone),
     blankName(input.companyEmail),
@@ -1213,6 +1219,11 @@ const HARNESS_WORDS = /\b(harness\w*|travel restraint|fall arrest|restraint lany
 // A fall control answer that relies on a harness brings the harness question.
 // A harness or life jacket in use brings questions on the equipment, its checks and the
 // user's training: from a harness named in the fall control, or either one in the PPE.
+// The harness question is asked only where a harness is used (ticked, or named in the task) or the
+// fall control answer, asked because a fall is possible, names one (messy round 4, run 5: a fall
+// control answer filled across before the fall answer was changed to No kept asking for the harness).
+// The ids of the PPE ticked in a PPE list: [{ items: [{ id, ticked }] }].
+const tickedPpe = (groups) => (Array.isArray(groups) ? groups : []).flatMap((group) => (group.items || []).filter((item) => item.ticked).map((item) => item.id));
 function withHarness(list, facts, ppeIds = []) {
   const out = [...list];
   const add = (id) => {
@@ -1220,7 +1231,8 @@ function withHarness(list, facts, ppeIds = []) {
     const item = CATEGORY_FACTS.find((entry) => entry.id === id);
     out.push({ id: item.id, label: item.label, prompt: item.prompt });
   };
-  if (HARNESS_WORDS.test(String((facts && facts.fallControl) || '')) || ppeIds.includes('harness')) add('harnessSystem');
+  const fallAsked = list.some((item) => item.id === 'fallControl');
+  if ((fallAsked && HARNESS_WORDS.test(String((facts && facts.fallControl) || ''))) || ppeIds.includes('harness')) add('harnessSystem');
   if (ppeIds.includes('lifeJacket')) add('lifeJacketDetails');
   return out;
 }
@@ -2184,14 +2196,21 @@ function meaningfulWords(text) {
 function statesChartValues(text) {
   const source = String(text || '');
   const load = /\b\d+(?:\.\d+)?\s*(?:t|tonnes?|kg)\b/i.test(source);
-  const radius = /\b\d+(?:\.\d+)?\s*m(?:etre|eter)?s?\b/i.test(source) && /\bradius\b/i.test(source);
+  // "at 20 m" or "at 20m" is the radius, as a crane chart reads (messy round 4, run 7: "25t at 20m from
+  // the chart" was refused for want of the word "radius").
+  const radius = /\b\d+(?:\.\d+)?\s*m(?:etre|eter)?s?\b/i.test(source) && (/\bradius\b/i.test(source) || /\bat\s*\d+(?:\.\d+)?\s*m(?:etre|eter)?s?\b/i.test(source));
   return load && radius;
 }
+// Who confirmed the ground can carry the crane: an engineer, a report or certificate, a test, or the
+// principal contractor's assessment. The operator looking at it is not enough (messy round 4, run 7:
+// "crane op checks the ground" was accepted).
+const GROUND_CONFIRMED = /\b(?:engineer\w*|geo ?tech\w*|report|certificate|certified|certification|assessment|assessed|competent person|bearing capacity|\d+(?:\.\d+)?\s*kpa|compaction tests?|plate (?:load|bearing) tests?|principal contractor|pc's|builder's (?:engineer|assessment)|design(?:ed)?|survey\w*)\b/i;
 
 function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
   if (id === 'craneChart') return statesChartValues(value);
+  if (id === 'groundBearing' && !GROUND_CONFIRMED.test(value)) return false;
   // "dont know", "me" or "as per eng" says nothing, judged by the same words as the download check
   // (public/gate-rules.js notAnswer). A blank (____) left to fill is the download check's to ask.
   const gate = require('./public/gate-rules');
@@ -2250,6 +2269,14 @@ function factState(item, task, facts, state) {
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
 }
 
+// The answers given, without a fall control answer left from before the fall answer was changed to
+// No: it does not bring a harness or its question. With Yes the answer stays, even when the task's own
+// words cover the fall control and the question is not asked.
+function askedFallFacts(facts, answer) {
+  if (!facts || !facts.fallControl || answer !== 'no') return facts || {};
+  const { fallControl: _unasked, ...rest } = facts;
+  return rest;
+}
 function missingFacts(task, facts, answer, state, ppeIds = []) {
   return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
     .map((item) => ({ ...item, state: factState(item, task, facts, state) }))
@@ -2759,7 +2786,11 @@ function questionsForWords(input) {
   // Answers given that are too thin to print, with what each needs, said under its box.
   let weak = [];
   try { weak = weakAnswers(input); } catch { weak = []; }
-  const asked = { ...shown, weak };
+  // The SWMS's own PPE, with what its job steps call for (travel restraint near an edge brings a
+  // harness), brings its questions here too, as it does once the SWMS is opened (messy round 4).
+  const own = !Array.isArray(input.ppe) && suggested && Array.isArray(suggested.ppe) ? tickedPpe(suggested.ppe) : [];
+  const required = own.length ? withHarness(shown.required || [], {}, own) : shown.required;
+  const asked = { ...shown, required, weak };
   const reason = buildDraft(input, 'steps');
   if (!reason || !reason.noSteps) return asked;
   // Steps for where the work is done (the rail corridor, the road, work above traffic) are not ticked
@@ -2776,14 +2807,14 @@ function questionsForWords(input) {
 
 // The notice on the questions page for a task that will be stood down, in plain words.
 function standDownNotice(why, around, chosen) {
-  if (why.nothingPicked) return 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps.';
+  if (why.nothingPicked) return 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps, or write your own step for the work with "Write a step for this".';
   const work = why.mainMissing && why.mainMissing !== 'the main work in this task' ? why.mainMissing : 'this work';
   const kinds = new Map(require('./steps').stepLibrary().groups.flatMap((group) => group.kinds).map((kind) => [kind.id, kind.label]));
   const names = (ids) => ids.map((id) => kinds.get(id)).filter(Boolean).join('; ');
   const found = names(around) ? ` The steps found for where the work is done (${names(around)}) are not the work itself, so they are not ticked.` : '';
   const support = chosen.filter((id) => SUPPORT_KINDS.has(id));
   const ticked = why.mainMissing && !why.fallback && names(support) ? ` The steps ticked (${names(support)}) cover only the access, lifting or other work around it.` : '';
-  return `SiteReady has no job steps for ${work} yet, so it will not draft this SWMS.${found}${ticked} To go on, add the job steps that cover the work itself under Job steps, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.`;
+  return `SiteReady has no job steps for ${work} yet, so it will not draft this SWMS.${found}${ticked} To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".`;
 }
 
 function askQuestions(input) {
@@ -2832,7 +2863,7 @@ function askQuestions(input) {
     // Spelling fixed in the task, so the user sees each change.
     spellingFixes: spelling.fixes,
     fall: fallCheck(task, answer, state),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
@@ -2845,7 +2876,9 @@ function askQuestions(input) {
 // Details often not known until work starts. They are filled in before the SWMS goes for approval.
 const TO_COMPLETE = 'To be completed before submitting for approval';
 
-const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.';
+// The way on is said once, with the button that does it (messy round 4: "or write this SWMS yourself.."
+// left no way to finish it).
+const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".';
 
 // Main work the library has no steps for yet. Where the task names it and no step
 // covers it, the draft is stood down rather than issued with only the access and
@@ -3538,7 +3571,9 @@ function buildDraft(input, screen) {
   const typed = fixSpelling(cleanLine(input.task || input.jobDescription)).text;
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
-  const facts = { ...withDesignHolds(input.facts, input.designs), siteConditions: siteConditions(input.site) };
+  // A fall control answer the questions no longer ask (the fall answer changed to No after it was
+  // filled across) does not print or bring a harness (messy round 4, run 5).
+  const facts = { ...askedFallFacts(withDesignHolds(input.facts, input.designs), fallAnswer(input.fallRisk)), siteConditions: siteConditions(input.site) };
   if (choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined' && !/\bconfined space\b/i.test(task)) delete facts.confinedSpace;
   const site = siteFromPack(task, input.site || {});
   const pack = {
@@ -3551,7 +3586,7 @@ function buildDraft(input, screen) {
     fallAnswer: fallAnswer(input.fallRisk),
     state,
   };
-  const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, facts, state, input.ppe)).filter(notSdsQuestion(input));
+  const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, askedFallFacts(facts, pack.fallAnswer), state, input.ppe)).filter(notSdsQuestion(input));
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
@@ -3598,6 +3633,17 @@ function buildDraft(input, screen) {
     test: packIsTest(input),
   };
 
+  const stoodDown = (list) => ({
+    kind: 'stand-down',
+    ...header,
+    missing: list.map(missingLabel),
+    missingHelp: list.map((item) => {
+      const why = item.state === 'vague' ? require('./public/gate-rules').notAnswer(keptFact(facts[item.id])) : '';
+      return { id: item.id, label: item.label, state: item.state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+    }),
+    statement: 'This task is stood down. It does not start.',
+    method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
+  });
   if (missing.length && !screen) {
     return {
       kind: 'stand-down',
@@ -3642,6 +3688,9 @@ function buildDraft(input, screen) {
   const draft = {
     kind: 'draft',
     ...header,
+    // Electrical work of the user's own (the emergency questions on isolation and rescue are asked only
+    // for it, emergency.js), not work near overhead lines or other live services.
+    electricalWork: Boolean(tradeFlags(task, facts, state).electricalWork || ELECTRICAL_WORK.test(riskTask) || choiceAnswer('energisedWork', facts.energisedWork) === 'testing'),
     ...stepsAndPpe(task, facts, hazards, finalControls, state, input),
     references: referencesFor(facts, state.id),
     missing: [],
@@ -3669,13 +3718,17 @@ function buildDraft(input, screen) {
   // it above the steps, and the user's own step for it is needed before download (notCoveredMain).
   // Other work named by the main work check ("lift installation") is stood down as before.
   const userMain = (fallback || mainMissing || nothingPicked) && (!mainMissing || mainMissing === 'the main work in this task') ? leftToUser(typed, draft.jobSteps || []) : [];
-  if (userMain.length) draft.jobSteps = draft.jobSteps.filter((step) => !step.fallback);
-  if (screen === 'steps') return { noSteps: (fallback || mainMissing || nothingPicked) && !userMain.length ? { fallback, mainMissing, nothingPicked } : null };
-  if ((fallback || mainMissing || nothingPicked) && !screen && !userMain.length) {
+  // Steps the user wrote for the work (messy round 4, B fault 1): a SWMS made of the user's own steps,
+  // or of their own step for the main work with SiteReady's steps for the work around it ("Move
+  // materials into place"), is drafted, not stood down for want of job steps. Their steps go in below.
+  const ownCover = (fallback || mainMissing || nothingPicked) && ownStepsOf(input).length > 0;
+  if (userMain.length || ownCover) draft.jobSteps = draft.jobSteps.filter((step) => !step.fallback);
+  if (screen === 'steps') return { noSteps: (fallback || mainMissing || nothingPicked) && !userMain.length && !ownCover ? { fallback, mainMissing, nothingPicked } : null };
+  if ((fallback || mainMissing || nothingPicked) && !screen && !userMain.length && !ownCover) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: [!nothingPicked && mainMissing && !fallback ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
+      missing: [!nothingPicked && mainMissing && !fallback ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".` : NO_STEPS],
       statement: 'This task is stood down. It does not start.',
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
@@ -3786,6 +3839,13 @@ function buildDraft(input, screen) {
   // that need it, and each such step says what to wear in one line of its own.
   const ppe = splitPpe(edited.ppe, edited.jobSteps, { suggest: !chosenPpe, placed: input.ppeSteps });
   const finished = { ...edited, ppe, jobSteps: withStepPpeLines(edited.jobSteps, ppe, state.id) };
+  // A harness or life jacket the SWMS's own PPE ticks from its job steps (travel restraint near an edge)
+  // is asked about as the questions page asks (questionsForWords), so a SWMS prepared on the project
+  // page is not stood down for it only when it is opened (messy round 4).
+  if (!Array.isArray(input.ppe)) {
+    const extra = withHarness([], {}, tickedPpe(ppe)).map((item) => ({ ...item, state: factState(item, task, facts, state) })).filter((item) => item.state !== 'supplied' && !missing.some((other) => other.id === item.id));
+    if (extra.length) return stoodDown(extra);
+  }
   // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
   // where the SWMS involves a scaffold.
   // The answers to the emergency questions for the work print in the emergency arrangements (goal 2).

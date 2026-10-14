@@ -46,7 +46,7 @@ async function shown(extra) {
   await settle();
   p.document.getElementById('task').value = FENCE.task;
   // The people and site answers are on the page, as a user gives them.
-  for (const [id, value] of [['workplace', ANSWERED.workplace], ['principal', ANSWERED.principalContractor], ['compliance-responsible', ANSWERED.complianceResponsible], ['reviewer', ANSWERED.reviewer], ['first-aider', ANSWERED.firstAider], ['muster-point', ANSWERED.musterPoint], ['works-manager', ANSWERED.worksManager], ['works-manager-phone', ANSWERED.worksManagerPhone]]) p.document.getElementById(id).value = value;
+  for (const [id, value] of [['workplace', ANSWERED.workplace], ['principal', ANSWERED.principalContractor], ['compliance-responsible', ANSWERED.complianceResponsible], ['reviewer', ANSWERED.reviewer], ['first-aider', ANSWERED.firstAider], ['muster-point', ANSWERED.musterPoint], ['hospital', ANSWERED.hospital], ['works-manager', ANSWERED.worksManager], ['works-manager-phone', ANSWERED.worksManagerPhone]]) p.document.getElementById(id).value = value;
   for (const [id, value] of Object.entries(ANSWERED.site)) p.document.getElementById(`site-${id}`).value = value;
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();

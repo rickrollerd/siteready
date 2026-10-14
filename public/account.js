@@ -350,6 +350,20 @@
   // prepared, they print without preparing it again (app.js currentAnswers).
   const answersNow = (kind) => (kind === 'draft' && S.currentAnswers ? S.currentAnswers() : {});
 
+  // The state whose law the SWMS uses, named where it is downloaded (owner, D292 item 1).
+  const stateLine = (draft) => `<p class="meta" id="new-state"><strong>State: ${esc(draft.state)}.</strong> This SWMS uses the ${esc(draft.instrument)}. If the job is in another state, change the job address or the state above, then update the draft.</p>`;
+  // Steps still rated High after their controls (owner, D292 item 4): a clear warning before download,
+  // naming each one. The SWMS still downloads, and each prints that it does not start until the risk is
+  // lowered or accepted in writing.
+  const highAfter = (draft) => (draft.jobSteps || []).map((step, index) => ({ step, index })).filter(({ step }) => step.risk && step.risk.after && step.risk.after.level === 'High');
+  function highAfterHtml(draft, id) {
+    const list = highAfter(draft);
+    if (!list.length) return '';
+    return `<div class="warning high-after" id="${id}" role="status"><p><strong>${list.length === 1 ? 'One step is' : `${list.length} steps are`} still rated High after controls:</strong> ${list.map(({ step, index }) => `step ${index + 1} (${esc(step.step)})`).join('; ')}.</p>
+      <p>${list.length === 1 ? 'It prints' : 'Each prints'} "This step does not start until" the supervisor adds controls that lower the rating, or accepts the risk in writing. Add controls to the step now, or make sure the risk is accepted in writing before the work starts. You can still download this SWMS.</p></div>`;
+  }
+  S.highAfter = highAfter;
+
   S.showActions = (draft, original) => {
     let input = original;
     const box = $('result-actions');
@@ -394,7 +408,9 @@
     const held = holdNow();
     box.innerHTML = `<div class="panel confirm">
       ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteReady's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
-      ${editing && editing.review ? `<div class="pc-review pc-back" id="new-pc-review"><strong>${esc(editing.review.label)}</strong>, ${esc(editing.review.name)}, ${esc(editing.review.company)}, ${esc(editing.review.date)}<div class="pc-text"><strong>${editing.review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(editing.review.text)}</div><p class="meta">Save the changes, then send the principal contractor the new revision's reference.</p></div>` : ''}
+      ${editing && editing.review ? `<div class="pc-review pc-back" id="new-pc-review"><strong>${esc(editing.review.label)}</strong>, ${esc(editing.review.name)}, ${esc(editing.review.company)}, ${esc(editing.review.date)}<div class="pc-text"><strong>${editing.review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(conditionLines(editing.review.text))}</div><p class="meta">Save the changes, then send the principal contractor the new revision's reference.</p></div>` : ''}
+      ${kind === 'draft' ? stateLine(draft) : ''}
+      ${kind === 'draft' ? highAfterHtml(draft, 'new-high-risk') : ''}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
       ${kind === 'draft' && editing ? `<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"${editing.review ? ` value="${esc(`For the principal contractor's review of revision ${editing.review.revision}`)}"` : editing.reason ? ` value="${esc(editing.reason)}"` : ''}></div>` : ''}
       ${kind === 'draft' ? checkBlock('new', 'download or save') : ''}
@@ -509,13 +525,21 @@
   // "No saved SWMS yet" until pressed again).
   S.refreshMine = () => { if ($('my-swms') && !$('my-swms').classList.contains('hidden')) loadSwms(); };
 
-  async function loadSwms() {
+  // My SWMS follows reviews as they come back (messy round 4, A fault 11: the principal contractor's
+  // response showed only after My SWMS was pressed again): while it is open it is asked again every
+  // 30 seconds and when the page is shown again, quietly, and says when a response has arrived.
+  let reviewsSeen = null;
+  async function loadSwms({ quiet = false } = {}) {
     const list = $('swms-list');
-    list.innerHTML = '<p class="lede">Loading…</p>';
+    if (!quiet) list.innerHTML = '<p class="lede">Loading…</p>';
     try {
       const { swms } = await call('GET', '/api/swms');
       const siteName = (id) => (sites.find((site) => site.id === id) || {}).name || '';
-      list.innerHTML = swms.length ? swms.map((item) => `
+      const reviewed = new Map(swms.filter((item) => item.review).map((item) => [item.id, `${item.review.label}|${item.review.date}`]));
+      const arrived = reviewsSeen ? swms.filter((item) => item.review && reviewsSeen.get(item.id) !== reviewed.get(item.id)) : [];
+      reviewsSeen = reviewed;
+      const arrivedHtml = arrived.length ? `<p class="note" role="status" id="swms-review-arrived">A principal contractor's review has come back: ${arrived.map((item) => `${esc(item.title)} (${esc(item.review.label)})`).join('; ')}.</p>` : '';
+      const html = arrivedHtml + (swms.length ? swms.map((item) => `
         <div class="swms-row">
           <div>
             <strong>${esc(item.title)}</strong>
@@ -524,11 +548,15 @@
             ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span>, ${esc(item.review.date)}</span>` : ''}
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
-        </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (every revision in Word, with team and sites, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
+        </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (every revision in Word, with team and sites, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>');
+      if (!quiet || arrived.length || list.innerHTML.replace(/<p class="note" role="status" id="swms-review-arrived">.*?<\/p>/, '') !== html) list.innerHTML = html;
     } catch (error) {
-      list.innerHTML = `<p class="error">${esc(error.message)}</p>`;
+      if (!quiet) list.innerHTML = `<p class="error">${esc(error.message)}</p>`;
     }
   }
+  const mineOpen = () => Boolean(me && $('my-swms') && !$('my-swms').classList.contains('hidden'));
+  setInterval(() => { if (mineOpen() && document.visibilityState !== 'hidden') loadSwms({ quiet: true }); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && mineOpen()) loadSwms({ quiet: true }); });
 
   $('swms-list').addEventListener('click', async (event) => {
     if (event.target.closest('#swms-export')) {
@@ -570,6 +598,9 @@
   // gave it, their company and email, the date and any conditions or changes needed, and the way to
   // fix it in SiteReady. Without one, the reference and link to send the principal contractor.
   const PC_CLASS = { approved: 'pc-ok', conditions: 'pc-cond', changes: 'due' };
+  // Numbered conditions, each on its own line (messy round 4: four conditions printed as one paragraph).
+  const conditionLines = (text) => String(text || '').replace(/(\S)[ \t]+(?=\(?\d{1,2}[.)][ \t]+\S)/g, '$1\n');
+  S.conditionLines = conditionLines;
   // The business's own check of a saved SWMS (D290) is named for the business, held with its ABN, so it
   // is not mistaken for the principal contractor's review.
   const ownName = () => (me && me.company && me.company.name) || 'your business';
@@ -578,7 +609,7 @@
     const earlier = (reviews || []).filter((item) => item.revision !== Number(swms.revision));
     const textHead = { conditions: 'Conditions', changes: 'Changes needed' };
     const line = (item) => `<li><strong class="${PC_CLASS[item.response] || ''}">${esc(item.label)}</strong> · revision ${esc(item.revision)} · ${esc(item.date)}<br>${esc(item.name)}, ${esc(item.company)}${item.email ? ` (<a href="mailto:${esc(item.email)}">${esc(item.email)}</a>)` : ''}
-      ${item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(item.text)}</div>` : ''}</li>`;
+      ${item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(conditionLines(item.text))}</div>` : ''}</li>`;
     const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteReady, send them the reference ${esc(swms.ref)} or this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
     const latest = current[0];
     const fix = latest && latest.response !== 'approved'
@@ -684,7 +715,11 @@
     }));
     // Change opens the SWMS ready to edit: its controls, hazards and Who can be changed straight
     // away, and the form above holds its answers. Saving makes the next revision.
+    // The saved SWMS opens itself, not a project kept on this device (messy round 4, A fault 11: "Fix this
+    // in SiteReady" opened the old project list): a project's SWMS opens as that SWMS of the project,
+    // and any other is changed with the project put aside.
     const change = (review = null, reason = '') => run(async () => {
+      if (S.projectForSaved) S.projectForSaved(id);
       await S.fillForm(data.input);
       S.editing = { id, title: swms.title, revision: swms.revision, ...(review ? { review } : {}), ...(reason ? { reason } : {}) };
       S.showSite(swms.siteId || '');

@@ -33,6 +33,8 @@ const ANSWERED = {
   reviewer: 'Sam Lee, supervisor',
   firstAider: 'Jo Smith',
   musterPoint: 'Front gate on Smith Street',
+  // Needed before download (D292).
+  hospital: 'Royal Brisbane and Women\'s Hospital, Herston',
   scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
   // Needed before download (D289).
   worksManager: 'Sam Lee',
@@ -56,7 +58,11 @@ function ready(input) {
     // the test gives its own products or ticks.
     const types = (draft.substances && draft.substances.items) || [];
     const notUsed = input.substancesNotUsed || (input.substances || !types.length ? undefined : types.map((item) => item.product));
-    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: notUsed } : {}) };
+    // A type the task or answers name gives a reason (D292 item 3), unless the test gives its own.
+    const rules = require('../public/substance-rules');
+    const named = (notUsed || []).filter((type) => rules.notUsedNeed(type, '', rules.ownWords(input)));
+    const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, 'Supplied and applied by others'])) : undefined);
+    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: notUsed } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
   }
   return out;
 }

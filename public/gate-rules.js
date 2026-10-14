@@ -45,7 +45,9 @@
   const PRONOUN = /^(?:me|us|them|him|her|we|i|myself|ourselves|you|they|someone|somebody|anyone)\.?$/i;
   const AS_PER = /^as per (?:the )?(?:site|eng|engineer\w*|supplier\w*|builder\w*|pc|principal contractor|plans?|spec\w*|drawings?|manufacturer\w*|maker\w*|instructions?|swms|procedures?|normal|usual|standard)(?:'s)?(?: (?:rules?|requirements?|instructions?|plans?|procedures?|specs?|drawings?))?\.?$/i;
   // A rescue answer that only calls for help: the rescue cannot wait for emergency services.
-  const CALLS = /\b(?:000|triple zero|112|emergency services|ambulance|paramedics|fire brigade|fire service|fire and rescue|qfes|frnsw|ses)\b/i;
+  // Ringing the power company or the network operator is calling for help too (messy round 4: "ring the
+  // power company, nobody touches him" passed while "rings 000" was refused).
+  const CALLS = /\b(?:000|triple zero|112|emergency services|ambulance|paramedics|fire brigade|fire service|fire and rescue|qfes|frnsw|ses|(?:power|electricity|energy|network) (?:company|companies|supplier|distributor|authority|operator)|network operators?|energex|ergon|ausgrid|endeavour energy|essential energy|western power|sa power networks|tasnetworks|evoenergy|jemena|citipower|powercor|ausnet|united energy|power and water)\b/i;
   const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|the person) out)\b/i;
   const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
   const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
@@ -54,6 +56,10 @@
   // filled with it ("The products used are dont know.", "document dont no, revision TBC"): messy round 3,
   // 14 October 2026. "Unknown services" is a real hazard, so "unknown" alone is not counted.
   const HELD_OPEN = /\b(?:tb[acd]|to be (?:confirmed|advised|determined|completed|decided)|(?:i )?(?:dont|don't|don’t|do not) (?:know|no)|dunno|not sure|no idea)\b/i;
+  // A question back, not an answer ("powerlines?", "harness?"): messy round 4, run 7.
+  const ASKED_BACK = /^[^.!]{1,60}\?+$/;
+  // Work done or checked "by me" or trained "by me" does not say who (messy round 4, run 9: "trained by me").
+  const BY_ME = /\b(?:by|from|with) (?:me|myself|us)\b/i;
 
   // Why a typed answer is no answer at all ("dont know", "me", "as per eng"), or '' when it says
   // something. The answers to the questions about the work are judged by the same words (draft.js
@@ -64,6 +70,9 @@
     const quoted = `"${text.slice(0, 60)}"`;
     if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet.`;
     if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor".`;
+    if (ASKED_BACK.test(text)) return `${quoted} is a question, not an answer. Say what applies on this job.`;
+    const me = BY_ME.exec(text);
+    if (me) return `${quoted} says "${me[0]}", which does not say who. Name the role or the company, for example "by the supplier".`;
     if (AS_PER.test(text)) return `${quoted} does not say what is done. Write it here in a few words.`;
     const open = HELD_OPEN.exec(text);
     if (open) return `${quoted} still has "${open[0]}" in it. Put in what applies on this job.`;
@@ -76,12 +85,37 @@
   const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area)\.?$/i;
   const NOT_A_FIRST_AIDER = /^(?:the |a |our |site )?(?:builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
+  // An Australian phone number a site can ring (messy round 4, run 2: a 9 digit mobile printed): a mobile
+  // or landline with its area code (10 digits from 0), a landline without it (8 digits), 13 numbers
+  // (6 digits) and 1300 or 1800 numbers (10 digits), with +61 read as 0.
+  function phoneNumber(text) {
+    let digits = String(text || '').replace(/\D/g, '');
+    if (/^\s*\+?61/.test(String(text || '')) && digits.startsWith('61')) digits = `0${digits.slice(2).replace(/^0/, '')}`;
+    return (digits.length === 10 && /^(?:0[2-478]|1[38]00)/.test(digits)) || (digits.length === 8 && /^[2-9]/.test(digits)) || (digits.length === 6 && /^13/.test(digits));
+  }
   function fieldWeak(kind, text) {
     const quoted = `"${text.slice(0, 60)}"`;
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
-    if (kind === 'phone' && text.replace(/\D/g, '').length < 8) return `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.`;
+    if (kind === 'phone' && !phoneNumber(text)) return text.replace(/\D/g, '').length < 6 ? `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.` : `${quoted} is not a full phone number. A mobile has 10 digits, for example 0412 345 678.`;
+    return '';
+  }
+
+  // The licence typed for plant the user added (download-gate.js plantNeed): it names the licence, not
+  // only "ticket" (messy round 4, run 7: "crane ticket" was accepted for a 25 t crane). A crane needs its
+  // high risk work licence class; "No" says none is needed. '' when it passes.
+  const CRANE_ITEM = /\b(?:cranes?|franna|hiab|pick and carry)\b/i;
+  const CRANE_CLASS = /\b(?:C[2-9]|C1\d|C[0-6]0|CN|CV|CB|CD|CT|CS|CP|CO|C0|C1|C6|non-slewing|slewing|vehicle loading|bridge (?:and|or) gantry|tower crane|portal boom|derrick|HRW\w*\s+(?:licen[cs]e\s+)?C\w+)\b/i;
+  const BARE_LICENCE = /^(?:(?:a|the|has|has a|got|got a|current|valid)\s+)?(?:ticket|tickets|licen[cs]e|licen[cs]es|licen[cs]ed|ticketed|card)\.?$|^(?:yes|yep|has one|licen[cs]ed|ticketed|current|valid)\.?$/i;
+  function licenceNeed(item, licence) {
+    const text = clean(licence);
+    if (!text) return '';
+    if (/^(?:no|none|nil|not needed|not required|n\/?a)\.?$/i.test(text)) return '';
+    const not = notAnswer(text);
+    if (not) return `${not} Give the licence or ticket to operate ${clean(item)}, or write No if none is needed.`;
+    if (CRANE_ITEM.test(item) && !CRANE_CLASS.test(text)) return `"${text.slice(0, 60)}" does not say which licence. Give the high risk work licence class for ${clean(item)}, for example "HRW licence C2 (slewing mobile crane up to 20 t)" or "CN (non-slewing mobile crane)".`;
+    if (BARE_LICENCE.test(text)) return `"${text.slice(0, 60)}" does not say which licence or ticket. Name it, for example "HRW licence LF (forklift)" or "EWP yellow card".`;
     return '';
   }
 
@@ -227,7 +261,19 @@
     { id: 'scaffoldSupervisor', field: 'scaffold-supervisor', label: 'Scaffold supervisor', none: true, scaffold: true, need: 'This SWMS involves a scaffold. Name the scaffolding company\'s supervisor who hands it over and tags it, or write Not applicable if no scaffold is used for this work.' },
     { id: 'firstAider', field: 'first-aider', label: 'First aider', kind: 'firstAider', need: 'Name a trained first aider on site, yours or the main contractor\'s.' },
     { id: 'musterPoint', field: 'muster-point', label: 'Muster point', kind: 'place', need: 'Say where everyone meets in an emergency. Ask the main contractor.' },
+    // Required before download (owner, D292 item 2: in rounds 4 no hospital printed in three runs).
+    { id: 'hospital', field: 'hospital', label: 'Hospital or medical centre', need: 'Name the nearest hospital or medical centre with an emergency department. Press "Find nearest from the job address" under the box to look it up.' },
   ];
+  // One name in every person's box (messy round 4, run 2: "kev" printed as the first aider, the works
+  // manager and both responsible people): a warning, not a refusal, as one person can do it all on a
+  // small job. values: { worksManager, complianceResponsible, reviewer, firstAider }. '' when they differ.
+  const SAME_ROLES = [['worksManager', 'works manager'], ['complianceResponsible', 'person who makes sure the SWMS is followed'], ['reviewer', 'person who reviews the controls'], ['firstAider', 'first aider']];
+  function sameNameWarning(values) {
+    const given = SAME_ROLES.map(([id]) => clean((values || {})[id]).toLowerCase());
+    if (given.some((name) => !name) || new Set(given).size > 1) return '';
+    const name = clean(values[SAME_ROLES[0][0]]);
+    return `"${name.slice(0, 60)}" is named for every role: works manager, the person who makes sure the SWMS is followed, the person who reviews the controls and first aider. Check one person really does all of these on this job, and give their full name so the site can find them.`;
+  }
   // The rule a person or place box is judged by (answerNeed).
   const fieldRule = (item) => ({ ask: item.need, name: item.label, none: Boolean(item.none), ...(item.kind ? { kind: item.kind } : {}) });
   // The five site questions, and which take "None".
@@ -248,9 +294,9 @@
   const AS_GIVEN = ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'scaffoldSupervisor', 'firstAider', 'musterPoint',
     'siteManager', 'worksManager', 'worksManagerPhone', 'hospital', 'reviewDate', 'preparedBy', 'swmsRef', 'emergency', 'fills',
     // The types of hazardous substance ticked "Not required" (D277): read by the gate only.
-    'substancesNotUsed'];
+    'substancesNotUsed', 'substancesNotUsedWhy'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

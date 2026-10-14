@@ -64,7 +64,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
 }
 
 
-const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B Builders Pty Ltd', 'compliance-responsible': 'S', reviewer: 'S', 'works-manager': 'W', 'works-manager-phone': '0412 345 678', 'first-aider': 'J', 'muster-point': 'Front gate on Smith Street' };
+const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B Builders Pty Ltd', 'compliance-responsible': 'S', reviewer: 'S', 'works-manager': 'W', 'works-manager-phone': '0412 345 678', 'first-aider': 'J', 'muster-point': 'Front gate on Smith Street', hospital: 'Royal Brisbane and Women\'s Hospital' };
 const questions = (route) => {
   if (route === '/api/draft/questions') return { body: { required: [{ id: 'fallControl', label: 'Fall control', prompt: 'How falls are prevented.', suggestions: [{ label: 'Scaffold', text: 'Work is done from a scaffold with guardrails.' }] }], weak: [] } };
   if (route === '/api/draft') return { body: { kind: 'draft', gate: [] } };

@@ -16,8 +16,10 @@
   // The products as the user has them now: [{ id, type, product, supplier, quantity, sdsDate, hazards,
   // controls, firstAid, storage (each a list), step, file, read: { fields }, confirmed }].
   let products = [];
-  // The suggested types ticked "Not required" (D277).
+  // The suggested types ticked "Not required" (D277), and the reason given for each the user's own words
+  // name (D292 item 3).
   let notUsed = new Set();
+  let notUsedWhy = {};
   // The draft last drawn, for its job steps and SiteReady's suggested types, and what the server said
   // of each product (the step it matched, what it still needs).
   let shown = null;
@@ -37,15 +39,17 @@
     const rows = products.filter(typed).map((row) => ({ ...row, ...Object.fromEntries(LISTS.map((key) => [key, R.linesOf(row[key])])) }));
     return rows.length ? rows : undefined;
   }
-  function load(list, ticked) {
+  function load(list, ticked, why) {
     notUsed = new Set(Array.isArray(ticked) ? ticked.filter((type) => R.TYPES.includes(type)) : []);
+    notUsedWhy = why && typeof why === 'object' ? Object.fromEntries(Object.entries(why).filter(([type, text]) => R.TYPES.includes(type) && typeof text === 'string')) : {};
     products = (Array.isArray(list) ? list : []).filter((row) => row && /^sub-\d{1,2}$/.test(row.id || '')).map((row) => ({
       ...R.rowOf(row), id: row.id, type: row.type || '', ...(row.file ? { file: { ...row.file } } : {}), ...(row.read && Array.isArray(row.read.fields) ? { read: { fields: [...row.read.fields] } } : {}),
     }));
     removing = '';
   }
-  function clear() { load([], []); panelStatus = ''; }
+  function clear() { load([], [], {}); panelStatus = ''; }
   const notUsedPayload = () => (notUsed.size ? [...notUsed] : undefined);
+  const notUsedWhyPayload = () => { const kept = Object.entries(notUsedWhy).filter(([type, text]) => notUsed.has(type) && String(text || '').trim()); return kept.length ? Object.fromEntries(kept) : undefined; };
 
   // The step a product goes in now, as the page has it: the step chosen, else SiteReady's match.
   const stepNow = (row) => R.stepOf(row, steps());
@@ -144,14 +148,22 @@
   const productsOf = (type) => products.filter((row) => row.type === type && typed(row));
   const TYPE_NEED = (type) => `${R.SHORT.get(type)}: add the product you use, or tick "Not required".`;
   // What a suggested type still needs, judged as the user ticks or adds (the server checks again).
-  const typeNeed = (type) => (productsOf(type).length || notUsed.has(type) ? '' : TYPE_NEED(type));
+  const typeNeed = (type) => (productsOf(type).length ? '' : notUsed.has(type) ? R.notUsedNeed(type, notUsedWhy[type], words()) : TYPE_NEED(type));
+  // Products given in the project's other SWMS, not yet added here (scope.js, D292).
+  const offered = () => (S.projectProducts ? S.projectProducts() : []).filter(({ row }) => !products.some((mine) => String(mine.product || '').trim().toLowerCase() === String(row.product || '').trim().toLowerCase()));
+  const offerButtons = (list) => list.map(({ row, from }) => `<button type="button" class="pick-button" data-sub-offer="${esc(row.product)}">Use ${esc(row.product)} (from ${esc(from)})</button>`).join('');
+  // "Not required" for a type the user's own task or answers name needs a short reason (D292 item 3).
+  const words = () => R.ownWords((S.payload && S.payload()) || {});
   function typeRow(type) {
     const n = R.TYPES.indexOf(type);
     const added = productsOf(type);
+    const named = R.namedIn(type, words());
+    const reason = notUsed.has(type) && named ? `<div class="field sub-reason"><label for="sub-why-${n}">Why is it not required?<span class="hint">Your task or answers name "${esc(named)}". Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="sub-why-${n}" type="text" maxlength="200" data-sub-why="${esc(type)}" value="${esc(notUsedWhy[type] || '')}"></div>` : '';
+    const offers = offered().filter(({ row }) => row.type === type);
     const body = added.length
       ? `<p class="meta sub-type-added">Added: ${esc(added.map((row) => String(row.product || '').trim() || 'a product still being filled in').join('; '))}.</p>`
       : `<div class="sub-type-tools"><button type="button" class="secondary small" data-sub-add="${esc(type)}">Add the product</button>
-        <label class="check"><input type="checkbox" id="sub-type-${n}" data-sub-notused="${esc(type)}"${notUsed.has(type) ? ' checked' : ''}><span>Not required</span></label></div>`;
+        <label class="check"><input type="checkbox" id="sub-type-${n}" data-sub-notused="${esc(type)}"${notUsed.has(type) ? ' checked' : ''}><span>Not required</span></label></div>${offers.length ? `<div class="picks sub-offers"><span class="picks-label">Given in another SWMS of this project:</span>${offerButtons(offers)}</div>` : ''}${reason}`;
     return `<div class="field sub-type" id="sub-type-row-${n}"><p class="sub-type-name"><strong>${esc(type)}</strong></p>${body}</div>`;
   }
   function panelHtml() {
@@ -166,6 +178,7 @@
       <p class="meta">${esc(lead)} Only the products you add print on the SWMS, each with the controls from its own safety data sheet, in the table below and in the job step that uses it.</p>
       <div class="sub-types">${types.map(typeRow).join('')}</div>
       <div class="sub-adds"><button type="button" class="secondary small" data-sub-add="">Add ${products.length || types.length ? 'another' : 'a'} product</button></div>
+      ${offered().filter(({ row }) => !types.includes(row.type)).length ? `<div class="picks sub-offers"><span class="picks-label">Given in another SWMS of this project:</span>${offerButtons(offered().filter(({ row }) => !types.includes(row.type)))}</div>` : ''}
       <div id="substances-cards">${products.map(card).join('')}</div>
       ${products.length ? '<div class="actions"><button type="button" id="substances-update">Update the draft</button></div>' : ''}
       <p class="meta sub-status" id="substances-status" role="status">${esc(panelStatus)}</p>
@@ -208,6 +221,13 @@
   // ---- What the user does ----
 
   document.addEventListener('input', (event) => {
+    const why = event.target.closest && event.target.closest('[data-sub-why]');
+    if (why) {
+      // What is still needed is said under the type by the list before download (app.js), as typed.
+      notUsedWhy[why.dataset.subWhy] = why.value;
+      if (S.keepUnsaved) S.keepUnsaved();
+      return;
+    }
     const field = event.target.closest && event.target.closest('[data-sub-field]');
     const cardEl = field && field.closest('[data-sub]');
     if (!field || !cardEl || field.tagName === 'SELECT') return;
@@ -241,6 +261,8 @@
     if (unused) {
       if (unused.checked) notUsed.add(unused.dataset.subNotused); else notUsed.delete(unused.dataset.subNotused);
       if (S.keepUnsaved) S.keepUnsaved();
+      // A type the task or answers name asks why, under the tick.
+      if (R.namedIn(unused.dataset.subNotused, words())) { redraw(unused.id); const why = document.getElementById(`sub-why-${R.TYPES.indexOf(unused.dataset.subNotused)}`); if (why && unused.checked) why.focus(); }
       return;
     }
     const tick = target.closest && target.closest('[data-sub-confirm]');
@@ -257,6 +279,21 @@
     if (input && input.files && input.files[0]) await attach(input.dataset.subFile, input);
   });
   document.addEventListener('click', async (event) => {
+    const offer = event.target.closest && event.target.closest('[data-sub-offer]');
+    if (offer) {
+      const found = offered().find(({ row }) => row.product === offer.dataset.subOffer);
+      if (!found) return;
+      const used = new Set(products.map((row) => row.id));
+      let n = 1;
+      while (used.has(`sub-${n}`)) n += 1;
+      // The product as given there, for this SWMS's own step: SiteReady matches the step again.
+      products.push({ ...R.rowOf(found.row), id: `sub-${n}`, type: found.row.type || '', step: '', ...(found.row.file ? { file: { ...found.row.file } } : {}) });
+      notUsed.delete(found.row.type);
+      panelStatus = '';
+      if (S.keepUnsaved) S.keepUnsaved();
+      await update(`sub-${n}`);
+      return;
+    }
     const add = event.target.closest && event.target.closest('[data-sub-add]');
     if (add) {
       const used = new Set(products.map((row) => row.id));
@@ -367,5 +404,5 @@
   }
   if (document.head) addStyle();
 
-  window.SiteReadySubstances = { section, payload, notUsedPayload, load, clear, need, typeNeed, printedTable };
+  window.SiteReadySubstances = { section, payload, notUsedPayload, notUsedWhyPayload, load, clear, need, typeNeed, printedTable };
 })();

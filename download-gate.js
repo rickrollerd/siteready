@@ -15,7 +15,7 @@
 //   Regulations s 299(1)(c): how the controls are implemented, monitored and reviewed). Both print
 //   as boxes on every SWMS.
 // - The first aider and the muster point: the emergency arrangements the goal asks for; unanswered,
-//   they print as "First aider: ____" and "To be completed".
+//   they print as "First aider: ____" and "To be completed". The hospital or medical centre too (D292).
 // - The scaffold supervisor, only where the SWMS involves a scaffold. "Not applicable" is accepted,
 //   so a scaffold named only in passing never forces a false answer.
 // - The five site questions (live services, public interface, other trades, ground, access).
@@ -40,7 +40,7 @@ const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
-const { clean, answerNeed, notAnswer, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST } = require('./public/gate-rules');
+const { clean, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 const { designNeed } = require('./designs');
 const substances = require('./substances');
@@ -54,7 +54,6 @@ const FIELDS = PEOPLE_FIELDS.map((item) => (item.scaffold ? { ...item, when: (dr
 // Boxes that may be left empty, but not with a placeholder in them: it would print.
 const OPTIONAL = [
   { id: 'siteManager', field: 'site-manager', label: 'Site manager' },
-  { id: 'hospital', field: 'hospital', label: 'Hospital' },
   { id: 'reviewDate', field: 'review-date', label: 'Review date' },
   { id: 'preparedBy', field: 'prepared-by', label: 'Prepared by' },
   { id: 'swmsRef', field: 'swms-ref', label: 'SWMS reference number' },
@@ -69,6 +68,9 @@ function scaffoldInPlant(input, draft) {
   return [...used, ...added].some((name) => /\bscaffold/i.test(String(name || ''))) && (draft.plant || []).some((row) => /\bscaffold/i.test(String(row.item || '')));
 }
 
+// A SWMS whose own job steps erect or dismantle the scaffold: the user is the scaffolder.
+const erectsScaffold = (draft) => (draft.jobSteps || []).some((step) => /^(?:Erect the scaffold|Dismantle the scaffold)$/.test(step.step));
+
 // What the plant still needs: confirming, plant listed since it was confirmed, or the licence for an
 // item of the user's own. '' when it is confirmed.
 const PLANT_NEED = 'Tick the plant and equipment your crew will use on this job, untick what it will not use, add any that is missing, then press Confirm the plant. Only the plant you confirm prints on the SWMS.';
@@ -81,6 +83,9 @@ function plantNeed(input, draft) {
   if (unseen.length) return `SiteReady now also lists ${unseen.join(', ')}. Tick ${unseen.length === 1 ? 'it' : 'each one'} if your crew uses it, then press Confirm the plant.`;
   const open = (draft.plant || []).filter((row) => row.own && !clean(row.licence)).map((row) => row.item);
   if (open.length) return `Give the licence or ticket to operate ${open.join(', ')}, or write No if none is needed, then press Confirm the plant.`;
+  // A licence that does not say which ("crane ticket", messy round 4) is changed under the plant.
+  const vague = (draft.plant || []).filter((row) => row.own).map((row) => licenceNeed(row.item, row.licence)).find(Boolean);
+  if (vague) return `${vague} Change it under Plant and equipment (Remove, then add it again with the licence), then press Confirm the plant.`;
   return '';
 }
 
@@ -144,6 +149,9 @@ function gateChecks(input = {}, draft = {}, options = {}) {
       rule.noneRefused = 'Scaffold is ticked in the plant for this job, so the scaffold supervisor is needed. If no scaffold is used, untick it under Plant and equipment.';
       rule.ask = 'Name the scaffolding company\'s supervisor who hands the scaffold over and tags it.';
     }
+    // The scaffolder's own SWMS asks for their own scaffold supervisor, not "the scaffolding company's"
+    // (messy round 4, run 9).
+    if (item.scaffold && erectsScaffold(draft)) rule.ask = 'Your crew erects the scaffold. Name your scaffold supervisor who hands it over and tags it.';
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, rule, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
   }
   for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true }, input[item.id]);

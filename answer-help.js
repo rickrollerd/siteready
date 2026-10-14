@@ -39,7 +39,7 @@ const HELP = {
     example: '4.2 t at 18 m radius from the crane chart.',
   },
   groundBearing: {
-    need: 'Say who confirmed the ground or slab can carry the crane\'s outrigger or track loads, and how.',
+    need: 'Say who confirmed the ground or slab can carry the crane\'s outrigger or track loads (an engineer\'s report or certificate, or the principal contractor\'s assessment: the operator looking at it is not enough), and the mats or pads used.',
     example: 'Geotechnical engineer\'s report GR-07 confirms 200 kPa under the outrigger pads; 1.2 m timber mats used.',
   },
   fallControl: {

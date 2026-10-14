@@ -98,7 +98,64 @@
 
   // Not an answer: a blank, "To be completed", "TBC", "Unknown", a question mark.
   const OPEN = /_{3,}|^(?:[^:.]{1,60}:\s*)?(?:to be (?:completed|confirmed|advised)\b|tb[acd]\b)|^(?:unknown|not (?:yet )?known|not provided|n\/?a|none|nil|\?+|-+|\.+|x+)$/i;
-  const isOpen = (text) => OPEN.test(clean(text));
+  // "dont know" or "not sure" anywhere in a line from the SDS is not an answer either (messy round 4,
+  // run 2: "dont know" printed as the insulation's controls once "These match the SDS" was ticked).
+  const HELD = /\b(?:(?:i )?(?:dont|don't|don’t|do not) (?:know|no)|dunno|not sure|no idea|tb[acd])\b/i;
+  const isOpen = (text) => OPEN.test(clean(text)) || HELD.test(clean(text));
+
+  // Words in the user's own task or answers that name a kind of product (owner, D292 item 3): "Not
+  // required" for that type then needs a short reason ("supplied and applied by others"). Only the
+  // product's own names count, not the work around it ("pour" or "excavator" name no product).
+  const NAMED = {
+    'Paints and coatings': /\b(?:paints?|painting|painted|coatings?|enamels?|undercoats?|top ?coats?)\b/i,
+    'Solvents and thinners': /\b(?:solvents?|thinners?|turps|acetone|mineral spirits?)\b/i,
+    'Adhesives': /\b(?:adhesives?|glues?|glued)\b/i,
+    'Wood dust (MDF and hardwood)': /\b(?:mdf|particleboard|hardwood dust|wood dust)\b/i,
+    'Sealants, mastics and silicone': /\b(?:sealants?|mastics?|silicone|caulk\w*)\b/i,
+    'Waterproofing membranes and primers': /\b(?:membranes?|waterproof\w*)\b/i,
+    'Epoxy, resins and two-part products': /\b(?:epoxy|epoxies|resins?|two[- ]part|two[- ]pack|2[- ]pack)\b/i,
+    'Cement, concrete, grout and mortar': /\b(?:cement\w*|grout\w*|mortar|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
+    'Plaster, jointing and setting compounds': /\b(?:plaster(?!board)\w*|setting compounds?|jointing compounds?|base coat)\b/i,
+    'Synthetic mineral fibres (insulation)': /\b(?:insulation|insulaton|glass ?wool|batts|rock ?wool|mineral wool)\b/i,
+    'Curing compounds and form release agents': /\b(?:curing compounds?|form oil|release agents?)\b/i,
+    'Respirable crystalline silica (concrete, masonry, tile and stone dust)': /\b(?:silica|engineered stone)\b/i,
+    'PVC primer and solvent cement': /\b(?:solvent cement|pvc primer|pvc glue|pvc cement)\b/i,
+    'Fuels (diesel, petrol)': /\b(?:diesel|petrol|unleaded|fuels?)\b/i,
+    'Gases (LPG, acetylene, oxygen)': /\b(?:lpg|propane|acetylene|oxy[- ]?acetylene|gas (?:bottles?|cylinders?|torch\w*)|torch[- ]?on)\b/i,
+    'Refrigerants': /\b(?:refrigerants?|r32|r410a|r134a)\b/i,
+    'Cleaning chemicals': /\b(?:acid wash\w*|cleaning chemicals?|detergents?|hydrochloric|muriatic|degreasers?)\b/i,
+    'Herbicides and termiticides': /\b(?:herbicides?|termiticides?|weed ?killers?|glyphosate|termite treatment)\b/i,
+    'Bitumen and asphalt': /\b(?:bitumen|asphalt|hot mix|tack coat|prime coat|emulsion)\b/i,
+  };
+  // The word that names the type in the user's words, or ''.
+  function namedIn(type, text) {
+    const pattern = NAMED[type];
+    const found = pattern && pattern.exec(String(text || ''));
+    return found ? found[0] : '';
+  }
+  // The user's own words: the task as typed and every answer they gave (facts and site answers).
+  function ownWords(input) {
+    const item = input && typeof input === 'object' ? input : {};
+    const values = (value) => (value && typeof value === 'object' ? Object.values(value).filter((entry) => typeof entry === 'string') : []);
+    return [item.task, ...values(item.facts), ...values(item.site)].filter(Boolean).join('\n');
+  }
+  // A short reason "Not required" is given for: a few words that say why, not "dont know". '' once given.
+  function reasonNeed(reason) {
+    const text = clean(reason);
+    if (!text) return 'missing';
+    return isOpen(text) || text.split(' ').length < 2 ? 'weak' : '';
+  }
+  const REASON_EXAMPLE = 'for example "supplied and applied by others"';
+  // What a type ticked "Not required" still needs (D292 item 3), or '': a reason where the user's own
+  // words name that kind of product.
+  function notUsedNeed(type, reason, words) {
+    const named = namedIn(type, words);
+    if (!named) return '';
+    const need = reasonNeed(reason);
+    if (need === 'missing') return `${SHORT.get(type)}: your task or answers name "${named}". Add the product you use, or give a short reason it is not required, ${REASON_EXAMPLE}.`;
+    if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${REASON_EXAMPLE}, or add the product you use.`;
+    return '';
+  }
 
   // A product's row as kept: the type, the product's details from its SDS, the step chosen, and
   // whether the user ticked that it matches the SDS.
@@ -168,7 +225,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL };
+  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadySubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

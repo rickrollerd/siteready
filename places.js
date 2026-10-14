@@ -60,7 +60,10 @@ function toSuggestion(prediction) {
   const business = types.length > 0 && types.some((type) => type === 'establishment' || type === 'point_of_interest') && !types.some((type) => ['street_address', 'premise', 'subpremise', 'route'].includes(type))
     || (types.length > 0 && !types.some((type) => ADDRESS_TYPES.has(type)));
   const text = String(full).replace(/,\s*Australia$/i, '');
-  if (!business) return { text, state: stateFromAddress(text).state };
+  // A named building or place with no street ("Gordon Stephenson House, Perth WA", messy round 4, run 4)
+  // is a business name too: it is offered only with its street number and street.
+  const namedPlace = Boolean(main) && !STREET_NUMBER.test(main) && !STREET.test(main) && types.some((type) => ['premise', 'establishment', 'point_of_interest'].includes(type));
+  if (!business && !namedPlace) return { text, state: stateFromAddress(text).state };
   const address = String(rest || text.slice(String(main || '').length)).replace(/^[,\s]+/, '').replace(/,\s*Australia$/i, '');
   if (!STREET.test(address) || !STREET_NUMBER.test(address)) return null;
   const named = main ? `${main}, ${address}` : text;
@@ -268,4 +271,4 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
   }
 }
 
-module.exports = { suggest, nearbyCare, enabled, km, isHospital, isGeneralClinic };
+module.exports = { suggest, nearbyCare, enabled, km, isHospital, isGeneralClinic, toSuggestion };

@@ -74,6 +74,11 @@ function correction(word) {
   const vocab = vocabularyWords();
   const known = (w) => vocab.has(w) || englishWords().has(w);
   if (known(lower)) return null;
+  // A plural made with -ys where the word takes -ies ("balconys", messy round 4, run 6).
+  if (/[^aeiou]ys$/.test(lower) && known(lower.slice(0, -1)) && known(`${lower.slice(0, -2)}ies`)) {
+    const plural = `${lower.slice(0, -2)}ies`;
+    return word[0] === word[0].toUpperCase() ? plural[0].toUpperCase() + plural.slice(1) : plural;
+  }
   // A plural or singular of a known word is not a typo.
   if (known(lower.replace(/s$/, '')) || known(lower.replace(/ies$/, 'y')) || known(lower.replace(/es$/, '')) || known(`${lower}s`)) return null;
   const max = lower.length >= 8 ? 2 : 1;

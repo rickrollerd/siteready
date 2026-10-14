@@ -81,7 +81,9 @@ const shape = (draft, withControls = true) => JSON.stringify({
 test('the answers that need no new draft change nothing in the SWMS but where they print; a site answer can', () => {
   // The types of substance ticked "Not required" (D277) are read by the gate only.
   assert.ok(AS_GIVEN.includes('substancesNotUsed'));
-  assert.deepEqual(AS_GIVEN.filter((key) => !['emergency', 'fills', 'substancesNotUsed'].includes(key)).sort(), ['complianceResponsible', 'firstAider', 'hospital', 'musterPoint', 'preparedBy', 'principalContractor', 'reviewDate', 'reviewer', 'scaffoldSupervisor', 'siteManager', 'swmsRef', 'workplace', 'worksManager', 'worksManagerPhone'].sort());
+  // So is the reason given for one the task names (D292 item 3), which prints as given.
+  assert.ok(AS_GIVEN.includes('substancesNotUsedWhy'));
+  assert.deepEqual(AS_GIVEN.filter((key) => !['emergency', 'fills', 'substancesNotUsed', 'substancesNotUsedWhy'].includes(key)).sort(), ['complianceResponsible', 'firstAider', 'hospital', 'musterPoint', 'preparedBy', 'principalContractor', 'reviewDate', 'reviewer', 'scaffoldSupervisor', 'siteManager', 'swmsRef', 'workplace', 'worksManager', 'worksManagerPhone'].sort());
   const people = { workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'Not applicable', complianceResponsible: 'Sam Lee', reviewer: 'Jo Doe', scaffoldSupervisor: 'Pat Doyle', firstAider: 'Jo Smith', musterPoint: 'Front gate', siteManager: 'Kim', worksManager: 'Lee', worksManagerPhone: '0400 000 000', hospital: 'Royal Brisbane', reviewDate: '1 December 2026', preparedBy: 'Sam Lee', swmsRef: 'SW-12' };
   const tasks = [FENCE, LIVE,
     { state: 'nsw', task: 'Erect a mobile scaffold and paint the ceiling of the foyer.', fallRisk: 'yes', facts: { safetyDataSheet: 'The paint safety data sheet is kept at the work area.', fallControl: 'Mobile scaffold with full guardrails, wheels locked.' } },
@@ -181,7 +183,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
 
   // Everything answered: the list goes and the buttons work, still with no new draft.
   type(p, 'principal', 'Corbel Build Pty Ltd');
-  for (const [id, value] of [['workplace', '14 Ferndale Street, Herston QLD 4006'], ['compliance-responsible', 'Larry Lead, supervisor'], ['reviewer', 'Wendy Works'], ['first-aider', 'Fiona Aid'], ['muster-point', 'Gate 2 car park'], ['works-manager', 'Wendy Works'], ['works-manager-phone', '0412 345 678']]) type(p, id, value);
+  for (const [id, value] of [['workplace', '14 Ferndale Street, Herston QLD 4006'], ['compliance-responsible', 'Larry Lead, supervisor'], ['reviewer', 'Wendy Works'], ['first-aider', 'Fiona Aid'], ['muster-point', 'Gate 2 car park'], ['hospital', 'Royal Brisbane and Women\'s Hospital'], ['works-manager', 'Wendy Works'], ['works-manager-phone', '0412 345 678']]) type(p, id, value);
   for (const gap of draft.gate.filter((item) => item.kind === 'emergency')) type(p, gap.field, `${gap.label} answer for this site.`, { selector: '[data-emergency]', dataset: { emergency: gap.id.slice(10) } });
   for (const gap of draft.gate.filter((item) => item.kind === 'line')) {
     for (let n = 0; n < gap.parts.length - 1; n += 1) type(p, `fill-${gap.id}-${n}`, 'Electrical supervisor', { selector: '.blank-input', dataset: { fillKey: gap.key, fillN: String(n) } });

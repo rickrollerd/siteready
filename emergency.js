@@ -101,17 +101,31 @@ const INVOLVES = { ewp: 'an elevating work platform', fall: 'a risk of a fall fr
 // The categories this SWMS involves that have questions: an EWP in the plant listed, a fall
 // (without an EWP, whose own rescue covers the platform), energised electrical work, a trench,
 // shaft or tunnel, a confined space, and moving powered mobile plant.
+// Messy round 4 (B fault 6): a question is asked only where it applies.
+// - Mobile plant: only where the plant this SWMS uses has mobile plant ("Stopped by" was asked of a
+//   scaffolder with no mobile plant). The category can come from others' plant on site.
+// - Electrical: the rescue and isolation questions are for electrical work (the switchboard, the riser),
+//   not for overhead lines near other work (draft.electricalWork, set by draft.js). A draft without the
+//   mark asks as before.
+// - Plant SiteReady is not sure is used (plantInferred maybe) counts only once the user confirms it.
+const MOBILE_PLANT = /^(Mobile crane|Crawler crane|Non-slewing mobile crane|Vehicle loading crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating|Dozer|Grader|Loader|Scraper|Articulated dump truck|Water cart|Road profiler|Stabiliser|Asphalt paver|Bitumen sprayer|Aggregate spreader|Truck mounted attenuator|Self-propelled modular transporter|Pile driving hammer|Ground improvement rig|Rolling impact compactor|Shotcrete rig|Roadheader|Low loader|Mulcher|Fuel truck|Road rail vehicle|Track laying machine|Track maintenance machine|Hydro demolition robot|Directional drilling rig|Drill rig|Post driver|Vacuum excavation unit|Truck and dog)/;
+function plantInUse(draft = {}) {
+  const maybe = new Set((draft.plantInferred || []).filter((item) => item && item.maybe).map((item) => item.item));
+  return (draft.plant || []).filter((item) => item && (draft.plantChosen || !maybe.has(item.item)));
+}
 function categoriesFor(draft = {}) {
   const highRisk = Array.isArray(draft.highRisk) ? draft.highRisk : [];
-  const ewp = (draft.plant || []).some((item) => EWP.test(String(item && item.item)));
+  const plant = plantInUse(draft);
+  const ewp = plant.some((item) => EWP.test(String(item && item.item)));
+  const mobile = plant.some((item) => MOBILE_PLANT.test(String(item && item.item)));
   const has = (pattern) => highRisk.some((item) => pattern.test(String(item)));
   return [
     ewp ? 'ewp' : '',
     !ewp && has(FALL) ? 'fall' : '',
-    has(/energised electrical/i) ? 'electrical' : '',
+    has(/energised electrical/i) && draft.electricalWork !== false ? 'electrical' : '',
     has(/\b(?:trench|shaft|tunnel)\b/i) ? 'trench' : '',
     has(/confined space/i) ? 'confined' : '',
-    has(/powered mobile plant/i) ? 'plant' : '',
+    has(/powered mobile plant/i) && mobile ? 'plant' : '',
   ].filter(Boolean);
 }
 
@@ -155,4 +169,4 @@ function withEmergencyAnswers(draft, answers = {}) {
   return { ...draft, emergency: rows, emergencyQuestions: asked };
 }
 
-module.exports = { QUESTIONS, INVOLVES, SHORT, categoriesFor, emergencyQuestions, withEmergencyAnswers };
+module.exports = { QUESTIONS, INVOLVES, SHORT, MOBILE_PLANT, plantInUse, categoriesFor, emergencyQuestions, withEmergencyAnswers };

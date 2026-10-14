@@ -48,7 +48,7 @@ const rank = (line) => RANK[controlLevel(line)] ?? 3;
 function withSubstances(draft, input, today = new Date()) {
   if (!draft || draft.kind !== 'draft' || !Array.isArray(draft.jobSteps)) return draft;
   const rows = listed(input);
-  if (!rows.length) return draft;
+  if (!rows.length) return withReasons(draft, input);
   const steps = draft.jobSteps;
   const products = rows.map((raw) => {
     const row = rules.rowOf(raw);
@@ -80,7 +80,24 @@ function withSubstances(draft, input, today = new Date()) {
     }
     return { ...step, controls, substanceLines: lines };
   });
-  return { ...draft, jobSteps, substances: { ...(draft.substances || { items: [], note: '' }), products } };
+  return withReasons({ ...draft, jobSteps, substances: { ...(draft.substances || { items: [], note: '' }), products } }, input);
+}
+
+// The types ticked "Not required" with the reason the user gave (D292 item 3), which print in the
+// substances section: [{ type, reason }]. A type ticked with no reason prints nothing, as before.
+function withReasons(draft, input) {
+  const why = (input && input.substancesNotUsedWhy) || {};
+  const notUsed = new Set(Array.isArray(input && input.substancesNotUsed) ? input.substancesNotUsed : []);
+  const suggested = ((draft.substances && draft.substances.items) || []).map((item) => item.product);
+  const notRequired = suggested.filter((type) => notUsed.has(type) && rules.clean(why[type])).map((type) => ({ type, reason: rules.clean(why[type]) }));
+  if (!notRequired.length) return draft;
+  return { ...draft, substances: { ...(draft.substances || { items: [], note: '' }), notRequired } };
+}
+// The printed line for the types not required, with their reasons, or ''.
+const NOT_REQUIRED_HEAD = 'Not required on this job';
+function notRequiredLine(draft) {
+  const list = (draft && draft.substances && draft.substances.notRequired) || [];
+  return list.length ? `${NOT_REQUIRED_HEAD}: ${list.map((item) => `${item.type} (${item.reason.replace(/[.;]+$/, '')})`).join('; ')}.` : '';
 }
 
 // The products that print: those with a name (a type with no product never prints).
@@ -118,12 +135,15 @@ function gateItems(draft) {
 // type prints nothing. A product of the type, even one still being filled in, covers it: the product
 // has its own item.
 const TYPE_NEED = (short) => `${short}: add the product you use, or tick "Not required".`;
+// "Not required" for a type the user's own task or answers name needs a short reason (owner, D292 item 3).
 function typeItems(draft, input) {
   if (!draft || draft.kind !== 'draft' || !draft.substances) return [];
   const notUsed = new Set(Array.isArray(input && input.substancesNotUsed) ? input.substancesNotUsed : []);
+  const why = (input && input.substancesNotUsedWhy) || {};
+  const words = rules.ownWords(input);
   const covered = new Set(listed(input).map((row) => row.type).filter(Boolean));
   return (draft.substances.items || []).map((item) => item.product).filter((type) => rules.TYPES.includes(type))
-    .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) || notUsed.has(type) ? '' : TYPE_NEED(rules.SHORT.get(type)) }));
+    .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) ? '' : notUsed.has(type) ? rules.notUsedNeed(type, why[type], words) : TYPE_NEED(rules.SHORT.get(type)) }));
 }
 
 // The SDS files a SWMS input refers to, kept with the saved SWMS as design files are (design-files.js).
@@ -131,4 +151,4 @@ function fileIds(input) {
   return [...new Set(listed(input).map(fileOf).filter(Boolean).map((file) => file.id))];
 }
 
-module.exports = { withSubstances, tableRows, gateItems, typeItems, TYPE_NEED, fileIds, printed, TABLE_TITLE, TABLE_HEAD, TABLE_NOTE };
+module.exports = { withSubstances, tableRows, gateItems, typeItems, TYPE_NEED, fileIds, printed, notRequiredLine, NOT_REQUIRED_HEAD, TABLE_TITLE, TABLE_HEAD, TABLE_NOTE };
