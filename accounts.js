@@ -830,7 +830,7 @@ router.post('/sign/:token', route(async (req, res) => {
 
 // ---- Review reminders ----
 
-// Sends each company one email listing its SWMS due for review within a week.
+// Sends each company one email listing its SWMS due for their check within a week.
 // A SWMS is not listed again until its next review period.
 async function sendReviewReminders(now = new Date()) {
   if (!db.enabled()) return 0;
@@ -840,15 +840,16 @@ async function sendReviewReminders(now = new Date()) {
   for (const row of due) byCompany.set(row.company_id, [...(byCompany.get(row.company_id) || []), row]);
   for (const [companyId, rows] of byCompany) {
     const users = await db.query('SELECT email FROM users WHERE company_id = $1', [companyId]);
-    const lines = rows.map((row) => `- ${row.title}: review ${new Date(row.review_due_at) <= now ? 'overdue since' : 'due'} ${longDate(row.review_due_at)}`);
+    const lines = rows.map((row) => `- ${row.title}: check ${new Date(row.review_due_at) <= now ? 'overdue since' : 'due'} ${longDate(row.review_due_at)}`);
     // The link opens My SWMS (after signing in, if the device is not signed in).
     const base = auth.appUrl(null);
-    const open = base ? `Open My SWMS: ${base}/#my-swms\n\nCheck each one against the site, and mark it reviewed.` : 'Open SiteReady, check each one against the site, and mark it reviewed.';
+    // Worded as the business's own check, as the button in My SWMS is (D290).
+    const open = base ? `Open My SWMS: ${base}/#my-swms\n\nCheck each one against the site, and mark it as checked.` : 'Open SiteReady, check each one against the site, and mark it as checked.';
     for (const user of users) {
       await sendMail({
         to: user.email,
-        subject: `SiteReady: ${rows.length} SWMS due for review`,
-        text: `These SWMS are due for their ${REVIEW_MONTHS} monthly review:\n\n${lines.join('\n')}\n\n${open}`,
+        subject: `SiteReady: ${rows.length} SWMS due for checking`,
+        text: `These SWMS are due for their ${REVIEW_MONTHS} monthly check:\n\n${lines.join('\n')}\n\n${open}`,
       });
     }
     for (const row of rows) await db.query('UPDATE swms SET reminder_sent_at = $1 WHERE id = $2', [now, row.id]);

@@ -201,7 +201,9 @@ test('review reminders go out once per review period, and a review restarts the 
   }
   const sent = mailbox.slice(before).filter((item) => item.to === 'remind@me.example');
   assert.equal(sent.length, 1);
-  assert.match(sent[0].text, /3 monthly review/);
+  assert.equal(sent[0].subject, 'SiteReady: 1 SWMS due for checking');
+  assert.match(sent[0].text, /due for their 3 monthly check:\n\n- .*: check due /);
+  assert.match(sent[0].text, /mark it as checked\.$/);
   assert.match(sent[0].text, /Open My SWMS: https:\/\/siteready\.example\/#my-swms/, 'the email links to My SWMS at the app\'s own address');
   await sendReviewReminders();
   assert.equal(mailbox.slice(before).filter((item) => item.to === 'remind@me.example').length, 1, 'not sent twice');
