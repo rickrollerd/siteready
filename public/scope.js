@@ -776,6 +776,8 @@
           project.lastDownload = { at: project.downloaded, count: result.items.length, total: project.items.length };
           saveProject();
           renderProject();
+          // The list from before projects were prepared in one go says it on its status line.
+          if ($('project-status')) $('project-status').textContent = `Saved ${result.items.length} SWMS under My SWMS, each as its own revision, and downloaded them as Word and PDF in one zip. Changes you make to one now save as its next revision.`;
           const said = $('go-downloaded');
           if (said && said.scrollIntoView) said.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
