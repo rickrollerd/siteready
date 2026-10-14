@@ -222,7 +222,11 @@ app.get('/api/steps', (_req, res) => {
 function designsAsked(input) {
   try {
     const draft = prepareDraft(input);
-    return draft.kind === 'draft' && (draft.designs || []).length ? { designs: draft.designs } : {};
+    if (draft.kind !== 'draft') return {};
+    // The types of hazardous substance the work usually uses (substances.js, D277), for the one-go
+    // project page's "Not required" ticks (owner, D287).
+    const types = ((draft.substances && draft.substances.items) || []).map((item) => item.product);
+    return { ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types } : {}) };
   } catch (error) {
     return {};
   }
@@ -336,6 +340,20 @@ app.post('/api/designs/read', designReadLimit, auth.requireAccess, async (req, r
   try {
     const result = await designRead.readDesign(req.company, req.body && req.body.fileId);
     record(result.kept ? 'design_read_kept' : 'design_read', req.company && req.company.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Reading a hazardous product's safety data sheet to fill its row (sds-read.js; owner, D256): typed
+// words only, never an image. Signed-in accounts only, with its own limit.
+const sdsRead = require('./sds-read');
+const sdsReadLimit = limiter('sds-read', positiveNumber(process.env.RATE_LIMIT_SDS_READ_REQUESTS, 60));
+app.post('/api/substances/read', sdsReadLimit, auth.requireAccess, async (req, res, next) => {
+  try {
+    const result = await sdsRead.readSds(req.company, req.body && req.body.fileId);
+    record(result.kept ? 'sds_read_kept' : 'sds_read', req.company && req.company.id);
     res.json(result);
   } catch (error) {
     next(error);

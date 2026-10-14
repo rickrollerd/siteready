@@ -119,4 +119,4 @@ async function readDesign(company, fileId) {
   return { ...cardDetails(fields), kept: false };
 }
 
-module.exports = { readDesign, checkedFields, cardDetails, isoDate, NO_WORDS, OFF };
+module.exports = { readDesign, checkedFields, cardDetails, isoDate, pdfText, NO_WORDS, OFF };

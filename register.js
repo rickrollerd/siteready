@@ -123,29 +123,9 @@ const PLANT = [
   { item: 'Electric power tools and leads', pattern: /\b(power tools?|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|hole saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
 ];
 
-// Hazardous substances that commonly come with the work. The product names and
-// quantities are the user's to fill in.
-const SUBSTANCES = [
-  ['Paints and coatings', /(?<!once )\b(paint\w*|coatings?|enamels?)\b/i],
-  ['Solvents and thinners', /\b(solvents?|thinners?|turps)\b/i],
-  ['Adhesives', /\b(adhesives?|glues?|vinyl|carpet)\b/i],
-  ['Wood dust (MDF and hardwood)', /\b(mdf|particleboard|wood dust|sawdust|(?:cut|saw|sand|rout|machin)\w* [^.\n]{0,30}\b(?:timber|wood|hardwood|mdf|joinery))\b/i],
-  ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone)\b/i],
-  ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i],
-  ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack)\b/i],
-  ['Cement, concrete, grout and mortar', /\b(cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i],
-  ['Plaster, jointing and setting compounds', /\b(plaster\w*|jointing|setting compounds?|set(?:ting)? and sand\w*)\b/i],
-  ['Synthetic mineral fibres (insulation)', /\b(insulation(?! boards?)(?!,? where)|glasswool|glass wool|batts|rockwool)\b/i],
-  ['Curing compounds and form release agents', /\b(curing compounds?|cur(?:e|ing) (?:the )?concrete|form oil|release agents?)\b/i],
-  ['Respirable crystalline silica (concrete, masonry, tile and stone dust)', /\bsilica\b/i],
-  ['PVC primer and solvent cement', /\b(solvent cement|pvc primer)\b/i],
-  ['Fuels (diesel, petrol)', /\b(diesel|petrol|fuel\w*|refuel\w*|generators?|chainsaws?|excavators?)\b/i],
-  ['Gases (LPG, acetylene, oxygen)', /\b(lpg|acetylene|oxy-\w*|oxyacetylene|gas cylinders?|brazing|gas torch\w*|torch-on)\b/i],
-  ['Refrigerants', /\brefrigerants?\b/i],
-  ['Cleaning chemicals', /\b(cleaning chemicals?|detergents?|acid wash\w*|cleaning products?)\b/i],
-  ['Herbicides and termiticides', /\b(herbicides?|termiticides?|termite treatment|weed ?killers?|treat\w* the ground)\b/i],
-  ['Bitumen and asphalt', /\b(bitumen|asphalt|hot mix)\b/i],
-];
+// Hazardous substances that commonly come with the work: the types, which the page offers as
+// prompts for the user to add each product used (public/substance-rules.js, owner D256).
+const { SUBSTANCES, CONTROL_PRODUCTS } = require('./public/substance-rules');
 
 // Licences, tickets and training the work needs.
 // Class A for friable asbestos (s 485), Class B or A for more than 10 m2 of non-friable asbestos
@@ -347,18 +327,6 @@ function plantFor(text) {
   }
   return found;
 }
-
-// Products named in control lines. These are matched only on product names, so a
-// control that says to keep clear of something does not list it.
-const CONTROL_PRODUCTS = {
-  'Paints and coatings': /\btouch-up paint\b/i,
-  'Adhesives': /\badhesives?\b/i,
-  'Sealants, mastics and silicone': /\b(sealants?|mastics?)\b/i,
-  'Epoxy, resins and two-part products': /\b(epoxy|jointing resins?|resins?)\b/i,
-  'Cement, concrete, grout and mortar': /\b(cement-based|cementitious|grout|mortar|wet concrete)\b/i,
-  'Gases (LPG, acetylene, oxygen)': /\b(lpg|gas torch\w*|acetylene)\b/i,
-  'Respirable crystalline silica (concrete, masonry, tile and stone dust)': /\b(?:respirable crystalline silica|silica dust)\b/i,
-};
 
 function substancesFor(text, safetyDataSheet, controlText = '') {
   const found = SUBSTANCES.filter(([product, pattern]) => pattern.test(text) || (CONTROL_PRODUCTS[product] && CONTROL_PRODUCTS[product].test(controlText))).map(([product]) => ({ product, sds: '', quantity: '' }));

@@ -377,6 +377,9 @@ function payload() {
     plantChoice: plantChoice || undefined,
     emergency: emergencyAnswers || undefined,
     designs: designsPayload(),
+    // Each hazardous product the user listed, from its safety data sheet (substances.js, D256).
+    substances: window.SiteReadySubstances ? window.SiteReadySubstances.payload() : undefined,
+    substancesNotUsed: window.SiteReadySubstances ? window.SiteReadySubstances.notUsedPayload() : undefined,
     facts,
     site,
   };
@@ -730,6 +733,7 @@ function newSwms() {
   designsFound = [];
   designsKept = new Map();
   if (window.SiteReadyMethodRead) window.SiteReadyMethodRead.clear();
+  if (window.SiteReadySubstances) window.SiteReadySubstances.clear();
   drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
@@ -1470,6 +1474,7 @@ function fillStart(input) {
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
   ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
+  if (window.SiteReadySubstances) window.SiteReadySubstances.load(input.substances, input.substancesNotUsed);
   designsFound = [];
   designsKept = new Map();
   // This SWMS's own answers are drawn fresh, even for the same designs as the last one shown.
@@ -1714,7 +1719,9 @@ function markGaps(gaps) {
       const holder = el.closest('.field') || el.parentElement;
       if (holder) holder.appendChild(note);
     }
-    const text = `Needed before download: ${gap.need}`;
+    // A need that starts with its own name and a colon ("Cement product: add ...") follows a full stop,
+    // so the note does not read with two colons (owner, D282).
+    const text = `Needed before download${/^[^.:]{1,60}: /.test(gap.need) ? '.' : ':'} ${gap.need}`;
     if (note.textContent !== text) note.textContent = text;
     // An answer's blank is said once, by the red warning under it (D241); the list above still has it.
     note.hidden = gap.kind === 'fact' && el.classList.contains('has-blank') && Boolean(document.getElementById(`${el.id}-blanks`));
@@ -1736,6 +1743,9 @@ function liveNeed(check) {
   const rules = window.SiteReadyGate;
   // A design is judged from its card as it is now.
   if (check.kind === 'design' && rules && rules.designNeed) return designShown(check.design) ? rules.designNeed(designRow(check.design)) : check.need;
+  // A hazardous product is judged from its card as it is now (substances.js).
+  if (check.kind === 'substance' && window.SiteReadySubstances) { const need = window.SiteReadySubstances.need(check.substance); return need === null ? check.need : need; }
+  if (check.kind === 'substanceType' && window.SiteReadySubstances) return window.SiteReadySubstances.typeNeed(check.substanceType);
   if (!check.rule || !rules) return check.need;
   if (check.kind === 'line') return rules.answerNeed(check.rule, (fills || {})[check.key] || []);
   const el = check.field ? document.getElementById(check.field) : null;
@@ -1799,7 +1809,7 @@ function gateBlock(gaps) {
   const answers = gaps.some((gap) => gap.kind !== 'cover');
   return `<div class="panel gate" id="gate-panel" role="region" aria-labelledby="gate-title">
     <h3 id="gate-title">Before you can download this SWMS</h3>
-    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given,${gaps.some((gap) => gap.kind === 'design') ? ' the designs it relies on are named,' : ''} no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
+    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given,${gaps.some((gap) => gap.kind === 'design') ? ' the designs it relies on are named,' : ''}${gaps.some((gap) => gap.kind === 'substance' || gap.kind === 'substanceType') ? ' each hazardous product is listed and checked against its safety data sheet,' : ''} no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
     <ul class="gate-list">${gaps.map((gap, i) => `<li><button type="button" class="link" ${gap.kind === 'cover' ? 'data-cover-jump' : `data-gate-go="${i}"`}>${esc(gap.label)}</button><span class="meta">${esc(gap.need)}</span></li>`).join('')}</ul>
     ${answers ? '<div class="actions"><button type="button" id="gate-update">Update the draft</button></div>' : ''}
   </div>`;
@@ -2383,7 +2393,10 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     // A control for a hazard the user added (D254) is changed under that hazard, below the step.
     const fromHazard = new Set(step.hazardLines || []);
     const hazardItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="hazard-line">${esc(line)}<span class="meta"> For your own hazard. Change it under the hazard, below this step.</span></li>`;
-    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : fromPpe.has(line) ? ppeItem(line, i) : fromHazard.has(line) ? hazardItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span>${askFor(line)}</li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}" data-removed-line="${r}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    // A hazardous product's line (D257) is changed under Hazardous substances, from its safety data sheet.
+    const fromSubstance = new Set(step.substanceLines || []);
+    const substanceItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="substance-line">${esc(line)}<span class="meta"> From the product's safety data sheet. Change it under Hazardous substances.</span></li>`;
+    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : fromPpe.has(line) ? ppeItem(line, i) : fromHazard.has(line) ? hazardItem(line, i) : fromSubstance.has(line) ? substanceItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span>${askFor(line)}</li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}" data-removed-line="${r}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
@@ -2433,7 +2446,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
   const registers = `${plantTable || movable ? `<h4>Plant and equipment</h4>${movable ? plantBlock(draft) : ''}${plantTable || '<p class="meta">No plant prints on this SWMS.</p>'}` : ''}
-    ${draft.substances && draft.substances.items.length ? `<h4>Hazardous substances</h4>${grid(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], draft.substances.items.map((item) => [item.product, '', 'Yes / No', '']))}` : ''}
+    ${window.SiteReadySubstances ? window.SiteReadySubstances.section(draft, { movable }) : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
     ${(draft.emergency || []).length ? `<h4 id="emergency-table" tabindex="-1">Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
     ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
@@ -3752,8 +3765,23 @@ function redrawActions() {
   if (shownDraft.kind === 'draft') showTranslate(shownSent);
 }
 
+// The first thing still needed before download, brought into view once and focused (owner, D287: "Go
+// to it" on the project's not ready list goes straight to it, whatever it is). The page is not moved
+// again after (item 19). Returns false when nothing is needed or it is not on the page.
+function goToFirstNeed() {
+  const gap = shownDraft && shownDraft.kind === 'draft' ? shownGaps[0] : null;
+  if (!gap) return false;
+  const el = gap.kind === 'cover' ? (document.getElementById('not-covered-confirm') || document.querySelector('.not-covered [data-own-write]')) : answerTarget(gateTarget(gap));
+  if (!el) return false;
+  const closed = el.closest('details:not([open])');
+  if (closed) closed.open = true;
+  el.scrollIntoView({ block: 'center' });
+  el.focus({ preventScroll: true });
+  return true;
+}
+
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
+  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },

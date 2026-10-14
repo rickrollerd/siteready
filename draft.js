@@ -2808,7 +2808,7 @@ function askQuestions(input) {
     // Spelling fixed in the task, so the user sees each change.
     spellingFixes: spelling.fixes,
     fall: fallCheck(task, answer, state),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
@@ -3375,6 +3375,29 @@ function screenHighRisk(input, said = '') {
 // own words and job steps bring.
 // screen 'steps' is set only by questionsFor: the answers given so far stand, and the build stops
 // once it knows whether the SWMS is stood down for want of job steps ({ noSteps }).
+// Once the user lists a hazardous product from its safety data sheet (substances.js, owner D277), the
+// "Safety data sheet" question ("The products used are ____") is not asked, and its answer is not
+// needed. An answer already given keeps its lines in each step until a product is placed in that step,
+// whose own SDS controls then replace them (D282, substances.js). Without a product it is asked as before.
+const productsListed = (input) => Array.isArray(input && input.substances) && input.substances.some((row) => row && /^sub-\d{1,2}$/.test(String(row.id || '')) && String(row.product || '').trim());
+const notSdsQuestion = (input) => (item) => !(item.id === 'safetyDataSheet' && productsListed(input));
+// The control lines an answer to the "Safety data sheet" question makes (controlsFor), as they print.
+function sdsAnswerLines(facts) {
+  const sheet = keptFact(facts && facts.safetyDataSheet);
+  if (!sheet) return [];
+  const out = [];
+  const push = (level, text) => { const line = cleanLine(text); if (line && !isDenialLine(line)) out.push(control(level, line).text); };
+  for (const line of controlRows(sheet)) {
+    const at = line.search(/[,;:]\s*(?:and\s+)?wear\b/i);
+    if (at > 0) {
+      push('Administrative', `${line.slice(0, at).trim()}.`);
+      const ppe = line.slice(at).replace(/^[,;:]\s*(?:and\s+)?/, '').replace(/[.]*$/, '.');
+      push('PPE', ppe.charAt(0).toUpperCase() + ppe.slice(1));
+    } else push('Administrative', line);
+  }
+  return out;
+}
+
 function buildDraft(input, screen) {
   const asked = askQuestions(screen === true ? { ...input, fallRisk: 'no', residential: input.residential || 'no' } : input);
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
@@ -3397,7 +3420,7 @@ function buildDraft(input, screen) {
     fallAnswer: fallAnswer(input.fallRisk),
     state,
   };
-  const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, facts, state, input.ppe));
+  const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, facts, state, input.ppe)).filter(notSdsQuestion(input));
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
@@ -3625,7 +3648,9 @@ function buildDraft(input, screen) {
   // The answers to the emergency questions for the work print in the emergency arrangements (goal 2).
   // The designs the steps rely on, named in each step and in a table near the top (owner,
   // 11 October 2026). A SWMS with no such step is unchanged.
-  return require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input);
+  // Each hazardous product the user listed, in the substances table and in the step that uses it
+  // (substances.js, owner D256, D257). A SWMS with no product listed is unchanged.
+  return require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input), input);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,
@@ -7303,7 +7328,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = {
+module.exports = { sdsAnswerLines,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

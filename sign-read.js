@@ -230,8 +230,9 @@ function controlPool(draft, random) {
     libraryControls = ACTIVITIES.flatMap((activity) => activity.steps.filter((step) => !ROUTINE_STEPS.includes(step.step))
       .flatMap((step) => step.controls.map((control) => ({ step: step.step.toLowerCase(), text: controlText(control) })))).filter((item) => shortControl(item.text));
   }
-  // A design's reference or hold point (designs.js) is not asked: its wording would give it away.
-  const own = (draft.jobSteps || []).map((step) => ({ ...step, controls: (step.controls || []).filter((line) => !(step.designLines || []).includes(line)).map(withoutAddedReferences) }));
+  // A design's reference or hold point (designs.js) is not asked: its wording would give it away. Nor
+  // is a hazardous product's line (substances.js), which names the product.
+  const own = (draft.jobSteps || []).map((step) => ({ ...step, controls: (step.controls || []).filter((line) => !(step.designLines || []).includes(line) && !(step.substanceLines || []).includes(line)).map(withoutAddedReferences) }));
   const names = new Set(own.map((step) => step.step.toLowerCase()));
   const lines = own.flatMap((step) => [step.step, ...step.hazards, ...step.controls]);
   const telling = (text) => keyWords(text).filter((word) => !GENERIC_STEP_WORDS.has(word)).length >= 2;

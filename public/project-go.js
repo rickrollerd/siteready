@@ -108,7 +108,46 @@
       site: { ...(item.siteOwn || sharedSite()) },
       designs: designs.length ? designs.map((row) => ({ ...row })) : undefined,
       emergency: Object.keys(emergency).length ? { ...emergency } : undefined,
+      substancesNotUsed: notUsedOf(item).length ? notUsedOf(item) : undefined,
     };
+  }
+
+  // The types of hazardous substance ticked "Not required" for a SWMS (D277, D287): kept with its
+  // prepared input, where its draft keeps them too, so a tick here or there is the same tick.
+  const notUsedOf = (item) => [...((item.body && item.body.substancesNotUsed) || item.substancesNotUsed || [])];
+  function setNotUsed(index, type, ticked) {
+    const item = project.items[index];
+    const now = new Set(notUsedOf(item));
+    if (ticked) now.add(type); else now.delete(type);
+    const list = [...now];
+    item.substancesNotUsed = list;
+    if (item.body) item.body = { ...item.body, substancesNotUsed: list.length ? list : undefined };
+    // The list says at once what the SWMS still needs: the tick needs no new draft.
+    const rules = window.SiteReadySubstanceRules;
+    if (item.kind === 'draft' && rules) {
+      const label = `${TYPE_LABEL}${rules.promptName(type)}`;
+      const covered = ((item.body && item.body.substances) || []).some((row) => row && row.type === type && String(row.product || '').trim());
+      const needs = (item.needs || []).filter((need) => need !== label);
+      if (!ticked && !covered) needs.push(label);
+      item.needs = needs;
+      if (hooks.statusOf) item.status = hooks.statusOf(item);
+    }
+    save();
+  }
+  // Each type the work usually uses, with its tick, in the SWMS's section. Products with their safety
+  // data sheets are added in the SWMS's own draft.
+  function typesHtml(index, types) {
+    const item = project.items[index];
+    const rules = window.SiteReadySubstanceRules;
+    if (!types.length || !rules) return '';
+    const ticked = new Set(notUsedOf(item));
+    const products = ((item.body && item.body.substances) || []).filter((row) => row && String(row.product || '').trim());
+    const rows = types.filter((type) => rules.TYPES.includes(type)).map((type) => {
+      const added = products.filter((row) => row.type === type).map((row) => row.product);
+      return `<li>${esc(type)}${added.length ? ` <span class="meta">Added: ${esc(added.join('; '))}.</span>` : `<label class="check go-notused"><input type="checkbox" data-go-notused="${index}" data-type="${esc(type)}"${ticked.has(type) ? ' checked' : ''}> Not required</label>`}</li>`;
+    }).join('');
+    const open = item.kind === 'draft' ? ` <button type="button" class="link" data-project-open="${index}">Open this SWMS to add a product</button>` : ' After Prepare all, open this SWMS with Check this SWMS to add one.';
+    return `<div class="go-types"><p class="go-sub"><strong>Hazardous substances</strong></p><p class="meta">This work usually uses these. Tick "Not required" for each one not used on this job. For each one used, add the product from its safety data sheet in the SWMS itself.${open}</p><ul class="go-type-list">${rows}</ul></div>`;
   }
 
   // ---- Asking each SWMS's questions ----
@@ -130,7 +169,7 @@
       const before = asked.get(index);
       asked.set(index, data);
       // A question already on the page keeps its box while the user types; only new or gone ones redraw.
-      const shape = (got) => JSON.stringify(got && !got.error ? [(got.required || []).map((q) => q.id), (got.designs || []).filter((row) => row.needed).map((row) => row.id), Boolean(got.standDown)] : null);
+      const shape = (got) => JSON.stringify(got && !got.error ? [(got.required || []).map((q) => q.id), (got.designs || []).filter((row) => row.needed).map((row) => row.id), Boolean(got.standDown), got.substanceTypes || []] : null);
       if (shape(before) !== shape(data) || !document.getElementById(`go-item-${index}`)) drawItem(index);
       else notesFor(index);
     } catch {
@@ -236,6 +275,7 @@
       if (found.length) parts.push(`<p class="go-sub"><strong>Designs this work relies on</strong></p>${found.map((row) => designHtml(index, row.id, row.label || row.what, row.steps)).join('')}`);
       const own = Boolean(item.siteOwn);
       parts.push(`<div class="go-site-own">${own ? `<p class="meta">This SWMS has its own site answers. <button type="button" class="link" data-go-site-same="${index}">Use the answers for every SWMS</button></p>${siteBoxes(`go-site-${index}`, item.siteOwn, `data-go-own-site="${index}"`)}` : `<p class="meta">Site questions: the answers for every SWMS, above. <button type="button" class="link" data-go-site-own="${index}">Change them for this SWMS</button></p>`}</div>`);
+      parts.push(typesHtml(index, got.substanceTypes || []));
       if ((item.plant || []).length) parts.push(`<p class="meta">Plant the scope names: ${esc(item.plant.join(', '))}. You confirm the plant when you check this SWMS.</p>`);
     }
     return parts.join('');
@@ -412,6 +452,10 @@
       if ($('go-slinging-error')) $('go-slinging-error').textContent = '';
       save();
       project.items.forEach((_item, index) => askSoon(index));
+      return;
+    }
+    if (target.dataset.goNotused !== undefined) {
+      setNotUsed(Number(target.dataset.goNotused), target.dataset.type, target.checked);
       return;
     }
     if (target.dataset.goFall !== undefined) {
@@ -648,12 +692,26 @@
     const abn = String(profile.abn || '').replace(/\D/g, '');
     return name && abn ? '' : !name && !abn ? 'Company name and ABN' : !name ? 'Company name' : 'ABN';
   }
+  // The types of hazardous substance a SWMS waits for (substances.js, D277), said once with what to do,
+  // not as one "Hazardous substance: ..." item each.
+  const TYPE_LABEL = 'Hazardous substance: ';
+  const TYPE_DO = 'for each hazardous substance, add the product you use or tick "Not required"';
+  function splitTypes(labels) {
+    const rules = window.SiteReadySubstanceRules;
+    const names = new Set(rules ? rules.TYPES.map(rules.promptName) : []);
+    const isType = (label) => label.startsWith(TYPE_LABEL) && names.has(label.slice(TYPE_LABEL.length));
+    return { give: labels.filter((label) => !isType(label)), types: labels.filter(isType).map((label) => label.slice(TYPE_LABEL.length)) };
+  }
   function itemState(item) {
     const own = (item.needs || []).filter((label) => !SHARED_LABELS.has(label) && !(SITE_LABEL.test(label) && !item.siteOwn));
     if (item.status === 'ready') return { ready: true, text: 'Ready to download.' };
     if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.join('; ')} need more.` };
     if (item.status === 'write' || item.status === 'tick') return { ready: false, text: 'Needs your own step, or the SWMS that covers it named, for work SiteReady has no job steps for.' };
-    return { ready: false, text: own.length ? `Before download, open it to give: ${own.join('; ')}.` : 'Waiting only for the details above.' };
+    const { give, types } = splitTypes(own);
+    const typesText = types.length ? `${TYPE_DO}: ${types.join('; ')}` : '';
+    const text = give.length ? `Before download, open it to give: ${give.join('; ')}.${typesText ? ` Then, ${typesText}.` : ''}`
+      : typesText ? `Before download, open it and, ${typesText}.` : 'Waiting only for the details above.';
+    return { ready: false, text, give, types };
   }
   function sharedNeeds() {
     // A person's box left empty, or given an answer a SWMS does not accept ("TBA").
@@ -666,11 +724,12 @@
   // every SWMS ready by then in one zip; one unchanged since it was last downloaded keeps its revision.
   const lowerFirst = (text) => String(text).replace(/^[A-Z](?=[a-z])/, (letter) => letter.toLowerCase());
   const needsText = (state) => {
+    if (state.types && state.types.length) return [state.give.length ? `give ${state.give.map(lowerFirst).join('; ')}` : '', `${TYPE_DO}: ${state.types.join('; ')}`].filter(Boolean).join('; then, ');
     const text = state.text.replace(/\.$/, '');
     const give = /^Before download, open it to give: (.*)$/.exec(text);
     return give ? `give ${give[1].split('; ').map(lowerFirst).join('; ')}` : lowerFirst(text);
   };
-  const notReadyLine = (item, index, state) => `<li>SWMS ${index + 1} (${esc(item.title)}): ${esc(needsText(state))}. <button type="button" class="link" data-project-open="${index}">Go to it</button></li>`;
+  const notReadyLine = (item, index, state) => `<li>SWMS ${index + 1} (${esc(item.title)}): ${esc(needsText(state))}. <button type="button" class="link" data-project-open="${index}" data-project-need>Go to it</button></li>`;
   function downloadHtml(states, ready, n) {
     const waiting = project.items.map((item, index) => ({ item, index, state: states[index] })).filter((entry) => !entry.state.ready);
     const last = project.lastDownload;

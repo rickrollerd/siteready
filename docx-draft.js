@@ -4,6 +4,7 @@ const {
 } = require('docx');
 const { stepPpeRows } = require('./step-ppe');
 const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./designs');
+const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
 
@@ -337,10 +338,13 @@ function registerBlocks(draft) {
     blocks.push(para('Keep the inspection and maintenance records, and sight each licence before work.', { size: 19, color: MUTED, before: 0, after: 80 }));
     blocks.push(gridTable(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], [3400, 6400, CONTENT_WIDTH - 9800], draft.plant.map((item) => [item.item, item.inspection, item.licence])));
   }
-  if (draft.substances && draft.substances.items.length) {
-    blocks.push(sectionHeading('Hazardous substances'));
-    blocks.push(para('Name each product used, attach its current safety data sheet, and keep it at the work area.', { size: 19, color: MUTED, before: 0, after: 80 }));
-    blocks.push(gridTable(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], [3800, 5200, 2600, CONTENT_WIDTH - 11600], draft.substances.items.map((item) => [item.product, '', 'Yes  /  No', ''])));
+  // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
+  // D256, D257). A type of substance with no product does not print.
+  const products = substanceRows(draft);
+  if (products.length) {
+    blocks.push(sectionHeading(SUBSTANCES_TITLE));
+    blocks.push(para(SUBSTANCES_NOTE, { size: 19, color: MUTED, before: 0, after: 80 }));
+    blocks.push(gridTable(SUBSTANCES_HEAD, [2600, 2500, 3700, 2200, 2200, CONTENT_WIDTH - 13200], products));
   }
   blocks.push(sectionHeading('Licences, tickets and training'));
   blocks.push(para('Needed for this task:', { size: 20, bold: true, before: 0, after: 40 }));

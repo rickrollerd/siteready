@@ -138,11 +138,15 @@ function normaliseSwms(input = {}) {
     // The designs table a SiteReady draft prints (designs.js); null for a SWMS from elsewhere, whose
     // steps are read for design wording in general.
     designs: Array.isArray(input.designs) ? input.designs.filter((item) => item && typeof item === 'object').map((item) => ({ id: text(item.id), what: text(item.what), status: text(item.status) })) : null,
+    // The hazardous products a SiteReady draft lists one by one (substances.js, D256); null otherwise.
+    substances: Array.isArray(input.substances) ? input.substances.filter((item) => item && typeof item === 'object').map((item) => ({ product: text(item.product), type: text(item.type), controls: list(item.controls), confirmed: item.confirmed === true })) : null,
     highRisk: list(input.highRisk),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
       .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible), rating: ratingOf(item) })),
     ppe: list(input.ppe),
     stepPpeLines: list(input.stepPpeLines),
+    // Each hazardous product's line in its step (substances.js, D257).
+    stepSubstanceLines: list(input.stepSubstanceLines),
     responsiblePerson: text(input.responsiblePerson),
     consultation: text(input.consultation),
     signatures,
@@ -937,8 +941,9 @@ function weighted(swms, state, context) {
     const fixes = [];
     let points = 0;
     // A step's own PPE line (D246) says in the step what the PPE table lists, which is not counted
-    // either, so it does not count as a PPE control here.
-    const stepPpe = new Set(swms.stepPpeLines || []);
+    // either, so it does not count as a PPE control here. Nor does a hazardous product's line (D257),
+    // which says in the step what the substances table lists.
+    const stepPpe = new Set([...(swms.stepPpeLines || []), ...(swms.stepSubstanceLines || [])]);
     const levels = allControls.filter((line) => !isDesignLine(line) && !stepPpe.has(line)).map(controlLevel);
     // Judged across every step, so a step with no controls counts against the score: a SWMS
     // that controls 2 of its 21 steps does not get full marks for those 2.
@@ -958,8 +963,9 @@ function weighted(swms, state, context) {
   {
     const fixes = [];
     // A design's reference or hold point (designs.js) names a document or a stop: it is checkable.
-    // So does a step's own PPE line (D246): the PPE it names is worn or it is not.
-    const stepPpe = new Set(swms.stepPpeLines || []);
+    // So does a step's own PPE line (D246): the PPE it names is worn or it is not. And a hazardous
+    // product's line (D257): it names the product, and its SDS is at the work area or it is not.
+    const stepPpe = new Set([...(swms.stepPpeLines || []), ...(swms.stepSubstanceLines || [])]);
     const share = allControls.length ? allControls.filter((line) => checkable(line) || isDesignLine(line) || stepPpe.has(line)).length / allControls.length : 0;
     let points = 10 * Math.min(1, share / 0.4);
     // Vague wording costs in proportion to how much of the SWMS it is, so one phrase does not zero it,
@@ -1070,8 +1076,9 @@ function weighted(swms, state, context) {
     const fixes = [];
     let points = 2;
     // A design's reference or hold point is not counted as length: it names the document the step is done to.
-    // Nor is a step's own PPE line (D246): it says in the step what the PPE table already lists.
-    const stepPpe = new Set(swms.stepPpeLines || []);
+    // Nor is a step's own PPE line (D246): it says in the step what the PPE table already lists. Nor a
+    // hazardous product's line (D257), for the substances table.
+    const stepPpe = new Set([...(swms.stepPpeLines || []), ...(swms.stepSubstanceLines || [])]);
     if (allControls.filter((line) => !isDesignLine(line) && !stepPpe.has(line)).length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
     add('W8', 'Readable and short', 2, points, fixes, 'Short and to the point.');
   }
@@ -1199,20 +1206,28 @@ function weighted(swms, state, context) {
 
   // W14 Hazardous chemicals (3): where the SWMS shows chemicals are used, the products or product
   // types are named (1) and the safety data sheet controls are given (2) (owner decision, 6 October 2026, Q11).
+  // A SiteReady SWMS whose products are listed one by one (owner D256) names them in its substances
+  // table; each needs the controls from its safety data sheet and a check against it, as the download does.
   {
     const fixes = [];
     let points = 3;
+    const products = Array.isArray(swms.substances) ? swms.substances.filter((row) => row && String(row.product || '').trim()) : [];
     const used = [swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]), ...swms.plant]
       .map((line) => line.replace(NOT_CHEMICAL, ' ')).filter(chemicalsUsed);
     if (used.length) {
       const where = [...allControls, ...steps.map((step) => step.step), ...swms.plant, ...swms.licences, ...swms.site.conditions, ...swms.emergency, swms.review].filter(Boolean);
-      const named = [swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]), ...swms.plant, ...swms.licences].some((line) => PRODUCT_TYPE.test(line) || BRAND.test(line));
+      const named = products.length > 0 || [swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]), ...swms.plant, ...swms.licences].some((line) => PRODUCT_TYPE.test(line) || BRAND.test(line));
       const sds = where.some((line) => SDS.test(line) || (MAKER_DIRECTIONS.test(line) && CHEMICAL_USE.test(line)));
       const word = CHEMICAL_USE.exec(used[0])[0].toLowerCase();
       if (!named) { points -= 1; fixes.push(`The SWMS uses chemicals (such as "${word}"): name the products or product types used.`); }
       if (!sds) { points -= 2; fixes.push('Add the safety data sheet controls for the chemicals: the SDS at the work area and followed, and containers labelled.'); }
     }
-    add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
+    const noControls = products.filter((row) => !(row.controls || []).length).map((row) => row.product);
+    const unchecked = products.filter((row) => (row.controls || []).length && row.confirmed !== true).map((row) => row.product);
+    if (noControls.length) fixes.push(`Give the controls from the safety data sheet for: ${noControls.join('; ')}.`);
+    if (unchecked.length) fixes.push(`Check each product's row against its safety data sheet and confirm it: ${unchecked.join('; ')}.`);
+    points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0));
+    add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length || products.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
   }
 
   // W15 Hazards rated, residual risk shown (4): 2 for every step rated before its controls, 2 for every
@@ -1344,6 +1359,11 @@ function fromDraft(draft, extra = {}) {
     // The designs table as printed (designs.js); a draft with none prints none. A written method the
     // user listed (D224) is not a design a step relies on and is not counted.
     designs: (draft.designs || []).filter((row) => row.kind !== 'method').map((row) => ({ id: row.id, what: row.what, status: row.status })),
+    // Each hazardous product the user listed (substances.js, D256), only where there is one: a draft with
+    // none is checked as before.
+    ...((draft.substances && Array.isArray(draft.substances.products) && draft.substances.products.length)
+      ? { substances: draft.substances.products.map((row) => ({ product: row.product, type: row.type, controls: row.controls || [], confirmed: row.confirmed === true })),
+        stepSubstanceLines: (draft.jobSteps || []).flatMap((step) => step.substanceLines || []) } : {}),
     ...extra.swms,
   };
 }

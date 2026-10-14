@@ -2,6 +2,7 @@
 // print or send it. Worker signatures collected in the app are printed on it.
 const PDFDocument = require('pdfkit');
 const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./designs');
+const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
 const { revisionText, sharedNote } = require('./docx-draft');
@@ -192,10 +193,13 @@ function registers(doc, draft, w) {
     text(doc, 'Keep the inspection and maintenance records, and sight each licence before work.', { size: 8.5, color: MUTED });
     table(doc, { widths: [150, w - 150 - 210, 210], header: ['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], rows: draft.plant.map((item) => row(item.item, item.inspection, item.licence)) });
   }
-  if (draft.substances && draft.substances.items.length) {
-    heading(doc, 'Hazardous substances');
-    text(doc, 'Name each product used, attach its current safety data sheet, and keep it at the work area.', { size: 8.5, color: MUTED });
-    table(doc, { widths: [190, w - 190 - 130 - 90, 130, 90], header: ['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], rows: draft.substances.items.map((item) => row(item.product, ' ', 'Yes  /  No', ' ')) });
+  // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
+  // D256, D257). A type of substance with no product does not print.
+  const products = substanceRows(draft);
+  if (products.length) {
+    heading(doc, SUBSTANCES_TITLE);
+    text(doc, SUBSTANCES_NOTE, { size: 8.5, color: MUTED });
+    table(doc, { widths: [130, 125, w - 130 - 125 - 110 - 110 - 95, 110, 110, 95], header: SUBSTANCES_HEAD, rows: products.map((cells) => row(...cells.map((value) => value || ' '))) });
   }
   heading(doc, 'Licences, tickets and training');
   text(doc, 'Needed for this task:', { bold: true });

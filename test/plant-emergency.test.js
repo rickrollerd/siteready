@@ -17,9 +17,11 @@ const { sharedNote } = require('../docx-draft');
 const { QUESTIONS, emergencyQuestions } = require('../emergency');
 const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 const { loadPage, settle } = require('./fake-dom');
+// The types of hazardous substance are ticked "Not required" (D277): these tests are about the plant and the emergency.
+const { TYPES } = require('../public/substance-rules');
 
-const EWP = { ...ANSWERED, state: 'qld', task: 'Install cable trays and pull cables through the ward ceilings and risers from scissor lifts.', fallRisk: 'yes', residential: 'no', facts: { fallControl: 'Scissor lifts with guardrails for all work above 2 m.', controlsConsidered: 'A scaffold is not practicable in the ward ceilings.' } };
-const TRENCH = { ...ANSWERED, state: 'qld', task: 'Excavate a trench 2.5 m deep with an excavator and lay a 300 mm sewer main, with a trench shield.', fallRisk: 'no', residential: 'no', facts: { trenchSupport: 'Trench shield to 3 m, installed as digging goes.' } };
+const EWP = { ...ANSWERED, state: 'qld', task: 'Install cable trays and pull cables through the ward ceilings and risers from scissor lifts.', fallRisk: 'yes', residential: 'no', facts: { fallControl: 'Scissor lifts with guardrails for all work above 2 m.', controlsConsidered: 'A scaffold is not practicable in the ward ceilings.' } , substancesNotUsed: TYPES };
+const TRENCH = { ...ANSWERED, state: 'qld', task: 'Excavate a trench 2.5 m deep with an excavator and lay a 300 mm sewer main, with a trench shield.', fallRisk: 'no', residential: 'no', facts: { trenchSupport: 'Trench shield to 3 m, installed as digging goes.' } , substancesNotUsed: TYPES };
 const EWP_ANSWERS = { ewpLower: 'Larry Leadinghand, leading hand, trained on the ground controls', ewpControls: 'Ground control panel at the rear of the base, key in the ignition', plantStop: 'The operator presses the red emergency stop on the platform' };
 const TRENCH_ANSWERS = { trenchRescue: 'No one enters: lifted out from the top with the harness and line by Dave Digger', trenchKit: 'Tripod, winch, harness and line at the trench box', confinedRescue: 'Sam Spotter at the manhole, retrieval from outside by tripod and winch', confinedKit: 'Tripod and winch, harness and lifeline, gas detector at the entry', plantStop: 'The operator rests the bucket and turns the key off' };
 

@@ -32,6 +32,10 @@
 //   In a job step the user wrote for work SiteReady does not cover, the user changes the step.
 // - Each design a job step relies on (designs.js): its details, "Not issued yet" (a hold point), or
 //   "Not needed for this work", recorded as the user's choice.
+// - Each hazardous product the user listed (substances.js, owner D256): its name, the PPE and controls
+//   from its safety data sheet, the SDS's issue date, the step that uses it, and the tick that the row
+//   matches the SDS. Each type of substance SiteReady suggests needs a product or the tick "Not used
+//   on this job" (D277); a ticked type prints nothing.
 const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
@@ -39,6 +43,8 @@ const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./b
 const { clean, answerNeed } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 const { designNeed } = require('./designs');
+const substances = require('./substances');
+const rules = require('./public/substance-rules');
 
 // Each field: the input key, the page box it is answered in, its label and what is needed.
 const FIELDS = [
@@ -118,7 +124,7 @@ function printedTexts(draft) {
 }
 
 // Every check the gate makes on this SWMS, answered or not: a list of
-// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'design' | 'fact' | 'line' | 'own' | 'other', field, label,
+// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'design' | 'substance' | 'substanceType' | 'fact' | 'line' | 'own' | 'other', field, label,
 // need, rule?, key?, parts?, step? }. need is '' where the answer passes. rule, where given, is how the
 // answer is judged (public/gate-rules.js answerNeed), so the page can judge it again as the user types
 // and show the item again if the answer is taken out. Items without a rule (the plant, anything else
@@ -154,6 +160,14 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // A written method the user chose to list (D224) is optional and never asked about here.
   for (const row of (draft.designs || []).filter((item) => item.kind !== 'method')) {
     add({ id: `design.${row.id}`, kind: 'design', field: `design-${row.id}`, label: `Design: ${row.what}`, design: row.id, need: designNeed(row) });
+  }
+  // Each type of substance SiteReady suggests: a product added, or ticked "Not required" (D277).
+  for (const item of substances.typeItems(draft, input)) {
+    add({ id: `substanceType.${item.n}`, kind: 'substanceType', field: `sub-type-${item.n}`, label: `Hazardous substance: ${rules.promptName(item.type)}`, substanceType: item.type, need: item.need });
+  }
+  // Each hazardous product listed, checked against its safety data sheet (substances.js, D256).
+  for (const item of substances.gateItems(draft)) {
+    add({ id: `substance.${item.id}`, kind: 'substance', field: `substance-${item.id}`, label: item.label, substance: item.id, need: item.need });
   }
   // The user's own answers with a blank still in them where the SWMS prints them, filled in their own
   // boxes. An answer the SWMS does not print leaves no blank in it.
@@ -224,7 +238,7 @@ function gateMessage(gaps) {
   const names = [...new Set(gaps.filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
   const cover = gaps.find((gap) => gap.kind === 'cover');
   return [
-    names.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given${gaps.some((gap) => gap.kind === 'design') ? ', the designs it relies on are named' : ''} and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
+    names.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given${gaps.some((gap) => gap.kind === 'design') ? ', the designs it relies on are named' : ''}${gaps.some((gap) => gap.kind === 'substance' || gap.kind === 'substanceType') ? ', each hazardous product is listed and checked against its safety data sheet' : ''} and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
     cover ? cover.message : '',
   ].filter(Boolean).join(' ');
 }
