@@ -3335,7 +3335,67 @@ const SDS_PROMPT = 'Name the hazardous products this work uses, such as sealant,
 function prepareDraft(input) {
   const read = scopeWords(input);
   const out = buildDraft(read, false);
-  return read === input ? out : printedTask(out, input);
+  return movedTask(read === input ? out : printedTask(out, input), input);
+}
+
+// Owner, D291: work moved into another SWMS of the project ("covered in", D289) comes off the Task line
+// of the SWMS it left, and is on the Task line of the SWMS it moved to. Only the line printed changes:
+// the work is still read from the task as given, so it stays listed above the draft, where the move
+// can be undone. input.movedOut: the parts this SWMS named as covered in another SWMS of the project.
+const TASK_JOIN_BEFORE = /(?:,\s*(?:and\s+|then\s+)?|\s+(?:and|then)\s+)$/i;
+const TASK_JOIN_AFTER = /^(?:,\s*(?:and\s+|then\s+)?|\s+(?:and|then)\s+)/i;
+const taskWords = (text) => String(text || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+function taskWithout(task, part) {
+  const words = cleanLine(part).replace(/[.,;:]+$/, '').split(' ').filter(Boolean).map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!words.length) return task;
+  const match = new RegExp(`(?<![A-Za-z0-9])${words.join('\\s+')}(?![A-Za-z0-9])`, 'i').exec(task);
+  let out;
+  if (match) {
+    const before = task.slice(0, match.index);
+    const after = task.slice(match.index + match[0].length);
+    const starts = /(?:^|[.;:](?!\d)\s*)$/.test(before);
+    const ends = /^\s*(?:[.;:](?!\d)|$)/.test(after);
+    // The whole sentence; or the piece of it, with the "and" or comma that joined it.
+    if (starts && ends) out = `${before}${after.replace(/^\s*[.;:]?\s*/, '')}`;
+    else if (!starts && TASK_JOIN_BEFORE.test(before)) {
+      // The last of a list goes with its "and": the comma before the one now last becomes the "and"
+      // ("Install the generator, leak test the fuel line and hang the artwork").
+      const joined = before.match(TASK_JOIN_BEFORE)[0];
+      let kept = before.slice(0, before.length - joined.length);
+      const sentenceAt = Math.max(kept.search(/[^.;:]*$/), 0);
+      if (/\band\s+$/i.test(joined) && ends) kept = `${kept.slice(0, sentenceAt)}${kept.slice(sentenceAt).replace(/,\s+(?!.*,)/, ' and ')}`;
+      out = `${kept}${after}`;
+    }
+    else if (TASK_JOIN_AFTER.test(after)) out = `${before}${after.replace(TASK_JOIN_AFTER, '')}`;
+    else out = `${before}${after}`;
+  } else {
+    // A task from a scope prints the work in plain words (D251): the sentence that is this work in
+    // other words (its words all in the work's, as a bracket of places or plant comes off) goes.
+    const want = new Set(taskWords(part));
+    const sentences = task.split(/(?<=[.;:](?!\d))\s+/);
+    const at = sentences.findIndex((sentence) => { const have = taskWords(sentence); return have.length >= 2 && have.every((word) => want.has(word)); });
+    if (at < 0) return task;
+    out = sentences.filter((_sentence, index) => index !== at).join(' ');
+  }
+  out = cleanLine(out.replace(/\s+([.,;:])/g, '$1')).replace(/^[.,;:\s]+/, '');
+  return out.replace(/(^|[.;:]\s+)([a-z])/g, (_whole, lead, letter) => `${lead}${letter.toUpperCase()}`);
+}
+function movedTask(out, input) {
+  if (!out || out.kind !== 'draft' || typeof out.task !== 'string') return out;
+  const named = (input && input.notCoveredElsewhere) || {};
+  const leaving = (Array.isArray(input && input.movedOut) ? input.movedOut : []).filter((part) => cleanLine(named[part]));
+  const arriving = movedInParts(input);
+  if (!leaving.length && !arriving.length) return out;
+  let task = out.task;
+  for (const part of leaving) task = taskWithout(task, part);
+  // Every piece of work moved out leaves the task empty: it keeps its words (D289 moves only part of it).
+  if (!cleanLine(task)) task = out.task;
+  for (const part of arriving) {
+    if (sameText(task).includes(sameText(part))) continue;
+    const line = `${part.charAt(0).toUpperCase()}${part.slice(1)}.`;
+    task = cleanLine(task) ? `${cleanLine(task).replace(/([^.!?])$/, '$1.')} ${line}` : line;
+  }
+  return task === out.task ? out : { ...out, task };
 }
 
 // Short names for the high risk construction work categories, for a list of work packages,

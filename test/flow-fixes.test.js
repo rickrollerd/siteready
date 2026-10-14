@@ -203,11 +203,27 @@ test('each part with no job steps is dealt with on its own: your step, or the SW
   assert.match(block, /<select id="cover-where-0" data-cover-where="0" class="plain"><option value="">Not covered in another SWMS<\/option><option value="Fuel system">Fuel system<\/option><option value="__typed">Another SWMS: I will type its name<\/option><\/select>/);
   assert.doesNotMatch(block, /not-covered-confirm|I have added my own step/, 'no tick that can be ticked without it being true');
   assert.equal(p.run('outstanding(shownDraft).length'), 1);
+  // Choosing another SWMS of the project moves the work there, and the draft is prepared again at once,
+  // its Task line without the work (D291).
+  const pick = p.document.getElementById('cover-where-0');
+  Object.assign(pick, { value: 'Fuel system', closest: (selector) => (selector.includes('data-cover-where') ? pick : null) });
+  pick.dataset.coverWhere = '0';
+  const drafts = p.calls.filter((call) => call.route === '/api/draft').length;
+  pick.dispatchEvent(new FakeEvent('change', { bubbles: true }));
+  await settle();
+  const again = p.calls.filter((call) => call.route === '/api/draft');
+  assert.equal(again.length, drafts + 1);
+  assert.deepEqual(again[again.length - 1].body.movedOut, ['leak test the fuel line']);
   // Choosing the SWMS that covers it deals with it, and the SWMS named goes with the record.
   p.run(`coverElsewhere = { 'leak test the fuel line': 'Fuel system' }; syncCoverTicked();`);
   assert.equal(p.run('outstanding(shownDraft).length'), 0);
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().notCoveredElsewhere)')), { 'leak test the fuel line': 'Fuel system' });
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().notCoveredConfirmed)')), ['leak test the fuel line']);
+  // Named as covered in another SWMS of the project, the work is moved there: it comes off this Task line (D291).
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().movedOut)')), ['leak test the fuel line']);
+  // A SWMS outside the project, typed by name, is only recorded (D289).
+  p.run(`coverElsewhere = { 'leak test the fuel line': 'Fuel SWMS from last job' }; syncCoverTicked();`);
+  assert.equal(p.run('payload().movedOut'), undefined);
   // A name too short to be one is not a free pass.
   p.run(`coverElsewhere = { 'leak test the fuel line': 'x' }; syncCoverTicked();`);
   assert.equal(p.run('outstanding(shownDraft).length'), 1);
