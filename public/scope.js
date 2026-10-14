@@ -542,7 +542,7 @@
     }
   }
 
-  function openItem(index) {
+  function openItem(index, { toNeed = false } = {}) {
     if (!project || !project.items[index]) return;
     project.current = index;
     // From the one-go page or the review list, a SWMS opens to be checked (D240).
@@ -573,6 +573,8 @@
         if (item.swmsId) S.editing = { id: item.swmsId, title: item.title };
         if (ok && project.stage === 'check' && S.prepare) {
           S.prepare({ scroll: false }).then(() => {
+            // "Go to it" goes straight to the first thing still needed (owner, D287).
+            if (toNeed && S.goToFirstNeed && S.goToFirstNeed()) { if (S.markStage) S.markStage('draft'); return; }
             const bar = $('check-bar');
             if (bar && !bar.classList.contains('hidden')) bar.scrollIntoView({ block: 'start' });
             if (S.markStage) S.markStage('draft');
@@ -755,7 +757,7 @@
     if (event.target.closest('#conflict-open')) { showConflicts(aiReading.reading.conflicts || []); return; }
     if (event.target.closest('#project-change')) { changeChoice(); return; }
     const open = event.target.closest('[data-project-open]');
-    if (open) { openItem(Number(open.dataset.projectOpen)); return; }
+    if (open) { openItem(Number(open.dataset.projectOpen), { toNeed: open.dataset.projectNeed !== undefined }); return; }
     if (event.target.closest('[data-project-review]')) { backToReview(); return; }
     if (event.target.closest('#project-close, #project-fresh')) {
       closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.');

@@ -3765,8 +3765,23 @@ function redrawActions() {
   if (shownDraft.kind === 'draft') showTranslate(shownSent);
 }
 
+// The first thing still needed before download, brought into view once and focused (owner, D287: "Go
+// to it" on the project's not ready list goes straight to it, whatever it is). The page is not moved
+// again after (item 19). Returns false when nothing is needed or it is not on the page.
+function goToFirstNeed() {
+  const gap = shownDraft && shownDraft.kind === 'draft' ? shownGaps[0] : null;
+  if (!gap) return false;
+  const el = gap.kind === 'cover' ? (document.getElementById('not-covered-confirm') || document.querySelector('.not-covered [data-own-write]')) : answerTarget(gateTarget(gap));
+  if (!el) return false;
+  const closed = el.closest('details:not([open])');
+  if (closed) closed.open = true;
+  el.scrollIntoView({ block: 'center' });
+  el.focus({ preventScroll: true });
+  return true;
+}
+
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
+  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },

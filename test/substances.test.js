@@ -420,6 +420,18 @@ test('a scanned SDS, a photo or a file that is not an SDS is refused without a c
   assert.match(sdsRead.OFF, /^Reading the safety data sheet is not switched on here\. Type the product's details from it\.$/);
 });
 
+test('D287: the questions route names the types the work usually uses, for the one-go project page\'s ticks', async () => {
+  const { app } = require('../server');
+  const server = app.listen(0);
+  await new Promise((resolve) => server.once('listening', resolve));
+  try {
+    const post = async (body) => (await fetch(`http://127.0.0.1:${server.address().port}/api/draft/questions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json();
+    assert.deepEqual((await post(base(POUR))).substanceTypes, draft(POUR).substances.items.map((item) => item.product));
+  } finally {
+    server.close();
+  }
+});
+
 // ---- The page ----
 
 test('the page: the types as a prompt with an Add button each, a card for each product, sent with the draft, judged as typed, the table and step line shown', async () => {

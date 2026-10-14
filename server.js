@@ -222,7 +222,11 @@ app.get('/api/steps', (_req, res) => {
 function designsAsked(input) {
   try {
     const draft = prepareDraft(input);
-    return draft.kind === 'draft' && (draft.designs || []).length ? { designs: draft.designs } : {};
+    if (draft.kind !== 'draft') return {};
+    // The types of hazardous substance the work usually uses (substances.js, D277), for the one-go
+    // project page's "Not used on this job" ticks (owner, D287).
+    const types = ((draft.substances && draft.substances.items) || []).map((item) => item.product);
+    return { ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types } : {}) };
   } catch (error) {
     return {};
   }

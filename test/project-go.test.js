@@ -71,7 +71,7 @@ test('with some SWMS not ready, the ready ones download, and each one not ready 
   const html = panel.innerHTML;
   assert.match(html, /<button type="button" id="project-zip">Download the 2 ready SWMS \(Word and PDF, one zip\)<\/button>/);
   assert.match(html, /<div class="note" id="go-not-ready"><p>2 of 3 SWMS are ready\. You can download them now, and the rest once they are ready\. Not ready yet:<\/p><ul>/);
-  assert.match(html, /<li>SWMS 2 \(Reinforcement\): give plant and equipment; emergency, work at height: Rescue\. <button type="button" class="link" data-project-open="1">Go to it<\/button><\/li>/);
+  assert.match(html, /<li>SWMS 2 \(Reinforcement\): give plant and equipment; emergency, work at height: Rescue\. <button type="button" class="link" data-project-open="1" data-project-need>Go to it<\/button><\/li>/);
   // Downloaded: the note says how many, and still names the one not ready.
   project.lastDownload = { at: '2026-10-14T00:00:00Z', count: 2, total: 3 };
   p.go.render(panel, project, p.hooks);
@@ -111,8 +111,8 @@ test('the types of hazardous substance a SWMS waits for are said once, with what
   // A product's own item stays as it is.
   assert.match(html, /Before download, open it to give: Hazardous substance: CureCoat 40\. Then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar\./);
   assert.match(html, /Before download, open it and, for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\./);
-  assert.match(html, /<li>SWMS 1 \(Formwork\): give plant and equipment; then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="0">Go to it<\/button><\/li>/);
-  assert.match(html, /<li>SWMS 3 \(Clean up\): for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="2">Go to it<\/button><\/li>/);
+  assert.match(html, /<li>SWMS 1 \(Formwork\): give plant and equipment; then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="0" data-project-need>Go to it<\/button><\/li>/);
+  assert.match(html, /<li>SWMS 3 \(Clean up\): for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="2" data-project-need>Go to it<\/button><\/li>/);
 });
 
 test('details every SWMS shares are asked for once above the list, including the company ABN', () => {
@@ -163,6 +163,49 @@ test('the questions page asks each SWMS its questions, fills an answer across, a
   assert.equal(project.stage, 'review');
   assert.equal(JSON.stringify(project.items.map((entry) => entry.needs)), JSON.stringify([['Plant and equipment'], ['Plant and equipment']]));
   assert.ok(p.hooks.rendered >= 1);
+});
+
+test('D287: each suggested type has its "Not used on this job" tick in the SWMS\'s section; it is the same tick as in the draft, and the list follows it at once', async () => {
+  const CEMENT = 'Cement, concrete, grout and mortar';
+  const FUEL = 'Fuels (diesel, petrol)';
+  const p = page({
+    people: PEOPLE,
+    answer: (route) => {
+      if (route === '/api/draft/questions') return { body: { required: [], weak: [], substanceTypes: [CEMENT, FUEL] } };
+      if (route === '/api/draft') return { body: { kind: 'draft', gate: [{ kind: 'substanceType', label: 'Hazardous substance: cement, concrete, grout and mortar' }, { kind: 'substanceType', label: 'Hazardous substance: fuels (diesel, petrol)' }] } };
+      return {};
+    },
+  });
+  // Ticked before in the SWMS's draft (kept in its prepared input): ticked here too.
+  const project = { stage: 'questions', shared: { crane: 'none', emergency: {}, designs: {} }, items: [{ title: 'Pour', task: 'Pour the slab.', fallRisk: 'no', status: 'todo', body: null, substancesNotUsed: [FUEL] }] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  await settle();
+  const section = p.element('go-body-0').innerHTML;
+  assert.match(section, /<strong>Hazardous substances<\/strong>/);
+  assert.match(section, /Tick each one not used on this job\. For each one used, add the product from its safety data sheet in the SWMS itself\. After Prepare all, open this SWMS with Check this SWMS to add one\./);
+  assert.match(section, /<input type="checkbox" data-go-notused="0" data-type="Cement, concrete, grout and mortar"> Not used on this job/);
+  assert.match(section, /<input type="checkbox" data-go-notused="0" data-type="Fuels \(diesel, petrol\)" checked> Not used on this job/);
+  // Prepare all sends the tick with the SWMS.
+  p.fire('click', { id: 'go-prepare', attrs: [] });
+  await settle();
+  assert.equal(JSON.stringify(p.calls.filter((call) => call.route === '/api/draft').map((call) => call.body.substancesNotUsed)), JSON.stringify([[FUEL]]));
+  // Back on the questions page, ticked here: kept with the prepared input the draft opens with, and the
+  // list no longer waits for it.
+  project.stage = 'questions';
+  project.items[0].needs = ['Hazardous substance: cement, concrete, grout and mortar'];
+  p.fire('change', { dataset: { goNotused: '0', type: CEMENT }, checked: true, type: 'checkbox', attrs: ['go-notused'] });
+  assert.equal(JSON.stringify(project.items[0].body.substancesNotUsed), JSON.stringify([FUEL, CEMENT]));
+  assert.equal(JSON.stringify(project.items[0].needs), JSON.stringify([]));
+  assert.equal(project.items[0].status, 'ready');
+  // Unticked: asked again.
+  p.fire('change', { dataset: { goNotused: '0', type: CEMENT }, checked: false, type: 'checkbox', attrs: ['go-notused'] });
+  assert.equal(JSON.stringify(project.items[0].body.substancesNotUsed), JSON.stringify([FUEL]));
+  assert.equal(JSON.stringify(project.items[0].needs), JSON.stringify(['Hazardous substance: cement, concrete, grout and mortar']));
+  // Prepared, the section links to the SWMS to add a product.
+  p.go.render(panel, project, p.hooks);
+  await settle();
+  assert.match(panel.innerHTML, /<button type="button" class="link" data-project-open="0">Open this SWMS to add a product<\/button>/);
 });
 
 test('a SWMS whose answers are too thin keeps the user on the questions page, with each named', async () => {
