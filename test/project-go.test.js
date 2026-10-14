@@ -113,7 +113,7 @@ test('the questions page asks each SWMS its questions, fills an answer across, a
       return {};
     },
   });
-  const project = { stage: 'questions', shared: { emergency: {}, designs: {} }, items: [{ title: 'Formwork', task: 'Erect formwork.', fallRisk: 'yes', status: 'todo', body: null }, { title: 'Pour', task: 'Pour the slab.', fallRisk: 'yes', status: 'todo', body: null }] };
+  const project = { stage: 'questions', shared: { crane: 'none', emergency: {}, designs: {} }, items: [{ title: 'Formwork', task: 'Erect formwork.', fallRisk: 'yes', status: 'todo', body: null }, { title: 'Pour', task: 'Pour the slab.', fallRisk: 'yes', status: 'todo', body: null }] };
   const panel = p.element('project-panel');
   p.go.render(panel, project, p.hooks);
   assert.match(panel.innerHTML, /<button type="button" id="go-prepare">Prepare all 2 SWMS<\/button>/);
@@ -153,7 +153,7 @@ test('a SWMS whose answers are too thin keeps the user on the questions page, wi
       return {};
     },
   });
-  const project = { stage: 'questions', shared: { emergency: {}, designs: {} }, items: [{ title: 'Formwork', task: 'Erect formwork.', fallRisk: 'yes', status: 'todo', body: null }, { title: 'Pour', task: 'Pour the slab.', fallRisk: 'yes', status: 'todo', body: null }] };
+  const project = { stage: 'questions', shared: { crane: 'none', emergency: {}, designs: {} }, items: [{ title: 'Formwork', task: 'Erect formwork.', fallRisk: 'yes', status: 'todo', body: null }, { title: 'Pour', task: 'Pour the slab.', fallRisk: 'yes', status: 'todo', body: null }] };
   const panel = p.element('project-panel');
   p.go.render(panel, project, p.hooks);
   await settle();
@@ -170,4 +170,36 @@ test('once every SWMS is downloaded, the note says so and asks for nothing more'
   p.go.render(panel, project, p.hooks);
   assert.match(panel.innerHTML, /<strong>Downloaded all 2 SWMS<\/strong>, each saved under My SWMS as its own SWMS and revision\.<\/p>/);
   assert.doesNotMatch(panel.innerHTML, /download again/);
+});
+
+test('with a crane company, who slings the loads is asked once for every SWMS, and Prepare waits for it (D258)', async () => {
+  const p = page({
+    people: PEOPLE,
+    answer: (route) => {
+      if (route === '/api/draft/questions') return { body: { required: [], weak: [] } };
+      if (route === '/api/draft') return { body: { kind: 'draft', gate: [] } };
+      return {};
+    },
+  });
+  const project = { stage: 'questions', from: { crane: 'company', slinging: '' }, shared: { crane: 'company', emergency: {}, designs: {} }, items: [{ title: 'Formwork', task: 'Erect formwork.', fallRisk: 'yes', crane: 'company', status: 'todo', body: null }, { title: 'Cranage', task: 'Lift the formwork.', fallRisk: 'yes', crane: 'company', status: 'todo', body: null }] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /<fieldset class="field choice" id="go-slinging"><legend>Who slings the loads and directs the crane\?<\/legend><label><input type="radio" name="go-slinging" value="crane"> Crane company's dogman<\/label> <label><input type="radio" name="go-slinging" value="ours"> Our crew<\/label>/);
+  await settle();
+  p.fire('click', { id: 'go-prepare', attrs: [] });
+  await settle();
+  assert.equal(p.calls.filter((call) => call.route === '/api/draft').length, 0, 'nothing is prepared until it is answered');
+  assert.equal(p.element('go-status').textContent, 'Say who slings the loads and directs the crane: the crane company\'s dogman, or our crew.');
+  // Answered once, every SWMS gets it, on this page and when opened on its own.
+  p.fire('change', { name: 'go-slinging', value: 'ours', attrs: [] });
+  assert.deepEqual(project.items.map((entry) => entry.slinging), ['ours', 'ours']);
+  p.fire('click', { id: 'go-prepare', attrs: [] });
+  await settle();
+  const drafts = p.calls.filter((call) => call.route === '/api/draft');
+  assert.deepEqual(drafts.map((call) => [call.body.crane, call.body.slinging]), [['company', 'ours'], ['company', 'ours']]);
+  // Back on the questions, no crane: the question goes, and no slinging answer is kept.
+  project.stage = 'questions';
+  p.fire('change', { name: 'go-crane', value: 'none', attrs: [] });
+  assert.equal(p.element('go-slinging').hidden, true);
+  assert.deepEqual(project.items.map((entry) => [entry.crane, entry.slinging]), [['none', ''], ['none', '']]);
 });

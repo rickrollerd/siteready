@@ -50,6 +50,19 @@
   const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
   const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
 
+  // Why a typed answer is no answer at all ("dont know", "me", "as per eng"), or '' when it says
+  // something. The answers to the questions about the work are judged by the same words (draft.js
+  // hasSubstance), so one answer gets one message wherever it is typed.
+  function notAnswer(value) {
+    const text = clean(value);
+    if (!text) return '';
+    const quoted = `"${text.slice(0, 60)}"`;
+    if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet.`;
+    if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor".`;
+    if (AS_PER.test(text)) return `${quoted} does not say what is done. Write it here in a few words.`;
+    return '';
+  }
+
   // Why an answer is not enough, or '' when it passes. rule is what the gate asks of it:
   // { ask, name?, none?, optional?, emergency?, involves?, blank?, line? }
   // - ask: what is needed, in plain words; name: the question's name in a refusal.
@@ -64,9 +77,8 @@
     const quoted = `"${text.slice(0, 60)}"`;
     if (rule.optional) return text && leftOpen(text) ? `${quoted} is not an answer. Fill it in, or leave the box empty.` : '';
     if (!text) return rule.ask;
-    if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet. ${rule.ask}`;
-    if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor". ${rule.ask}`;
-    if (AS_PER.test(text)) return `${quoted} does not say what is done. Write it here in a few words. ${rule.ask}`;
+    const not = notAnswer(text);
+    if (not) return `${not} ${rule.ask}`;
     if (rule.emergency) {
       if (NO_ANSWER.test(text)) return `${quoted} is not an answer here: this SWMS involves ${rule.involves}. ${rule.ask}`;
       if (rule.rescue && onlyCalls(text)) return `${quoted} only calls for help. Say who rescues the person and how, before emergency services arrive.`;
@@ -169,7 +181,7 @@
   const AS_GIVEN = ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'scaffoldSupervisor', 'firstAider', 'musterPoint',
     'siteManager', 'worksManager', 'worksManagerPhone', 'hospital', 'reviewDate', 'preparedBy', 'swmsRef', 'emergency', 'fills'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, answerNeed, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

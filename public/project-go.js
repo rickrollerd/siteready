@@ -40,6 +40,13 @@
     ['access', 'Access', 'How the crew gets to the work area, and how plant and materials get there.'],
   ];
   const CRANE = [['none', 'No crane'], ['company', 'A crane company'], ['own', 'Our company']];
+  // With a crane company, who slings the loads and directs the crane (D258), asked once for every SWMS.
+  const SLINGING = [['crane', 'Crane company\'s dogman'], ['ours', 'Our crew']];
+  const SLINGING_ASK = 'Say who slings the loads and directs the crane: the crane company\'s dogman, or our crew.';
+  const slingingNow = () => {
+    if (shared().slinging === undefined) shared().slinging = (project.from || {}).slinging || (project.items.find((item) => item.slinging) || {}).slinging || '';
+    return shared().slinging;
+  };
   const PAGE_KEYS = ['state', 'residential', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail', 'workplace', 'principalContractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'worksManager', 'worksManagerPhone', 'complianceResponsible', 'reviewer', 'reviewDate', 'date', 'preparedBy'];
 
   const shared = () => {
@@ -89,6 +96,7 @@
     return {
       ...pageBase(),
       crane: shared().crane || item.crane || 'company',
+      slinging: (shared().crane || item.crane || 'company') === 'company' ? slingingNow() || item.slinging || '' : '',
       task: (item.goTask !== undefined ? item.goTask : item.task) || '',
       scopeTask: item.scopeTask || undefined,
       trade: item.trade || '',
@@ -185,6 +193,7 @@
         <h3>1. Site details, for every SWMS</h3>
         ${peopleBlock()}
         <fieldset class="field choice"><legend>Is a crane used, and who operates it?</legend>${CRANE.map(([value, label]) => `<label><input type="radio" name="go-crane" value="${value}"${crane === value ? ' checked' : ''}> ${label}</label>`).join(' ')}</fieldset>
+        <fieldset class="field choice" id="go-slinging"${crane === 'company' ? '' : ' hidden'}><legend>Who slings the loads and directs the crane?</legend>${SLINGING.map(([value, label]) => `<label><input type="radio" name="go-slinging" value="${value}"${slingingNow() === value ? ' checked' : ''}> ${label}</label>`).join(' ')}<p class="error" id="go-slinging-error" role="alert"></p></fieldset>
         <p class="meta">The site questions below are answered once for every SWMS. ${(shared().siteFromScope || []).length ? 'Some are filled from the scope\'s conditions: check they are right for this site. ' : ''}A SWMS that differs can have its own in its section.</p>
         ${siteBoxes('go-site', site, 'data-go-shared-site')}
       </section>
@@ -266,8 +275,8 @@
   function notesFor(index) {
     const item = project.items[index];
     const got = asked.get(index) || {};
-    const weak = new Map((got.weak || []).map((entry) => [entry.id, entry.help]));
-    const missing = new Map(((item.draftHelp || [])).map((entry) => [entry.id, entry.help]));
+    const weak = new Map((got.weak || []).map((entry) => [entry.id, `${entry.why || 'Too thin to print.'} ${entry.help}`]));
+    const missing = new Map(((item.draftHelp || [])).map((entry) => [entry.id, entry.state === 'vague' ? `${entry.why || 'Too thin to print.'} ${entry.help}` : `Still needed. ${entry.help}`]));
     for (const question of got.required || []) {
       if (question.choices) continue;
       const id = `go-${index}-${question.id}`;
@@ -277,13 +286,16 @@
       const from = (item.filledFrom || {})[question.id];
       if (across) { across.hidden = from === undefined; across.textContent = from === undefined ? '' : `Filled from SWMS ${from + 1}. Change it here if this SWMS differs.`; }
       const note = $(`${id}-note`);
-      const text = weak.has(question.id) ? `Too thin to print. ${weak.get(question.id)}` : (!box.value.trim() && missing.has(question.id)) ? `Still needed. ${missing.get(question.id)}` : '';
-      if (note) { note.textContent = text; note.hidden = !text; }
-      box.classList.toggle('answer-thin', Boolean(text));
       const blanks = $(`${id}-blanks`);
       const warning = fill() ? fill().blankWarning(box.value) : '';
+      // One message per answer: a blank left in it is said by the red warning alone.
+      const text = warning ? '' : weak.has(question.id) ? weak.get(question.id) : (!box.value.trim() && missing.has(question.id)) ? missing.get(question.id) : '';
+      if (note) { note.textContent = text; note.hidden = !text; }
+      box.classList.toggle('answer-thin', Boolean(text));
       if (blanks) { blanks.textContent = warning; blanks.hidden = !warning; }
       box.classList.toggle('has-blank', Boolean(warning));
+      // An answer with blanks shows as its sentence with a labelled box in each blank (D261, app.js).
+      if (S.drawBlankForm) S.drawBlankForm(box);
     }
   }
 
@@ -387,6 +399,17 @@
     const target = event.target;
     if (target.name === 'go-crane') {
       shared().crane = target.value;
+      // Each SWMS opened on its own page then shows the same answer.
+      project.items.forEach((item) => { item.crane = target.value; item.slinging = target.value === 'company' ? slingingNow() : ''; });
+      if ($('go-slinging')) $('go-slinging').hidden = target.value !== 'company';
+      save();
+      project.items.forEach((_item, index) => askSoon(index));
+      return;
+    }
+    if (target.name === 'go-slinging') {
+      shared().slinging = target.value;
+      project.items.forEach((item) => { item.slinging = target.value; });
+      if ($('go-slinging-error')) $('go-slinging-error').textContent = '';
       save();
       project.items.forEach((_item, index) => askSoon(index));
       return;
@@ -457,15 +480,17 @@
       const box = $(`go-${index}-${pick.dataset.q}`);
       if (!answer || !box) return;
       box.value = box.value.trim() ? `${box.value.trim()} ${answer.text}` : answer.text;
+      if (S.pickedAgain) S.pickedAgain(box.id);
       setFact(index, pick.dataset.q, box.value);
       const design = questionDesign(pick.dataset.q);
       if (design && shared().designs[design.id]) fillDesigns(design.id);
       notesFor(index);
       save();
       askSoon(index);
-      box.focus();
+      const target = S.answerTarget ? S.answerTarget(box) : box;
+      target.focus();
       const blank = box.value.indexOf('____');
-      if (blank >= 0 && box.setSelectionRange) box.setSelectionRange(blank, blank + 4);
+      if (target === box && blank >= 0 && box.setSelectionRange) box.setSelectionRange(blank, blank + 4);
       return;
     }
     const own = event.target.closest('[data-go-site-own]');
@@ -493,8 +518,9 @@
       const holder = box ? box.previousElementSibling && box.closest('.field') : $(`go-item-${index}`);
       const target = box ? (box.closest('.field') || box) : $(`go-item-${index}`);
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = holder && holder.querySelector('textarea');
-      if (input) input.focus({ preventScroll: true });
+      const input = holder && holder.querySelector('textarea[data-go-fact]');
+      const where = input && S.answerTarget ? S.answerTarget(input) : input;
+      if (where) where.focus({ preventScroll: true });
       return;
     }
     if (event.target.closest('#go-prepare')) { prepareAll(event.target.closest('#go-prepare')); return; }
@@ -514,6 +540,13 @@
     if (fallMissing >= 0) {
       status.textContent = `Answer the fall question for SWMS ${fallMissing + 1} first.`;
       const radio = document.querySelector(`[data-go-fall="${fallMissing}"]`);
+      if (radio) { radio.scrollIntoView({ behavior: 'smooth', block: 'center' }); radio.focus({ preventScroll: true }); }
+      return;
+    }
+    if ((shared().crane || 'company') === 'company' && !slingingNow()) {
+      status.textContent = SLINGING_ASK;
+      if ($('go-slinging-error')) $('go-slinging-error').textContent = SLINGING_ASK;
+      const radio = document.querySelector('input[name="go-slinging"]');
       if (radio) { radio.scrollIntoView({ behavior: 'smooth', block: 'center' }); radio.focus({ preventScroll: true }); }
       return;
     }

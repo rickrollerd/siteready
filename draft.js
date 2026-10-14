@@ -2168,6 +2168,10 @@ function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
   if (id === 'craneChart') return statesChartValues(value);
+  // "dont know", "me" or "as per eng" says nothing, judged by the same words as the download check
+  // (public/gate-rules.js notAnswer). A blank (____) left to fill is the download check's to ask.
+  const gate = require('./public/gate-rules');
+  if (!gate.hasBlank(value) && gate.notAnswer(value)) return false;
   // A load limit given as a figure ("3kpa", "5 kN point load") says what is needed (messy-user testing:
   // "3kpa" was refused and "3 kPa max on deck" accepted).
   if (id === 'loadLimits' && /\b\d+(?:\.\d+)?\s*(?:kpa|kn|t|tonnes?|kg)\b/i.test(value)) return true;
@@ -2260,7 +2264,11 @@ function weakAnswers(input) {
   return (asked.required || [])
     .filter((item) => !item.choices && keptFact(facts[item.id]))
     .filter((item) => factState(item, task, facts, state) === 'vague')
-    .map((item) => ({ id: item.id, label: item.label, help: helpText(item) }));
+    .map((item) => {
+      // Said as the download check says it ("dont know" is not an answer yet), with what would do.
+      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]));
+      return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
+    });
 }
 
 // How SiteReady judges one answer on its own: 'supplied', 'vague' or 'missing' (for the tests of the
@@ -3440,7 +3448,10 @@ function buildDraft(input, screen) {
       missing: missing.map(missingLabel),
       // What each answer still needs, in plain words with an accepted example, so the page can say
       // it beside the question (answer-help.js).
-      missingHelp: missing.map((item) => ({ id: item.id, label: item.label, state: item.state, help: require('./answer-help').helpText(item) })),
+      missingHelp: missing.map((item) => {
+        const why = item.state === 'vague' ? require('./public/gate-rules').notAnswer(keptFact(facts[item.id])) : '';
+        return { id: item.id, label: item.label, state: item.state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+      }),
       statement: 'This task is stood down. It does not start.',
       method: [],
       hazards: [],

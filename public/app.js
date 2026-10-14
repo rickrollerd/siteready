@@ -1245,6 +1245,10 @@ function drawRequired(required) {
 // stood-down draft names each answer still needed (missingHelp), each with what would do and an
 // accepted example (answer-help.js). The note sits under the box, so the user sees it where they type.
 let weakNotes = new Map();
+// What each thin answer's note says: why, as the download check says it ("dont know" is not an
+// answer yet), or that it is too thin to print, then what would do (answer-help.js).
+const weakText = (item) => `${item.why || 'Too thin to print.'} ${item.help}`;
+const weakMap = (list) => new Map((Array.isArray(list) ? list : []).map((item) => [item.id, weakText(item)]));
 let missingNotes = new Map();
 function showAnswerNotes() {
   document.querySelectorAll('#required-block [data-q]').forEach((holder) => {
@@ -1254,7 +1258,10 @@ function showAnswerNotes() {
     if (!anchor) return;
     const weak = weakNotes.get(id);
     const missing = !weak && missingNotes.get(id);
-    const text = weak ? `Too thin to print. ${weak}` : missing ? `Still needed. ${missing}` : '';
+    // One message per answer: a blank left in it is said by the red warning, or the download check, alone.
+    const need = box && document.getElementById(`need-${box.id}`);
+    const blanked = box && (box.classList.contains('has-blank') || (need && !need.hidden));
+    const text = blanked ? '' : weak || missing || '';
     let note = document.getElementById(`answer-note-${id}`);
     if (!note && text) {
       note = document.createElement('p');
@@ -1271,7 +1278,7 @@ function showAnswerNotes() {
   });
 }
 function setWeak(list) {
-  weakNotes = new Map((Array.isArray(list) ? list : []).map((item) => [item.id, item.help]));
+  weakNotes = weakMap(list);
   showAnswerNotes();
 }
 // Typing in a box named as still needed takes its note off; the server says again if it is too thin.
@@ -1319,7 +1326,7 @@ async function askOnce() {
     const data = await response.json();
     if (seq !== askSeq || !Array.isArray(data.required)) return;
     questions = { ...questions, required: data.required, weak: data.weak || [] };
-    weakNotes = new Map((data.weak || []).map((item) => [item.id, item.help]));
+    weakNotes = weakMap(data.weak);
     drawRequired(data.required);
     drawDesigns(data.designs || []);
   } catch {
@@ -1365,7 +1372,7 @@ async function loadQuestions(options = {}) {
   const notice = document.getElementById('steps-notice');
   notice.textContent = (data.standDown && data.standDown.message) || '';
   notice.classList.toggle('hidden', !notice.textContent);
-  weakNotes = new Map((data.weak || []).map((item) => [item.id, item.help]));
+  weakNotes = weakMap(data.weak);
   if (fresh) {
     factMemory = {};
     siteMemory = {};
@@ -1709,9 +1716,12 @@ function markGaps(gaps) {
     }
     const text = `Needed before download: ${gap.need}`;
     if (note.textContent !== text) note.textContent = text;
+    // An answer's blank is said once, by the red warning under it (D241); the list above still has it.
+    note.hidden = gap.kind === 'fact' && el.classList.contains('has-blank') && Boolean(document.getElementById(`${el.id}-blanks`));
     el.setAttribute('aria-invalid', 'true');
-    el.setAttribute('aria-describedby', note.id);
+    if (!note.hidden) el.setAttribute('aria-describedby', note.id);
   }
+  showAnswerNotes();
   // A control line's note shows while any of its blanks is still empty.
   const lines = new Set(gaps.filter((gap) => gap.kind === 'line').map((gap) => gap.key));
   document.querySelectorAll('.gate-need[data-gate-line]').forEach((note) => { note.hidden = !lines.has(note.dataset.gateLine); });
@@ -2323,7 +2333,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     return `<div class="panel gate not-finished" id="not-finished" role="region" aria-labelledby="not-finished-title">
       <h3 id="not-finished-title">This SWMS is not finished</h3>
       <p>SiteReady cannot prepare it until ${items.length === 1 ? 'this answer says' : `these ${items.length} answers say`} enough to print. Fix ${items.length === 1 ? 'it' : 'each one'} in the questions above, then press Prepare the statement again.</p>
-      <ul class="gate-list">${items.map((item) => `<li><button type="button" class="link" data-answer-go="${esc(item.id)}">${esc(item.label)}</button><span class="meta">${item.state === 'vague' ? 'Too thin to print. ' : 'Not answered yet. '}${esc(item.help)}</span></li>`).join('')}</ul>
+      <ul class="gate-list">${items.map((item) => `<li><button type="button" class="link" data-answer-go="${esc(item.id)}">${esc(item.label)}</button><span class="meta">${esc(item.state === 'vague' ? weakText(item) : `Not answered yet. ${item.help}`)}</span></li>`).join('')}</ul>
       <div class="actions"><button type="button" data-answer-go="first">Go to the first answer</button></div>
     </div>
     ${head}`;
@@ -2726,7 +2736,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     resultEl.classList.remove('hidden');
     // A stood down draft names the facts still needed; each is asked for on the page, with what it
     // needs said under its box.
-    missingNotes = new Map(data.kind === 'stand-down' ? (data.missingHelp || []).map((item) => [item.id, item.help]) : []);
+    missingNotes = new Map(data.kind === 'stand-down' ? (data.missingHelp || []).map((item) => [item.id, item.state === 'vague' ? weakText(item) : `Still needed. ${item.help}`]) : []);
     if (data.kind === 'stand-down') askAgain(); else showAnswerNotes();
     // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
@@ -3745,6 +3755,8 @@ function redrawActions() {
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
+  // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
+  drawBlankForm, answerTarget, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

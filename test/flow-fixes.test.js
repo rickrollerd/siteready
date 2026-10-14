@@ -71,6 +71,22 @@ test('the questions name each answer given that is too thin to print, as the use
   assert.deepEqual(questionsFor({ ...FORMWORK, facts: {} }).weak, []);
 });
 
+test('"dont know", "me" and "as per eng" get one message, in the same words as the download check (#213)', () => {
+  const gate = require('../public/gate-rules');
+  for (const text of ['dont know', 'not sure', 'me', 'as per eng', 'as per site']) assert.equal(answerState('loadLimits', text), 'vague', text);
+  const asked = questionsFor({ ...FORMWORK, facts: { loadLimits: 'dont know', systemInstructions: 'as per supplier', fallControl: HELP.fallControl.example } });
+  // The opening words are the download check's own, then what would do, with an example.
+  assert.equal(asked.weak[0].why, gate.notAnswer('dont know'));
+  assert.equal(asked.weak[0].why, '"dont know" is not an answer yet.');
+  assert.equal(gate.answerNeed({ ask: 'Name the principal contractor.' }, 'dont know'), '"dont know" is not an answer yet. Name the principal contractor.');
+  assert.equal(asked.weak[1].why, '"as per supplier" does not say what is done. Write it here in a few words.');
+  assert.match(asked.weak[0].help, /^Give the allowable load/);
+  // A thin answer with nothing of the kind keeps "Too thin to print".
+  assert.equal(questionsFor({ ...FORMWORK, facts: { loadLimits: 'builder' } }).weak[0].why, undefined);
+  // A blank left in an answer is the download check's to ask, not a thin answer.
+  assert.equal(answerState('loadLimits', 'Max ____ kPa on the deck'), 'supplied');
+});
+
 // ---- The page ----
 
 const STOOD = {
