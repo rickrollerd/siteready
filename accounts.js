@@ -20,6 +20,7 @@ const revisions = require('./revisions');
 const { downloadGaps, gateMessage } = require('./download-gate');
 const libraryNotices = require('./library-notices');
 const designFiles = require('./design-files');
+const reviews = require('./reviews');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -312,7 +313,7 @@ router.get('/swms/export.zip', requireUser, route(async (req, res) => {
     used.add(base);
     const kept = new Set();
     for (let revision = 1; revision <= (row.revision || 1); revision += 1) {
-      const parts = await documentParts(req.company, row, revision);
+      const parts = await documentParts(req.company, row, revision, auth.appUrl(req));
       if (!parts) continue;
       kept.add(parts.revision);
       zip.file(`${base} revision ${parts.revision}.docx`, Buffer.from(await draftToDocx(parts.draft, parts)));
@@ -346,7 +347,9 @@ router.get('/swms', requireUser, route(async (req, res) => {
   const all = await db.query('SELECT swms_id, worker_name, signed_at, revision FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE company_id = $1) ORDER BY signed_at', [req.company.id]);
   // SWMS a released change to the law or library would print differently (goal 10).
   const flags = await libraryNotices.flagsFor(req.company.id);
-  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)), changeReview: flags[row.id] || [] })) });
+  // The principal contractor's latest response on each SWMS's current revision (goal 3).
+  const reviewed = await reviews.currentReviews(req.company.id, rows);
+  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)), changeReview: flags[row.id] || [], review: reviewed[row.id] || null })) });
 }));
 
 // Which revision a sign-on is for. One from before sign-ons kept their revision counts for the
@@ -539,7 +542,13 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   const draft = kept ? kept.draft : withRevision(prepareDraft(withCompany(row.input, req.company)), row);
   const history = (await revisions.listRevisions(row.id)).map((item) => revisionView(item, row)).reverse();
   const reasons = (await libraryNotices.flagsFor(req.company.id))[row.id] || [];
-  res.json({ swms: swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons }), input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons } });
+  // The principal contractor's responses on every revision, newest first, and the link to send
+  // the reviewer for the current one (goal 3).
+  const pcReviews = await reviews.reviewsFor(row.id, { withEmail: true });
+  res.json({
+    swms: swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons, reviewLink: reviews.reviewLink(auth.appUrl(req), kept && kept.ref) }),
+    input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons }, reviews: pcReviews,
+  });
 }));
 
 // Every revision kept, newest first, each with what changed from the one before.
@@ -621,8 +630,9 @@ function withRevision(draft, row) {
 
 // What a revision prints: the draft kept for it, the workers who signed that revision (and those
 // who signed before revisions were recorded), the review, and its reference. The current
-// revision carries the latest review; an older one the review it was saved with.
-async function documentParts(company, row, revision = row.revision || 1) {
+// revision carries the latest review; an older one the review it was saved with. base: the app's
+// address, for the link the principal contractor reviews it at (goal 3).
+async function documentParts(company, row, revision = row.revision || 1, base = '') {
   const kept = await revisions.revisionOf(row, company, revision, withCompany);
   if (!kept) return null;
   const current = kept.revision === (row.revision || 1);
@@ -637,13 +647,13 @@ async function documentParts(company, row, revision = row.revision || 1) {
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
     }));
   const confirmation = current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation;
-  return { draft: kept.draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company };
+  return { draft: kept.draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company, reviewLink: reviews.reviewLink(base, kept.ref) };
 }
 
 // Sends a saved SWMS's revision as Word or PDF. The headers say which saved SWMS and revision
 // it is, so the page can save later changes as the next revision.
 async function sendDocument(req, res, row, format, revision) {
-  const parts = await documentParts(req.company, row, revision);
+  const parts = await documentParts(req.company, row, revision, auth.appUrl(req));
   if (!parts) throw fail(404, 'That revision was not found.');
   // A SWMS saved before the gate, with site questions unanswered, is not printed until it is revised.
   needsAnswers(parts.input || {}, parts.draft, ' Open this SWMS, answer them and save it as a new revision, then download it.', { cover: false });
@@ -852,6 +862,9 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM login_tokens WHERE expires_at < $1', [now]);
   await db.query('DELETE FROM sessions WHERE expires_at < $1', [now]);
   await db.query('DELETE FROM challenges WHERE expires_at < $1', [now]);
+  await db.query('DELETE FROM reviewer_sessions WHERE expires_at < $1', [now]);
+  // Reviewers' access log is kept 2 years.
+  await db.query('DELETE FROM review_access_log WHERE created_at < $1', [new Date(now.getTime() - 2 * 365 * 24 * 60 * 60 * 1000)]);
   // A deleted SWMS is hidden at once and removed, with its sign-ons and design files, after 30 days.
   const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   await db.query('DELETE FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
@@ -859,6 +872,8 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM swms_revisions WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms_review_flags WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM design_file_uses WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  // The principal contractor's responses go with the SWMS.
+  await db.query('DELETE FROM swms_reviews WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
   // Design files no saved SWMS names any more, and files attached but never saved after 7 days.
   await designFiles.removeUnused(now);

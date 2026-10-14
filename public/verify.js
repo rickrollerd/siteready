@@ -16,11 +16,15 @@
       const status = data.revision
         ? (data.current ? 'This is the current revision.' : 'This revision is no longer current. Ask the business for the current revision.')
         : '';
+      // The principal contractor's latest response on this revision and its date only (D286), and
+      // the way in to review it.
+      const review = data.revision ? `<dt>Principal contractor review</dt><dd>${data.review ? `<strong>${esc(data.review.label)}</strong>, ${esc(data.review.date)}` : 'Not reviewed yet'}</dd>` : '';
+      const reviewLink = data.reviewable ? `<p><a href="/review.html?ref=${encodeURIComponent(data.ref)}">Principal contractor: review this SWMS and send your response</a></p>` : '';
       result.innerHTML = `<div class="${data.revision && !data.current ? 'bad' : 'ok'}"><strong>Genuine SiteReady reference.</strong><dl>
         <dt>Prepared for</dt><dd>${esc(data.business)}</dd>
         <dt>Title</dt><dd>${esc(data.title || '')}</dd>
         ${data.revision ? `<dt>Revision</dt><dd>${esc(data.revision)}</dd>` : ''}
-        <dt>Reference</dt><dd>${esc(data.ref)}</dd></dl>${status ? `<p><strong>${esc(status)}</strong></p>` : ''}</div>`;
+        <dt>Reference</dt><dd>${esc(data.ref)}</dd>${review}</dl>${status ? `<p><strong>${esc(status)}</strong></p>` : ''}${reviewLink}</div>`;
     } catch {
       result.innerHTML = '<div class="bad">The reference could not be checked just now. Try again shortly.</div>';
     }

@@ -508,6 +508,72 @@ const SCHEMA = [
     in_library BOOLEAN NOT NULL DEFAULT FALSE
   )`,
   'CREATE INDEX IF NOT EXISTS checked_swms_lines_swms ON checked_swms_lines (swms_id)',
+  // The principal contractor's reviewer (goal 3). A reviewer proves an email address with a
+  // sign-in link of its own kind ("reviewer"), and has no company, no trial and no payment.
+  // A reviewer's link and session are kept apart from account ones, so one never works as the other.
+  "ALTER TABLE login_tokens ADD COLUMN IF NOT EXISTS purpose TEXT NOT NULL DEFAULT ''",
+  `CREATE TABLE IF NOT EXISTS reviewers (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL DEFAULT '',
+    company TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    last_seen_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS reviewer_sessions (
+    token_hash TEXT PRIMARY KEY,
+    reviewer_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL
+  )`,
+  // Each response a reviewer returns, against the saved revision it was given for, with the
+  // reviewer's name, company and email as they gave them, and the builder check's result on that
+  // revision when the response was given. A later revision starts unreviewed.
+  `CREATE TABLE IF NOT EXISTS swms_reviews (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    ref TEXT NOT NULL DEFAULT '',
+    reviewer_id TEXT NOT NULL,
+    reviewer_email TEXT NOT NULL,
+    reviewer_name TEXT NOT NULL,
+    reviewer_company TEXT NOT NULL,
+    response TEXT NOT NULL,
+    text TEXT NOT NULL DEFAULT '',
+    check_score INTEGER,
+    check_band TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS swms_reviews_swms ON swms_reviews (swms_id, revision)',
+  // Each time a reviewer opens a SWMS, runs the check on it, opens a file or responds, kept like
+  // the owner's access log. Kept 2 years.
+  `CREATE TABLE IF NOT EXISTS review_access_log (
+    id TEXT PRIMARY KEY,
+    reviewer_email TEXT NOT NULL,
+    action TEXT NOT NULL,
+    ref TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  // Reviewers' conditions and changes needed, de-identified, for goal 11's library updates (not
+  // built yet): the response, the text with personal details taken out, the builder check's result,
+  // state, trade, kinds of work, high risk work and month. The SWMS is known only by a keyed
+  // fingerprint. Written only when CONTROL_LEARNING is on; kept 3 years.
+  `CREATE TABLE IF NOT EXISTS review_learning (
+    id TEXT PRIMARY KEY,
+    swms_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    kinds TEXT NOT NULL DEFAULT '[]',
+    high_risk TEXT NOT NULL DEFAULT '[]',
+    response TEXT NOT NULL,
+    text TEXT NOT NULL DEFAULT '',
+    check_score INTEGER,
+    check_band TEXT NOT NULL DEFAULT '',
+    check_failed TEXT NOT NULL DEFAULT '[]',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
 ];
 
 async function migrate() {

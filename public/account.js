@@ -398,9 +398,10 @@
     const held = holdNow();
     box.innerHTML = `<div class="panel confirm">
       ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteReady's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
+      ${editing && editing.review ? `<div class="pc-review pc-back" id="new-pc-review"><strong>${esc(editing.review.label)}</strong>, ${esc(editing.review.name)}, ${esc(editing.review.company)}, ${esc(editing.review.date)}<div class="pc-text"><strong>${editing.review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(editing.review.text)}</div><p class="meta">Save the changes, then send the principal contractor the new revision's reference.</p></div>` : ''}
       ${confirmBlock('new')}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
-      ${kind === 'draft' && editing ? '<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"></div>' : ''}
+      ${kind === 'draft' && editing ? `<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"${editing.review ? ` value="${esc(`For the principal contractor's review of revision ${editing.review.revision}`)}"` : ''}></div>` : ''}
       ${kind === 'draft' && !local ? '<p class="meta">Downloading saves the SWMS under My SWMS, so every copy printed has a record and a revision. The PDF and the QR sign-on are the copies workers sign; the Word file is a working copy.</p>' : ''}
       ${kind === 'draft' ? `<p class="note gate-hold${held.html ? '' : ' hidden'}" id="new-gate-note" role="status">${held.html}</p>` : ''}
       <div class="actions">
@@ -507,6 +508,7 @@
             <strong>${esc(item.title)}</strong>
             <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Review due</span>' : `Review by ${shortDate(item.reviewDueAt)}`}</span>
             ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteReady changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
+            ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span>, ${esc(item.review.date)}</span>` : ''}
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
         </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (every revision in Word, with team and sites, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
@@ -551,6 +553,26 @@
     return `<div class="warning" id="saved-design-same">${groups.map((group) => `<p>${esc(group.text)}</p>`).join('')}<p>To correct a number, choose Change, fix it under ${where} and save a new revision.</p></div>`;
   }
 
+  // The principal contractor's responses (goal 3): the one on the current revision first, with who
+  // gave it, their company and email, the date and any conditions or changes needed, and the way to
+  // fix it in SiteReady. Without one, the reference and link to send the principal contractor.
+  const PC_CLASS = { approved: 'pc-ok', conditions: 'pc-cond', changes: 'due' };
+  function pcReviewBlock(swms, reviews) {
+    const current = (reviews || []).filter((item) => item.revision === Number(swms.revision));
+    const earlier = (reviews || []).filter((item) => item.revision !== Number(swms.revision));
+    const textHead = { conditions: 'Conditions', changes: 'Changes needed' };
+    const line = (item) => `<li><strong class="${PC_CLASS[item.response] || ''}">${esc(item.label)}</strong> · revision ${esc(item.revision)} · ${esc(item.date)}<br>${esc(item.name)}, ${esc(item.company)}${item.email ? ` (<a href="mailto:${esc(item.email)}">${esc(item.email)}</a>)` : ''}
+      ${item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(item.text)}</div>` : ''}</li>`;
+    const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteReady, send them the reference ${esc(swms.ref)} or this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
+    const latest = current[0];
+    const fix = latest && latest.response !== 'approved'
+      ? `<p>${latest.response === 'changes' ? 'Make the changes, save the SWMS as a new revision, and send the principal contractor the new reference.' : 'Meet the conditions before work starts. If they change the SWMS, save it as a new revision and send the principal contractor the new reference.'}</p>
+        <div class="actions"><button type="button" id="pc-fix">Fix this in SiteReady</button></div>` : '';
+    return `<div class="pc-review${latest && latest.response !== 'approved' ? ' pc-back' : ''}" id="pc-review"><h2>Principal contractor review</h2>
+      ${current.length ? `<ul class="pc-list">${current.map(line).join('')}</ul>${fix}` : `<p>Revision ${esc(swms.revision)} has not been reviewed yet.</p>${send}`}
+      ${earlier.length ? `<details><summary>Earlier revisions (${earlier.length})</summary><ul class="pc-list">${earlier.map(line).join('')}</ul></details>` : ''}</div>`;
+  }
+
   async function openSwms(id) {
     const data = await call('GET', `/api/swms/${id}`);
     const { swms, draft, signons } = data;
@@ -571,6 +593,7 @@
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
           <p class="meta">Uses the name and tick under Mark as reviewed below.</p></div>` : ''}
         ${sameNumbersNote(draft)}
+        ${pcReviewBlock(swms, data.reviews)}
         ${historyBlock(history)}
         <div class="actions wrap-actions">
           <button type="button" id="saved-docx">Download Word</button>
@@ -644,12 +667,17 @@
     }));
     // Change opens the SWMS ready to edit: its controls, hazards and Who can be changed straight
     // away, and the form above holds its answers. Saving makes the next revision.
-    $('saved-edit').addEventListener('click', () => run(async () => {
+    const change = (review = null) => run(async () => {
       await S.fillForm(data.input);
-      S.editing = { id, title: swms.title, revision: swms.revision };
+      S.editing = { id, title: swms.title, revision: swms.revision, ...(review ? { review } : {}) };
       S.showSite(swms.siteId || '');
       if (S.prepare) await S.prepare();
-    }));
+    });
+    $('saved-edit').addEventListener('click', () => change());
+    // The principal contractor's conditions or changes are fixed the same way (D283: on the page, not in
+    // the email), with them shown beside the save button.
+    const standing = (data.reviews || []).find((item) => item.revision === Number(swms.revision));
+    if ($('pc-fix')) $('pc-fix').addEventListener('click', () => change(standing));
     $('print-qr').addEventListener('click', () => {
       const win = window.open('', '_blank');
       if (!win) return;

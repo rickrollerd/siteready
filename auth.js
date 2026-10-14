@@ -15,6 +15,8 @@ const LINK_MINUTES = 20;
 const SESSION_DAYS = 60;
 const CHALLENGE_MINUTES = 5;
 const DAY = 24 * 60 * 60 * 1000;
+// A principal contractor's reviewer's sign-in link (goal 3) is its own kind.
+const REVIEWER = 'reviewer';
 
 const newId = () => crypto.randomUUID();
 const newToken = () => crypto.randomBytes(32).toString('base64url');
@@ -49,7 +51,7 @@ async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
   // A new link replaces any earlier unused link for the same email (and the same company invite),
   // so an old link left in an inbox stops working.
   if (companyId) await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id = $2 AND used_at IS NULL', [email, companyId]);
-  else await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL', [email]);
+  else await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL AND purpose <> $2', [email, REVIEWER]);
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at) VALUES ($1, $2, $3, $4)',
     [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000)]);
   const link = `${appUrl(req)}/?login=${token}`;
@@ -114,7 +116,8 @@ async function userForEmail(email, companyId) {
 
 async function finishLogin(token, req = null) {
   const row = await db.one('SELECT * FROM login_tokens WHERE token_hash = $1', [hash(token)]);
-  if (!row || row.used_at || new Date(row.expires_at) < new Date()) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
+  // A reviewer's link never opens an account (or starts a trial).
+  if (!row || row.used_at || new Date(row.expires_at) < new Date() || row.purpose === REVIEWER) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
   await db.query('UPDATE login_tokens SET used_at = $1 WHERE token_hash = $2', [new Date(), row.token_hash]);
   const user = await userForEmail(row.email, row.company_id);
   return createSession(user.id, req);
@@ -164,6 +167,66 @@ function requireAccess(req, _res, next) {
   if (!db.enabled()) return next();
   if (!req.user) return next(fail(401, 'Sign in, or start a free trial, to download, save or share a SWMS.'));
   if (!hasAccess(req.company)) return next(fail(402, 'Your free trial has ended. Subscribe to keep downloading, saving and sharing SWMS.'));
+  next();
+}
+
+// ---- The principal contractor's reviewer (goal 3) ----
+
+// A reviewer proves an email address with a link like an account's, but the link opens the
+// review page for the reference, and signing in makes a reviewer: no company, no trial, no payment.
+async function sendReviewerLink(req, email, ref) {
+  const token = newToken();
+  await db.query('DELETE FROM login_tokens WHERE email = $1 AND purpose = $2 AND used_at IS NULL', [email, REVIEWER]);
+  await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, purpose) VALUES ($1, $2, NULL, $3, $4)',
+    [hash(token), email, later(LINK_MINUTES * 60 * 1000), REVIEWER]);
+  const link = `${appUrl(req)}/review.html?ref=${encodeURIComponent(ref)}&login=${token}`;
+  await sendMail({
+    to: email,
+    subject: 'Your SiteReady review sign-in link',
+    text: `Use this link to review the SWMS with SiteReady reference ${ref}.\n\n${link}\n\nOpen it on the device you will review on. The link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
+  });
+}
+
+async function finishReviewerLogin(token) {
+  const row = await db.one('SELECT * FROM login_tokens WHERE token_hash = $1', [hash(token)]);
+  if (!row || row.used_at || new Date(row.expires_at) < new Date() || row.purpose !== REVIEWER) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
+  await db.query('UPDATE login_tokens SET used_at = $1 WHERE token_hash = $2', [new Date(), row.token_hash]);
+  let reviewer = await db.one('SELECT * FROM reviewers WHERE email = $1', [row.email]);
+  if (!reviewer) {
+    await db.query('INSERT INTO reviewers (id, email, created_at) VALUES ($1, $2, $3)', [newId(), row.email, new Date()]);
+    reviewer = await db.one('SELECT * FROM reviewers WHERE email = $1', [row.email]);
+    await record('reviewer_started', null);
+  }
+  const session = newToken();
+  await db.query('INSERT INTO reviewer_sessions (token_hash, reviewer_id, created_at, expires_at) VALUES ($1, $2, $3, $4)',
+    [hash(session), reviewer.id, new Date(), later(SESSION_DAYS * DAY)]);
+  return session;
+}
+
+// Reads a reviewer's session, sent as X-Reviewer-Token. An account session is not a reviewer's.
+async function readReviewer(req, _res, next) {
+  try {
+    const token = String(req.get('x-reviewer-token') || '').trim();
+    if (token && db.enabled()) {
+      const reviewer = await db.one(
+        'SELECT reviewers.* FROM reviewer_sessions JOIN reviewers ON reviewers.id = reviewer_sessions.reviewer_id WHERE reviewer_sessions.token_hash = $1 AND reviewer_sessions.expires_at > $2',
+        [hash(token), new Date()],
+      );
+      if (reviewer) {
+        req.reviewer = reviewer;
+        req.reviewerSessionHash = hash(token);
+      }
+    }
+    next();
+  } catch (error) {
+    const busy = fail(503, 'SiteReady is busy. Try again in a moment.');
+    busy.cause = error;
+    next(busy);
+  }
+}
+
+function requireReviewer(req, _res, next) {
+  if (!req.reviewer) return next(fail(401, 'Sign in with your email to review this SWMS.'));
   next();
 }
 
@@ -253,5 +316,6 @@ module.exports = {
   TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl,
   sendLoginLink, finishLogin, createSession, hasAccess,
   readSession, requireUser, requireAccess,
+  sendReviewerLink, finishReviewerLogin, readReviewer, requireReviewer,
   passkeyRegistrationOptions, passkeyRegister, passkeyLoginOptions, passkeyLogin,
 };

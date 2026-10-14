@@ -180,10 +180,11 @@ function preparedBy(draft) {
 
 // The principal contractor must get the SWMS before the high risk construction
 // work starts. This section records its check of it.
-function principalContractorReview(draft) {
+function principalContractorReview(draft, options = {}) {
   return [
     sectionHeading('Principal contractor review'),
     para('Completed by the principal contractor before the work starts.', { size: 20, color: MUTED, before: 0, after: 80 }),
+    ...(options.reviewLink ? [para(reviewInvite(options.reviewLink), { size: 20, color: MUTED, before: 0, after: 80 })] : []),
     signTable([
       ['Principal contractor', draft.principalContractor || ''],
       ['Date SWMS received', ''],
@@ -507,7 +508,7 @@ function childrenFor(draft, options = {}) {
   }
 
   blocks.push(...preparedBy(draft));
-  blocks.push(...principalContractorReview(draft));
+  blocks.push(...principalContractorReview(draft, options));
   blocks.push(...workerSignOn(draft, options.signons || []));
   return blocks;
 }
@@ -564,6 +565,12 @@ function preparedFor(company, ref, revision) {
   if (!ref) return '';
   const abn = company && company.abn ? ` (ABN ${company.abn})` : '';
   return `Prepared with SiteReady for ${(company && company.name) || 'the business named above'}${abn}. SiteReady reference ${ref}${revision ? `, revision ${revision}` : ''}.`;
+}
+
+// A saved revision's principal contractor can open it, run the builder check and return the
+// response in SiteReady (goal 3).
+function reviewInvite(link) {
+  return link ? `Or review it in SiteReady and send your response from there: ${link}` : '';
 }
 
 // The Word file is a working copy (owner decision, 6 October 2026): the PDF and the QR sign-on
@@ -630,4 +637,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { sharedNote, preparedFor, workingCopy, draftToDocx, draftedNote, revisionText };
+module.exports = { sharedNote, preparedFor, workingCopy, reviewInvite, draftToDocx, draftedNote, revisionText };

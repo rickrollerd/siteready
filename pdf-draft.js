@@ -5,7 +5,7 @@ const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./
 const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
-const { revisionText, sharedNote } = require('./docx-draft');
+const { revisionText, sharedNote, reviewInvite } = require('./docx-draft');
 const { stepPpeRows } = require('./step-ppe');
 
 const INK = '#1C2430';
@@ -329,6 +329,7 @@ function draftToPdf(draft, options = {}) {
     table(doc, { widths: pairWidths, rows: [pair('Name and position', draft.preparedBy || ''), pair('Signature', ''), pair('Date', draft.preparedBy ? draft.date : ''), pair('Date given to the principal contractor', '')] });
 
     heading(doc, 'Principal contractor review');
+    if (options.reviewLink) text(doc, reviewInvite(options.reviewLink), { size: 9, color: MUTED, after: 0.3 });
     table(doc, {
       widths: pairWidths,
       rows: [pair('Principal contractor', draft.principalContractor), pair('Date SWMS received', ''), pair('Reviewed by (name and position)', ''),

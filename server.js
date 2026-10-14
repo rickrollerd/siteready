@@ -43,6 +43,7 @@ const { downloadGaps, gateChecks, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
 const { SharedStore, servePrimary } = require('./rate-store');
+const reviews = require('./reviews');
 
 require('dotenv').config();
 
@@ -108,11 +109,11 @@ const limiter = (name, limit, { skip, keyGenerator, failClosed } = {}) => rateLi
 });
 // The Word file takes most of the work, so it has its own, lower limit.
 app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
-// Sign-in emails and team invitations: each inbox gets at most 10 links in the window, and each
+// Sign-in emails, team invitations and reviewers' sign-in links (goal 3): each inbox gets at most 10 links in the window, and each
 // client address can send links to three times as many inboxes, so a site office or a mobile
 // network sharing one address can still sign several people up. Only sending counts; opening the
 // team list does not. If the shared count cannot be read, no email is sent (rate-store.js).
-const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users'];
+const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email'];
 const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
 const notSending = (req) => req.method !== 'POST';
 app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
@@ -125,6 +126,8 @@ app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
   failClosed: true,
 }));
 app.use(EMAIL_ROUTES, limiter('sign-in-email-ip', positiveNumber(process.env.RATE_LIMIT_EMAIL_IP_REQUESTS, emailLimit * 3), { skip: notSending, failClosed: true }));
+// The principal contractor's review pages (goal 3): opening a SWMS, the builder check, its files and the response.
+app.use('/api/review', limiter('review', positiveNumber(process.env.RATE_LIMIT_REVIEW_REQUESTS, 60)));
 app.use('/api/sign', limiter('sign-on', positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
@@ -159,13 +162,14 @@ app.get('/api/address', async (req, res, next) => {
 
 // Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, the business
 // it was prepared for, its title and revision, and whether that revision is still the current one
-// (owner decision, 6 October 2026). Nothing else is shown: no controls, no ABN, no dates.
+// (owner decision, 6 October 2026). Nothing else is shown: no controls, no ABN, no dates, apart
+// from the principal contractor's response on the revision and its date (goal 3, D286).
 app.use('/api/verify', limiter('verify', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/verify/:ref', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
     const ref = String(req.params.ref || '').trim().toUpperCase();
-    if (!/^SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/.test(ref)) return res.status(400).json({ found: false, message: 'A SiteReady reference looks like SR-ABCD-2345. Check the footer of the SWMS.' });
+    if (!require('./refs').REF_PATTERN.test(ref)) return res.status(400).json({ found: false, message: 'A SiteReady reference looks like SR-ABCD-2345. Check the footer of the SWMS.' });
     const found = await require('./refs').findRef(ref).catch(() => null);
     record('verify_ref', null);
     if (!found) return res.json({ found: false, message: 'This reference is not in SiteReady\'s records. The SWMS was not prepared with SiteReady under this reference, or the reference was changed.' });
@@ -173,12 +177,18 @@ app.get('/api/verify/:ref', async (req, res, next) => {
     // recorded, or on a stood-down draft, has none.
     let revision = null;
     let current = null;
+    let review = null;
     if (found.swms_id) {
       const swms = await db.one('SELECT revision, archived FROM swms WHERE id = $1', [found.swms_id]).catch(() => null);
       revision = Number(found.revision) || null;
       current = Boolean(swms && !swms.archived && Number(swms.revision || 1) === revision);
+      // The principal contractor's latest response on this revision and its date only (D286): no
+      // names and no conditions.
+      const latest = swms && !swms.archived && revision ? await reviews.latestReview(found.swms_id, revision).catch(() => null) : null;
+      if (latest) review = { label: latest.label, response: latest.response, date: latest.date };
     }
-    res.json({ found: true, ref: found.ref, business: found.company_name, title: found.title, revision, current });
+    // A saved revision that is still current can be reviewed by the principal contractor.
+    res.json({ found: true, ref: found.ref, business: found.company_name, title: found.title, revision, current, reviewable: Boolean(revision && current), review });
   } catch (error) {
     next(error);
   }
@@ -569,7 +579,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
     if (saved) {
       savedItems.push({ index, id: saved.row.id, revision: saved.row.revision || 1 });
-      const parts = await accounts.documentParts(req.company, saved.row);
+      const parts = await accounts.documentParts(req.company, saved.row, saved.row.revision || 1, auth.appUrl(req));
       buffer = await draftToDocx(parts.draft, parts);
       if (body.pdf === true) pdf = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation), prepared: preparedFor(req.company, parts.ref, parts.revision) });
     } else {
@@ -619,6 +629,7 @@ app.get('/api/health', async (_req, res) => {
 app.use('/api', accounts.router);
 app.use('/api', billing.router);
 app.use('/api', admin.router);
+app.use('/api', reviews.router);
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {
@@ -633,7 +644,9 @@ app.use((error, req, res, _next) => {
   const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : 'The statement could not be prepared.';
   // What a SWMS still needs before it is saved or downloaded (goal 2), for the page to show.
   const gate = error.publicMessage && Array.isArray(error.gate) ? { gate: error.gate } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate });
+  // The box a refusal is about, for the page to mark (the review response's boxes).
+  const field = error.publicMessage && typeof error.field === 'string' ? { field: error.field } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field });
 });
 
 // One worker per processor core. A worker that stops is replaced.

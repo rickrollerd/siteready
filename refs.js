@@ -7,6 +7,8 @@ const { findState } = require('./legislation');
 
 // Letters and digits that cannot be misread for each other (no 0/O, 1/I/L).
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+// What a reference looks like, such as SR-ABCD-2345.
+const REF_PATTERN = /^SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/;
 
 function newRef() {
   const bytes = crypto.randomBytes(8);
@@ -42,4 +44,4 @@ async function findRef(ref) {
   return db.one('SELECT ref, company_id, company_name, abn, title, state, postcode, created_at, swms_id, revision, content_hash FROM swms_refs WHERE ref = $1', [String(ref || '').trim().toUpperCase()]);
 }
 
-module.exports = { issueRef, findRef, newRef, placeOf };
+module.exports = { issueRef, findRef, newRef, placeOf, REF_PATTERN };
