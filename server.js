@@ -44,6 +44,8 @@ const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
 const { SharedStore, servePrimary } = require('./rate-store');
 const reviews = require('./reviews');
+const humanCheck = require('./human-check');
+const { partHashes } = require('./public/check-parts');
 
 require('dotenv').config();
 
@@ -439,7 +441,21 @@ app.post('/api/draft', (req, res) => {
       controls: (result.controls || []).map((item) => (hasBlank(item.text) ? blankKey(item.text) : '')),
     },
   } : {};
-  res.json({ ...result, ...legal });
+  // Each part's fingerprint (public/check-parts.js), so a page holding a check can tell which ticks a
+  // change has cleared (D286).
+  const checkParts = result.kind === 'draft' ? { checkParts: partHashes(result) } : {};
+  res.json({ ...result, ...legal, ...checkParts });
+});
+
+// SiteReady's own check before the person's (D286): the download gate, then Builder check on the
+// draft as it prints, with no AI, and each part's fingerprint for the ticks. The page asks again as
+// the user changes the draft, so a tick always matches what will print.
+app.post('/api/draft/check', (req, res) => {
+  const input = signedInBody(req);
+  const result = prepareDraft(input);
+  if (result.kind !== 'draft') return res.status(400).json({ kind: 'error', message: result.kind === 'stand-down' ? 'This SWMS is stood down until the missing facts are added.' : (result.message || 'The statement could not be prepared.') });
+  const gate = downloadGaps(input, result).map(({ rule: _rule, ...gap }) => gap);
+  res.json({ kind: 'self-check', gate, ...(gate.length ? { partHashes: partHashes(result) } : humanCheck.selfCheck(result, input.state)) });
 });
 
 // The draft translated for the contractor to read (task #94). Signed-in users only. The
@@ -458,14 +474,9 @@ app.post('/api/draft/translation', auth.requireUser, async (req, res, next) => {
   }
 });
 
-// A Word file is only prepared once the user confirms the business will review
-// and approve it, and gives the name that goes on it.
-function reviewConfirmation(body) {
-  const name = typeof body.reviewedBy === 'string' ? body.reviewedBy.replace(/\s+/g, ' ').trim().slice(0, 120) : '';
-  if (body.reviewConfirmed !== true || !name) return null;
-  const date = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Brisbane' }).format(new Date());
-  return { name, date };
-}
+// A Word file or PDF is only prepared once SiteReady's own check has no must-fix item and a named
+// person has ticked each part as checked, with their role (human-check.js, D286). The date is the
+// server's.
 
 // Without an account a SWMS can be previewed on screen. Downloads need an
 // account with an active trial or subscription, and use the company's saved
@@ -498,21 +509,21 @@ const COMPANY_DETAILS_MESSAGE = 'Add your company name and ABN under Company pro
 app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
   if (needsCompanyDetails(req)) return res.status(400).json({ kind: 'error', message: COMPANY_DETAILS_MESSAGE });
   try {
-    const confirmation = reviewConfirmation(req.body || {});
-    if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
     // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
     const refusal = gateRefusal(signedInBody(req), result);
     if (refusal) return res.status(400).json(refusal);
-    const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
+    // Then SiteReady's check and the person's check of each part (D286).
+    const confirmation = result.kind === 'draft' ? humanCheck.confirm(req.body || {}, result, { state: signedInBody(req).state }) : null;
+    const saved = req.company ? await accounts.saveForDownload(req, req.body || {}, { confirmation }) : null;
     if (saved) {
       await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
       return await accounts.sendDocument(req, res, saved.row, 'pdf');
     }
     const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
     withRef(result, ref);
-    const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
+    const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation), prepared: preparedFor(req.company, ref), confirmation });
     record('download_pdf', req.company && req.company.id);
     await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
     res.setHeader('Content-Type', 'application/pdf');
@@ -525,16 +536,14 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
 
 app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   if (needsCompanyDetails(req)) return res.status(400).json({ kind: 'error', message: COMPANY_DETAILS_MESSAGE });
-  const confirmation = reviewConfirmation(req.body || {});
-  if (!confirmation) {
-    return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
-  }
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
   const refusal = gateRefusal(signedInBody(req), result);
   if (refusal) return res.status(400).json(refusal);
-  const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
+  // Then SiteReady's check and the person's check of each part (D286).
+  const confirmation = result.kind === 'draft' ? humanCheck.confirm(req.body || {}, result, { state: signedInBody(req).state }) : null;
+  const saved = req.company ? await accounts.saveForDownload(req, req.body || {}, { confirmation }) : null;
   if (saved) {
     await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
     return accounts.sendDocument(req, res, saved.row, 'docx');
@@ -551,7 +560,8 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   res.send(Buffer.from(buffer));
 });
 
-// Every SWMS for a project in one zip of Word files. One review confirmation covers the set.
+// Every SWMS for a project in one zip of Word files. Each SWMS carries its own check (D240 "Review
+// each, download all", D286): a SWMS not checked, or changed since it was ticked, is left out and named.
 // With accounts on, each SWMS is saved as a record when the project is downloaded (owner
 // decision, 6 October 2026): an item already saved (its swmsId) is saved as its next revision
 // when it has changed. The X-SiteReady-Saved header lists each item's saved SWMS and revision.
@@ -560,10 +570,10 @@ const PROJECT_LIMIT = 40;
 app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   if (needsCompanyDetails(req)) return res.status(400).json({ kind: 'error', message: COMPANY_DETAILS_MESSAGE });
   const body = req.body || {};
-  const confirmation = reviewConfirmation(body);
-  if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve these SWMS, and enter your name, before downloading.' });
   const items = Array.isArray(body.swms) ? body.swms.slice(0, PROJECT_LIMIT) : [];
   if (!items.length) return res.status(400).json({ kind: 'error', message: 'There are no SWMS in this project yet.' });
+  // A page from before the check sends one tick for the whole set: it cannot stand for each SWMS.
+  if (humanCheck.isOldShape(body) && !items.some((item) => item && item.check)) return res.status(400).json({ kind: 'error', message: humanCheck.REFRESH, field: 'refresh' });
   const zip = new JSZip();
   const used = new Set();
   const skipped = [];
@@ -573,6 +583,8 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   const savedItems = [];
   // SWMS with site questions unanswered or blanks left are not in the zip (goal 2).
   const gated = [];
+  // SWMS not checked part by part, changed since, or with a must-fix item left (D286).
+  const unchecked = [];
   for (const [index, item] of items.entries()) {
     // Numbered as in the project's list, so a SWMS has the same number in every zip of the project.
     const number = item && Number.isInteger(item.swmsNumber) && item.swmsNumber > 0 && item.swmsNumber < 1000 ? item.swmsNumber : index + 1;
@@ -584,10 +596,18 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     const named = String((item && (item.swmsTitle || item.task)) || result.task || '').slice(0, 80);
     if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${number}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
     if (gaps.length) { unticked.push(`${number}. ${named}: ${notCoveredLeft(result).join('; ')}`); continue; }
+    let confirmation;
+    try {
+      confirmation = humanCheck.confirm({ check: item && item.check }, result, { state: signedInBody({ ...req, body: item || {} }).state });
+    } catch (error) {
+      if (!error.publicMessage) throw error;
+      unchecked.push(`${number}. ${named}: ${error.message}`);
+      continue;
+    }
     let buffer;
     // With pdf set (the project page, D240), each SWMS goes in the zip as Word and as PDF.
     let pdf = null;
-    const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
+    const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '', confirmation }) : null;
     if (saved) {
       savedItems.push({ index, id: saved.row.id, revision: saved.row.revision || 1 });
       const parts = await accounts.documentParts(req.company, saved.row, saved.row.revision || 1, auth.appUrl(req));
@@ -597,7 +617,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
       const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task, placeOf(signedInBody({ ...req, body: item || {} })));
       withRef(result, ref);
       buffer = await draftToDocx(result, { logo, confirmation, ref, company: req.company });
-      if (body.pdf === true) pdf = await draftToPdf(result, { logo, note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
+      if (body.pdf === true) pdf = await draftToPdf(result, { logo, note: draftedNote(confirmation), prepared: preparedFor(req.company, ref), confirmation });
     }
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
@@ -614,11 +634,12 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     }
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
-  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length ? ' ' : ''}` : ''}${unticked.length ? `Above each draft, write your own step for the work SiteReady has no job steps for, or say which SWMS covers it: ${unticked.join(' ')}` : ''}${!gated.length && !unticked.length ? 'Answer the questions for each one first.' : ''}` });
+  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length || unchecked.length ? ' ' : ''}` : ''}${unticked.length ? `Above each draft, write your own step for the work SiteReady has no job steps for, or say which SWMS covers it: ${unticked.join(' ')}${unchecked.length ? ' ' : ''}` : ''}${unchecked.length ? `Open each SWMS and tick each part as checked, with your name and role: ${unchecked.join(' ')}` : ''}${!gated.length && !unticked.length && !unchecked.length ? 'Answer the questions for each one first.' : ''}` });
   const notes = [
     skipped.length ? `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n` : '',
     gated.length ? `These SWMS still have site questions or blanks to answer, so they are not in this download:\n${gated.join('\n')}\n` : '',
     unticked.length ? `SiteReady has no job steps for part of these SWMS, and it was not dealt with above the draft, so they are not in this download:\n${unticked.join('\n')}\n` : '',
+    unchecked.length ? `These SWMS have not been checked part by part since they last changed, so they are not in this download:\n${unchecked.join('\n')}\n` : '',
   ].filter(Boolean);
   if (notes.length) zip.file('Not included.txt', notes.join('\n'));
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
@@ -659,7 +680,9 @@ app.use((error, req, res, _next) => {
   const gate = error.publicMessage && Array.isArray(error.gate) ? { gate: error.gate } : {};
   // The box a refusal is about, for the page to mark (the review response's boxes).
   const field = error.publicMessage && typeof error.field === 'string' ? { field: error.field } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field });
+  // The parts of the check a change has cleared, for the page to untick (D286).
+  const stale = error.publicMessage && Array.isArray(error.stale) ? { stale: error.stale } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale });
 });
 
 // One worker per processor core. A worker that stops is replaced.

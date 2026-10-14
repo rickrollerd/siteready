@@ -211,6 +211,20 @@
     .confirm .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin-bottom: 12px; }
     .logo-preview.hidden { display: none; }
     .confirm .check input { margin-top: 4px; flex: none; }
+    .human-check { border-top: 1px solid #d5dbe3; margin: 4px 0 14px; padding-top: 12px; }
+    .human-check h3 { margin: 0 0 8px; }
+    .human-check .check-step { margin: 12px 0 6px; }
+    .human-check .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 0 0 10px; }
+    .human-check .check input { margin-top: 4px; flex: none; width: 20px; height: 20px; }
+    .human-check .check .meta { display: block; margin: 0; }
+    .human-check .check-parts { border: 0; padding: 0; margin: 0; }
+    .human-check .check-parts legend { margin-bottom: 8px; }
+    .human-check .check-parts.locked .check { opacity: 0.55; }
+    .human-check .check-self p { margin: 0 0 6px; }
+    .human-check .check-must { margin: 6px 0 8px; }
+    .human-check .check-must ul, .human-check .check-findings ul { margin: 6px 0 0; padding-left: 20px; }
+    .human-check .check-findings { margin: 0 0 6px; font-size: 14px; }
+    .human-check .check-findings summary { cursor: pointer; font-weight: 600; }
     .site-footer { font-size: 13px; color: #5c6773; margin: 28px 0 12px; }
     .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 10px; }
     .sheet-company { font-weight: 700; margin: 0 0 2px; }
@@ -546,6 +560,7 @@
       .ctl-why select, .ctl-why input { min-height: 44px; padding: 6px 8px; }
       .blank-sentence, .blank-form-tools { font-size: 16px; }
       .blank-slot-input { font-size: 16px; min-height: 44px; }
+      .human-check .check-findings { font-size: 16px; }
       .blank-label { font-size: 14px; }
       /* The draft: each step's tools show after Change this step, and a long list of controls shows
          its first lines until Show all (app.js). Removed lines and the reasons asked stay in view. */
@@ -924,6 +939,8 @@
   <script src="/design-fill.js"></script>
   <script src="/mass.js"></script>
   <script src="/app.js"></script>
+  <script src="/check-parts.js"></script>
+  <script src="/human-check.js"></script>
   <script src="/account.js"></script>
   <script src="/read-progress.js"></script>
   <script src="/method-read.js"></script>

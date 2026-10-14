@@ -7,6 +7,7 @@ const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./
 const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
+const { checkedRows, checkedLine } = require('./human-check');
 
 const FONT = 'Calibri';
 const INK = '1C2430';
@@ -150,7 +151,7 @@ function signTable(rows) {
       height: { value: height || 520 },
       children: [
         cell(label, LABEL_WIDTH, { bold: true, fill: HEAD, size: 20 }),
-        Array.isArray(value) ? boxCell(value, VALUE_WIDTH) : cell(value || ' ', VALUE_WIDTH, { size: 20 }),
+        Array.isArray(value) ? boxCell(value, VALUE_WIDTH) : String(value || '').includes('\n') ? linesCell(String(value).split('\n'), VALUE_WIDTH) : cell(value || ' ', VALUE_WIDTH, { size: 20 }),
       ],
     })),
   });
@@ -178,9 +179,42 @@ function preparedBy(draft) {
   ];
 }
 
+// Who checked the SWMS part by part before it was downloaded or saved (D286): name, role, date and
+// the parts ticked. A SWMS from before the check prints without it.
+function checkedBy(confirmation) {
+  const rows = checkedRows(confirmation);
+  if (!rows.length) return [];
+  return [
+    sectionHeading('Checked by'),
+    metaTable(rows),
+  ];
+}
+
+// The responses the principal contractor's reviewer returns in SiteReady (reviews.js), in the order
+// the review box prints them.
+const PC_OUTCOMES = [['approved', 'Approved'], ['conditions', 'Approved with conditions'], ['changes', 'Not approved']];
+const PC_TEXT = { approved: 'Comments', conditions: 'Conditions', changes: 'Changes needed' };
+
+// The box filled with the response the reviewer returned on this revision in SiteReady (D290): the
+// outcome, the reviewer and their company, the date and any conditions or changes needed.
+function reviewedBox(draft, review) {
+  return [
+    sectionHeading('Principal contractor review'),
+    para(reviewedNote(review), { size: 20, color: MUTED, before: 0, after: 80 }),
+    signTable([
+      ['Principal contractor', draft.principalContractor || ''],
+      ['Reviewed by (name and company)', [review.name, review.company].filter(Boolean).join(', ')],
+      ['Outcome', PC_OUTCOMES.map(([id, label]) => ({ label, ticked: review.response === id }))],
+      [PC_TEXT[review.response] || 'Comments', review.text || 'None'],
+      ['Date', review.date || ''],
+    ]),
+  ];
+}
+
 // The principal contractor must get the SWMS before the high risk construction
 // work starts. This section records its check of it.
 function principalContractorReview(draft, options = {}) {
+  if (options.pcReview) return reviewedBox(draft, options.pcReview);
   return [
     sectionHeading('Principal contractor review'),
     para('Completed by the principal contractor before the work starts.', { size: 20, color: MUTED, before: 0, after: 80 }),
@@ -508,6 +542,7 @@ function childrenFor(draft, options = {}) {
   }
 
   blocks.push(...preparedBy(draft));
+  blocks.push(...checkedBy(options.confirmation));
   blocks.push(...principalContractorReview(draft, options));
   blocks.push(...workerSignOn(draft, options.signons || []));
   return blocks;
@@ -553,10 +588,18 @@ function companyHeader(draft, logo) {
   return { default: new Header({ children: [table, new Paragraph({ spacing: { before: 0, after: 160 }, children: [] })] }) };
 }
 
-// Every page says the file is a draft the business reviews and approves.
+// Every page says the file is a draft the business reviews and approves. A SWMS checked part by part
+// (D286) says who checked it: "Checked by {name}, {role}, {date}".
 function draftedNote(confirmation) {
+  const checked = checkedLine(confirmation);
+  if (checked) return `${checked}. Drafted with SiteReady. The business named in this SWMS reviews, approves and is responsible for it.`;
   const by = confirmation ? ` by ${confirmation.name} on ${confirmation.date}` : '';
   return `Drafted with SiteReady${by}. The business named in this SWMS reviews, approves and is responsible for it.`;
+}
+
+// Said above the filled review box: where the response came from.
+function reviewedNote(review) {
+  return `The principal contractor's reviewer returned this response in SiteReady${review.ref ? ` on SiteReady reference ${review.ref}` : ''}${review.revision ? `, revision ${review.revision}` : ''}.`;
 }
 
 // Printed on every page: who the SWMS was prepared for, and its SiteReady reference and
@@ -637,4 +680,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { sharedNote, preparedFor, workingCopy, reviewInvite, draftToDocx, draftedNote, revisionText };
+module.exports = { sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, draftToDocx, draftedNote, revisionText };

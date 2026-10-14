@@ -22,6 +22,7 @@ const designs = require('./designs');
 const substances = require('./substances');
 const { stepPpeRows } = require('./step-ppe');
 const designFiles = require('./design-files');
+const { checkedRows } = require('./human-check');
 
 const router = express.Router();
 const { fail } = auth;
@@ -227,6 +228,8 @@ router.get('/review/swms/:ref', auth.requireReviewer, route(async (req, res) => 
   res.json({
     ref, business: company ? company.name : '', title: swms.title, revision: kept.revision, savedAt: longDate(kept.createdAt),
     current, latestRevision: Number(swms.revision || 1), draft: forReviewer(kept.draft), tables, responses,
+    // Who checked the revision part by part before it was saved (D286), as it prints.
+    checked: checkedRows(kept.confirmation),
   });
 }));
 

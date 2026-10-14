@@ -8,7 +8,7 @@ const Stripe = require('stripe');
 const { app } = require('../server');
 const db = require('../db');
 const billing = require('../billing');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 // A stand-in for Stripe that records what was asked of it, and uses the real
 // library to sign and check webhooks.
@@ -155,8 +155,8 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   });;
   const confirm = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
   const before = Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n);
-  assert.equal((await call('POST', '/api/swms', { token, body: { input, ...confirm } })).status, 201);
-  assert.equal((await call('POST', '/api/swms', { token, body: { input, ...confirm } })).status, 201);
+  assert.equal((await call('POST', '/api/swms', { token, body: checked({ input, ...confirm }) })).status, 201);
+  assert.equal((await call('POST', '/api/swms', { token, body: checked({ input, ...confirm }) })).status, 201);
   const rows = await db.query('SELECT * FROM industry_records');
   assert.equal(rows.length, before + 1, 'one record per business, task and month');
   const row = rows.find((item) => item.postcode === '4350');
@@ -187,7 +187,7 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   assert.equal((await call('POST', '/api/admin/industry/opt-out', { token, body: { abn } })).status, 403);
   assert.equal((await call('POST', '/api/admin/industry/opt-out', { token: owner, body: { abn } })).status, 200);
   const other = ready({ ...input, trade: 'plumbing', task: 'Cut and fit copper pipe to the hand basins in the ward.' });
-  assert.equal((await call('POST', '/api/swms', { token, body: { input: other, ...confirm } })).status, 201);
+  assert.equal((await call('POST', '/api/swms', { token, body: checked({ input: other, ...confirm }) })).status, 201);
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n), before + 1, 'no record after opting out');
 });
 

@@ -3,7 +3,7 @@
 // with its changes. The page scripts run in a small stand-in for the browser (fake-dom.js).
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadPage, settle, FakeEvent } = require('./fake-dom');
+const { loadPage, settle, FakeEvent, checkAll } = require('./fake-dom');
 
 const DRAFT = {
   kind: 'draft', state: 'Queensland', task: 'Dig a trench.', highRisk: [], controls: [], site: [], ppe: [], references: [], sources: { legislation: [], codes: [] },
@@ -36,8 +36,8 @@ async function prepare(p) {
 }
 
 async function save(p) {
-  p.document.getElementById('new-confirm').checked = true;
-  p.document.getElementById('new-name').value = 'Sam Lee';
+  await settle();
+  checkAll(p);
   p.document.getElementById('new-save').click();
   await settle();
 }
@@ -114,13 +114,16 @@ test('a project SWMS opened again comes back with its changes (B2)', async () =>
 
 test('a project download saves each SWMS, and the next download sends them as saved SWMS', async () => {
   const body = { state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: EDITS };
-  const project = { current: 0, items: [{ title: 'Trench', task: 'Dig a trench.', trade: '', kinds: null, leaveOut: null, fallRisk: 'no', body, status: 'ready' }] };
+  // Each SWMS carries the check it was given under its draft (D286); one not checked is not sent.
+  const check = { parts: { steps: true, hazards: true, plant: true, emergency: true, site: true }, partHashes: { steps: 'a', hazards: 'b', plant: 'c', emergency: 'd', site: 'e' }, name: 'Sam Lee', role: 'Supervisor', ack: true };
+  const project = { current: 0, items: [
+    { title: 'Trench', task: 'Dig a trench.', trade: '', kinds: null, leaveOut: null, fallRisk: 'no', body, status: 'ready', check },
+    { title: 'Paint', task: 'Paint the walls.', trade: '', kinds: null, leaveOut: null, fallRisk: 'no', body: { ...body, task: 'Paint the walls.' }, status: 'ready' },
+  ] };
   const saved = encodeURIComponent(JSON.stringify([{ index: 0, id: 'proj-1', revision: 1 }]));
   const p = page(server((method, route) => (route === '/api/project.zip' ? { body: {}, headers: { 'content-type': 'application/zip', 'x-siteready-saved': saved } } : null)), { 'siteready.project': JSON.stringify(project) });
   await settle();
   const zip = async () => {
-    p.document.getElementById('project-confirm').checked = true;
-    p.document.getElementById('project-name').value = 'Sam Lee';
     const event = new FakeEvent('click', { bubbles: true });
     event.target = { closest: (selector) => (selector === '#project-zip' ? { disabled: false } : null) };
     p.document.body.dispatchEvent(event);
@@ -133,6 +136,9 @@ test('a project download saves each SWMS, and the next download sends them as sa
   const sent = p.calls.filter((call) => call.route === '/api/project.zip');
   assert.equal(sent[0].body.swms[0].swmsId, undefined);
   assert.equal(sent[1].body.swms[0].swmsId, 'proj-1');
+  assert.deepEqual(sent.map((call) => call.body.swms.map((item) => item.task)), [['Dig a trench.'], ['Dig a trench.']], 'the SWMS not checked is not sent');
+  assert.deepEqual(sent[0].body.swms[0].check, check);
+  assert.equal(sent[0].body.reviewConfirmed, undefined, 'no one tick for the set');
   assert.deepEqual(sent[1].body.swms[0].controlEdits, EDITS);
 });
 
@@ -259,8 +265,8 @@ test('a download saved as a new revision says workers must sign it; the same rev
   p.document.getElementById('task').value = 'Dig a trench.';
   await prepare(p);
   const download = async () => {
-    p.document.getElementById('new-confirm').checked = true;
-    p.document.getElementById('new-name').value = 'Sam Lee';
+    await settle();
+    checkAll(p);
     p.document.getElementById('new-docx').click();
     await settle();
     return p.document.getElementById('new-status').textContent;
@@ -276,10 +282,8 @@ test('downloading saves the SWMS, and later changes save as its next revision', 
   await settle();
   p.document.getElementById('task').value = 'Dig a trench.';
   await prepare(p);
-  const tick = () => {
-    p.document.getElementById('new-confirm').checked = true;
-    p.document.getElementById('new-name').value = 'Sam Lee';
-  };
+  const tick = () => checkAll(p);
+  await settle();
   tick();
   p.document.getElementById('new-docx').click();
   await settle();

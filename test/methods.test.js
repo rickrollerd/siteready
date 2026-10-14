@@ -25,7 +25,7 @@ const designs = require('../designs');
 const { changesBetween, changeText, contentHash } = require('../revisions');
 const { methodNeed, sameDesignNumbers, designNeed } = require('../public/gate-rules');
 const { loadPage, settle, FakeEvent } = require('./fake-dom');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 const PLAIN = 'Install cable tray in the plant room ceiling from an EWP.';
 const SHORING = 'Staged basement excavation with ground anchors, shoring wall and temporary props, excavated by 20 t excavator.';
@@ -312,16 +312,16 @@ test('a method\'s file is kept with each saved revision, opened only by the busi
   // The download is not held by a method, given or not, and prints it. (A download keeps a copy of
   // the SWMS for the business, so it has its own file here.)
   const copy = (await upload(token, pdf('/Title (copy)'), 'Lift method copy.pdf')).data.file;
-  const half = await call('POST', '/api/draft.docx', { token, body: { ...ready(base(PLAIN, { designs: [{ ...METHOD, by: '' }] })), ...CONFIRM } });
+  const half = await call('POST', '/api/draft.docx', { token, body: checked({ ...ready(base(PLAIN, { designs: [{ ...METHOD, by: '' }] })), ...CONFIRM }) });
   assert.equal(half.status, 200);
-  const docx = await call('POST', '/api/draft.docx', { token, body: { ...ready(base(PLAIN, { designs: [{ ...METHOD, file: copy }] })), ...CONFIRM } });
+  const docx = await call('POST', '/api/draft.docx', { token, body: checked({ ...ready(base(PLAIN, { designs: [{ ...METHOD, file: copy }] })), ...CONFIRM }) });
   assert.equal(docx.status, 200);
   const xml = (await (await JSZip.loadAsync(Buffer.from(await docx.arrayBuffer()))).file('word/document.xml').async('string')).replace(/<[^>]+>/g, ' ');
   assert.ok(xml.includes('Written methodologies this SWMS relies on') && xml.includes('AL-MS-014 rev B'));
-  assert.equal((await call('POST', '/api/draft.pdf', { token, body: { ...ready(base(PLAIN, { designs: [{ ...METHOD, file: copy }] })), ...CONFIRM } })).status, 200);
+  assert.equal((await call('POST', '/api/draft.pdf', { token, body: checked({ ...ready(base(PLAIN, { designs: [{ ...METHOD, file: copy }] })), ...CONFIRM }) })).status, 200);
   const first = (await upload(token, pdf('/Title (B)'), 'AL-MS-014 rev B.pdf')).data.file;
   // Saved: the file is the SWMS's, for the business only.
-  const saved = await json('POST', '/api/swms', { token, body: { input: ready(base(PLAIN, { designs: [{ ...METHOD, file: first }] })), ...CONFIRM } });
+  const saved = await json('POST', '/api/swms', { token, body: checked({ input: ready(base(PLAIN, { designs: [{ ...METHOD, file: first }] })), ...CONFIRM }) });
   assert.equal(saved.status, 201, JSON.stringify(saved.data));
   const id = saved.data.swms.id;
   const view = (await json('GET', `/api/swms/${id}`, { token })).data;
@@ -330,12 +330,12 @@ test('a method\'s file is kept with each saved revision, opened only by the busi
   assert.equal((await call('GET', route, { token })).status, 200);
   assert.equal((await call('GET', route)).status, 401);
   assert.equal((await call('GET', route, { token: other })).status, 404);
-  const theirs = await json('POST', '/api/swms', { token: other, body: { input: ready(base(PLAIN, { designs: [{ ...METHOD, file: first }] })), ...CONFIRM } });
+  const theirs = await json('POST', '/api/swms', { token: other, body: checked({ input: ready(base(PLAIN, { designs: [{ ...METHOD, file: first }] })), ...CONFIRM }) });
   assert.equal(theirs.status, 400);
   assert.match(theirs.data.message, /The file attached to Jump lift machine platform raising methodology is no longer held/);
   // Revision 2 with the method's revision C: both files kept, the change listed.
   const second = (await upload(token, pdf('/Title (C)'), 'AL-MS-014 rev C.pdf')).data.file;
-  const revised = await json('PUT', `/api/swms/${id}`, { token, body: { input: ready(base(PLAIN, { designs: [{ ...METHOD, revision: 'C', file: second }] })), ...CONFIRM, reason: 'Lift method revision C' } });
+  const revised = await json('PUT', `/api/swms/${id}`, { token, body: checked({ input: ready(base(PLAIN, { designs: [{ ...METHOD, revision: 'C', file: second }] })), ...CONFIRM, reason: 'Lift method revision C' }) });
   assert.equal(revised.status, 200);
   assert.equal((await call('GET', route, { token })).status, 200, 'revision 1\'s file is kept');
   const history = (await json('GET', `/api/swms/${id}/revisions`, { token })).data.revisions;

@@ -5,7 +5,8 @@ const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./
 const { tableRows: substanceRows, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
-const { revisionText, sharedNote, reviewInvite } = require('./docx-draft');
+const { revisionText, sharedNote, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT } = require('./docx-draft');
+const { checkedRows } = require('./human-check');
 const { stepPpeRows } = require('./step-ppe');
 
 const INK = '#1C2430';
@@ -328,13 +329,31 @@ function draftToPdf(draft, options = {}) {
     heading(doc, 'Prepared by');
     table(doc, { widths: pairWidths, rows: [pair('Name and position', draft.preparedBy || ''), pair('Signature', ''), pair('Date', draft.preparedBy ? draft.date : ''), pair('Date given to the principal contractor', '')] });
 
+    // Who checked it part by part before it was downloaded or saved (D286).
+    const checked = checkedRows(options.confirmation);
+    if (checked.length) {
+      heading(doc, 'Checked by');
+      table(doc, { widths: pairWidths, rows: checked.map(([label, value]) => pair(label, value)) });
+    }
+
     heading(doc, 'Principal contractor review');
-    if (options.reviewLink) text(doc, reviewInvite(options.reviewLink), { size: 9, color: MUTED, after: 0.3 });
-    table(doc, {
-      widths: pairWidths,
-      rows: [pair('Principal contractor', draft.principalContractor), pair('Date SWMS received', ''), pair('Reviewed by (name and position)', ''),
-        pair('Outcome', '[ ] Accepted     [ ] Accepted with changes noted     [ ] Not accepted: revise and resubmit'), pair('Comments or changes', '\n\n\n'), pair('Signature', ''), pair('Date', '')],
-    });
+    const review = options.pcReview;
+    if (review) {
+      // The response the reviewer returned on this revision in SiteReady (D290).
+      text(doc, reviewedNote(review), { size: 9, color: MUTED, after: 0.3 });
+      table(doc, {
+        widths: pairWidths,
+        rows: [pair('Principal contractor', draft.principalContractor), pair('Reviewed by (name and company)', [review.name, review.company].filter(Boolean).join(', ')),
+          pair('Outcome', PC_OUTCOMES.map(([id, label]) => `${review.response === id ? '[x]' : '[ ]'} ${label}`).join('     ')), pair(PC_TEXT[review.response] || 'Comments', review.text || 'None'), pair('Date', review.date || '')],
+      });
+    } else {
+      if (options.reviewLink) text(doc, reviewInvite(options.reviewLink), { size: 9, color: MUTED, after: 0.3 });
+      table(doc, {
+        widths: pairWidths,
+        rows: [pair('Principal contractor', draft.principalContractor), pair('Date SWMS received', ''), pair('Reviewed by (name and position)', ''),
+          pair('Outcome', '[ ] Accepted     [ ] Accepted with changes noted     [ ] Not accepted: revise and resubmit'), pair('Comments or changes', '\n\n\n'), pair('Signature', ''), pair('Date', '')],
+      });
+    }
 
     doc.addPage();
     text(doc, 'Worker sign-on', { bold: true, size: 16 });

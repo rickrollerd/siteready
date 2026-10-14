@@ -12,7 +12,7 @@ const { draftBody } = require('../input');
 const { downloadGaps, gateMessage } = require('../download-gate');
 const { blankKey, fillLine, withFills } = require('../blanks');
 const { checkSwms, fromDraft } = require('../builder-check');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 const FENCE = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
 // Live testing in a switchboard brings two library lines with blanks in them.
@@ -201,7 +201,7 @@ test('the preview stays open without signing in, and says what is needed before 
 test('Word and PDF are refused with the list of what is needed, then download with the answers printed and no blank left', async () => {
   const token = await signIn('gate@example.com', '51 824 753 556');
   for (const route of ['/api/draft.docx', '/api/draft.pdf']) {
-    const refused = await call('POST', route, { token, body: { ...LIVE, ...CONFIRM } });
+    const refused = await call('POST', route, { token, body: checked({ ...LIVE, ...CONFIRM }) });
     assert.equal(refused.status, 400, route);
     const data = await refused.json();
     assert.match(data.message, /until the site questions are answered/);
@@ -210,7 +210,7 @@ test('Word and PDF are refused with the list of what is needed, then download wi
   }
   // Nothing was saved by the refused downloads.
   assert.equal((await (await call('GET', '/api/swms', { token })).json()).swms.length, 0);
-  const body = ready({ ...LIVE, ...ANSWERED, fills: LIVE_FILLS, ...CONFIRM });
+  const body = checked(ready({ ...LIVE, ...ANSWERED, fills: LIVE_FILLS, ...CONFIRM }));
   const docx = await call('POST', '/api/draft.docx', { token, body });
   assert.equal(docx.status, 200, await docx.clone().text());
   const text = await wordText(Buffer.from(await docx.arrayBuffer()));
@@ -225,15 +225,15 @@ test('Word and PDF are refused with the list of what is needed, then download wi
 test('saving, a saved SWMS kept from before the gate, and a copy are held until the answers are given', async () => {
   const db = require('../db');
   const token = await signIn('gate-save@example.com', '53 004 085 616');
-  const refused = await call('POST', '/api/swms', { token, body: { input: FENCE, ...CONFIRM } });
+  const refused = await call('POST', '/api/swms', { token, body: checked({ input: FENCE, ...CONFIRM }) });
   assert.equal(refused.status, 400);
   const data = await refused.json();
   assert.match(data.message, /Still to answer: Job address; Principal contractor/);
   assert.ok(data.gate.length >= 6);
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: ready({ ...FENCE, ...ANSWERED }), ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: ready({ ...FENCE, ...ANSWERED }), ...CONFIRM }) })).json();
   assert.equal((await call('GET', `/api/swms/${swms.id}/docx`, { token })).status, 200);
   // Changes that blank an answer cannot be saved over it.
-  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: ready({ ...FENCE, ...ANSWERED, musterPoint: '' }), ...CONFIRM } })).status, 400);
+  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: ready({ ...FENCE, ...ANSWERED, musterPoint: '' }), ...CONFIRM }) })).status, 400);
   // A SWMS saved before the gate with the site questions blank is not printed until it is revised.
   const row = await db.one('SELECT * FROM swms WHERE id = $1', [swms.id]);
   await db.query(
@@ -248,7 +248,7 @@ test('saving, a saved SWMS kept from before the gate, and a copy are held until 
   }
   assert.equal((await call('POST', '/api/swms/blank-swms/copy', { token, body: CONFIRM })).status, 400);
   // Revised with the answers, it prints.
-  assert.equal((await call('PUT', '/api/swms/blank-swms', { token, body: { input: ready({ ...FENCE, ...ANSWERED }), ...CONFIRM } })).status, 200);
+  assert.equal((await call('PUT', '/api/swms/blank-swms', { token, body: checked({ input: ready({ ...FENCE, ...ANSWERED }), ...CONFIRM }) })).status, 200);
   assert.equal((await call('GET', '/api/swms/blank-swms/docx', { token })).status, 200);
 });
 
@@ -256,12 +256,12 @@ test('the project zip leaves out a SWMS with site questions unanswered, and says
   const token = await signIn('gate-zip@example.com', '33 102 417 000');
   const answered = ready({ ...FENCE, ...ANSWERED, swmsTitle: 'Fencing' });
   const blank = { ...FENCE, task: 'Replace a 6m length of timber fence.', swmsTitle: 'More fencing' };
-  const response = await call('POST', '/api/project.zip', { token, body: { swms: [answered, blank], ...CONFIRM } });
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [answered, blank].map((item) => checked(item)) } });
   assert.equal(response.status, 200);
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files).sort(), ['01 Fencing.docx', 'Not included.txt']);
   assert.match(await zip.file('Not included.txt').async('string'), /2\. More fencing: still to answer: Job address; Principal contractor/);
-  const none = await call('POST', '/api/project.zip', { token, body: { swms: [blank], ...CONFIRM } });
+  const none = await call('POST', '/api/project.zip', { token, body: { swms: [blank].map((item) => checked(item)) } });
   assert.equal(none.status, 400);
   assert.match((await none.json()).message, /until the site questions are answered/);
 });

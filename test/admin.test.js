@@ -8,7 +8,7 @@ const { app } = require('../server');
 const db = require('../db');
 const { validAbn } = require('../accounts');
 const { plainName, nearlySameName } = require('../admin');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 const DAY = 86400000;
 let server;
@@ -98,7 +98,7 @@ test('a reference from a real download traces to the account, with the job\'s st
     ...ANSWERED, state: 'nsw', task: 'Replace a 3m length of fence.', fallRisk: 'no', workplace: '14 Pitt Street, Sydney NSW 2000',
     reviewConfirmed: true, reviewedBy: 'Jo Lee',
   });
-  const response = await call('POST', '/api/draft.docx', { token, body });
+  const response = await call('POST', '/api/draft.docx', { token, body: checked(body) });
   assert.equal(response.status, 200);
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   const footer = Object.keys(zip.files).filter((name) => /footer/.test(name));

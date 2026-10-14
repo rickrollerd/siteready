@@ -61,7 +61,7 @@
   const revisionText = (draft) => `Revision ${draft.revision || 1}${draft.revisionDate || draft.date ? `, ${draft.revisionDate || draft.date}` : ''}`;
   const table = (block) => (block ? `<h3>${esc(block.title)}</h3><p class="note">${esc(block.note)}</p>${grid(block.head, block.rows, block.files)}` : '');
 
-  function sheet(draft, tables) {
+  function sheet(draft, tables, checked = []) {
     const steps = draft.jobSteps || [];
     const stepRows = steps.map((step, index) => `<tr>
       <td><strong>${index + 1}. ${esc(step.step)}</strong></td>
@@ -92,7 +92,8 @@
       <h3>${esc(draft.reviewHeading || 'Review')}</h3><p class="lines">${esc(draft.review)}</p>
       <h3>Site-specific</h3>${pairs((draft.site || []).map((field) => [field.label, field.text]))}
       ${(draft.references || []).length ? `<h3>Documents to keep on site with this SWMS</h3>${pairs(draft.references.map((item) => [item.label, item.text]))}` : ''}
-      <h3>Prepared by</h3>${pairs([['Name and position', draft.preparedBy], ['Date', draft.preparedBy ? draft.date : '']]) || '<p class="note">Left blank on the SWMS, to be signed by hand.</p>'}`;
+      <h3>Prepared by</h3>${pairs([['Name and position', draft.preparedBy], ['Date', draft.preparedBy ? draft.date : '']]) || '<p class="note">Left blank on the SWMS, to be signed by hand.</p>'}
+      ${checked.length ? `<h3>Checked by</h3>${pairs(checked)}` : ''}`;
   }
 
   // A design or safety data sheet file the revision names, opened in the browser's own viewer.
@@ -188,7 +189,7 @@
     if (!$('company').value) $('company').value = me.company || '';
     $('responses').innerHTML = responsesBlock(data.responses || []);
     $('sheet-title').textContent = `1. Read the SWMS: ${data.title}, revision ${data.revision}`;
-    const html = sheet(data.draft, data.tables || {});
+    const html = sheet(data.draft, data.tables || {}, Array.isArray(data.checked) ? data.checked : []);
     // Each load rating shows its mass, as the printed SWMS does (D263).
     $('sheet').innerHTML = window.SiteReadyMass ? window.SiteReadyMass.withMassHtml(html) : html;
     $('sheet-box').open = window.matchMedia('(min-width: 900px)').matches;

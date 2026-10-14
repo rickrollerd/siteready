@@ -61,4 +61,17 @@ function ready(input) {
   return out;
 }
 
-module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready };
+// The check before a download or save (D286), as the page sends it, for tests about something else:
+// every part ticked against the draft the body prints (or input, for a saved SWMS), with a name and
+// role. A name in the body's old reviewedBy is kept.
+function checked(body = {}, input = null, { name = '', role = 'Supervisor' } = {}) {
+  const { prepareDraft } = require('../draft');
+  const { draftBody } = require('../input');
+  const { partHashes, IDS } = require('../public/check-parts');
+  const source = input || (body.input && typeof body.input === 'object' ? body.input : body);
+  const draft = prepareDraft(draftBody(source));
+  const { reviewConfirmed: _tick, reviewedBy, ...rest } = body;
+  return { ...rest, check: { parts: Object.fromEntries(IDS.map((id) => [id, true])), partHashes: partHashes(draft), name: name || reviewedBy || 'Alex Chen', role, ack: true } };
+}
+
+module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked };

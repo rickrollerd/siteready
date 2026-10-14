@@ -11,7 +11,7 @@ const JSZip = require('jszip');
 const { app } = require('../server');
 const db = require('../db');
 const revisions = require('../revisions');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -83,7 +83,7 @@ function pdfText(buffer) {
 
 test('downloading saves the SWMS, and the same SWMS downloaded again unchanged is the same revision', async () => {
   const token = await signIn('download-saves@history.example');
-  const first = await call('POST', '/api/draft.docx', { token, body: { ...INPUT, ...CONFIRM } });
+  const first = await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, ...CONFIRM }) });
   assert.equal(first.status, 200);
   const id = first.headers.get('x-siteready-swms');
   assert.ok(id, 'the download says which saved SWMS it is');
@@ -96,12 +96,12 @@ test('downloading saves the SWMS, and the same SWMS downloaded again unchanged i
   assert.match(footer, new RegExp(`Working copy\\. The signed record is SiteReady reference ${ref} revision 1\\. Changes made outside SiteReady are not part of the record\\.`));
 
   // The same SWMS again, unchanged: no new SWMS and no new revision, and the same reference.
-  const again = await call('POST', '/api/draft.docx', { token, body: { ...INPUT, ...CONFIRM, swmsId: id } });
+  const again = await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, ...CONFIRM, swmsId: id }) });
   assert.equal(again.headers.get('x-siteready-swms'), id);
   assert.equal(again.headers.get('x-siteready-revision'), '1');
   assert.equal(((await wordParts(again)).footer.match(REF) || [])[0], ref);
   // Changed: the next revision, with its own reference.
-  const changed = await call('POST', '/api/draft.pdf', { token, body: { ...INPUT, task: 'Replace a 6m length of timber fence.', ...CONFIRM, swmsId: id } });
+  const changed = await call('POST', '/api/draft.pdf', { token, body: checked({ ...INPUT, task: 'Replace a 6m length of timber fence.', ...CONFIRM, swmsId: id }) });
   assert.equal(changed.status, 200);
   assert.equal(changed.headers.get('x-siteready-revision'), '2');
   const pdf = pdfText(Buffer.from(await changed.arrayBuffer()));
@@ -119,9 +119,9 @@ test('downloading saves the SWMS, and the same SWMS downloaded again unchanged i
 
 test('each saved revision is kept with who saved it and why, and the history says what changed', async () => {
   const token = await signIn('history@history.example');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   const edits = { 'Before starting': { removed: [], changed: [], added: ['Neighbours are told the day before work starts.'] } };
-  await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: { ...INPUT, controlEdits: edits }, reason: 'Neighbours asked to be told', ...CONFIRM, reviewedBy: 'Jo Smith' } });
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: { ...INPUT, controlEdits: edits }, reason: 'Neighbours asked to be told', ...CONFIRM, reviewedBy: 'Jo Smith' }) });
   const rows = await db.query('SELECT revision, edited_name, reason, library_version FROM swms_revisions WHERE swms_id = $1 ORDER BY revision', [swms.id]);
   assert.deepEqual(rows.map((row) => [Number(row.revision), row.edited_name, row.reason]), [[1, 'Alex Chen', ''], [2, 'Jo Smith', 'Neighbours asked to be told']]);
   assert.equal(rows[0].library_version, revisions.LIBRARY_VERSION);
@@ -137,8 +137,8 @@ test('each saved revision is kept with who saved it and why, and the history say
 
 test('an old revision prints as it was saved after the library changes, and updated wording is offered', async () => {
   const token = await signIn('frozen@history.example');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
-  await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Fence', ...CONFIRM } });
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Fence', ...CONFIRM }, INPUT) });
   // The library, when these revisions were saved, worded the first control another way.
   for (const revision of [1, 2]) {
     const row = await db.one('SELECT draft FROM swms_revisions WHERE swms_id = $1 AND revision = $2', [swms.id, revision]);
@@ -164,7 +164,7 @@ test('an old revision prints as it was saved after the library changes, and upda
   assert.ok(detail.update.changes.some((line) => /Control removed: Old wording of the first control, revision 2\./.test(line)));
   assert.equal(detail.draft.jobSteps[0].controls[0], 'Old wording of the first control, revision 2.');
   // A new revision takes today's wording.
-  await call('PUT', `/api/swms/${swms.id}`, { token, body: { reason: 'Updated wording', ...CONFIRM } });
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ reason: 'Updated wording', ...CONFIRM }, INPUT) });
   const after = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
   assert.equal(after.swms.revision, 3);
   assert.equal(after.update.available, false);
@@ -173,11 +173,11 @@ test('an old revision prints as it was saved after the library changes, and upda
 
 test('an older revision prints the workers who signed it, and never how they read it', async () => {
   const token = await signIn('signed-revision@history.example');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   // A worker signed revision 1 after reading it in Vietnamese; the business sees only the signing.
   await db.query(`INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, check_attempts, explained_by, revision)
     VALUES ('rev1-signon', $1, 'Rev One Worker', 'Crew Co', '', $2, 'vi', 245, 7, 7, 2, '', 1)`, [swms.id, new Date()]);
-  await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Fence', ...CONFIRM } });
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Fence', ...CONFIRM }, INPUT) });
   const READING = /Read in |sections? viewed|check questions|attempt|Vietnamese|\d+ min \d+ s/;
   const old = await wordParts(await call('GET', `/api/swms/${swms.id}/docx?revision=1`, { token }));
   assert.match(old.body, /Rev One Worker/);
@@ -196,7 +196,7 @@ test('after a new revision, the owner sees no one has signed it, and who signed 
   process.env.SIGNON_LIMIT = '2';
   try {
     const token = await signIn('resign@history.example');
-    const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+    const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
     const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
     const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
     const signOn = (name) => call('POST', `/api/sign/${key}`, { body: { name, company: 'Crew Co', signature, confirmed: true, explained: true, supervisor: 'Sam Lee' } });
@@ -212,7 +212,7 @@ test('after a new revision, the owner sees no one has signed it, and who signed 
       VALUES ('legacy-before', $1, 'Old Worker', 'Crew Co', '', $2, '')`, [swms.id, new Date()]);
 
     // Revision 2: no one has signed it, the earlier signers are listed apart, and the save says so.
-    const saved = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Fence, revision 2', reason: 'Gate added', ...CONFIRM } })).json();
+    const saved = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Fence, revision 2', reason: 'Gate added', ...CONFIRM }, INPUT) })).json();
     assert.equal(saved.swms.revision, 2);
     assert.deepEqual([saved.swms.signons, saved.swms.signedEarlier], [0, 3]);
     let view = await detail();
@@ -253,7 +253,7 @@ test('after a new revision, the owner sees no one has signed it, and who signed 
 
 test('a reference can be checked: business, title, revision, whether it is current and the principal contractor\'s response, nothing else', async () => {
   const token = await signIn('verify@history.example', 'Verify History Pty Ltd');
-  const first = await call('POST', '/api/draft.docx', { token, body: { ...INPUT, ...CONFIRM } });
+  const first = await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, ...CONFIRM }) });
   const id = first.headers.get('x-siteready-swms');
   const ref = ((await wordParts(first)).footer.match(REF) || [])[0];
   const check = async () => (await call('GET', `/api/verify/${ref}`)).json();
@@ -264,7 +264,7 @@ test('a reference can be checked: business, title, revision, whether it is curre
   assert.equal(now.current, true);
   assert.equal(now.reviewable, true);
   assert.equal(now.review, null, 'not reviewed yet');
-  await call('POST', '/api/draft.docx', { token, body: { ...INPUT, task: 'Replace a 9m length of timber fence.', ...CONFIRM, swmsId: id } });
+  await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, task: 'Replace a 9m length of timber fence.', ...CONFIRM, swmsId: id }) });
   const later = await check();
   assert.equal(later.revision, 1);
   assert.equal(later.current, false, 'revision 2 is now the current one');
@@ -278,7 +278,7 @@ test('a project download saves each SWMS, and saves a changed one as its next re
   const token = await signIn('project@history.example');
   const fence = { ...INPUT, swmsTitle: 'Fencing' };
   const paint = ready({ ...ANSWERED, state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', date: '5 October 2026', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' }, swmsTitle: 'Painting' });
-  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, paint], ...CONFIRM } });
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, paint].map((item) => checked(item)) } });
   assert.equal(response.status, 200);
   const saved = JSON.parse(decodeURIComponent(response.headers.get('x-siteready-saved')));
   assert.deepEqual(saved.map((item) => [item.index, item.revision]), [[0, 1], [1, 1]]);
@@ -291,7 +291,7 @@ test('a project download saves each SWMS, and saves a changed one as its next re
   assert.deepEqual(list.map((item) => item.title).sort(), ['Fencing', 'Painting']);
 
   // Downloaded again with the fence changed: the fence is revision 2, the painting stays at 1.
-  const next = await call('POST', '/api/project.zip', { token, body: { swms: [{ ...fence, swmsId: saved[0].id, task: 'Replace a 5m length of timber fence.' }, { ...paint, swmsId: saved[1].id }], ...CONFIRM } });
+  const next = await call('POST', '/api/project.zip', { token, body: { swms: [{ ...fence, swmsId: saved[0].id, task: 'Replace a 5m length of timber fence.' }, { ...paint, swmsId: saved[1].id }].map((item) => checked(item)) } });
   const again = JSON.parse(decodeURIComponent(next.headers.get('x-siteready-saved')));
   assert.deepEqual(again.map((item) => [item.id, item.revision]), [[saved[0].id, 2], [saved[1].id, 1]]);
   assert.equal((await (await call('GET', '/api/swms', { token })).json()).swms.length, 2);

@@ -507,9 +507,18 @@
       const item = project.items[index];
       if (!item || !item.kind || item.stale) continue;
       item.stale = why || 'An answer it uses has changed.';
+      // A SWMS that needs preparing again is not checked either (D286): its ticks were for the SWMS
+      // as it printed before.
+      uncheck(item);
       changed = true;
     }
     if (changed) { save(); drawKept(); }
+  }
+  const CHECK_CLEARED = 'Its ticks were cleared because an answer it uses changed.';
+  function uncheck(item) {
+    if (!item.check) return;
+    delete item.check;
+    item.checkNote = CHECK_CLEARED;
   }
   const staleItems = () => project.items.map((item, index) => ({ item, index })).filter((entry) => entry.item.stale);
   const prepared = () => project.items.filter((item) => item.kind);
@@ -520,7 +529,7 @@
     const stale = staleItems();
     return `<div class="note go-kept" id="go-kept" role="status"><p><strong>Your ${kept.length === 1 ? 'prepared SWMS is' : `${kept.length} prepared SWMS are`} kept.</strong> ${stale.length
       ? `You changed an answer ${stale.length === 1 ? 'one of them uses, so it needs' : `${stale.length} of them use, so they need`} preparing again: ${esc(stale.map((entry) => `SWMS ${entry.index + 1} (${entry.item.title})`).join('; '))}.`
-      : 'Change what you need here, then go back to the list.'}</p>
+      : 'Change what you need here, then go back to the list.'}${stale.some((entry) => entry.item.checkNote === CHECK_CLEARED) ? ` ${stale.length === 1 ? 'Its ticks are cleared, so check it' : 'Their ticks are cleared, so check them'} again once prepared.` : ''}</p>
       <div class="actions"><button type="button" class="small" id="go-to-review">Back to the list of prepared SWMS</button>${stale.length ? `<button type="button" class="small secondary" id="go-prepare-stale">Prepare ${stale.length === 1 ? 'it' : 'them'} again</button>` : ''}</div></div>`;
   }
   function drawKept() {
@@ -972,6 +981,13 @@
       ? ((draft.missingHelp || []).length ? draft.missingHelp.map((gap) => gap.label) : (draft.missing || []))
       : [...new Set([...(draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label)])];
     item.status = hooks.statusOf(item);
+    // A part ticked as checked that now prints differently (a detail every SWMS shares, changed on this
+    // page) is ticked again before this SWMS downloads (D286).
+    const parts = window.SiteReadyCheckParts;
+    if (item.check && parts && draft.checkParts) {
+      const cleared = parts.staleParts(item.check.partHashes, draft.checkParts);
+      if (cleared.length) { delete item.check; item.checkNote = parts.staleMessage(cleared); }
+    }
   }
 
   function afterPrepare() {
@@ -1053,11 +1069,20 @@
     const isType = (label) => label.startsWith(TYPE_LABEL) && names.has(label.slice(TYPE_LABEL.length));
     return { give: labels.filter((label) => !isType(label)), types: labels.filter(isType).map((label) => label.slice(TYPE_LABEL.length)) };
   }
+  // Each SWMS is checked on its own before it downloads (D240, D286): SiteReady's check, each part
+  // ticked, a name and role. The list says whose check it has, or that it needs one.
+  const checkOf = (item) => (S.projectCheckOf ? S.projectCheckOf(item) : null);
+  const CHECK_IT = 'open it, tick each part as checked, and give your name and role';
   function itemState(item) {
     const own = (item.needs || []).filter((label) => !SHARED_LABELS.has(label) && !(SITE_LABEL.test(label) && !item.siteOwn));
-    // Prepared before an answer it uses changed: kept, but prepared again before download.
-    if (item.stale) return { ready: false, stale: true, text: `Needs preparing again: ${String(item.stale).replace(/\.$/, '').replace(/^[A-Z]/, (letter) => letter.toLowerCase())}.` };
-    if (item.status === 'ready') return { ready: true, text: 'Ready to download.' };
+    // Prepared before an answer it uses changed: kept, but prepared again before download. Its check
+    // is cleared with it (D286): it is checked again once prepared.
+    if (item.stale) return { ready: false, stale: true, text: `Needs preparing again: ${String(item.stale).replace(/\.$/, '').replace(/^[A-Z]/, (letter) => letter.toLowerCase())}.${item.checkNote === CHECK_CLEARED ? ' Its ticks are cleared.' : ''}` };
+    if (item.status === 'ready') {
+      const check = checkOf(item);
+      if (check) return { ready: true, text: `Ready to download. Checked by ${check.name}, ${check.role}.` };
+      return { ready: false, check: true, text: `${item.checkNote ? `${item.checkNote} ` : ''}Ready for your check: ${CHECK_IT}.` };
+    }
     if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.join('; ')} need more.` };
     if (item.status === 'write' || item.status === 'tick') {
       const index = project.items.indexOf(item);
@@ -1083,6 +1108,7 @@
   // every SWMS ready by then in one zip; one unchanged since it was last downloaded keeps its revision.
   const lowerFirst = (text) => String(text).replace(/^[A-Z](?=[a-z])/, (letter) => letter.toLowerCase());
   const needsText = (state) => {
+    if (state.check) return CHECK_IT;
     if (state.types && state.types.length) return [state.give.length ? `give ${state.give.map(lowerFirst).join('; ')}` : '', `${TYPE_DO}: ${state.types.join('; ')}`].filter(Boolean).join('; then, ');
     const text = state.text.replace(/\.$/, '');
     const give = /^Before download, open it to give: (.*)$/.exec(text);
@@ -1092,17 +1118,17 @@
   function downloadHtml(states, ready, n) {
     const waiting = project.items.map((item, index) => ({ item, index, state: states[index] })).filter((entry) => !entry.state.ready);
     const last = project.lastDownload;
-    const label = ready === n ? `Download all ${n} SWMS (Word and PDF, one zip)` : ready ? `Download the ${ready} ready SWMS (Word and PDF, one zip)` : `Download all ${n} SWMS (Word and PDF, one zip)`;
+    const label = ready === n ? `Download all ${n} SWMS (Word and PDF, one zip)` : ready ? `Download the ${ready} checked SWMS (Word and PDF, one zip)` : `Download all ${n} SWMS (Word and PDF, one zip)`;
     const said = last
       ? `<div class="note" id="go-downloaded" role="status"><p><strong>${last.count === last.total ? `Downloaded all ${last.total} SWMS` : `Downloaded ${last.count} of ${last.total} SWMS`}</strong>, each saved under My SWMS as its own SWMS and revision.${waiting.length ? ' Not ready yet:' : last.count < last.total ? ' Every SWMS is now ready: download again to get them all.' : ''}</p>${waiting.length ? `<ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul><p class="meta">Download again once ${waiting.length === 1 ? 'it is' : 'they are'} ready: the zip then has every ready SWMS. One you have not changed keeps its revision.</p>` : ''}</div>`
       : '';
     const before = !last && ready < n
       ? (ready
-        ? `<div class="note" id="go-not-ready"><p>${ready} of ${n} SWMS ${ready === 1 ? 'is' : 'are'} ready. You can download ${ready === 1 ? 'it' : 'them'} now, and the rest once they are ready. Not ready yet:</p><ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul></div>`
+        ? `<div class="note" id="go-not-ready"><p>${ready} of ${n} SWMS ${ready === 1 ? 'is' : 'are'} ready and checked. You can download ${ready === 1 ? 'it' : 'them'} now, and the rest once they are ready and checked. Not ready yet:</p><ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul></div>`
         : '<p class="note">None of the SWMS is ready to download yet. Each one in the list above says what it still needs.</p>')
-      : !last ? '<p class="meta">Every SWMS has cleared its checks.</p>' : '';
+      : !last ? '<p class="meta">Every SWMS has cleared SiteReady\'s checks and has been checked part by part.</p>' : '';
     return `${said}${before}
-      ${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip"${ready ? '' : ' disabled'}>${label}</button></div><p class="error" id="project-zip-error" role="alert"></p>
+      <div class="actions"><button type="button" id="project-zip"${ready ? '' : ' disabled'}>${label}</button></div><p class="error" id="project-zip-error" role="alert"></p>
       ${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS as its own SWMS and revision, so every copy printed has a record.</p>' : ''}`;
   }
 
@@ -1111,14 +1137,14 @@
     const states = project.items.map(itemState);
     const ready = states.filter((state) => state.ready).length;
     const prepared = project.items.filter((item) => item.kind === 'draft').length;
-    const firstToCheck = project.items.findIndex((item, index) => !states[index].ready || !item.checked);
+    const firstToCheck = project.items.findIndex((item, index) => !states[index].ready);
     const can = S.canDownload && S.canDownload();
     return `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
-      <p class="lede">${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Each must clear its checks before the download.</p>
+      <p class="lede">${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Under its draft, SiteReady checks it, then you tick each part as checked and give your name and role. Only SWMS checked this way download.</p>
       <p class="error" id="project-error"></p>
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
-      ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
-      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${item.checked ? ' Checked.' : ' Not checked yet.'}</span>${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}</div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${item.checked ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
+      ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again and checked.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
+      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${checkOf(item) || states[index].check || item.checkNote === CHECK_CLEARED ? '' : ' Not checked yet.'}</span>${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}</div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${checkOf(item) ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
       <div id="project-download">${can ? downloadHtml(states, ready, n) : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>'}</div>
       <div class="actions"><button type="button" class="small secondary" id="go-back-questions">Back to the questions</button><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
   }
@@ -1145,7 +1171,7 @@
     if (project && event.target && PEOPLE.concat([SCAFFOLD]).some(([id]) => event.target.id === id)) sharedNotes();
   });
 
-  window.SiteReadyProjectGo = { render, payloadFor: (index) => payloadFor(index), clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); } };
+  window.SiteReadyProjectGo = { render, payloadFor: (index) => payloadFor(index), clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); }, uncheck };
   // A project kept from before opens on its page (scope.js drew it before this script was loaded),
   // and again once the account is known, which the download and the company details depend on.
   if (S.renderProject) S.renderProject();

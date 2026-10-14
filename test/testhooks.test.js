@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');
 const testhooks = require('../testhooks');
-const { setupAccounts, mailbox, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, mailbox, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -78,7 +78,7 @@ async function testBusiness(email, name, abn = newAbn()) {
   const auth = { Authorization: `Bearer ${token}` };
   await call('PUT', '/api/company', { headers: auth, body: { name, abn } });
   const input = ready({ ...ANSWERED, state: 'nsw', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', date: '5 October 2026' });
-  const saved = await (await call('POST', '/api/swms', { headers: auth, body: { input, title: 'Test fence', reviewConfirmed: true, reviewedBy: 'Alex Chen' } })).json();
+  const saved = await (await call('POST', '/api/swms', { headers: auth, body: checked({ input, title: 'Test fence', reviewConfirmed: true, reviewedBy: 'Alex Chen' }) })).json();
   return { auth, id: saved.swms.id };
 }
 

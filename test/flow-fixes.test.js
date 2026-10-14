@@ -13,7 +13,7 @@ const { HELP, answerHelp, helpText } = require('../answer-help');
 const { plainTask, scopeWords, scopeSite, scopePlant, packageTask } = require('../public/scope-task');
 const { projectItems } = require('../public/scope-choice');
 const places = require('../places');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 const { loadPage, settle, FakeEvent } = require('./fake-dom');
 
 const FORMWORK = {
@@ -327,7 +327,7 @@ test('Download all puts each SWMS in the zip as Word and PDF, each saved as its 
   const { token } = await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } })).json();
   await call('PUT', '/api/company', { token, body: { name: 'Flow Fixes Pty Ltd', abn: '33102417000' } });
   const fence = (title) => ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: title, ...ANSWERED });
-  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence('Fencing'), fence('Gates')], reviewConfirmed: true, reviewedBy: 'Sam Lee', pdf: true } });
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence('Fencing'), fence('Gates')].map((item) => checked(item)), pdf: true } });
   assert.equal(response.status, 200);
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files).sort(), ['01 Fencing.docx', '01 Fencing.pdf', '02 Gates.docx', '02 Gates.pdf']);
@@ -336,7 +336,7 @@ test('Download all puts each SWMS in the zip as Word and PDF, each saved as its 
   assert.equal(saved.length, 2);
   assert.notEqual(saved[0].id, saved[1].id);
   // Without pdf set, as before: Word only.
-  const word = await call('POST', '/api/project.zip', { token, body: { swms: [fence('Fencing')], reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
+  const word = await call('POST', '/api/project.zip', { token, body: { swms: [fence('Fencing')].map((item) => checked(item)) } });
   assert.deepEqual(Object.keys((await JSZip.loadAsync(Buffer.from(await word.arrayBuffer()))).files), ['01 Fencing.docx']);
 });
 
@@ -347,7 +347,7 @@ test('Download the ready SWMS: a project zip with one not ready holds the ready 
   await call('PUT', '/api/company', { token, body: { name: 'Partial Pty Ltd', abn: '77143836568' } });
   const fence = ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED });
   const blank = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Gates' };
-  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, blank], reviewConfirmed: true, reviewedBy: 'Sam Lee', pdf: true } });
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, blank].map((item) => checked(item)), pdf: true } });
   assert.equal(response.status, 200);
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files).sort(), ['01 Fencing.docx', '01 Fencing.pdf', 'Not included.txt']);
@@ -366,7 +366,7 @@ test('a SWMS keeps its number from the project list in every zip', async () => {
   await call('PUT', '/api/company', { token, body: { name: 'Numbers Pty Ltd', abn: '51824753556' } });
   const fence = ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Gates', swmsNumber: 3, ...ANSWERED });
   const blank = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', swmsNumber: 2 };
-  const response = await call('POST', '/api/project.zip', { token, body: { swms: [blank, fence], reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [blank, fence].map((item) => checked(item)) } });
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files).sort(), ['03 Gates.docx', 'Not included.txt']);
   assert.match(await zip.file('Not included.txt').async('string'), /^These SWMS still have site questions or blanks to answer[^]*\n2\. Fencing: still to answer/);

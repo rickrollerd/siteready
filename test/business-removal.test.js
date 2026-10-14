@@ -13,7 +13,7 @@ const { validAbn } = require('../accounts');
 const { businessCode } = require('../industry');
 const { dueForRemoval } = require('../business-removal');
 const aiScope = require('../ai-scope');
-const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -145,7 +145,7 @@ async function seedBusiness(key) {
     task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
     fallRisk: 'yes', facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
   });
-  const saved = await json('POST', '/api/swms', { token, body: { input, siteId: site.id, ...CONFIRM } });
+  const saved = await json('POST', '/api/swms', { token, body: checked({ input, siteId: site.id, ...CONFIRM }) });
   assert.equal(saved.status, 201);
   const swms = saved.data.swms;
   process.env.CONTROL_LEARNING = 'on';
@@ -153,7 +153,7 @@ async function seedBusiness(key) {
     // A changed control, kept de-identified by control learning.
     const step = (await json('GET', `/api/swms/${swms.id}`, { token })).data.draft.jobSteps[0].step;
     const revised = { ...input, controlEdits: { [step]: { added: ['A toolbox talk is held each morning.'] } } };
-    assert.equal((await json('PUT', `/api/swms/${swms.id}`, { token, body: { input: revised, ...CONFIRM, reason: 'Toolbox talk added' } })).status, 200);
+    assert.equal((await json('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: revised, ...CONFIRM, reason: 'Toolbox talk added' }) })).status, 200);
   } finally {
     delete process.env.CONTROL_LEARNING;
   }

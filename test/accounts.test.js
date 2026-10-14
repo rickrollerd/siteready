@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { app } = require('../server');
 const db = require('../db');
 const { sendReviewReminders, removeExpired } = require('../accounts');
-const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -100,7 +100,7 @@ test('company profile, sites and saved SWMS, with Word and PDF downloads', async
   assert.equal(site.site.principalContractor, 'Main Builder Pty Ltd');
 
   assert.equal((await call('POST', '/api/swms', { token, body: { input: INPUT, siteId: site.site.id } })).status, 400, 'saving needs the review confirmation');
-  const saved = await call('POST', '/api/swms', { token, body: { input: INPUT, siteId: site.site.id, ...CONFIRM } });
+  const saved = await call('POST', '/api/swms', { token, body: checked({ input: INPUT, siteId: site.site.id, ...CONFIRM }) });
   assert.equal(saved.status, 201);
   const { swms } = await saved.json();
   const months = (new Date(swms.reviewDueAt) - new Date(swms.lastReviewedAt)) / 86400000;
@@ -117,7 +117,7 @@ test('company profile, sites and saved SWMS, with Word and PDF downloads', async
   const pdfBytes = Buffer.from(await pdf.arrayBuffer());
   assert.equal(pdfBytes.subarray(0, 4).toString(), '%PDF');
 
-  const copy = await call('POST', `/api/swms/${swms.id}/copy`, { token, body: CONFIRM });
+  const copy = await call('POST', `/api/swms/${swms.id}/copy`, { token, body: checked(CONFIRM, INPUT) });
   assert.equal(copy.status, 201);
   assert.match((await copy.json()).swms.title, /^Copy of /);
 
@@ -128,14 +128,14 @@ test('company profile, sites and saved SWMS, with Word and PDF downloads', async
 
 test('a stood-down SWMS cannot be saved', async () => {
   const token = await signIn('stood@down.example');
-  const response = await call('POST', '/api/swms', { token, body: { input: { ...INPUT, facts: {} }, ...CONFIRM } });
+  const response = await call('POST', '/api/swms', { token, body: checked({ input: { ...INPUT, facts: {} }, ...CONFIRM }) });
   assert.equal(response.status, 400);
   assert.match((await response.json()).message, /stood down/);
 });
 
 test('workers sign on with the QR link, and their signatures go on the SWMS', async () => {
   const token = await signIn('super@visor.example');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
 
   const view = await (await call('GET', `/api/sign/${key}`)).json();
@@ -180,17 +180,17 @@ test('an ended trial is preview only until the company subscribes', async () => 
   const token = await signIn('lapsed@trial.example');
   const user = await db.one('SELECT company_id FROM users WHERE email = $1', ['lapsed@trial.example']);
   await db.query('UPDATE companies SET trial_ends_at = $1 WHERE id = $2', [new Date(Date.now() - 1000), user.company_id]);
-  const response = await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } });
+  const response = await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) });
   assert.equal(response.status, 402);
   assert.match((await response.json()).message, /trial has ended/);
   assert.equal((await call('POST', '/api/draft', { token, body: INPUT })).status, 200, 'preview still works');
   await db.query("UPDATE companies SET plan_status = 'active' WHERE id = $1", [user.company_id]);
-  assert.equal((await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).status, 201);
+  assert.equal((await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).status, 201);
 });
 
 test('review reminders go out once per review period, and a review restarts the period', async () => {
   const token = await signIn('remind@me.example');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   await db.query('UPDATE swms SET review_due_at = $1 WHERE id = $2', [new Date(Date.now() + 2 * 86400000), swms.id]);
   const before = mailbox.length;
   process.env.APP_URL = 'https://siteready.example/';
@@ -208,7 +208,7 @@ test('review reminders go out once per review period, and a review restarts the 
   await sendReviewReminders();
   assert.equal(mailbox.slice(before).filter((item) => item.to === 'remind@me.example').length, 1, 'not sent twice');
 
-  const reviewed = await (await call('POST', `/api/swms/${swms.id}/reviewed`, { token, body: CONFIRM })).json();
+  const reviewed = await (await call('POST', `/api/swms/${swms.id}/reviewed`, { token, body: checked(CONFIRM, INPUT) })).json();
   assert.equal(reviewed.swms.reviewDue, false);
 });
 
@@ -232,7 +232,7 @@ test('expired sign-in links and sessions are removed', async () => {
 
 test('a deleted SWMS is hidden at once and removed with its sign-ons after 30 days', async () => {
   const token = await signIn('purge@delete.example');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at) VALUES ($1, $2, $3, $4, $5, $6)', ['s-purge', swms.id, 'Pat', 'Crew Co', 'data:image/png;base64,AA', new Date()]);
   assert.equal((await call('DELETE', `/api/swms/${swms.id}`, { token })).status, 200);
   await removeExpired();
@@ -261,14 +261,14 @@ test('a business can export all its saved SWMS in one zip: every revision, its s
   assert.equal((await call('GET', '/api/swms/export.zip', { token })).status, 404, 'nothing saved yet');
   await call('PUT', '/api/me', { token, body: { name: 'Erin Export' } });
   const { site } = await (await call('POST', '/api/sites', { token, body: { name: 'Hospital job', workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', firstAider: 'Jo Smith' } })).json();
-  const first = (await (await call('POST', '/api/swms', { token, body: { input: INPUT, siteId: site.id, ...CONFIRM } })).json()).swms;
-  await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } });
+  const first = (await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, siteId: site.id, ...CONFIRM }) })).json()).swms;
+  await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) });
   // A worker signs revision 1, then revision 2 is saved and another worker signs it.
   const key = first.signonPath.split('t=')[1];
   const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
   const sign = (name) => call('POST', `/api/sign/${key}`, { body: { name, company: 'Crew Co', signature, confirmed: true, explained: true, supervisor: 'Sam Lee' } });
   assert.equal((await sign('Rev One Worker')).status, 201);
-  assert.equal((await call('PUT', `/api/swms/${first.id}`, { token, body: { input: { ...INPUT, musterPoint: 'Rear gate' }, ...CONFIRM, reason: 'Muster point moved' } })).status, 200);
+  assert.equal((await call('PUT', `/api/swms/${first.id}`, { token, body: checked({ input: { ...INPUT, musterPoint: 'Rear gate' }, ...CONFIRM, reason: 'Muster point moved' }) })).status, 200);
   assert.equal((await sign('Rev Two Worker')).status, 201);
   // A sign-on to a revision SiteReady did not keep (saved before each revision was kept).
   await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, revision) VALUES ($1, $2, $3, $4, $5, $6, $7)', ['s-unkept', first.id, 'Old Rev Worker', 'Crew Co', signature, new Date(), 7]);
@@ -310,7 +310,7 @@ test('one free trial per ABN, and the ABN must be a valid ABN', async () => {
   assert.equal(again.status, 200);
   assert.match(data.notice, /already had its free trial/);
   assert.equal(data.company.hasAccess, false, 'a second account with the same ABN gets no trial');
-  const save = await call('POST', '/api/swms', { token: await signIn('nocompany@abn.example', { company: false }), body: { input: INPUT, ...CONFIRM } });
+  const save = await call('POST', '/api/swms', { token: await signIn('nocompany@abn.example', { company: false }), body: checked({ input: INPUT, ...CONFIRM }) });
   assert.equal(save.status, 400, 'saving needs the business name and ABN');
 });
 
@@ -368,7 +368,7 @@ test('a SWMS stops taking sign-ons at its limit', async () => {
   process.env.SIGNON_LIMIT = '2';
   try {
     const token = await signIn('limit@signon.example');
-    const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+    const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
     const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
     const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
     const explained = { explained: true, supervisor: 'Sam Lead' };

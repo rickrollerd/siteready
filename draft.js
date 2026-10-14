@@ -3523,6 +3523,8 @@ function buildDraft(input, screen) {
     reviewer: keptFact(input.reviewer),
     // Left empty, the review date is three months after the SWMS's date, as My SWMS shows it (D289).
     reviewDate: keptFact(input.reviewDate) || reviewDateAfter(input.date),
+    // Filled from the date, it moves on with the date: it is not part of what is ticked as checked (D286).
+    reviewDateFilled: keptFact(input.reviewDate) ? undefined : true,
     preparedBy: keptFact(input.preparedBy),
     swmsRef: keptFact(input.swmsRef),
     // A draft not yet saved is revision 1. A saved SWMS carries its own revision and date.

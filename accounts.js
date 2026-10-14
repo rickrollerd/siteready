@@ -21,6 +21,7 @@ const { downloadGaps, gateMessage } = require('./download-gate');
 const libraryNotices = require('./library-notices');
 const designFiles = require('./design-files');
 const reviews = require('./reviews');
+const humanCheck = require('./human-check');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -42,10 +43,11 @@ function longDate(date) {
   return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Brisbane' }).format(new Date(date));
 }
 
-function reviewer(body) {
-  const name = textField(body.reviewedBy, 120).replace(/\s+/g, ' ');
-  if (body.reviewConfirmed !== true || !name) throw fail(400, 'Confirm that your business will review and approve this SWMS, and enter your name.');
-  return name;
+// The check a SWMS is saved, downloaded, copied or marked as checked with (human-check.js, D286):
+// SiteReady's own check, then each part ticked by a named person with their role. draft is the
+// draft as it prints. The name goes on the SWMS row too, for the review reminders.
+function checkOf(body, draft, input, doing) {
+  return humanCheck.confirm(body, draft, { state: input && input.state, doing });
 }
 
 function companyView(company) {
@@ -392,7 +394,8 @@ async function learningAccount(req, swmsId, reviewedBy) {
 }
 
 // A new saved SWMS at revision 1, kept as it prints.
-async function createSwms(req, { input, draft, name, siteId = null, title, reason = '' }) {
+async function createSwms(req, { input, draft, confirmation, siteId = null, title, reason = '' }) {
+  const { name } = confirmation;
   // A design file it names must still be held by the business.
   await designFiles.needFiles(req.company.id, input);
   const id = auth.newId();
@@ -403,7 +406,7 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
     [id, req.company.id, siteId, title, JSON.stringify(input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
   );
   const row = await db.one('SELECT * FROM swms WHERE id = $1', [id]);
-  const kept = await revisions.keepRevision({ row, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
+  const kept = await revisions.keepRevision({ row, company: req.company, input, draft, userId: req.user.id, name, reason, at: now, confirmation });
   // The design files it names are kept with this revision.
   await designFiles.recordUses(req.company.id, row.id, 1, input);
   record('swms_saved', req.company.id);
@@ -418,13 +421,14 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
 }
 
 // Saving changes is a review: it restarts the review period and makes a new revision, kept as it prints.
-async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, title = row.title, reason = '' }) {
+async function reviseSwms(req, row, { input, draft, confirmation, siteId = row.site_id, title = row.title, reason = '' }) {
+  const { name } = confirmation;
   await designFiles.needFiles(req.company.id, input);
   const now = new Date();
   await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL, revision = revision + 1, revised_at = $5 WHERE id = $7',
     [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
-  const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
+  const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now, confirmation });
   await designFiles.recordUses(req.company.id, next.id, next.revision, input);
   await learningAccount(req, next.id, name).then(async (account) => {
     await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
@@ -450,14 +454,14 @@ function needsCompany(req) {
 router.post('/swms', requireAccess, route(async (req, res) => {
   needsCompany(req);
   const body = req.body || {};
-  const name = reviewer(body);
   const input = cleanInput(body.input);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, draft.kind === 'stand-down' ? 'This SWMS is stood down until the missing facts are added, so it cannot be saved yet.' : (draft.message || 'This SWMS could not be prepared.'));
   // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
   needsAnswers(withCompany(input, req.company), draft);
+  const confirmation = checkOf(body, draft, input, 'saving');
   const site = await ownSite(req, body.siteId);
-  const { row } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor(body, input), reason: textField(body.reason, 300) });
+  const { row } = await createSwms(req, { input, draft, confirmation, siteId: site ? site.id : null, title: titleFor(body, input), reason: textField(body.reason, 300) });
   res.status(201).json({ swms: swmsView(row) });
 }));
 
@@ -468,22 +472,30 @@ router.post('/swms', requireAccess, route(async (req, res) => {
 // Returns null for a SWMS that is stood down, which cannot be saved.
 async function saveForDownload(req, body, options = {}) {
   needsCompany(req);
-  const name = reviewer(body);
   const input = cleanInput(body);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') return null;
   // The routes that call this have checked the D184 tick already.
   needsAnswers(withCompany(input, req.company), draft, '', { cover: false });
+  // The routes that call this have checked SiteReady's check and the person's ticks already (D286).
+  const confirmation = options.confirmation || checkOf(body, draft, input, 'downloading');
   const reason = textField(body.reason, 300);
   const existing = typeof body.swmsId === 'string' && body.swmsId
     ? await db.one('SELECT * FROM swms WHERE id = $1 AND company_id = $2 AND archived = FALSE', [body.swmsId, req.company.id]) : null;
   if (existing) {
     const current = await revisions.revisionOf(existing, req.company, existing.revision || 1, withCompany);
-    if (current && revisions.stable(current.input) === revisions.stable(input)) return { row: existing, kept: current, saved: false };
-    return { ...(await reviseSwms(req, existing, { input, draft, name, reason })), saved: true };
+    if (current && revisions.stable(current.input) === revisions.stable(input)) {
+      // Unchanged: the same revision prints again, now with this check (it was ticked part by part).
+      if (humanCheck.isPartCheck(confirmation)) {
+        current.confirmation = await revisions.recordCheck(existing.id, current.revision, confirmation);
+        await db.query('UPDATE swms SET reviewed_by = $1 WHERE id = $2', [confirmation.name, existing.id]);
+      }
+      return { row: await db.one('SELECT * FROM swms WHERE id = $1', [existing.id]), kept: current, saved: false };
+    }
+    return { ...(await reviseSwms(req, existing, { input, draft, confirmation, reason })), saved: true };
   }
   const site = typeof body.siteId === 'string' && body.siteId ? await ownSite(req, body.siteId).catch(() => null) : null;
-  const made = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor({ title: options.title }, input), reason });
+  const made = await createSwms(req, { input, draft, confirmation, siteId: site ? site.id : null, title: titleFor({ title: options.title }, input), reason });
   return { ...made, saved: true };
 }
 
@@ -548,9 +560,13 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   // The principal contractor's responses on every revision, newest first, and the link to send
   // the reviewer for the current one (goal 3).
   const pcReviews = await reviews.reviewsFor(row.id, { withEmail: true });
+  // For the business's own check (D290, D286): SiteReady's check of the current revision as it
+  // prints, each part's fingerprint, and the check it was last given.
+  const selfCheck = kept ? humanCheck.selfCheck(kept.draft, kept.input && kept.input.state) : null;
+  const lastCheck = kept && humanCheck.isPartCheck(kept.confirmation) ? (({ name, role, date }) => ({ name, role, date }))(kept.confirmation) : null;
   res.json({
     swms: swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons, reviewLink: reviews.reviewLink(auth.appUrl(req), kept && kept.ref) }),
-    input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons }, reviews: pcReviews,
+    input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons }, reviews: pcReviews, selfCheck, lastCheck,
   });
 }));
 
@@ -580,23 +596,29 @@ router.get('/swms/:id/revisions/:revision', requireUser, route(async (req, res) 
 router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const body = req.body || {};
-  const name = reviewer(body);
   const input = body.input ? cleanInput(body.input) : row.input;
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so the changes cannot be saved yet.');
   // Changes from the form need the tick for parts with no job steps (owner decision D184).
   needsAnswers(withCompany(input, req.company), draft, '', { cover: Boolean(body.input) });
+  const confirmation = checkOf(body, draft, input, 'saving');
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
-  const { row: next } = await reviseSwms(req, row, { input, draft, name, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
+  const { row: next } = await reviseSwms(req, row, { input, draft, confirmation, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
   // The new revision has no sign-ons yet: the page says who must sign it.
   const signed = await db.query('SELECT worker_name, signed_at, revision FROM signons WHERE swms_id = $1 ORDER BY signed_at', [next.id]);
   res.json({ swms: swmsView(next, signonCounts(splitSignons(signed, next))) });
 }));
 
+// The business's own check of a saved SWMS (D290), made part by part on its current revision as it
+// prints (D286). The check prints on that revision from then on.
 router.post('/swms/:id/reviewed', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
-  const name = reviewer(req.body || {});
+  const kept = await revisions.revisionOf(row, req.company, row.revision || 1, withCompany);
+  if (!kept && !humanCheck.isOldShape(req.body)) throw fail(400, 'This SWMS is stood down until the missing facts are added. Open it with Change, answer them and save it.');
+  const confirmation = checkOf(req.body || {}, kept ? kept.draft : null, kept ? kept.input : row.input, 'marking it as checked');
+  const { name } = confirmation;
   const now = new Date();
+  if (kept && humanCheck.isPartCheck(confirmation)) await revisions.recordCheck(row.id, kept.revision, confirmation);
   await db.query('UPDATE swms SET reviewed_by = $1, last_reviewed_at = $2, review_due_at = $3, reminder_sent_at = NULL, updated_at = $2 WHERE id = $4', [name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
 }));
@@ -605,13 +627,14 @@ router.post('/swms/:id/reviewed', requireAccess, route(async (req, res) => {
 router.post('/swms/:id/copy', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const body = req.body || {};
-  const name = reviewer(body);
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
   const input = typeof row.input === 'string' ? JSON.parse(row.input) : row.input;
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so it cannot be copied yet.');
   needsAnswers(withCompany(input, req.company), draft, ' Open it, answer them and save it, then copy it.', { cover: false });
-  const { row: copy } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), reason: `Copied from ${row.title}`.slice(0, 300) });
+  // The copy prints from today's wording: a part that now reads differently is ticked again.
+  const confirmation = checkOf(body, draft, input, 'copying');
+  const { row: copy } = await createSwms(req, { input, draft, confirmation, siteId: site ? site.id : null, title: textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), reason: `Copied from ${row.title}`.slice(0, 300) });
   res.status(201).json({ swms: swmsView(copy) });
 }));
 
@@ -649,10 +672,16 @@ async function documentParts(company, row, revision = row.revision || 1, base = 
       worker_name: item.worker_name, worker_company: item.worker_company, signature: item.signature,
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
     }));
-  const confirmation = current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation;
+  // A revision checked part by part (D286) prints that check: "Checked by" with the name, role, date
+  // and parts. One from before prints as it did: the current revision with the latest name and date.
+  const checked = humanCheck.isPartCheck(kept.confirmation) ? kept.confirmation : null;
+  const confirmation = checked || (current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation);
   // With no reference number of the business's own, the SWMS prints its SiteReady reference (D289).
   const draft = kept.draft && !String(kept.draft.swmsRef || '').trim() && kept.ref ? { ...kept.draft, swmsRef: kept.ref } : kept.draft;
-  return { draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company, reviewLink: reviews.reviewLink(base, kept.ref) };
+  // The principal contractor's response on this revision fills its review box (D290); an unreviewed
+  // revision keeps the blank box and the link to review it.
+  const pcReview = await reviews.latestReview(row.id, kept.revision).catch(() => null);
+  return { draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company, reviewLink: reviews.reviewLink(base, kept.ref), pcReview };
 }
 
 // Sends a saved SWMS's revision as Word or PDF. The headers say which saved SWMS and revision
@@ -755,12 +784,14 @@ router.get('/sign/:token', route(async (req, res) => {
     return;
   }
   const draft = await signedDraft(row, company);
+  // Who checked the revision part by part (D286), as the Word and PDF files print it.
+  const checkedBy = humanCheck.checkedLine(((await revisions.getRevision(row.id, row.revision || 1)) || {}).confirmation);
   const kept = await signRead.resumeRead(row, draft, req.query.read);
   const readId = kept ? kept.id : await signRead.startRead(row, draft);
   res.json({
     title: row.title, company: company.name, task: draft.task, workplace: draft.workplace,
     // The revision the worker reads and signs, as the Word and PDF files print it.
-    revision: revisionText({ revision: String(row.revision || 1), revisionDate: longDate(row.revised_at || row.created_at) }),
+    revision: revisionText({ revision: String(row.revision || 1), revisionDate: longDate(row.revised_at || row.created_at) }), ...(checkedBy ? { checkedBy } : {}),
     highRisk: draft.highRisk || [], jobSteps: draft.jobSteps || [], ppe: signRead.tickedPpe(draft),
     readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, readId, draft, kept ? Number(kept.attempts) || 0 : 0)),
     resumed: Boolean(kept), wait: kept ? signRead.waitLeft(kept) : 0,
