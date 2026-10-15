@@ -18,9 +18,16 @@
 // document (the daily watch gives this command for each change it finds).
 const fs = require('fs');
 const path = require('path');
-const { ACTIVITIES } = require('../activities');
+const { ACTIVITIES, BEFORE, BEFORE_EXTRA, FINISH } = require('../activities');
 const { localSource, localControl, localText, citedStates } = require('../citations');
 const STATE_LINES = require('../scenarios/state-lines.json');
+
+// The Before starting and Finish lines every SWMS has, and the Before starting lines added for a
+// kind of work (such as the electrical licensing lines), read as steps of their own.
+const SHARED = [
+  { when: 'every SWMS', steps: [BEFORE, FINISH] },
+  ...BEFORE_EXTRA.map((item) => ({ when: item.when, steps: [{ step: BEFORE.step, controls: [item.text] }] })),
+];
 
 // "s 299", "r 299", "section 299", "Schedule 5" and "appendix K" all read the same way, and so do a
 // Victorian compliance code's "para 221" and "221".
@@ -70,7 +77,7 @@ function lineSource(line) {
 }
 
 // Every library control line in a state citing the section, once each, with the jobs and steps it is in.
-function linesCiting(stateId, law, section, activities = ACTIVITIES) {
+function linesCiting(stateId, law, section, activities = [...ACTIVITIES, ...SHARED]) {
   const found = new Map();
   for (const activity of activities) {
     for (const step of activity.steps) {

@@ -155,6 +155,12 @@ test('a change to a state\'s electrical law finds the lines that now cite it (go
   const { linesCiting } = require('../scripts/lines-citing');
   const wa = linesCiting('wa', 'Electricity (Licensing) Regulations 1991', 'r 19').map((item) => item.printed);
   assert.ok(wa.some((line) => /^Any power connection is made by a licensed electrician\. \(Electricity \(Licensing\) Regulations 1991 \(WA\) r 19\)$/.test(line)), JSON.stringify(wa));
+  // The Before starting lines added for electrical work are found too (r 33 and r 50 are cited only there).
+  const r33 = linesCiting('wa', 'Electricity (Licensing) Regulations 1991', 'r 33');
+  assert.deepEqual(r33.map((item) => item.printed), ['Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the state\'s electrical licensing law requires. (Electricity (Licensing) Regulations 1991 (WA) r 19, r 33, r 50)']);
+  assert.deepEqual(r33[0].steps, ['electricalWork: Before starting']);
+  assert.equal(linesCiting('wa', 'Electricity (Licensing) Regulations 1991', 'r 50').length, 2);
+  assert.equal(linesCiting('wa', 'Electricity (Licensing) Regulations 1991', 'all').length, 14);
   const nsw = linesCiting('nsw', 'Work Health and Safety Regulation 2025', 's 163').map((item) => item.printed);
   assert.ok(nsw.includes('Circuits have RCD protection as AS/NZS 3012 requires. (Work Health and Safety Regulation 2025 (NSW) s 163)'));
   assert.equal(linesCiting('vic', 'Electricity Safety Act 1998', 's 38').every((item) => /\(Electricity Safety Act 1998 \(Vic\) s /.test(item.printed)), true);

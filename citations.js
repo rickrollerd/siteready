@@ -32,6 +32,8 @@ const VIC_LINES = require('./scenarios/vic-lines.json');
 // (scenarios/state-lines.json): its licensing and electrical safety Acts and regulations, and Part 4.7
 // of its WHS regulations ("whs"). Each printed line listed there was read against the state's text and
 // carries only the sections that state every requirement in it, as the line prints in that state.
+// WA's Electricity (Licensing) Regulations 1991 were read at version 07-ai0-00, and checked again
+// at 07-aj0-01 (14 October 2026): the text in force is the same (goal 10, 15 October 2026).
 const STATE_LINES = require('./scenarios/state-lines.json');
 const NOT_ON_LINE = Object.fromEntries(Object.entries(STATE_CODES).filter(([id]) => id !== 'lines')
   .map(([id, { notOnLine }]) => [id, new Set(Object.entries(notOnLine).flatMap(([key, lines]) => lines.map((n) => `${key}\u0000${STATE_CODES.lines[n]}`)))]));
@@ -229,7 +231,13 @@ const KEEP = true;
 // silica risk control plan, and its own names for the coordination plan and the
 // register of hazardous substances. Prescribed electrical work there is inspected by a
 // licensed electrical inspector.
+// WorkSafe Victoria's safety alert of 13 October 2026 (held in the data repository, sources/alerts).
+// Its terms allow a link only, so the lines citing it are in our own words.
+const VIC_QUALIFICATIONS = 'Verifying employee qualifications: safety alert (WorkSafe Victoria, 13 October 2026)';
+const VIC_TELEHANDLER = 'A non-slewing telehandler rated over 3 t needs the non-slewing telehandler operation licence (TV) or a mobile crane licence (CN, C2, C6, C1 or C0), and a slewing telehandler the slewing mobile crane licence for its capacity (C2, C6, C1 or C0).';
 const VIC_TEXT = [
+  // The alert: a certificate is not relied on alone, and one in doubt is checked with its source.
+  [/^Check that licences, tickets and permits needed for the task are current\.$/, `Check that licences, tickets and permits needed for the task are current. Training and qualification certificates are not relied on alone: the worker's knowledge, skills and experience for the task are checked too. Where a certificate's authenticity is in doubt, it is checked on the National Training Register at training.gov.au or with the registered training organisation (RTO) that issued it, and a high risk work licence in doubt is checked through WorkSafe Victoria's licence validation service. (${VIC_QUALIFICATIONS})`],
   // Regulations 319C(a), 319E and 319B(2): an engineered stone process is always high risk crystalline
   // silica work, and is not a crystalline silica process to be assessed under r 319J.
   [/^Assess in writing before starting whether the processing is high risk, including where the stone is only removed, repaired or modified\./, `Cutting, drilling or breaking engineered stone is an engineered stone process, which is always high risk crystalline silica work.${cite('vic', '319C', '319E')}`],
@@ -271,8 +279,10 @@ const VIC_TEXT = [
   [/^Mobile and crawler cranes over 10 t are registered items\. Get the registration details from the crane company\.$/, 'Mobile and crawler cranes over 10 t have a registered design. Get the design registration details from the crane company.'],
   [/^A mobile crane with a maximum rated capacity over 10 t is registered, and its registration is current\.$/, `A mobile crane with a rated capacity over 10 t has a registered design.${cite('vic', '125', 'Schedule 2')}`],
   [/^The lift design is registered before it is supplied, and the lift is registered before it is commissioned for use\./, `The lift design is registered before it is supplied.${cite('vic', '125', 'Schedule 2')}`],
-  // Schedule 3 item 18A licenses non-slewing telehandlers over 3 t; a slewing telehandler is a slewing mobile crane (r 5).
-  [/, and hold a crane licence where its set-up needs one\./, '. A non-slewing telehandler rated over 3 t needs the non-slewing telehandler licence or a mobile crane licence, and a slewing telehandler the slewing mobile crane licence for its capacity.'],
+  // Schedule 3 cl 18A licenses non-slewing telehandlers over 3 t (TV, as the alert lists it), and the
+  // mobile crane classes also cover telehandlers (cl 14(c), cl 15(e) to 18(e)); a slewing telehandler
+  // is a slewing mobile crane (r 5). The citation goes at the end of the whole line.
+  [/^(.*?), and hold a crane licence where its set-up needs one\.(.*)$/, (id, head, tail) => `${head}. ${VIC_TELEHANDLER}${tail} (${STATE_CITATIONS.vic.regulation} Schedule 3; ${VIC_QUALIFICATIONS})`],
   // Regulation 322(g): a trench deeper than 1.5 m. The regulations set no shoring rule.
   [/a trench deeper than 1\.5 m is high risk construction work, and a trench 1\.5 m deep or more is shored, benched or battered before anyone enters\./, 'a trench deeper than 1.5 m is high risk construction work, and its sides are supported before anyone enters.', KEEP],
   // Part 3.3 applies to falls of more than 2 m, and sets no rail sizes.
