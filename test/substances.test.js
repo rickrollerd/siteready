@@ -215,11 +215,14 @@ test('D277, D282: the "Safety data sheet" question is dropped once a product is 
   const answer = 'The products used are acrylic and enamel paint. They are used with good ventilation and away from ignition sources, with the gloves and eye protection their safety data sheets list.';
   const lines = (d) => d.jobSteps.flatMap((step) => step.controls).filter((line) => /acrylic and enamel paint/.test(line));
   assert.ok(lines(draft(PAINT, { facts: { ...base(PAINT).facts, safetyDataSheet: answer } })).length > 0);
-  const listed = draft(PAINT, { facts: { ...base(PAINT).facts, safetyDataSheet: answer }, substances: [paint] });
+  const listed = draft(PAINT, { facts: { ...base(PAINT).facts, safetyDataSheet: answer }, substances: [{ ...paint, step: 'Prepare to paint' }] });
   assert.equal(listed.kind, 'draft');
   // The product is placed in the step the answer printed in: its own SDS controls replace the answer there.
   assert.deepEqual(lines(listed), []);
   assert.ok(listed.jobSteps.find((step) => step.step === 'Prepare to paint').controls.some((line) => /^Paint or coating \(Wallcoat 2\)/.test(line)));
+  // Left to SiteReady, paint goes in the step that paints, not the one that prepares for it (messy round 4).
+  const matched = draft(PAINT, { facts: { ...base(PAINT).facts, safetyDataSheet: answer }, substances: [paint] });
+  assert.ok(matched.jobSteps.find((step) => step.step === 'Paint').controls.some((line) => /^Paint or coating \(Wallcoat 2\)/.test(line)));
   // Placed in another step, the answer stays where it was.
   const elsewhere = draft(PAINT, { facts: { ...base(PAINT).facts, safetyDataSheet: answer }, substances: [{ ...paint, step: 'Finish and clean up' }] });
   assert.deepEqual(elsewhere.jobSteps.filter((step) => step.controls.some((line) => /acrylic and enamel paint/.test(line))).map((step) => step.step), ['Prepare to paint']);

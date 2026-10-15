@@ -38,6 +38,8 @@ function readOf(row) {
 }
 
 const same = (line) => String(line || '').replace(/\s+/g, ' ').trim().toLowerCase();
+// A polyurethane or isocyanate product, by its name, type or SDS words (diisocyanates, H334 sensitisation).
+const ISOCYANATE = /\b(polyurethanes?|isocyanates?|diisocyanates?|PU\b|MDI|HDI|TDI|H334|two[- ]pack|2[- ]pack)\b/i;
 const RANK = { Eliminate: 0, Substitute: 1, 'Isolate or engineer': 2, Administrative: 3, PPE: 4 };
 const rank = (line) => RANK[controlLevel(line)] ?? 3;
 
@@ -100,6 +102,20 @@ function notRequiredLine(draft) {
   return list.length ? `${NOT_REQUIRED_HEAD}: ${list.map((item) => `${item.type} (${item.reason.replace(/[.;]+$/, '')})`).join('; ')}.` : '';
 }
 
+// The steps without the polyurethane (isocyanate) lines where every product the user listed for that step
+// is another kind, such as an acrylic or silicone sealant (messy round 4). Run before the step PPE is
+// worked out, so no PPE is read from a line that does not print. Steps with no product are unchanged.
+function withProductKindLines(steps, input) {
+  const rows = listed(input).map(rules.rowOf).filter((row) => row.product && !rules.isOpen(row.product) && row.controls.length);
+  if (!rows.length || !Array.isArray(steps)) return steps;
+  return steps.map((step) => {
+    const named = rows.filter((row) => rules.stepOf(row, steps) === step.step);
+    if (!named.length || named.some((row) => ISOCYANATE.test([row.product, row.type, ...row.hazards, ...row.controls].join('\n')))) return step;
+    const fits = (line) => !ISOCYANATE.test(typeof line === 'string' ? line : '');
+    return { ...step, hazards: (step.hazards || []).filter(fits), controls: (step.controls || []).filter(fits) };
+  });
+}
+
 // The products that print: those with a name (a type with no product never prints).
 const printed = (draft) => ((draft && draft.substances && draft.substances.products) || []).filter((row) => row.product && !rules.isOpen(row.product));
 
@@ -151,4 +167,4 @@ function fileIds(input) {
   return [...new Set(listed(input).map(fileOf).filter(Boolean).map((file) => file.id))];
 }
 
-module.exports = { withSubstances, tableRows, gateItems, typeItems, TYPE_NEED, fileIds, printed, notRequiredLine, NOT_REQUIRED_HEAD, TABLE_TITLE, TABLE_HEAD, TABLE_NOTE };
+module.exports = { withProductKindLines, withSubstances, tableRows, gateItems, typeItems, TYPE_NEED, fileIds, printed, notRequiredLine, NOT_REQUIRED_HEAD, TABLE_TITLE, TABLE_HEAD, TABLE_NOTE };

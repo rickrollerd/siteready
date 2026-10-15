@@ -256,9 +256,10 @@ test('a named building with no street is not offered as the job address', () => 
 });
 
 test('a harness the SWMS\'s own steps call for is asked before it is opened, as once it is (round 4: "Not answered yet" on opening)', () => {
-  // Work near slab edges and penetrations brings travel restraint, so the PPE ticks a harness.
-  const task = 'Core drill penetrations 50mm and under after concrete scanning. Fire seal fire protection service penetrations through fire barriers. Clear safety mesh from penetrations and erect and maintain barricades and penetration covers.';
-  const base = { state: 'qld', fallRisk: 'no', residential: 'no', crane: 'none', task, kinds: ['coreDrill', 'silicaDrill', 'passiveFire', 'carpEdge'], ...ANSWERED, facts: { silicaControls: 'Wet coring and on-tool extraction; P2 respirators fit tested; the silica assessment is kept in the site folder.' } };
+  // Work from a boom lift brings a harness in its steps, also with falls No (the platform's own anchor).
+  // Since the round 4 content fixes, work near slab edges with falls No has no edge step, and so no harness.
+  const task = 'Install cable tray and conduit at high level in the warehouse from a boom lift.';
+  const base = { state: 'qld', fallRisk: 'no', residential: 'no', crane: 'none', task, ...ANSWERED, facts: {} };
   const asked = questionsFor(draftBody(base));
   const ppe = asked.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
   assert.ok(ppe.includes('harness'), ppe.join(', '));
@@ -269,6 +270,11 @@ test('a harness the SWMS\'s own steps call for is asked before it is opened, as 
   const draft = prepareDraft(draftBody(ready(base)));
   assert.equal(draft.kind, 'stand-down');
   assert.deepEqual(draft.missing, ['Harness and anchors']);
-  const answered = prepareDraft(draftBody(ready({ ...base, facts: { ...base.facts, harnessSystem: 'Full body harness with a 2 m restraint lanyard to rated anchors installed by the builder; users trained by an RTO.' } })));
+  const answered = prepareDraft(draftBody(ready({ ...base, facts: { harnessSystem: 'Full body harness with a short lanyard clipped to the boom lift anchor point; users trained by an RTO.' } })));
   assert.equal(answered.kind, 'draft', (answered.missing || []).join('; '));
+  // Edge work with falls No: no edge step, no harness, and no harness question.
+  const edge = { state: 'qld', fallRisk: 'no', residential: 'no', crane: 'none', task: 'Core drill penetrations 50mm and under after concrete scanning. Fire seal fire protection service penetrations through fire barriers. Clear safety mesh from penetrations and erect and maintain barricades and penetration covers.', kinds: ['coreDrill', 'silicaDrill', 'passiveFire', 'carpEdge'], ...ANSWERED, facts: { silicaControls: 'Wet coring and on-tool extraction; P2 respirators fit tested; the silica assessment is kept in the site folder.' } };
+  const edgeAsked = questionsFor(draftBody(edge));
+  assert.ok(!edgeAsked.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id)).includes('harness'));
+  assert.ok(!edgeAsked.required.some((item) => item.id === 'harnessSystem'));
 });

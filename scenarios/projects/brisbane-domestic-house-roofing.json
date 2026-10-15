@@ -11,7 +11,8 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Roof edge protection is installed by the scaffolder around the whole roof before the tiles are removed, and checked before work starts each day.",
-        "controlsConsidered": "Edge protection and scaffolds were considered first for every task, and an elevating work platform where they cannot be fixed."
+        "controlsConsidered": "Edge protection and scaffolds were considered first for every task, and an elevating work platform where they cannot be fixed.",
+        "harnessSystem": "Full body harness on a restraint lanyard to roof anchors rated for the purpose, checked before each use and inspected every 6 months; users trained by a registered training organisation; rescue plan kept at the work."
       },
       "expect": {
         "highRisk": [

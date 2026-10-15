@@ -132,7 +132,8 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   // Roofing does not ask for a steel erection sequence.
   assert.ok(!questionsFor({ state: 'qld', trade: 'roofing', fallRisk: 'yes', task: 'Install prepainted steel roof sheeting.' }).required.some((item) => item.id === 'erectionSequence'));
   // A plumber's roof work gets roof access; a roofer gets the roofing steps, not both.
-  const steps = (input) => draft({ fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' }, ...input }).jobSteps.map((step) => step.step);
+  // The roof steps' lines name a harness, so its question is answered too (round 4 merge).
+  const steps = (input) => draft({ fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.', harnessSystem: 'Full body harness on a restraint lanyard to rated roof anchors, inspected every 6 months, users trained.' }, ...input }).jobSteps.map((step) => step.step);
   // The plumber's solar hot water install gets roof access and the water heater connection.
   const solar = draft({ trade: 'plumbing', fallRisk: 'yes', task: 'Install the solar hot water system on the roof.', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
   assert.equal(solar.kind, 'draft');

@@ -39,7 +39,8 @@
       "facts": {
         "hotWorkPermit": "The principal contractor issues a hot work permit each day, with a fire extinguisher at each work area and a fire watch after hot work ends.",
         "erectionSequence": "Canopy and stair steel is installed to the designer's sequence on drawing ST-20 (revision A), propped until all connections are welded.",
-        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m."
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m.",
+        "harnessSystem": "Full body harness on a restraint or fall arrest lanyard to anchors rated for the purpose, checked before each use and inspected every 6 months; users trained by a registered training organisation; rescue plan kept at the work."
       },
       "expect": {
         "highRisk": [

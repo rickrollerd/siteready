@@ -255,7 +255,8 @@ test('roads: plant operation steps; stabilisation is not assumed to be next to t
   assert.ok(!stab.steps.includes('Set up traffic management'));
   assert.ok(!has(stab.lines, /^All plant works inside the traffic management set out for the job/));
   assert.ok(has(picked('roads-pavements/asphalt-paving').lines, /^All plant works inside the traffic management set out for the job/));
-  assert.ok(has(picked('roads-pavements/profiling').lines, /^Operators can show they are competent on the type of plant they use\./));
+  // The library's moving plant wording of the line (content4: not the excavation code's).
+  assert.ok(has(picked('roads-pavements/profiling').lines, /^Operators can show they are competent on the type of plant they use\b/));
   for (const key of ['roads-pavements/subgrade-prep', 'roads-pavements/granular-pavement', 'roads-pavements/kerb-channel', 'roads-pavements/road-furniture', 'roads-pavements/noise-walls', 'civil-earthworks/ground-improvement', 'civil-earthworks/erosion-sediment']) {
     assert.deepEqual(picked(key).draft.notCovered, [], key);
   }

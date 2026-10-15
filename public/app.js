@@ -928,7 +928,9 @@ function searchStepsLater() {
   stepSearchTimer = setTimeout(async () => {
     const seq = ++stepSearchSeq;
     try {
-      const response = await fetch(api(`/api/steps/search?q=${encodeURIComponent(search)}`));
+      // The task's trade ranks that trade's steps first (messy round 4).
+      const trade = (document.getElementById('task-trade') || {}).value || (document.getElementById('trade') || {}).value || '';
+      const response = await fetch(api(`/api/steps/search?q=${encodeURIComponent(search)}${trade ? `&trade=${encodeURIComponent(trade)}` : ''}`));
       const data = await response.json();
       if (seq !== stepSearchSeq) return;
       stepSearchIds = data.ids || [];
@@ -1552,6 +1554,8 @@ async function loadQuestions(options = {}) {
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
   if (!options.stay) { factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); markStage('questions'); }
+  // The questions stage is kept, so a reload brings the user back to the questions, not the start.
+  keepUnsaved();
   // The questions were asked with the PPE ticked before; if the new suggestion ticks a harness or a
   // life jacket, its questions are asked for too.
   const now = ppeTicked();
@@ -4042,6 +4046,16 @@ const KEPT_IN = '#job-details, #start, #facts, #result';
   clearTimeout(keepTimer);
   keepTimer = setTimeout(keepUnsaved, 400);
 }));
+
+// A standard answer, "Same as last SWMS" and the emergency picks fill a box with no typing, so no input
+// event fires: the pick is kept the same way (content4 note: a fall control picked from a standard
+// answer came back blank after a reload).
+document.addEventListener('click', (event) => {
+  const button = event.target.closest && event.target.closest('.pick-button');
+  if (restoring || !button || !button.closest(KEPT_IN)) return;
+  clearTimeout(keepTimer);
+  keepTimer = setTimeout(keepUnsaved, 400);
+});
 
 async function restoreUnsaved() {
   let kept = null;

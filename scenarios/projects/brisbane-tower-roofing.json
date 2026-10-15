@@ -10,7 +10,8 @@
       "task": "Fix metal roof sheeting, gutters and flashings on the roof plant enclosures next to the roof edge, with sheets lifted by the tower crane.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Edge protection is installed around the roof perimeter and the enclosure roof edges before work starts, with safety mesh under the sheets."
+        "fallControl": "Edge protection is installed around the roof perimeter and the enclosure roof edges before work starts, with safety mesh under the sheets.",
+        "harnessSystem": "Full body harness on a restraint or fall arrest lanyard to anchors rated for the purpose, checked before each use and inspected every 6 months; users trained by a registered training organisation; rescue plan kept at the work."
       },
       "expect": {
         "highRisk": [

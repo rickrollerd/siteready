@@ -99,7 +99,7 @@ test('each high risk category asks the facts a reviewer looks for, and "Not appl
   // An answer that starts with "No one" is still an answer.
   assert.deepEqual(build({ ...ready(TRENCH), emergency: TRENCH_ANSWERS }).gaps, []);
   // Without an EWP, a fall asks for the rescue of a person who falls or hangs in a harness.
-  const roof = build(ready({ ...ANSWERED, state: 'qld', task: 'Replace the metal roof sheets on a two storey house, 7 m to the eaves.', fallRisk: 'yes', residential: 'yes', facts: { fallControl: 'Scaffold with edge protection at the eaves, and safety mesh under the new sheets.', controlsConsidered: 'Guardrails at every edge.' } }));
+  const roof = build(ready({ ...ANSWERED, state: 'qld', task: 'Replace the metal roof sheets on a two storey house, 7 m to the eaves.', fallRisk: 'yes', residential: 'yes', facts: { fallControl: 'Scaffold with edge protection at the eaves, and safety mesh under the new sheets.', controlsConsidered: 'Guardrails at every edge.', harnessSystem: 'Full body harness on a restraint lanyard to rated roof anchors, inspected every 6 months, users trained.' } }));
   assert.ok(roof.draft.emergencyQuestions.some((item) => item.id === 'fallRescue'), roof.draft.emergencyQuestions.map((item) => item.id).join());
   assert.ok(!roof.draft.emergencyQuestions.some((item) => /^ewp/.test(item.id)));
   // Energised electrical work asks who isolates and where the isolator is.

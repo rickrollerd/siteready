@@ -86,7 +86,8 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Edge protection is installed around the roof perimeter before plant is installed, and no one works outside it.",
-        "hotWorkPermit": "The principal contractor issues a hot work permit each day, with a fire extinguisher at each work area."
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day, with a fire extinguisher at each work area.",
+        "harnessSystem": "Full body harness on a restraint or fall arrest lanyard to anchors rated for the purpose, checked before each use and inspected every 6 months; users trained by a registered training organisation; rescue plan kept at the work."
       },
       "expect": {
         "highRisk": [

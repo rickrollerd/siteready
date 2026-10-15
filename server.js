@@ -220,7 +220,7 @@ app.get('/api/presets', (_req, res) => {
 
 // Job steps whose name, hazards or controls match the words searched.
 app.get('/api/steps/search', (req, res) => {
-  res.json({ ids: searchSteps(String(req.query.q || '').slice(0, 80)) });
+  res.json({ ids: searchSteps(String(req.query.q || '').slice(0, 80), String(req.query.trade || '').slice(0, 80)) });
 });
 
 // The job step library for the step picker.

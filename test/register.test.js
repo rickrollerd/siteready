@@ -124,7 +124,8 @@ test('a paint roller is not a compactor, an asphalt roller is', () => {
 test('picked job steps replace the ones found, but required steps stay and bring their questions', () => {
   const { questionsFor } = require('../draft');
   const task = 'Install whirlybird ventilators on a house roof.';
-  const fall = { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' };
+  // The roof steps' lines name a harness, so its question is answered too (round 4 merge).
+  const fall = { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.', harnessSystem: 'Full body harness on a restraint lanyard to rated roof anchors, inspected every 6 months, users trained.' };
   const kinds = ['roofAccess', 'roofPlant', 'isolation', 'fitOff'];
   const asked = questionsFor({ state: 'qld', fallRisk: 'yes', task, kinds });
   assert.ok(asked.steps.chosen.includes('roofPlant'));
@@ -354,7 +355,7 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
   const tank = steps('Install a stormwater detention tank under a car park.', { facts: { trenchSupport: 'The excavation is battered to the geotechnical engineer\'s design.' } });
   assert.ok(tank.indexOf('Lift and place tanks, pits or precast units') < tank.indexOf('Backfill the trench'));
-  const flat = steps('Build a granny flat on a slab: frame, roof, clad and line it.', { body: { trade: 'carpentry', residential: 'yes' } });
+  const flat = steps('Build a granny flat on a slab: frame, roof, clad and line it.', { body: { trade: 'carpentry', residential: 'yes' }, facts: { harnessSystem: 'Full body harness on a restraint lanyard to rated roof anchors, inspected every 6 months, users trained.' } });
   assert.ok(flat.indexOf('Stand and brace wall frames') < flat.indexOf('Fix new roofing'));
   assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Fix the battens') && flat.indexOf('Fix the battens') < flat.indexOf('Install the external cladding'));
   assert.ok(!steps('Install steel portal frames and purlins for a farm machinery shed using a mobile crane and EWPs.').includes('Set up site sheds'));

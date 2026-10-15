@@ -115,3 +115,17 @@ test('signing out clears it; a session that has run out keeps it', async () => {
   await settle();
   assert.equal(stored(p), null);
 });
+
+test('a standard answer picked with no typing is kept, as typing is', async () => {
+  const p = page();
+  await settle();
+  ['facts', 'result'].forEach((id) => p.document.getElementById(id).classList.add('hidden'));
+  p.document.getElementById('task').value = 'Install metal roof sheeting.';
+  assert.equal(stored(p), null, 'nothing kept yet');
+  // A pick button fills its box with no input event (content4 note: the fall control came back blank).
+  const button = p.document.createElement('button');
+  button.closest = (selector) => (selector === '.pick-button' || /#facts/.test(selector) ? button : null);
+  button.dispatchEvent(new FakeEvent('click', { bubbles: true }));
+  await settle();
+  assert.equal(stored(p).input.task, 'Install metal roof sheeting.');
+});

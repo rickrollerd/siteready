@@ -24,7 +24,9 @@
     ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i, 'Waterproofing product'],
     ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack)\b/i, 'Epoxy or resin'],
     ['Cement, concrete, grout and mortar', /\b(cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
-    ['Plaster, jointing and setting compounds', /\b(plaster\w*|jointing|setting compounds?|set(?:ting)? and sand\w*)\b/i, 'Plaster or setting compound'],
+    // Plasterboard that is painted over, or swept up, is not plaster work: plasterboard brings the type
+    // only where it is fixed, set or jointed (messy round 4).
+    ['Plaster, jointing and setting compounds', /\b(plaster(?!board)\w*|jointing|setting compounds?|set(?:ting)? and sand\w*|(?:fix|hang|install|set|stop|joint|sheet)\w* [^.\n]{0,30}\bplasterboard|plasterboard (?:fix|hang|install|lining|setting|stopping|jointing)\w*)\b/i, 'Plaster or setting compound'],
     ['Synthetic mineral fibres (insulation)', /\b(insulation(?! boards?)(?!,? where)|glasswool|glass wool|batts|rockwool)\b/i, 'Insulation'],
     ['Curing compounds and form release agents', /\b(curing compounds?|cur(?:e|ing) (?:the )?concrete|form oil|release agents?)\b/i, 'Curing compound or release agent'],
     ['Respirable crystalline silica (concrete, masonry, tile and stone dust)', /\bsilica\b/i, 'Product with crystalline silica'],
@@ -57,6 +59,10 @@
   const withoutSource = (line) => String(line || '').replace(/\s*\((?:[^()]|\([^()]*\))*\)$/, '');
   const GENERAL = new Set(['Before starting', 'Finish and clean up']);
 
+  // Steps that prepare for the work, or clean up or store after it, rather than use the product.
+  const PREPARES = /^(?:prepare|sand|clean|mask|protect|remove|strip|wash|cart|store|set up|plan|check|inspect|pressure clean|load|move|deliver)\b/i;
+  // The step a type of product is used in, where no step names the type: fuel in the step running plant.
+  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b(plant|machines?|generators?|trucks?|excavat\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
   // The job step that uses a product of this type: the first whose name names the type, else the
   // first whose hazards or controls do. Not the general steps at the start and end, nor the user's own
   // steps. '' when none does: the user chooses the step.
@@ -65,8 +71,14 @@
     if (!entry) return '';
     const [, pattern] = entry;
     const usable = (Array.isArray(steps) ? steps : []).filter((step) => step && !step.own && !GENERAL.has(step.step));
-    const byName = usable.find((step) => pattern.test(step.step || ''));
+    // A step that uses the product before one that prepares for it or cleans up after it (messy round 4:
+    // paint matched to "Prepare to paint", not "Paint").
+    const named = usable.filter((step) => pattern.test(step.step || ''));
+    const byName = named.find((step) => !PREPARES.test(step.step || '')) || named[0];
     if (byName) return byName.step;
+    // Fuel goes with the step that runs the fuelled plant (messy round 4: diesel matched to "Paint line marking").
+    const hinted = STEP_HINT[type] && usable.find((step) => STEP_HINT[type].test(step.step || ''));
+    if (hinted) return hinted.step;
     const lines = (step) => (step.controls || []).filter((line) => !(step.substanceLines || []).includes(line));
     const byLines = usable.find((step) => pattern.test([...(step.hazards || []), ...lines(step).map(withoutSource)].join('\n'))
       || (CONTROL_PRODUCTS[type] && CONTROL_PRODUCTS[type].test(lines(step).join('\n'))));

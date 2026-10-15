@@ -80,7 +80,9 @@
           "Install panels at the open slab edge",
           "Handle glass and panels"
         ],
-        "missing": []
+        "missing": [
+          "Harness and anchors"
+        ]
       }
     },
     {

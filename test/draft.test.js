@@ -5,6 +5,9 @@ const { prepareDraft, questionsFor } = require('../draft');
 // Most tests answer No so the task wording check is what is being tested.
 const draft = (task, extra = {}) => prepareDraft({ state: 'qld', task, fallRisk: 'no', ...extra });
 const FALL = 'Involves a risk of a person falling more than 2m';
+// Roof work prints the harness lines of its roof edge protection step, so its PPE lists a harness and
+// the harness question is asked, as for any SWMS whose steps use one (round 4 content and flow fixes).
+const HARNESS = { harnessSystem: 'Full body harness on a restraint lanyard to the rated static line, inspected every 6 months, users trained.' };
 
 test('scaffold erection to 6 m stands down until a fall control is given', () => {
   const task = 'Erect a modular scaffold 4 bays by 2, top working platform at 6 m, ties to the slab edge at every lift.';
@@ -25,7 +28,7 @@ test('roof work on a two storey house is recognised as work at height', () => {
   assert.deepEqual(draft('Replace roof sheets on a two storey house.', { fallRisk: 'yes' }).missing, ['Fall control']);
   const done = draft('Replace roof sheets on a two storey house.', {
     fallRisk: 'yes',
-    facts: { fallControl: 'Edge protection is installed around the roof perimeter first.' },
+    facts: { fallControl: 'Edge protection is installed around the roof perimeter first.', ...HARNESS },
   });
   assert.ok(done.highRisk.includes(FALL));
 });
@@ -98,7 +101,7 @@ test('No with work at height warns, and the No stands', () => {
   const asked = questionsFor({ state: 'qld', task, fallRisk: 'no' });
   assert.match(asked.fall.warning, /go back and answer Yes/);
   assert.ok(!asked.required.some((item) => item.id === 'fallControl'));
-  const done = draft(task);
+  const done = draft(task, { facts: HARNESS });
   assert.equal(done.kind, 'draft');
   assert.ok(!done.highRisk.includes(FALL));
   assert.match(done.fallRisk, /No work is done where a person could fall 2 metres or more/);
@@ -181,7 +184,7 @@ test('Queensland section 299(4): a harness alone needs the other controls consid
   assert.ok(done.controls.some((item) => item.level === 'PPE'));
 
   // Edge protection is an engineering control, so nothing more is needed.
-  const edge = draft(task, { fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around the roof perimeter first.' } });
+  const edge = draft(task, { fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around the roof perimeter first.', ...HARNESS } });
   assert.equal(edge.kind, 'draft');
 
   // The rule is Queensland's. NSW does not ask.
@@ -246,13 +249,13 @@ test('Northern Territory: 3 metres for residential construction work, 2 metres o
   assert.match(questionsFor({ state: 'nt', task, residential: 'no', fallRisk: 'no' }).fall.warning, /more than 2 metres/);
   assert.equal(questionsFor({ state: 'nt', task, residential: 'yes', fallRisk: 'no' }).fall.warning, '');
 
-  const house = nt('Replace roof sheets on a two storey house.', 'yes', 'yes', { fallControl: 'Edge protection is installed around the roof perimeter first.' });
+  const house = nt('Replace roof sheets on a two storey house.', 'yes', 'yes', { fallControl: 'Edge protection is installed around the roof perimeter first.', ...HARNESS });
   assert.ok(house.highRisk.includes('If it is residential construction work, involves a risk of a person falling more than 3 m'));
   assert.equal(house.fallMetres, 3);
   assert.equal(house.residential, 'Yes');
   assert.ok(house.hazards.some((row) => row.risk === 'A person falls more than 3 metres.'));
 
-  const shop = nt('Replace roof sheets on a shop.', 'no', 'yes', { fallControl: 'Edge protection is installed around the roof perimeter first.' });
+  const shop = nt('Replace roof sheets on a shop.', 'no', 'yes', { fallControl: 'Edge protection is installed around the roof perimeter first.', ...HARNESS });
   assert.ok(shop.highRisk.includes('If it is not residential construction work, involves a risk of a person falling more than 2 m'));
   assert.equal(shop.fallMetres, 2);
   // Other states do not ask.
@@ -276,7 +279,7 @@ test('confined spaces, propping, power lines and water stand down without their 
 test('a draft has job steps with hazards and controls, and a PPE list', () => {
   const done = draft('Remove and replace the iron roof sheets on a house, about 7 m up.', {
     fallRisk: 'yes',
-    facts: { fallControl: 'Perimeter guardrail scaffold around the roof edge.', controlsConsidered: 'Guardrail is in place.' },
+    facts: { fallControl: 'Perimeter guardrail scaffold around the roof edge.', controlsConsidered: 'Guardrail is in place.', ...HARNESS },
   });
   const names = done.jobSteps.map((step) => step.step);
   assert.equal(names[0], 'Before starting');
@@ -486,7 +489,7 @@ test('a gabion wall gets its own step, without the block, stone or silica lines'
 
 test('work in hot conditions gets its own step only where the heat is named or hot plant is near', () => {
   for (const task of ['Replace roof sheeting on a warehouse in hot weather.', 'Lay asphalt to the car park during the summer months.', 'Reline the furnace next to two operating furnaces.', 'Install conduit in the plant room, where it is often 38°C.']) {
-    const result = draft(task);
+    const result = draft(task, /\broof\b/.test(task) ? { facts: HARNESS } : {});
     assert.equal(result.kind, 'draft', task);
     const heat = stepLines(result, 'Work in hot conditions');
     assert.ok(heat.some((line) => /^No one works alone in hot conditions\./.test(line)), task);
@@ -495,13 +498,14 @@ test('work in hot conditions gets its own step only where the heat is named or h
   }
   // Not in every SWMS: ordinary roof work, a cold room, hot water and hot work do not bring it.
   for (const task of ['Replace roof sheeting on a warehouse.', 'Install shelving in a freezer room at minus 20 degrees, an area with artificial extremes of temperature.', 'Install a hot water system in a house.', 'Weld steel brackets to the existing columns on a commercial building.', 'Batter the cut at 45 degrees.']) {
-    const result = draft(task);
+    const result = draft(task, /\broof\b/.test(task) ? { facts: HARNESS } : {});
+    if (/\broof\b/.test(task)) assert.equal(result.kind, 'draft', task);
     assert.ok(!(result.jobSteps || []).some((step) => step.step === 'Work in hot conditions'), task);
   }
 });
 
 test('the heat lines say exactly what is done, and the roof heat line is not repeated', () => {
-  const roof = draft('Replace roof sheeting on a warehouse in hot weather.');
+  const roof = draft('Replace roof sheeting on a warehouse in hot weather.', { facts: HARNESS });
   const fix = stepLines(roof, 'Fix new roofing');
   // The owner dropped the line planning work at height for the cooler part of the day (6 October 2026).
   assert.ok(!fix.some((line) => /^On days forecast at 35°C or more/.test(line)));

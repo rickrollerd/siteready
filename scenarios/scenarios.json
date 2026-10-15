@@ -5,7 +5,8 @@
     "task": "Remove and replace the corrugated iron roof sheets on a two storey house. Work is on the roof at about 7 m above the ground.",
     "fallRisk": "yes",
     "facts": {
-      "fallControl": "A perimeter guardrail scaffold is installed around the roof edge before work starts, and safety mesh is fixed under the new sheets."
+      "fallControl": "A perimeter guardrail scaffold is installed around the roof edge before work starts, and safety mesh is fixed under the new sheets.",
+      "harnessSystem": "Workers installing the roof edge protection wear a full body harness on a restraint lanyard to roof anchors rated for the purpose. Harnesses are checked before each use and inspected every 6 months, and users are trained by a registered training organisation."
     },
     "expect": {
       "missing": [
