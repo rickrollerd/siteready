@@ -733,6 +733,7 @@ function showFallExplanation() {
 // The crane question starts unanswered. Left unanswered, a task that names no crane is "No crane";
 // one that names a crane is asked. With "A crane company", who slings the loads is asked too (D258).
 const NAMES_CRANE = /\b(?:cranes?|cranage|craneage|franna|hiabs?|crane trucks?)\b/i;
+const TRUCK_CRANE = /\b(?:hiabs?|crane trucks?|vehicle loading cranes?|truck loading cranes?|loader cranes?)\b/i;
 function showSlinging() {
   const company = (document.querySelector('input[name="crane"]:checked') || {}).value === 'company';
   const question = document.getElementById('slinging-question');
@@ -1983,7 +1984,9 @@ presetEl.addEventListener('change', () => {
   if (fall) { fall.checked = true; fall.dispatchEvent(new Event('change', { bubbles: true })); }
   // A task that names no crane leaves the crane question unanswered (Continue makes it "No crane").
   document.querySelectorAll('input[name="crane"], input[name="slinging"]').forEach((el) => { el.checked = false; });
-  const crane = (item.crane === 'own' || NAMES_CRANE.test(item.task)) && document.querySelector(`input[name="crane"][value="${item.crane}"]`);
+  // A truck loading crane (crane truck, HIAB) is often the crew's own, so who runs it is left for the user
+  // to answer (messy round 5: "A crane company" was set for a landscaper's own HIAB).
+  const crane = (item.crane === 'own' || (NAMES_CRANE.test(item.task) && !TRUCK_CRANE.test(item.task))) && document.querySelector(`input[name="crane"][value="${item.crane}"]`);
   if (crane) crane.checked = true;
   showSlinging();
 });

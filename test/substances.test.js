@@ -190,15 +190,22 @@ test('D277: each type SiteWrite suggests needs a product or the tick "Not requir
   // All ticked: nothing asked, and the draft, the print and the builder check are as before.
   const all = d.substances.items.map((item) => item.product);
   const ticked = draftBody({ ...base(POUR), substancesNotUsed: all });
-  // The task names curing compound, so its tick needs a short reason (D292 item 3); with one, nothing is asked.
-  assert.deepEqual(types(ticked).map((gap) => gap.need), ['Curing compound or release agent: your task or answers name "curing compound". Add the product you use, or give a short reason it is not required, for example "supplied and applied by others".']);
-  assert.deepEqual(types(draftBody({ ...base(POUR), substancesNotUsed: all, substancesNotUsedWhy: { 'Curing compounds and form release agents': 'Supplied and applied by the concreter' } })), []);
-  assert.deepEqual(prepareDraft(ticked), d);
+  // The task names curing compound, so its tick needs a short reason (D292 item 3), and so does a type the
+  // job steps name, such as the cement in the pour (messy round 5); with a reason for each, nothing is asked.
+  const asked = types(ticked).map((gap) => gap.need);
+  assert.ok(asked.includes('Curing compound or release agent: your task or answers name "curing compound". Add the product you use, or give a short reason it is not required, for example "supplied and applied by others".'), asked.join(' | '));
+  assert.ok(asked.some((need) => /^Cement product: the job steps name "[^"]+"\. Add the product you use, or give a short reason it is not required/.test(need)), asked.join(' | '));
+  assert.deepEqual(types(draftBody({ ...base(POUR), substancesNotUsed: all, substancesNotUsedWhy: Object.fromEntries(all.map((type) => [type, 'Supplied and applied by the concreter'])) })), []);
+  // The draft is as before, apart from the chemical splash emergency row, which goes when every type is
+  // "Not required" and no product is listed (messy round 5).
+  const withoutSplash = (draft) => ({ ...draft, emergency: draft.emergency.filter((row) => row.type !== 'Chemical splash') });
+  assert.deepEqual(withoutSplash(prepareDraft(ticked)), withoutSplash(d));
   assert.deepEqual(checkSwms(fromDraft(prepareDraft(ticked), { state: 'qld' }), { state: 'qld' }), checkSwms(fromDraft(d, { state: 'qld' }), { state: 'qld' }));
   assert.equal(substances.tableRows(prepareDraft(ticked)).length, 0);
   // A product of a type covers it; an unticked type left over is still asked about.
   const mixed = draftBody({ ...base(POUR), substances: [CURE], substancesNotUsed: ['Respirable crystalline silica (concrete, masonry, tile and stone dust)', 'Fuels (diesel, petrol)'] });
-  assert.deepEqual(types(mixed).map((gap) => gap.need), ['Cement product: add the product you use, or tick "Not required".']);
+  // Fuel ticked with no reason: the job steps name petrol, so a reason is asked (messy round 5).
+  assert.deepEqual(types(mixed).map((gap) => gap.need), ['Cement product: add the product you use, or tick "Not required".', 'Fuel: the job steps name "petrol". Add the product you use, or give a short reason it is not required, for example "supplied and applied by others".']);
   // Only known types are kept from what the page sends.
   assert.deepEqual(draftBody({ substancesNotUsed: ['Fuels (diesel, petrol)', 'Anything', 5] }).substancesNotUsed, ['Fuels (diesel, petrol)']);
   assert.equal(draftBody({ substancesNotUsed: ['Anything'] }).substancesNotUsed, undefined);
@@ -454,7 +461,8 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   const typeCheck = { kind: 'substanceType', substanceType: 'Fuels (diesel, petrol)', field: 'sub-type-13', need: 'from the server' };
   assert.equal(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), 'Fuel: add the product you use, or tick "Not required".');
   S.load([], ['Fuels (diesel, petrol)']);
-  assert.equal(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), '');
+  // Ticked: nothing more, or a short reason where the job steps name the product (messy round 5).
+  assert.match(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), /^(?:|Fuel: the job steps name "[^"]+"\. Add the product you use, or give a short reason it is not required, for example "supplied and applied by others"\.)$/);
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().substancesNotUsed)')), ['Fuels (diesel, petrol)']);
   assert.match(p.window.SiteWrite.render(plain, { movable: true }), /data-sub-notused="Fuels \(diesel, petrol\)" checked>/);
   S.load([], []);

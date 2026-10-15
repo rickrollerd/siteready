@@ -159,7 +159,7 @@ function typeItems(draft, input) {
   const words = rules.ownWords(input);
   const covered = new Set(listed(input).map((row) => row.type).filter(Boolean));
   return (draft.substances.items || []).map((item) => item.product).filter((type) => rules.TYPES.includes(type))
-    .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) ? '' : notUsed.has(type) ? rules.notUsedNeed(type, why[type], words) : TYPE_NEED(rules.SHORT.get(type)) }));
+    .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) ? '' : notUsed.has(type) ? rules.notUsedNeed(type, why[type], words, rules.stepWords(draft)) : TYPE_NEED(rules.SHORT.get(type)) }));
 }
 
 // The SDS files a SWMS input refers to, kept with the saved SWMS as design files are (design-files.js).

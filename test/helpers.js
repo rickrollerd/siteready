@@ -58,9 +58,10 @@ function ready(input) {
     // the test gives its own products or ticks.
     const types = (draft.substances && draft.substances.items) || [];
     const notUsed = input.substancesNotUsed || (input.substances || !types.length ? undefined : types.map((item) => item.product));
-    // A type the task or answers name gives a reason (D292 item 3), unless the test gives its own.
+    // A type the task, the answers or the job steps name gives a reason (D292 item 3, messy round 5), unless
+    // the test gives its own.
     const rules = require('../public/substance-rules');
-    const named = (notUsed || []).filter((type) => rules.notUsedNeed(type, '', rules.ownWords(input)));
+    const named = (notUsed || []).filter((type) => rules.notUsedNeed(type, '', rules.ownWords(input), rules.stepWords(draft)));
     const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, 'Supplied and applied by others'])) : undefined);
     out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: notUsed } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
   }

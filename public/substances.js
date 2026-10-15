@@ -148,7 +148,7 @@
   const productsOf = (type) => products.filter((row) => row.type === type && typed(row));
   const TYPE_NEED = (type) => `${R.SHORT.get(type)}: add the product you use, or tick "Not required".`;
   // What a suggested type still needs, judged as the user ticks or adds (the server checks again).
-  const typeNeed = (type) => (productsOf(type).length ? '' : notUsed.has(type) ? R.notUsedNeed(type, notUsedWhy[type], words()) : TYPE_NEED(type));
+  const typeNeed = (type) => (productsOf(type).length ? '' : notUsed.has(type) ? R.notUsedNeed(type, notUsedWhy[type], words(), R.stepWords ? R.stepWords(shown) : '') : TYPE_NEED(type));
   // Products given in the project's other SWMS, not yet added here (scope.js, D292).
   const offered = () => (S.projectProducts ? S.projectProducts() : []).filter(({ row }) => !products.some((mine) => String(mine.product || '').trim().toLowerCase() === String(row.product || '').trim().toLowerCase()));
   const offerButtons = (list) => list.map(({ row, from }) => `<button type="button" class="pick-button" data-sub-offer="${esc(row.product)}">Use ${esc(row.product)} (from ${esc(from)})</button>`).join('');
@@ -157,8 +157,8 @@
   function typeRow(type) {
     const n = R.TYPES.indexOf(type);
     const added = productsOf(type);
-    const named = R.namedIn(type, words());
-    const reason = notUsed.has(type) && named ? `<div class="field sub-reason"><label for="sub-why-${n}">Why is it not required?<span class="hint">Your task or answers name "${esc(named)}". Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="sub-why-${n}" type="text" maxlength="200" data-sub-why="${esc(type)}" value="${esc(notUsedWhy[type] || '')}"></div>` : '';
+    const asked = R.reasonAsked ? R.reasonAsked(type, words(), R.stepWords(shown)) : null;
+    const reason = notUsed.has(type) && asked ? `<div class="field sub-reason"><label for="sub-why-${n}">Why is it not required?<span class="hint">${esc(asked.hint)} Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="sub-why-${n}" type="text" maxlength="200" data-sub-why="${esc(type)}" value="${esc(notUsedWhy[type] || '')}"></div>` : '';
     const offers = offered().filter(({ row }) => row.type === type);
     const body = added.length
       ? `<p class="meta sub-type-added">Added: ${esc(added.map((row) => String(row.product || '').trim() || 'a product still being filled in').join('; '))}.</p>`
@@ -272,7 +272,7 @@
       if (unused.checked) notUsed.add(unused.dataset.subNotused); else notUsed.delete(unused.dataset.subNotused);
       if (S.keepUnsaved) S.keepUnsaved();
       // A type the task or answers name asks why, under the tick.
-      if (R.namedIn(unused.dataset.subNotused, words())) { redraw(unused.id); const why = document.getElementById(`sub-why-${R.TYPES.indexOf(unused.dataset.subNotused)}`); if (why && unused.checked) why.focus(); }
+      if (R.reasonAsked ? R.reasonAsked(unused.dataset.subNotused, words(), R.stepWords(shown)) : R.namedIn(unused.dataset.subNotused, words())) { redraw(unused.id); const why = document.getElementById(`sub-why-${R.TYPES.indexOf(unused.dataset.subNotused)}`); if (why && unused.checked) why.focus(); }
       return;
     }
     const tick = target.closest && target.closest('[data-sub-confirm]');

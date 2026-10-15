@@ -99,6 +99,20 @@ const SOURCES = {
   W14: 'WHS Regulations s 344 and s 346 (safety data sheets at hand, the hazardous chemicals register); Managing risks of hazardous chemicals code of practice (labelling, following the safety data sheet) (owner decision, 6 October 2026)',
 };
 
+// The sources for a rule as they read for the SWMS's state (messy round 5: a Victorian SWMS's findings
+// cited "WHS Regulations s 299" and SafeWork NSW). A state regulator's own findings are cited only for its
+// state. Victoria's SWMS law is its own regulations, and the model WHS Regulations are named as the model.
+const REGULATOR_STATE = [[/\bSafeWork NSW\b/, 'nsw'], [/\bWHSQ\b/, 'qld'], [/\bSafeWork SA\b/, 'sa']];
+function sourceFor(rule, state) {
+  const all = SOURCES[rule];
+  if (!all || !state) return all;
+  const parts = all.split('; ');
+  const kept = parts.filter((part) => !REGULATOR_STATE.some(([pattern, id]) => pattern.test(part) && id !== state.id));
+  let out = (kept.length ? kept : ['Tier 1 SWMS review checklists']).join('; ');
+  if (state.id === 'vic') out = out.replace(/\bWHS Regulations s 299(?:\(3\))?(?: and s 300)?/g, `${state.instrument} r ${state.section}`).replace(/\b(?<!model )WHS Regulations\b/g, 'model WHS Regulations');
+  return out;
+}
+
 // ---- Reading the structured form ----
 
 const text = (value) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '');
@@ -137,6 +151,8 @@ function normaliseSwms(input = {}) {
     otherFields: list(input.otherFields),
     // The designs table a SiteWrite draft prints (designs.js); null for a SWMS from elsewhere, whose
     // steps are read for design wording in general.
+    // Work the task names with no job step, from a SiteWrite draft (fromDraft); empty otherwise.
+    uncovered: list(input.uncovered).filter((item) => typeof item === 'string'),
     designs: Array.isArray(input.designs) ? input.designs.filter((item) => item && typeof item === 'object').map((item) => ({ id: text(item.id), what: text(item.what), status: text(item.status) })) : null,
     // The hazardous products a SiteWrite draft lists one by one (substances.js, D256); null otherwise.
     substances: Array.isArray(input.substances) ? input.substances.filter((item) => item && typeof item === 'object').map((item) => ({ product: text(item.product), type: text(item.type), controls: list(item.controls), confirmed: item.confirmed === true })) : null,
@@ -322,6 +338,11 @@ const PERMITS = [
     // Not hot work: heat or solvent welded vinyl and plastic seams, and painting or coating welds.
     ignore: /\b(?:(?:heat|hot air|solvent|plastic|poly|vinyl|seam)[- ]?weld\w*|weld\w* (?:the )?(?:vinyl|seams?|joins)|(?:heat|hot air|solvent)[- ]welded \w+(?: \w+)?|(?:paint\w*|touch\w* up|coat\w*|seal\w*|prime\w*|blend\w*) (?:the |all |any )?(?:\w+ )?welds?)\b/gi,
     permit: /\bhot works? permits?\b/i },
+  // Work in the rail corridor goes ahead only under the rail manager's access authority (messy round 5: the
+  // check said "No work needing a permit" for resleepering in a track possession).
+  { label: 'work in the rail corridor', name: 'the rail manager\'s access authority (a track possession or worksite protection)',
+    work: /\b(rail corridors?|track possessions?|(?:during|in|under|inside) (?:a |the )?(?:track )?possession|resleeper\w*|sleepers?\b[^.\n]{0,30}\btracks?|ballast|tamp\w* (?:the )?(?:track|ballast)|on-?track plant|work in the rail corridor)\b/i,
+    permit: /\b(access authority|possessions?|track (?:access|closure|occupancy)|worksite protection|protection officer|rail access)\b/i },
   { label: 'confined space entry', name: 'a confined space entry permit',
     work: /\bconfined spaces?\b/i,
     permit: /\b(?:confined space (?:entry )?|entry )permits?\b/i },
@@ -743,7 +764,7 @@ function hardFails(swms, state, stage = 'review') {
   const hazardOnly = highRiskMatches(asSentences(swms.steps.flatMap((step) => step.hazards)), swms.fallRisk, state)
     .filter((item) => !namedIds.has(item.id) && !missing.some((other) => other.id === item.id));
   const alsoCheck = hazardOnly.length ? ` Also check, as the hazards name it: ${hazardOnly.map((item) => item.label).join('; ')}.` : '';
-  const add = (rule, title, pass, message) => out.push({ rule, title, hard: true, pass, points: 0, max: 0, message, source: SOURCES[rule] });
+  const add = (rule, title, pass, message) => out.push({ rule, title, hard: true, pass, points: 0, max: 0, message, source: sourceFor(rule, state) });
   const noState = state ? '' : ' No state was given, so the national model WHS Regulations categories were used.';
 
   // Nothing listed and nothing found in the task is not a fail: the work may not be high risk.
@@ -911,7 +932,7 @@ function weighted(swms, state, context) {
   // Pass is judged on the points shown, so 4.86 shows and passes as 5 of 5.
   const add = (rule, title, max, points, fixes, good) => {
     const shown = Math.max(0, Math.min(max, Math.round(points)));
-    out.push({ rule, title, hard: false, pass: shown >= max, points: shown, max, message: fixes.length ? fixes.join(' ') : good, fixes, source: SOURCES[rule] });
+    out.push({ rule, title, hard: false, pass: shown >= max, points: shown, max, message: fixes.length ? fixes.join(' ') : good, fixes, source: sourceFor(rule, state) });
   };
   const steps = swms.steps;
   const allControls = steps.flatMap((step) => step.controls);
@@ -939,6 +960,15 @@ function weighted(swms, state, context) {
       else if (headings.length > steps.length / 2) fixes.push('The steps are hazard headings, not job steps. List the steps of the work in order, each with its own hazards.');
       else points += 3;
       if (steps.length === 1) points = Math.min(points, 3);
+    }
+    // Work the task names that no job step covers (messy round 5: the builder check passed a resleepering
+    // SWMS with no step for the thermite welds). Read from a SiteWrite draft's own
+    // list of such work; an uploaded document has none. 1 point each, at most 2: the work may be in another
+    // SWMS the business holds.
+    const uncovered = list(swms.uncovered);
+    if (uncovered.length) {
+      points -= Math.min(2, uncovered.length);
+      fixes.push(`The task names work no job step covers: ${uncovered.slice(0, 4).join('; ')}. Add a step for it, or take it out of the task if another SWMS covers it.`);
     }
     add('W1', 'Hazards match the job steps', 10, points, fixes, 'Each step has its own hazards.');
   }
@@ -1044,6 +1074,15 @@ function weighted(swms, state, context) {
     // Another trade's licence or licensing lines in a SWMS whose work is not that trade's (messy round 4:
     // electrician and apprentice lines in a structural steel SWMS, electrical and plumbing licences for a fire
     // crew). 2 points for each such trade, at most 4.
+    // Slinging loads is dogging or rigging work: a SWMS whose lines have our crew sling loads or a licensed
+    // dogger direct a lift lists the licence (messy round 5: no dogging licence beside "a licensed dogger
+    // directs the lift"). Not where the crane company's crew slings. The plant table's own licence column
+    // ("where one is used") already says it for the item, so it is not read here.
+    const slinging = /\ba licensed dogger directs\b|\b(?:our|the crew'?s?) (?:licensed )?(?:doggers?|riggers?)\b|\bSlinging loads is dogging or rigging work\b/i.test(allControls.join('\n'));
+    if (slinging && !/\b(dogg\w*|rigg\w*|DG|RB|RI|RA)\b/.test(swms.licences.join('\n'))) {
+      points -= 2;
+      fixes.push('The steps or plant list have loads slung or a dogger directing lifts: list the dogging (DG) or rigging licence of the crew who does it.');
+    }
     const others = otherTradeLines(swms);
     if (others.length) {
       points -= Math.min(4, 2 * others.length);
@@ -1421,6 +1460,8 @@ function fromDraft(draft, extra = {}) {
     riskMatrix: steps.length > 0 && (draft.jobSteps || []).some((step) => step.risk),
     // The designs table as printed (designs.js); a draft with none prints none. A written method the
     // user listed (D224) is not a design a step relies on and is not counted.
+    // Work the task names with no job step, not written for by the user (draft.js notCoveredLeft).
+    uncovered: (Array.isArray(draft.notCovered) ? draft.notCovered : []).filter((part) => ![...(Array.isArray(draft.notCoveredWritten) ? draft.notCoveredWritten : []), ...(Array.isArray(draft.notCoveredNamed) ? draft.notCoveredNamed : [])].includes(part)),
     designs: (draft.designs || []).filter((row) => row.kind !== 'method').map((row) => ({ id: row.id, what: row.what, status: row.status })),
     // Each hazardous product the user listed (substances.js, D256), only where there is one: a draft with
     // none is checked as before.
