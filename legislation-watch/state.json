@@ -67,13 +67,11 @@
   },
   "act-whs-act": {
     "version": "R30 (current) 26 November 2025",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-whs-reg": {
     "version": "R47 (current) 29 November 2025",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "qld-codes-notice": {
     "version": "2026-09-01",
@@ -1026,188 +1024,151 @@
   "hand:nsw-whs-reg": "2026-10",
   "qld-pg-act": {
     "version": "2026-06-29",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "qld-pd-act": {
     "version": "2026-02-01",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "qld-pd-reg": {
     "version": "2026-01-02",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "qld-security-act": {
     "version": "2025-05-26",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "vic-es-act": {
     "version": "8 Sep 2026 089",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "vic-esg-reg": {
     "version": "1 Nov 2023 002",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "wa-elec-lic-reg": {
     "version": "14 Oct 2026 Current 07-aj0-01",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "wa-elec-act": {
     "version": "6 Feb 2025 Current 08-f0-00",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "wa-plumbers-reg": {
     "version": "1 Jul 2026 Current 05-ah0-00",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "tas-ol-act": {
     "version": "2025-07-02",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "tas-ol-elec-reg": {
     "version": "2021-06-22",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "tas-eisa-act": {
     "version": "20250623",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-es-act": {
     "version": "R34 (current) 16 December 2025",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-col-act": {
     "version": "R71 (current) 23 February 2026",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-utilities-act": {
     "version": "R71 (current) 26 November 2025",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-utr-act": {
     "version": "R15 (current) 5 January 2026",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "nt-es-act": {
     "version": "Repe047",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "nt-es-reg": {
     "version": "REPE047R1",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "nt-er-act": {
     "version": "REPE027",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "cth-ozone-reg": {
     "version": "F2026C00546 C48 01 July 2026",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "cth-cabling-rules": {
     "version": "F2025L00386 21 March 2025",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-demolition": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-excavation": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-manual": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-falls": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-electrical": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-abrasive": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-welding": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-spray": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-chemicals": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-asbestos-manage": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-formwork": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-tower": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-noise": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-confined": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-plant": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "act-code-construction": {
     "version": "Current law",
-    "status": "unreadable",
-    "since": "2026-10-15"
+    "status": "ok"
   },
   "code:sa-approved-codes": {
     "items": [
