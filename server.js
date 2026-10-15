@@ -44,6 +44,7 @@ const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
 const { SharedStore, servePrimary } = require('./rate-store');
 const reviews = require('./reviews');
+const hse = require('./hse');
 const humanCheck = require('./human-check');
 const { partHashes } = require('./public/check-parts');
 
@@ -118,7 +119,8 @@ app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_W
 // client address can send links to three times as many inboxes, so a site office or a mobile
 // network sharing one address can still sign several people up. Only sending counts; opening the
 // team list does not. If the shared count cannot be read, no email is sent (rate-store.js).
-const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email'];
+// The main contractor's sign-in and team invitations (Goal 12 stage 3) count the same way.
+const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email', '/api/hse/email', '/api/hse/orgs/:orgId/members'];
 const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
 const notSending = (req) => req.method !== 'POST';
 app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
@@ -133,6 +135,8 @@ app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
 app.use(EMAIL_ROUTES, limiter('sign-in-email-ip', positiveNumber(process.env.RATE_LIMIT_EMAIL_IP_REQUESTS, emailLimit * 3), { skip: notSending, failClosed: true }));
 // The principal contractor's review pages (goal 3): opening a SWMS, the builder check, its files and the response.
 app.use('/api/review', limiter('review', positiveNumber(process.env.RATE_LIMIT_REVIEW_REQUESTS, 60)));
+// The main contractor's pages (Goal 12): its account, team, projects and site details.
+app.use('/api/hse', limiter('hse', positiveNumber(process.env.RATE_LIMIT_HSE_REQUESTS, 300)));
 app.use('/api/sign', limiter('sign-on', positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
@@ -670,6 +674,7 @@ app.use('/api', accounts.router);
 app.use('/api', billing.router);
 app.use('/api', admin.router);
 app.use('/api', reviews.router);
+app.use('/api', hse.router);
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {
@@ -688,7 +693,9 @@ app.use((error, req, res, _next) => {
   const field = error.publicMessage && typeof error.field === 'string' ? { field: error.field } : {};
   // The parts of the check a change has cleared, for the page to untick (D286).
   const stale = error.publicMessage && Array.isArray(error.stale) ? { stale: error.stale } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale });
+  // Site details someone else saved while this person was editing (Goal 12 stage 3), for the page to show.
+  const conflict = error.publicMessage && error.conflict && typeof error.conflict === 'object' ? { conflict: error.conflict } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict });
 });
 
 // One worker per processor core. A worker that stops is replaced.

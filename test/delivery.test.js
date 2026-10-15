@@ -80,7 +80,7 @@ test('each page names its scripts by their content, so a phone keeps them until 
   assert.equal((await get('/app.js')).headers['cache-control'], 'no-cache');
   assert.equal((await get('/app.js?v=000000000000')).headers['cache-control'], 'no-cache');
   // The other pages too.
-  for (const other of ['/check.html', '/verify.html', '/sign.html', '/review.html']) {
+  for (const other of ['/check.html', '/verify.html', '/sign.html', '/review.html', '/hse.html']) {
     const text = unpack(await get(other, { 'Accept-Encoding': 'gzip' })).toString('utf8');
     assert.match(text, /<script src="\/[\w.-]+\.js\?v=[0-9a-f]{12}"/, other);
   }

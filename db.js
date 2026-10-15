@@ -574,6 +574,60 @@ const SCHEMA = [
     check_failed TEXT NOT NULL DEFAULT '[]',
     created_at TIMESTAMPTZ NOT NULL
   )`,
+  // Goal 12 stage 3: the main contractor's HSE lead and team, on free reviewer sign-ins (no company,
+  // no trial). A reviewer gives a position and phone as well as a name.
+  "ALTER TABLE reviewers ADD COLUMN IF NOT EXISTS position TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE reviewers ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT ''",
+  // The main contractor's account. Its name is the one contractors see on the details it sets.
+  `CREATE TABLE IF NOT EXISTS orgs (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    abn TEXT NOT NULL DEFAULT '',
+    created_by TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  // The people in it: one lead, who adds and removes people, and members. An invited person is a row
+  // with an email and no reviewer until they sign in with that email.
+  `CREATE TABLE IF NOT EXISTS org_members (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    reviewer_id TEXT,
+    role TEXT NOT NULL,
+    invited_by TEXT NOT NULL DEFAULT '',
+    invited_at TIMESTAMPTZ NOT NULL,
+    joined_at TIMESTAMPTZ
+  )`,
+  'CREATE UNIQUE INDEX IF NOT EXISTS org_members_email ON org_members (org_id, email)',
+  'CREATE INDEX IF NOT EXISTS org_members_reviewer ON org_members (reviewer_id)',
+  // A project of the main contractor's. log_token makes the project's log email address (stage 10).
+  `CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    workplace TEXT NOT NULL DEFAULT '',
+    state TEXT NOT NULL DEFAULT '',
+    postcode TEXT NOT NULL DEFAULT '',
+    pc_name TEXT NOT NULL DEFAULT '',
+    log_token TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_by TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    closed_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS projects_org ON projects (org_id)',
+  // The site details the main contractor sets for every contractor on the project. Each change is a
+  // new version (rev counts up from 1), so a SWMS and the log can name the version it used.
+  `CREATE TABLE IF NOT EXISTS project_site_details (
+    project_id TEXT NOT NULL,
+    rev INTEGER NOT NULL,
+    details JSONB NOT NULL,
+    set_by TEXT NOT NULL,
+    set_by_name TEXT NOT NULL DEFAULT '',
+    set_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (project_id, rev)
+  )`,
 ];
 
 async function migrate() {
