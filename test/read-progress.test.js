@@ -153,7 +153,7 @@ const SCRIPTS = ['app.js', 'account.js', 'read-progress.js', 'scope-task.js', 's
 
 // Signed in with a session kept in this browser, as after the email link.
 function signedInPage(respond, stored = {}) {
-  return loadPage(SCRIPTS, respond, { stored: { 'siteready.session': 'token', ...stored } });
+  return loadPage(SCRIPTS, respond, { stored: { 'sitewrite.session': 'token', ...stored } });
 }
 
 async function readPasted(p) {
@@ -167,13 +167,13 @@ const results = (p) => p.document.getElementById('scope-results').innerHTML;
 const body = (p) => p.document.body.innerHTML;
 
 test('the session key the page tests use is the one account.js keeps', () => {
-  assert.match(fs.readFileSync(path.join(__dirname, '../public/account.js'), 'utf8'), /SESSION_KEY = 'siteready.session'/);
+  assert.match(fs.readFileSync(path.join(__dirname, '../public/account.js'), 'utf8'), /SESSION_KEY = 'sitewrite.session'/);
 });
 
 test('while the AI reads, the bar shows a percentage and the steps; when done, a message with a button to choose the SWMS', async () => {
   // The bar as it is drawn while the reading runs.
   const bar = loadPage(['read-progress.js'], () => ({ body: {} }));
-  const tracker = bar.run("SiteReadyProgress.track({ what: 'scope', lead: 'The AI is reading every word of the scope, including tables and appendices.', steps: ['reading every word of the scope', 'matching each work package to SiteReady\\'s job steps'] })");
+  const tracker = bar.run("SiteWriteProgress.track({ what: 'scope', lead: 'The AI is reading every word of the scope, including tables and appendices.', steps: ['reading every word of the scope', 'matching each work package to SiteWrite\\'s job steps'] })");
   tracker.update({ stage: 'reading', elapsedSeconds: 30, stageSeconds: 30, expectedSeconds: 174 });
   const html = tracker.html();
   assert.match(html, /role="progressbar" aria-label="Reading the scope" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20"/);
@@ -187,7 +187,7 @@ test('while the AI reads, the bar shows a percentage and the steps; when done, a
   assert.equal(tracker.value(), 20);
   // Past the expected time it says so, and still moves.
   tracker.update({ stage: 'steps', elapsedSeconds: 400, stageSeconds: 60, expectedSeconds: 174 });
-  assert.match(tracker.html(), /Step 2 of 2: matching each work package to SiteReady&#39;s job steps/);
+  assert.match(tracker.html(), /Step 2 of 2: matching each work package to SiteWrite&#39;s job steps/);
   assert.match(tracker.html(), /class="meta rp-slow">Taking longer than usual\. It is still reading\./);
   assert.ok(tracker.value() > 80 && tracker.value() <= 95);
   tracker.finish();
@@ -196,7 +196,7 @@ test('while the AI reads, the bar shows a percentage and the steps; when done, a
   // The scope page from start to finish.
   const p = signedInPage(server({ asks: [1, 2] }));
   await settle(40);
-  p.document.title = 'SiteReady';
+  p.document.title = 'SiteWrite';
   p.document.hidden = true;
   await readPasted(p);
   const asked = p.calls.filter((call) => call.route.startsWith('/api/scope/ai/r1'));
@@ -207,12 +207,12 @@ test('while the AI reads, the bar shows a percentage and the steps; when done, a
   assert.match(body(p), /The AI has finished reading the scope\. Choose the SWMS you need\./);
   assert.match(body(p), /<button type="button" data-read-done-go>Choose the SWMS<\/button>/);
   // While the page is not seen, the tab's title says it is ready; it is restored once seen.
-  assert.equal(p.document.title, 'Ready: scope read | SiteReady');
+  assert.equal(p.document.title, 'Ready: scope read | SiteWrite');
   p.document.hidden = false;
   p.document.body.dispatchEvent(new FakeEvent('visibilitychange', { bubbles: true }));
-  assert.equal(p.document.title, 'SiteReady');
+  assert.equal(p.document.title, 'SiteWrite');
   // Nothing is kept once the reading is done.
-  assert.equal(p.window.localStorage.getItem('siteready-scope-reading'), null);
+  assert.equal(p.window.localStorage.getItem('sitewrite-scope-reading'), null);
 });
 
 test('the chime is made in the browser, set up on the press that starts the reading, and silent when sound is blocked', async () => {
@@ -271,7 +271,7 @@ test('a reading refused at the start (a trial ended) shows the error, and no "re
 });
 
 test('a reading still running when the page was left is picked up when the user comes back, and its message shows when found done', async () => {
-  const p = signedInPage(server({ asks: [1] }), { 'siteready-scope-reading': JSON.stringify({ id: 'r1', state: 'nsw' }) });
+  const p = signedInPage(server({ asks: [1] }), { 'sitewrite-scope-reading': JSON.stringify({ id: 'r1', state: 'nsw' }) });
   await settle(80);
   const asked = p.calls.filter((call) => call.route.startsWith('/api/scope/ai/r1'));
   assert.ok(asked.length >= 2);
@@ -279,24 +279,24 @@ test('a reading still running when the page was left is picked up when the user 
   assert.equal(p.calls.filter((call) => call.route === '/api/scope/ai' && call.method === 'POST').length, 0, 'not read again');
   assert.match(results(p), /The AI found 1 activities/);
   assert.match(body(p), /The scope has been read/);
-  assert.equal(p.window.localStorage.getItem('siteready-scope-reading'), null);
+  assert.equal(p.window.localStorage.getItem('sitewrite-scope-reading'), null);
 
   // Found done at once on coming back: the message still shows.
-  const q = signedInPage(server({}), { 'siteready-scope-reading': JSON.stringify({ id: 'r1', state: '' }) });
+  const q = signedInPage(server({}), { 'sitewrite-scope-reading': JSON.stringify({ id: 'r1', state: '' }) });
   await settle(80);
   assert.match(body(q), /The scope has been read/);
 
   // A reading that is gone is forgotten without a word.
-  const r = signedInPage(server({ end: 'gone' }), { 'siteready-scope-reading': JSON.stringify({ id: 'r1', state: '' }) });
+  const r = signedInPage(server({ end: 'gone' }), { 'sitewrite-scope-reading': JSON.stringify({ id: 'r1', state: '' }) });
   await settle(80);
   assert.equal(r.document.getElementById('scope-error').textContent, '');
-  assert.equal(r.window.localStorage.getItem('siteready-scope-reading'), null);
+  assert.equal(r.window.localStorage.getItem('sitewrite-scope-reading'), null);
 });
 
 test('the methodology reading uses the same bar and says when its suggested steps are ready', () => {
   const script = fs.readFileSync(path.join(__dirname, '../public/method-read.js'), 'utf8');
-  assert.match(script, /SiteReadyProgress\.track\(\{ what: 'methodology'/);
-  assert.match(script, /SiteReady has finished reading the methodology\. The suggested job steps are ready to check\./);
+  assert.match(script, /SiteWriteProgress\.track\(\{ what: 'methodology'/);
+  assert.match(script, /SiteWrite has finished reading the methodology\. The suggested job steps are ready to check\./);
   assert.match(script, /button: any \? 'Check the suggested steps'/);
 });
 

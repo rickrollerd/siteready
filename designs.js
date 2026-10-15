@@ -372,12 +372,12 @@ function withDesigns(draft, input) {
 
 // What the table says of a design's status.
 function statusText(row) {
-  if (row.kind === 'method') return `The work follows this methodology.${row.file ? ` A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : ''}`;
+  if (row.kind === 'method') return `The work follows this methodology.${row.file ? ` A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''}`;
   // A design whose steps only keep loads within it (the pour crew's formwork design) holds no step.
   if (row.status === 'notIssued' && Array.isArray(row.held) && !row.held.length) return 'Not issued yet. Update this SWMS when it is issued.';
   if (row.status === 'notIssued') return 'Not issued yet. Hold point: the steps that rely on it do not start until it is issued and this SWMS is updated.';
   if (row.status === 'notNeeded') return 'Not needed for this work (the business\'s choice when preparing this SWMS).';
-  if (row.status === 'given' && designNeed(row) === '') return row.file ? `Issued. A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : 'Issued.';
+  if (row.status === 'given' && designNeed(row) === '') return row.file ? `Issued. A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : 'Issued.';
   return 'Not given yet.';
 }
 

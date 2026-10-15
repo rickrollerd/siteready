@@ -2,10 +2,10 @@
 // sites, downloads, worker sign-on QR codes and review reminders. Without an
 // account the SWMS can be previewed, and downloads ask the user to sign in.
 (() => {
-  const S = window.SiteReady;
+  const S = window.SiteWrite;
   const { api, esc } = S;
-  const SESSION_KEY = 'siteready.session';
-  const REVIEWER_KEY = 'siteready-reviewer';
+  const SESSION_KEY = 'sitewrite.session';
+  const REVIEWER_KEY = 'sitewrite-reviewer';
   let session = read(SESSION_KEY);
   let me = null;
   let sites = [];
@@ -20,7 +20,7 @@
   }
 
   // A server that cannot be reached, or answers with a host's error page (a 502), says so plainly.
-  const SERVER_DOWN = 'SiteReady could not reach the server. Try again.';
+  const SERVER_DOWN = 'SiteWrite could not reach the server. Try again.';
   async function call(method, route, body) {
     let response;
     try {
@@ -85,10 +85,10 @@
   async function download(route, fallbackName, body) {
     const response = await call(body ? 'POST' : 'GET', route, body);
     const header = (name) => response.headers.get(name) || '';
-    const saved = header('x-siteready-swms')
-      ? { id: header('x-siteready-swms'), revision: Number(header('x-siteready-revision')) || 1, title: decodeURIComponent(header('x-siteready-title')) }
+    const saved = header('x-sitewrite-swms')
+      ? { id: header('x-sitewrite-swms'), revision: Number(header('x-sitewrite-revision')) || 1, title: decodeURIComponent(header('x-sitewrite-title')) }
       : null;
-    const items = header('x-siteready-saved') ? JSON.parse(decodeURIComponent(header('x-siteready-saved'))) : [];
+    const items = header('x-sitewrite-saved') ? JSON.parse(decodeURIComponent(header('x-sitewrite-saved'))) : [];
     if ((saved || items.length) && S.refreshMine) S.refreshMine();
     const blob = await response.blob();
     const match = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') || '');
@@ -325,7 +325,7 @@
 
   // ---- After a draft is prepared: downloads, saving ----
 
-  // The check before download or save (human-check.js, D286): SiteReady's check, each part ticked, then
+  // The check before download or save (human-check.js, D286): SiteWrite's check, each part ticked, then
   // the name and role, kept on this device as they are typed. The account's name fills an empty name.
   const checkBlock = (prefix, verb) => S.humanCheck.html(prefix, { verb });
   function restoreTyped(prefix) {
@@ -334,7 +334,7 @@
   }
 
   // Said beside the Save and download buttons while anything is outstanding: the site questions and
-  // blanks (goal 2) and the tick for work SiteReady has no job steps for (D184), all listed in one
+  // blanks (goal 2) and the tick for work SiteWrite has no job steps for (D184), all listed in one
   // box above (app.js), with a button that goes to it.
   const gateNote = (count) => `Download and save wait for ${count === 1 ? 'the item' : `the ${count} items`} listed above under "Before you can download this SWMS". <button type="button" class="link" data-gate-list>Go to the list</button>`;
   // Everything is answered, but something typed since the draft was prepared changes more than its own
@@ -407,7 +407,7 @@
     };
     const held = holdNow();
     box.innerHTML = `<div class="panel confirm">
-      ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteReady's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
+      ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteWrite's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
       ${editing && editing.review ? `<div class="pc-review pc-back" id="new-pc-review"><strong>${esc(editing.review.label)}</strong>, ${esc(editing.review.name)}, ${esc(editing.review.company)}, ${esc(editing.review.date)}<div class="pc-text"><strong>${editing.review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(conditionLines(editing.review.text))}</div><p class="meta">Save the changes, then send the principal contractor the new revision's reference.</p></div>` : ''}
       ${kind === 'draft' ? stateLine(draft) : ''}
       ${kind === 'draft' ? highAfterHtml(draft, 'new-high-risk') : ''}
@@ -423,7 +423,7 @@
       </div>
       <p class="note hidden" id="new-status"></p>
     </div>`;
-    // The buttons work once nothing is left on the list above, SiteReady's check has found nothing that
+    // The buttons work once nothing is left on the list above, SiteWrite's check has found nothing that
     // must be fixed, and each part is ticked with a name and role (D286). A stood-down draft has no check.
     const buttons = ['new-save', 'new-docx', 'new-pdf'].map($).filter(Boolean);
     const ready = () => {
@@ -446,12 +446,12 @@
         // A SWMS of a project brings back the check it was given (scope.js).
         seed: S.projectCheck ? S.projectCheck(input) : null,
         body: () => ({ ...S.actionInput, ...answersNow(kind) }),
-        lockedBy: () => { const held = holdNow(); return held.hold ? (held.html === redrawNote ? 'SiteReady checks the draft once it is updated with your answers.' : 'SiteReady checks the draft once everything listed above is answered.') : ''; },
+        lockedBy: () => { const held = holdNow(); return held.hold ? (held.html === redrawNote ? 'SiteWrite checks the draft once it is updated with your answers.' : 'SiteWrite checks the draft once everything listed above is answered.') : ''; },
         onChange: ready,
         onDone: (check, note) => { if (S.onCheckDone) S.onCheckDone(input, check, note); },
       });
     }
-    // The list above changes as the user answers, and with the tick above the draft (app.js); SiteReady
+    // The list above changes as the user answers, and with the tick above the draft (app.js); SiteWrite
     // checks the draft again a moment later.
     S.onGateChange = () => { ready(); if (kind === 'draft') S.humanCheck.refresh('new'); };
     ready();
@@ -474,8 +474,8 @@
       status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.${revised ? resignLine(saved.revision) : ''}`);
       if ($('new-save')) { $('new-save').textContent = 'Saved'; $('new-save').disabled = true; }
     };
-    $('new-docx').addEventListener('click', () => run(() => saveAndDownload('/api/draft.docx', 'SiteReady.docx')));
-    $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteReady.pdf')));
+    $('new-docx').addEventListener('click', () => run(() => saveAndDownload('/api/draft.docx', 'SiteWrite.docx')));
+    $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteWrite.pdf')));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
         const body = { input: { ...S.actionInput, ...answersNow(kind) }, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
@@ -544,7 +544,7 @@
           <div>
             <strong>${esc(item.title)}</strong>
             <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Check due</span>' : `Check by ${shortDate(item.reviewDueAt)}`}</span>
-            ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteReady changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
+            ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteWrite changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
             ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span>, ${esc(item.review.date)}</span>` : ''}
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
@@ -562,7 +562,7 @@
     if (event.target.closest('#swms-export')) {
       const exportButton = event.target.closest('#swms-export');
       exportButton.disabled = true;
-      try { await download('/api/swms/export.zip', 'SiteReady-saved-SWMS.zip'); } catch (error) { alert(error.message); } finally { exportButton.disabled = false; }
+      try { await download('/api/swms/export.zip', 'SiteWrite-saved-SWMS.zip'); } catch (error) { alert(error.message); } finally { exportButton.disabled = false; }
       return;
     }
     const button = event.target.closest('[data-swms]');
@@ -584,7 +584,7 @@
   // Two designs answered "I have it" with the same document or drawing number (D223), as the cards
   // say while the SWMS is prepared. Advice on the page only: it does not print or hold a download.
   function sameNumbersNote(draft) {
-    const rules = window.SiteReadyGate;
+    const rules = window.SiteWriteGate;
     const groups = rules && rules.sameDesignNumbers && draft ? rules.sameDesignNumbers(draft.designs || []) : [];
     if (!groups.length) return '';
     // A written method (D224) is corrected under its own heading.
@@ -596,7 +596,7 @@
 
   // The principal contractor's responses (goal 3): the one on the current revision first, with who
   // gave it, their company and email, the date and any conditions or changes needed, and the way to
-  // fix it in SiteReady. Without one, the reference and link to send the principal contractor.
+  // fix it in SiteWrite. Without one, the reference and link to send the principal contractor.
   const PC_CLASS = { approved: 'pc-ok', conditions: 'pc-cond', changes: 'due' };
   // Numbered conditions, each on its own line (messy round 4: four conditions printed as one paragraph).
   const conditionLines = (text) => String(text || '').replace(/(\S)[ \t]+(?=\(?\d{1,2}[.)][ \t]+\S)/g, '$1\n');
@@ -610,11 +610,11 @@
     const textHead = { conditions: 'Conditions', changes: 'Changes needed' };
     const line = (item) => `<li><strong class="${PC_CLASS[item.response] || ''}">${esc(item.label)}</strong> · revision ${esc(item.revision)} · ${esc(item.date)}<br>${esc(item.name)}, ${esc(item.company)}${item.email ? ` (<a href="mailto:${esc(item.email)}">${esc(item.email)}</a>)` : ''}
       ${item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(conditionLines(item.text))}</div>` : ''}</li>`;
-    const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteReady, send them the reference ${esc(swms.ref)} or this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
+    const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteWrite, send them the reference ${esc(swms.ref)} or this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
     const latest = current[0];
     const fix = latest && latest.response !== 'approved'
       ? `<p>${latest.response === 'changes' ? 'Make the changes, save the SWMS as a new revision, and send the principal contractor the new reference.' : 'Meet the conditions before work starts. If they change the SWMS, save it as a new revision and send the principal contractor the new reference.'}</p>
-        <div class="actions"><button type="button" id="pc-fix">Fix this in SiteReady</button></div>` : '';
+        <div class="actions"><button type="button" id="pc-fix">Fix this in SiteWrite</button></div>` : '';
     return `<div class="pc-review${latest && latest.response !== 'approved' ? ' pc-back' : ''}" id="pc-review"><h2>Principal contractor review</h2>
       ${current.length ? `<ul class="pc-list">${current.map(line).join('')}</ul>${fix}` : `<p>Revision ${esc(swms.revision)} has not been reviewed yet.</p>${send}`}
       ${earlier.length ? `<details><summary>Earlier revisions (${earlier.length})</summary><ul class="pc-list">${earlier.map(line).join('')}</ul></details>` : ''}</div>`;
@@ -632,9 +632,9 @@
     resultEl.innerHTML = `
       <div class="panel">
         <h2>${esc(swms.title)}</h2>
-        <p class="meta">Revision ${esc(swms.revision)}, saved ${shortDate(swms.revisedAt)}${swms.ref ? ` · SiteReady reference ${esc(swms.ref)}` : ''}</p>
+        <p class="meta">Revision ${esc(swms.revision)}, saved ${shortDate(swms.revisedAt)}${swms.ref ? ` · SiteWrite reference ${esc(swms.ref)}` : ''}</p>
         <p class="meta">Last checked by ${esc(ownName())} on ${shortDate(swms.lastReviewedAt)} (${esc(swms.reviewedBy)}) · ${swms.reviewDue ? '<span class="due">Check due now</span>' : `next check by ${shortDate(swms.reviewDueAt)}`}</p>
-        ${update.available ? `<div class="note" id="saved-update"><p><strong>Updated wording is available.</strong> SiteReady's library or the law has changed since this revision was saved. This revision prints as it was saved. To use the updated wording, check the changes and make a new revision.</p>
+        ${update.available ? `<div class="note" id="saved-update"><p><strong>Updated wording is available.</strong> SiteWrite's library or the law has changed since this revision was saved. This revision prints as it was saved. To use the updated wording, check the changes and make a new revision.</p>
           ${(update.reasons || []).map((reason) => `<p><strong>Why:</strong> ${esc(reason)}</p>`).join('')}
           <details><summary>What would change (${update.changes.length})</summary><ul>${update.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
@@ -684,7 +684,7 @@
     const run = async (fn) => {
       try { await fn(); } catch (error) { checkRefused('saved', error); status('saved-status', error.message, true); }
     };
-    // The business's own check of the revision as it prints (D290, D286): SiteReady's check was made
+    // The business's own check of the revision as it prints (D290, D286): SiteWrite's check was made
     // when the SWMS was opened.
     restoreTyped('saved');
     S.humanCheck.bind('saved', { key: `saved:${id}:${swms.revision}`, initial: data.selfCheck || { partHashes: {} } });
@@ -696,7 +696,7 @@
     })));
     // The updated wording changes what prints, so it opens as a draft to check part by part (D286) and
     // save as the next revision.
-    if ($('saved-update-go')) $('saved-update-go').addEventListener('click', () => change(null, 'Updated to SiteReady\'s current wording'));
+    if ($('saved-update-go')) $('saved-update-go').addEventListener('click', () => change(null, 'Updated to SiteWrite\'s current wording'));
     $('saved-reviewed').addEventListener('click', () => run(async () => {
       await call('POST', `/api/swms/${id}/reviewed`, confirmed('saved'));
       status('saved-status', `Marked as checked by ${ownName()}. The next check is due in 3 months.`);
@@ -716,7 +716,7 @@
     // Change opens the SWMS ready to edit: its controls, hazards and Who can be changed straight
     // away, and the form above holds its answers. Saving makes the next revision.
     // The saved SWMS opens itself, not a project kept on this device (messy round 4, A fault 11: "Fix this
-    // in SiteReady" opened the old project list): a project's SWMS opens as that SWMS of the project,
+    // in SiteWrite" opened the old project list): a project's SWMS opens as that SWMS of the project,
     // and any other is changed with the project put aside.
     const change = (review = null, reason = '') => run(async () => {
       if (S.projectForSaved) S.projectForSaved(id);

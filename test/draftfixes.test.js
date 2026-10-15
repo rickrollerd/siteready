@@ -218,7 +218,7 @@ test('D254, D255: its controls print, it needs one before download, and the step
   assert.equal(printed.risk.before.level, 'Extreme');
   assert.equal(printed.risk.before.label, 'Almost certain x Major');
   assert.ok(['Moderate', 'High', 'Extreme'].includes(printed.risk.after.level));
-  // The changes are kept for learning: the library line by SiteReady's words, the written line as written.
+  // The changes are kept for learning: the library line by SiteWrite's words, the written line as written.
   const applied = done.controlEdits.applied.filter((item) => item.kind === 'hazardControl');
   assert.deepEqual(applied.map((item) => [item.from, item.to]), [[key, ''], ['', 'Duckboards are laid over the wet areas.']]);
   assert.ok(done.controlEdits.applied.some((item) => item.kind === 'hazardRated'));
@@ -273,8 +273,8 @@ test('the page: Change and Remove on hazards, one-line ratings, the hazard\'s ow
   const d = { ...draft(input), gate: [] };
   const p = loadPage(['gate-rules.js', 'design-fill.js', 'mass.js', 'app.js'], () => ({ body: {} }));
   await settle();
-  const html = p.window.SiteReady.render(d, { movable: true });
-  // D253: SiteReady's own hazard and the user's both have Change and Remove; no "Does not apply" button.
+  const html = p.window.SiteWrite.render(d, { movable: true });
+  // D253: SiteWrite's own hazard and the user's both have Change and Remove; no "Does not apply" button.
   assert.match(html, /data-hz-line="0">[^<]*<span class="ctl-tools"><button type="button" class="link" data-hz="change">Change<\/button><button type="button" class="link" data-hz="remove">Remove<\/button>/);
   assert.doesNotMatch(html, /data-hz="na"/);
   // D260: the steps table, and each rating on one line.
@@ -282,19 +282,19 @@ test('the page: Change and Remove on hazards, one-line ratings, the hazard\'s ow
   assert.match(html, /<span class="risk-line">Before: <strong>\w+<\/strong> \([A-Za-z ]+ x [A-Za-z]+\)<\/span><span class="risk-line">After: /);
   // D254, D255: the hazard's panel under its step: offers to tick, a box to write one, its rating.
   assert.match(html, /<tr class="own-hazard-row"><td colspan="5" data-label="Your own hazard"><div class="own-hazard" id="own-hazard-1"/);
-  assert.match(html, /Lines from SiteReady&#39;s library that may fit\. Tick only those that do\.|Lines from SiteReady's library that may fit\. Tick only those that do\./);
+  assert.match(html, /Lines from SiteWrite&#39;s library that may fit\. Tick only those that do\.|Lines from SiteWrite's library that may fit\. Tick only those that do\./);
   assert.match(html, /data-oh-offer="0"/);
   assert.match(html, /<label for="own-hazard-1-write">Write your own control<\/label>/);
   assert.match(html, /Before controls:[^]*data-oh-part="likelihood"[^]*After controls:/);
   assert.match(html, /Its controls and rating are <a href="#own-hazard-1" data-oh-jump="1">below this step<\/a>\./);
   // D259 and item 25: the emergency questions' standard answers, and the note, hidden until the draft is updated.
   const ewp = { ...draft(answered({ ...ANSWERED, state: 'qld', fallRisk: 'yes', task: 'Install cable trays in the ward ceilings from scissor lifts.' })), gate: [] };
-  const sheet = p.window.SiteReady.render(ewp, { movable: true });
+  const sheet = p.window.SiteWrite.render(ewp, { movable: true });
   assert.match(sheet, /data-emg-pick="ewpLower" data-pick="0" aria-pressed="false">The spotter<\/button>/);
   assert.match(sheet, /<p class="done-note" id="emergency-done" role="status" hidden>Draft updated\. Your answers are in the Emergency arrangements table above\. <button type="button" class="link" data-emergency-show>Show me<\/button><\/p>/);
   assert.match(sheet, /<h4 id="emergency-table" tabindex="-1">Emergency arrangements<\/h4>/);
   // D263: a rating in the sheet's text prints with its mass; the same words in an attribute do not change.
-  const anchors = p.window.SiteReady.render({ ...ewp, jobSteps: ewp.jobSteps.map((s, i) => (i === 1 ? { ...s, controls: [...s.controls, 'Anchors are rated for at least 15 kN.'] } : s)) }, { movable: true });
+  const anchors = p.window.SiteWrite.render({ ...ewp, jobSteps: ewp.jobSteps.map((s, i) => (i === 1 ? { ...s, controls: [...s.controls, 'Anchors are rated for at least 15 kN.'] } : s)) }, { movable: true });
   assert.match(anchors, />Anchors are rated for at least 15 kN \(about 1\.5 tonnes\)\.</);
 });
 

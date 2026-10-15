@@ -73,7 +73,10 @@ const trustProxy = Number(process.env.TRUST_PROXY ?? 1);
 app.set('trust proxy', Number.isInteger(trustProxy) && trustProxy >= 0 ? trustProxy : 1);
 app.use(helmet());
 // The native app reads the file name, and the saved SWMS and revision a download was saved as.
-app.use(cors({ origin: allowedOrigins(), exposedHeaders: ['Content-Disposition', 'X-SiteReady-Swms', 'X-SiteReady-Revision', 'X-SiteReady-Title', 'X-SiteReady-Saved'] }));
+// The same headers under the app's old name, for a page opened before the change of name (D299) and
+// still open. Taken out after 28 October 2026, as the other allowances for old pages are.
+const OLD_HEADERS = ['X-SiteReady-Swms', 'X-SiteReady-Revision', 'X-SiteReady-Title', 'X-SiteReady-Saved'];
+app.use(cors({ origin: allowedOrigins(), exposedHeaders: ['Content-Disposition', 'X-SiteWrite-Swms', 'X-SiteWrite-Revision', 'X-SiteWrite-Title', 'X-SiteWrite-Saved', ...OLD_HEADERS] }));
 // Answers are compressed, and not kept by the browser unless a route says so (delivery.js).
 app.use('/api', delivery.apiResponses);
 // Stripe's webhook is checked against the raw body, so it comes before the JSON reader.
@@ -162,7 +165,7 @@ app.get('/api/address', async (req, res, next) => {
   }
 });
 
-// Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, the business
+// Anyone holding a SWMS can check its SiteWrite reference: whether it is genuine, the business
 // it was prepared for, its title and revision, and whether that revision is still the current one
 // (owner decision, 6 October 2026). Nothing else is shown: no controls, no ABN, no dates, apart
 // from the principal contractor's response on the revision and its date (goal 3, D286).
@@ -171,10 +174,10 @@ app.get('/api/verify/:ref', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
     const ref = String(req.params.ref || '').trim().toUpperCase();
-    if (!require('./refs').REF_PATTERN.test(ref)) return res.status(400).json({ found: false, message: 'A SiteReady reference looks like SR-ABCD-2345. Check the footer of the SWMS.' });
+    if (!require('./refs').REF_PATTERN.test(ref)) return res.status(400).json({ found: false, message: 'A SiteWrite reference looks like SW-ABCD-2345 (or SR-ABCD-2345 on older SWMS). Check the footer of the SWMS.' });
     const found = await require('./refs').findRef(ref).catch(() => null);
     record('verify_ref', null);
-    if (!found) return res.json({ found: false, message: 'This reference is not in SiteReady\'s records. The SWMS was not prepared with SiteReady under this reference, or the reference was changed.' });
+    if (!found) return res.json({ found: false, message: 'This reference is not in SiteWrite\'s records. The SWMS was not prepared with SiteWrite under this reference, or the reference was changed.' });
     // A reference printed on a saved SWMS names its revision; one from before revisions were
     // recorded, or on a stood-down draft, has none.
     let revision = null;
@@ -206,7 +209,7 @@ app.get('/api/abn', async (req, res, next) => {
   }
 });
 
-// The states, the pick lists and the job step library change only when SiteReady is updated,
+// The states, the pick lists and the job step library change only when SiteWrite is updated,
 // so a phone keeps them for an hour instead of asking again on every visit.
 app.get('/api/states', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
@@ -378,7 +381,7 @@ app.post('/api/substances/read', sdsReadLimit, auth.requireAccess, async (req, r
 // The builder SWMS check (task #106): score a subcontractor's SWMS and draft the email back.
 // Signed-in accounts only, with its own limit, as an uploaded SWMS is read by the AI.
 // Reading a long SWMS takes minutes, longer than a proxy waits for one answer, so an uploaded or
-// pasted SWMS is started as a check (check-jobs.js) and the page asks for it by its id. A SiteReady
+// pasted SWMS is started as a check (check-jobs.js) and the page asks for it by its id. A SiteWrite
 // draft needs no AI and is checked at once. Only starting a check counts against this limit; the
 // page asking whether it is ready does not.
 const checkLimit = limiter('check', positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
@@ -447,7 +450,7 @@ app.post('/api/draft', (req, res) => {
   res.json({ ...result, ...legal, ...checkParts });
 });
 
-// SiteReady's own check before the person's (D286): the download gate, then Builder check on the
+// SiteWrite's own check before the person's (D286): the download gate, then Builder check on the
 // draft as it prints, with no AI, and each part's fingerprint for the ticks. The page asks again as
 // the user changes the draft, so a tick always matches what will print.
 app.post('/api/draft/check', (req, res) => {
@@ -474,7 +477,7 @@ app.post('/api/draft/translation', auth.requireUser, async (req, res, next) => {
   }
 });
 
-// A Word file or PDF is only prepared once SiteReady's own check has no must-fix item and a named
+// A Word file or PDF is only prepared once SiteWrite's own check has no must-fix item and a named
 // person has ticked each part as checked, with their role (human-check.js, D286). The date is the
 // server's.
 
@@ -495,7 +498,7 @@ function gateRefusal(input, result) {
 }
 
 // Downloads print the company's own name and ABN, so they must be saved first.
-// With no reference number of the business's own, the SWMS prints its SiteReady reference (D289).
+// With no reference number of the business's own, the SWMS prints its SiteWrite reference (D289).
 function withRef(draft, ref) {
   if (draft && ref && !String(draft.swmsRef || '').trim()) draft.swmsRef = ref;
   return draft;
@@ -514,7 +517,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
     const refusal = gateRefusal(signedInBody(req), result);
     if (refusal) return res.status(400).json(refusal);
-    // Then SiteReady's check and the person's check of each part (D286).
+    // Then SiteWrite's check and the person's check of each part (D286).
     const confirmation = result.kind === 'draft' ? humanCheck.confirm(req.body || {}, result, { state: signedInBody(req).state }) : null;
     const saved = req.company ? await accounts.saveForDownload(req, req.body || {}, { confirmation }) : null;
     if (saved) {
@@ -527,7 +530,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     record('download_pdf', req.company && req.company.id);
     await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteReady-stood-down.pdf' : 'SiteReady.pdf'}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteWrite-stood-down.pdf' : 'SiteWrite.pdf'}"`);
     res.send(buffer);
   } catch (error) {
     next(error);
@@ -541,7 +544,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
   const refusal = gateRefusal(signedInBody(req), result);
   if (refusal) return res.status(400).json(refusal);
-  // Then SiteReady's check and the person's check of each part (D286).
+  // Then SiteWrite's check and the person's check of each part (D286).
   const confirmation = result.kind === 'draft' ? humanCheck.confirm(req.body || {}, result, { state: signedInBody(req).state }) : null;
   const saved = req.company ? await accounts.saveForDownload(req, req.body || {}, { confirmation }) : null;
   if (saved) {
@@ -554,7 +557,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   const buffer = await draftToDocx(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), confirmation, ref, company: req.company });
   record('download_word', req.company && req.company.id);
   await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
-  const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
+  const filename = result.kind === 'stand-down' ? 'SiteWrite-stood-down.docx' : 'SiteWrite.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(Buffer.from(buffer));
@@ -564,7 +567,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
 // each, download all", D286): a SWMS not checked, or changed since it was ticked, is left out and named.
 // With accounts on, each SWMS is saved as a record when the project is downloaded (owner
 // decision, 6 October 2026): an item already saved (its swmsId) is saved as its next revision
-// when it has changed. The X-SiteReady-Saved header lists each item's saved SWMS and revision.
+// when it has changed. The X-SiteWrite-Saved header lists each item's saved SWMS and revision.
 const JSZip = require('jszip');
 const PROJECT_LIMIT = 40;
 app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
@@ -577,7 +580,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   const zip = new JSZip();
   const used = new Set();
   const skipped = [];
-  // A SWMS with parts SiteReady has no job steps for, not ticked as dealt with, is left out (D184).
+  // A SWMS with parts SiteWrite has no job steps for, not ticked as dealt with, is left out (D184).
   const unticked = [];
   const logo = readLogo(req.company ? req.company.logo : body.logo);
   const savedItems = [];
@@ -634,18 +637,21 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     }
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
-  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length || unchecked.length ? ' ' : ''}` : ''}${unticked.length ? `Above each draft, write your own step for the work SiteReady has no job steps for, or say which SWMS covers it: ${unticked.join(' ')}${unchecked.length ? ' ' : ''}` : ''}${unchecked.length ? `Open each SWMS and tick each part as checked, with your name and role: ${unchecked.join(' ')}` : ''}${!gated.length && !unticked.length && !unchecked.length ? 'Answer the questions for each one first.' : ''}` });
+  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteWrite does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length || unchecked.length ? ' ' : ''}` : ''}${unticked.length ? `Above each draft, write your own step for the work SiteWrite has no job steps for, or say which SWMS covers it: ${unticked.join(' ')}${unchecked.length ? ' ' : ''}` : ''}${unchecked.length ? `Open each SWMS and tick each part as checked, with your name and role: ${unchecked.join(' ')}` : ''}${!gated.length && !unticked.length && !unchecked.length ? 'Answer the questions for each one first.' : ''}` });
   const notes = [
     skipped.length ? `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n` : '',
     gated.length ? `These SWMS still have site questions or blanks to answer, so they are not in this download:\n${gated.join('\n')}\n` : '',
-    unticked.length ? `SiteReady has no job steps for part of these SWMS, and it was not dealt with above the draft, so they are not in this download:\n${unticked.join('\n')}\n` : '',
+    unticked.length ? `SiteWrite has no job steps for part of these SWMS, and it was not dealt with above the draft, so they are not in this download:\n${unticked.join('\n')}\n` : '',
     unchecked.length ? `These SWMS have not been checked part by part since they last changed, so they are not in this download:\n${unchecked.join('\n')}\n` : '',
   ].filter(Boolean);
   if (notes.length) zip.file('Not included.txt', notes.join('\n'));
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-  if (savedItems.length) res.setHeader('X-SiteReady-Saved', encodeURIComponent(JSON.stringify(savedItems)));
+  if (savedItems.length) {
+    res.setHeader('X-SiteWrite-Saved', encodeURIComponent(JSON.stringify(savedItems)));
+    res.setHeader('X-SiteReady-Saved', encodeURIComponent(JSON.stringify(savedItems)));
+  }
   res.setHeader('Content-Type', 'application/zip');
-  res.setHeader('Content-Disposition', 'attachment; filename="SiteReady-project-SWMS.zip"');
+  res.setHeader('Content-Disposition', 'attachment; filename="SiteWrite-project-SWMS.zip"');
   res.send(out);
 });
 
@@ -705,7 +711,7 @@ function start() {
       console.error(`Worker ${worker.process.pid} stopped (${signal || code}). Starting another.`);
       cluster.fork();
     });
-    console.log(`SiteReady server running on http://localhost:${PORT} with ${workers} workers`);
+    console.log(`SiteWrite server running on http://localhost:${PORT} with ${workers} workers`);
     return;
   }
   if (db.enabled()) {
@@ -722,7 +728,7 @@ function start() {
     }
   }
   const server = app.listen(PORT, () => {
-    if (workers <= 1) console.log(`SiteReady server running on http://localhost:${PORT}`);
+    if (workers <= 1) console.log(`SiteWrite server running on http://localhost:${PORT}`);
   });
   // Idle connections are kept longer than a proxy keeps its own, so the server
   // never closes a connection the proxy is about to reuse (a source of 502 errors).

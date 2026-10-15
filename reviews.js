@@ -1,4 +1,4 @@
-// The principal contractor's review (goal 3). The reviewer opens a saved SWMS from the SiteReady
+// The principal contractor's review (goal 3). The reviewer opens a saved SWMS from the SiteWrite
 // reference printed on it, proves an email address with a sign-in link, sees the revision exactly
 // as it was saved (read only), runs the builder check on it, and returns one of three set
 // responses. The response is recorded against that revision with the reviewer's name, company and
@@ -48,12 +48,12 @@ function longDate(date) {
   return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Brisbane' }).format(new Date(date));
 }
 
-// A reference as typed or pasted: "sr abcd 2345", "SRABCD2345" or "SiteReady reference SR-ABCD-2345,
-// revision 2" all read as SR-ABCD-2345.
+// A reference as typed or pasted: "sw abcd 2345", "SWABCD2345" or "SiteWrite reference SW-ABCD-2345,
+// revision 2" all read as SW-ABCD-2345. An old SR- reference (SiteReady, before D295) reads the same way.
 function cleanRef(value) {
   const text = String(value || '').toUpperCase();
-  const found = /SR[\s-]*([2-9A-HJ-NP-Z]{4})[\s-]*([2-9A-HJ-NP-Z]{4})(?![A-Z0-9])/.exec(text);
-  return found ? `SR-${found[1]}-${found[2]}` : text.trim();
+  const found = /S([RW])[\s-]*([2-9A-HJ-NP-Z]{4})[\s-]*([2-9A-HJ-NP-Z]{4})(?![A-Z0-9])/.exec(text);
+  return found ? `S${found[1]}-${found[2]}-${found[3]}` : text.trim();
 }
 
 // The review page for a reference, printed on the SWMS and shown to the business to send on.
@@ -69,10 +69,10 @@ async function logReview(req, action, ref) {
 // reference is not one a reviewer can open.
 async function revisionForRef(value) {
   const ref = cleanRef(value);
-  if (!REF_PATTERN.test(ref)) throw fail(400, 'A SiteReady reference looks like SR-ABCD-2345. Check the footer of the SWMS.');
+  if (!REF_PATTERN.test(ref)) throw fail(400, 'A SiteWrite reference looks like SW-ABCD-2345 (or SR-ABCD-2345 on older SWMS). Check the footer of the SWMS.');
   const found = await findRef(ref);
-  if (!found) throw fail(404, 'This reference is not in SiteReady\'s records. Check each letter and number against the footer of the SWMS.');
-  if (!found.swms_id || !found.revision) throw fail(404, 'This SWMS was not saved in SiteReady, so it cannot be reviewed here. Ask the business for a saved copy.');
+  if (!found) throw fail(404, 'This reference is not in SiteWrite\'s records. Check each letter and number against the footer of the SWMS.');
+  if (!found.swms_id || !found.revision) throw fail(404, 'This SWMS was not saved in SiteWrite, so it cannot be reviewed here. Ask the business for a saved copy.');
   const swms = await db.one('SELECT * FROM swms WHERE id = $1', [found.swms_id]);
   const kept = swms && await revisions.getRevision(swms.id, found.revision);
   if (!swms || swms.archived || !kept) throw fail(404, 'The business that prepared this SWMS has deleted it.');
@@ -82,8 +82,8 @@ async function revisionForRef(value) {
 }
 
 // What the reviewer sees: the revision as printed, without the worker rows, the business's own
-// notes on what it changed from SiteReady's wording, or the page's working lists (the choices offered
-// for its own hazards, the emergency questions and the plant SiteReady guessed), none of which print.
+// notes on what it changed from SiteWrite's wording, or the page's working lists (the choices offered
+// for its own hazards, the emergency questions and the plant SiteWrite guessed), none of which print.
 function forReviewer(draft) {
   const { controlEdits, controlLegal, controlWarn, workers, ownHazards, emergencyQuestions, plantInferred, ...rest } = draft || {};
   return { ...rest, workers: [] };
@@ -165,7 +165,7 @@ async function currentReviews(companyId, rows) {
 }
 
 // The business's people are told the review is back, and by whom (D283). Nothing else is in the
-// email: the response, any conditions and "Fix this in SiteReady" are on the SWMS in SiteReady. A
+// email: the response, any conditions and "Fix this in SiteWrite" are on the SWMS in SiteWrite. A
 // failed email never loses the response.
 const REVIEW_BACK = 'Your SWMS review is back';
 function reviewBackMail(review) {

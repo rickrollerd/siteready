@@ -2,13 +2,13 @@
 // into the swms 'ground onsite is very boggy' but nothing then occurs for the controls or risk rating.
 // How should this be handled?"
 //
-// D254: SiteReady offers matching controls from its library to tick, plus a box to write their own; at
+// D254: SiteWrite offers matching controls from its library to tick, plus a box to write their own; at
 // least one control is needed before download (download-gate.js). The offers are found by the hazard's
 // words: the library's hazard lines that share its rarer words (weighted by how few hazard lines use
 // them), and the sourced controls of those lines' steps that share its words. Only lines with a source
 // are offered (D181); each prints with its citation for the state, as the library's own lines do.
 // D255: the hazard gets its own likelihood and consequence, before and after its controls, suggested
-// from its words and controls as SiteReady rates any step (register.js), and the user's choice where
+// from its words and controls as SiteWrite rates any step (register.js), and the user's choice where
 // made. The step shows the higher of its own rating and each of its own hazards' ratings.
 const { ACTIVITIES } = require('./activities');
 const { localControl } = require('./citations');

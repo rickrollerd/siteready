@@ -59,12 +59,12 @@
 <body>
   <div class="wrap">
     <h1>Check a SWMS</h1>
-    <p class="meta">Check a subcontractor's SWMS against the builder check rules: seven must-fix items, then a score out of 100. Accepted is 90 to 100, accepted with changes is 60 to 89, and below 60 or any must-fix item is not accepted. You get an email to copy and send. SiteReady does not send it.</p>
-    <div id="signedOut" class="bad hidden">Sign in on the <a href="/">SiteReady page</a> first, then come back to this page.</div>
+    <p class="meta">Check a subcontractor's SWMS against the builder check rules: seven must-fix items, then a score out of 100. Accepted is 90 to 100, accepted with changes is 60 to 89, and below 60 or any must-fix item is not accepted. You get an email to copy and send. SiteWrite does not send it.</p>
+    <div id="signedOut" class="bad hidden">Sign in on the <a href="/">SiteWrite page</a> first, then come back to this page.</div>
 
     <div class="tabs" role="tablist">
       <button type="button" id="tabUpload" role="tab" aria-selected="true">Upload or paste</button>
-      <button type="button" id="tabDraft" role="tab" aria-selected="false">SiteReady draft</button>
+      <button type="button" id="tabDraft" role="tab" aria-selected="false">SiteWrite draft</button>
     </div>
 
     <form class="panel" id="checkForm">
@@ -86,7 +86,7 @@
 
       <div id="draftPart" class="hidden">
         <label for="task">Task</label>
-        <textarea id="task" placeholder="The task, as entered on the SiteReady page"></textarea>
+        <textarea id="task" placeholder="The task, as entered on the SiteWrite page"></textarea>
         <label for="fallRisk">Could anyone fall 2 metres or more?</label>
         <select id="fallRisk"><option value="">Not answered</option><option value="yes">Yes</option><option value="no">No</option></select>
         <div class="row">
@@ -130,6 +130,7 @@
       </div>
     </div>
   </div>
+  <script src="/old-keys.js"></script>
   <script src="/net.js" data-message="No signal. What you have entered stays on this page; try again when you have signal."></script>
   <script src="/check.js"></script>
 </body>

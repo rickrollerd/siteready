@@ -1,5 +1,5 @@
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
-process.env.ADMIN_EMAILS = 'owner@siteready.example';
+process.env.ADMIN_EMAILS = 'owner@sitewrite.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('crypto');
@@ -21,7 +21,7 @@ test.before(async () => {
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
   base = `http://127.0.0.1:${server.address().port}`;
-  owner = await signIn('owner@siteready.example');
+  owner = await signIn('owner@sitewrite.example');
   someone = await signIn('nosy@admin-test.example');
 });
 
@@ -103,7 +103,7 @@ test('a reference from a real download traces to the account, with the job\'s st
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   const footer = Object.keys(zip.files).filter((name) => /footer/.test(name));
   const text = (await Promise.all(footer.map((name) => zip.file(name).async('string')))).join(' ');
-  const ref = (text.match(/SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/) || [])[0];
+  const ref = (text.match(/SW-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/) || [])[0];
   assert.ok(ref, 'reference in the footer');
 
   const stored = await db.one('SELECT * FROM swms_refs WHERE ref = $1', [ref]);
@@ -125,7 +125,7 @@ test('a reference from a real download traces to the account, with the job\'s st
   assert.equal(data.accountLink, `/admin.html#account=${user.company_id}`);
   const logged = await logRows('ref_lookup', ref);
   assert.equal(logged.length, 1);
-  assert.equal(logged[0].admin_email, 'owner@siteready.example');
+  assert.equal(logged[0].admin_email, 'owner@sitewrite.example');
 
   const missing = await get('/api/admin/refs/SR-ZZZZ-ZZZZ');
   assert.equal(missing.status, 404);
@@ -316,13 +316,13 @@ test('unusual sign-ins are kept, in the numbers and as a warning sign', async ()
 test('the access log shows the last 100 looks, newest first', async () => {
   for (let n = 0; n < 110; n += 1) {
     await db.query('INSERT INTO admin_access_log (id, admin_email, action, target, created_at) VALUES ($1, $2, $3, $4, $5)',
-      [crypto.randomUUID(), 'owner@siteready.example', 'account_view', `old-${n}`, new Date(Date.now() - (n + 1) * 60000)]);
+      [crypto.randomUUID(), 'owner@sitewrite.example', 'account_view', `old-${n}`, new Date(Date.now() - (n + 1) * 60000)]);
   }
   await get('/api/admin/refs/SR-LAST-LOOK');
   const { status, data } = await get('/api/admin/access-log');
   assert.equal(status, 200);
   assert.equal(data.entries.length, 100);
-  assert.deepEqual(data.entries[0], { adminEmail: 'owner@siteready.example', action: 'ref_lookup', target: 'SR-LAST-LOOK', createdAt: data.entries[0].createdAt });
+  assert.deepEqual(data.entries[0], { adminEmail: 'owner@sitewrite.example', action: 'ref_lookup', target: 'SR-LAST-LOOK', createdAt: data.entries[0].createdAt });
   const times = data.entries.map((item) => new Date(item.createdAt).getTime());
   assert.deepEqual(times, [...times].sort((a, b) => b - a));
 });

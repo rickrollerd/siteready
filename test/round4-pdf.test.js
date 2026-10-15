@@ -32,7 +32,7 @@ test('no line of a PDF runs into the footer, wherever the licence list and the r
       const plant = [...base.plant, ...Array.from({ length: extra }, (_, n) => ({ item: `Hand tool ${n + 1}`, inspection: 'Checked before use.', licence: 'No' }))];
       const qualifications = [...base.qualifications, 'High risk work licence: dogging or rigging (DG, RB, RI or RA)', 'High risk work licence: slewing mobile crane (C2, C6, C1 or C0)', 'Working at heights training (RIIWHS204E)', 'Elevating work platform licence (WP) for a boom of 11 m or more'];
       const review = `${base.review} ${base.review}`;
-      await draftToPdf({ ...base, plant, qualifications, review }, { note: 'Drafted with SiteReady by Sam Lee on 14 October 2026.', prepared: 'Prepared with SiteReady for Hunter Steel Erectors Pty Ltd (ABN 71 417 212 325). SiteReady reference SR-C2MY-RFAA.' });
+      await draftToPdf({ ...base, plant, qualifications, review }, { note: 'Drafted with SiteWrite by Sam Lee on 14 October 2026.', prepared: 'Prepared with SiteWrite for Hunter Steel Erectors Pty Ltd (ABN 71 417 212 325). SiteWrite reference SR-C2MY-RFAA.' });
     }
   } finally {
     watch.done();

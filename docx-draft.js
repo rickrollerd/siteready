@@ -191,14 +191,14 @@ function checkedBy(confirmation) {
   ];
 }
 
-// The responses the principal contractor's reviewer returns in SiteReady (reviews.js), in the order
+// The responses the principal contractor's reviewer returns in SiteWrite (reviews.js), in the order
 // the review box prints them.
 const PC_OUTCOMES = [['approved', 'Approved'], ['conditions', 'Approved with conditions'], ['changes', 'Not approved']];
 const PC_TEXT = { approved: 'Comments', conditions: 'Conditions', changes: 'Changes needed' };
 // Numbered conditions print each on its own line (messy round 4: four printed as one paragraph).
 const conditionLines = (text) => String(text || '').replace(/(\S)[ \t]+(?=\(?\d{1,2}[.)][ \t]+\S)/g, '$1\n');
 
-// The box filled with the response the reviewer returned on this revision in SiteReady (D290): the
+// The box filled with the response the reviewer returned on this revision in SiteWrite (D290): the
 // outcome, the reviewer and their company, the date and any conditions or changes needed.
 function reviewedBox(draft, review) {
   return [
@@ -598,45 +598,45 @@ function companyHeader(draft, logo) {
 // (D286) says who checked it: "Checked by {name}, {role}, {date}".
 function draftedNote(confirmation) {
   const checked = checkedLine(confirmation);
-  if (checked) return `${checked}. Drafted with SiteReady. The business named in this SWMS reviews, approves and is responsible for it.`;
+  if (checked) return `${checked}. Drafted with SiteWrite. The business named in this SWMS reviews, approves and is responsible for it.`;
   const by = confirmation ? ` by ${confirmation.name} on ${confirmation.date}` : '';
-  return `Drafted with SiteReady${by}. The business named in this SWMS reviews, approves and is responsible for it.`;
+  return `Drafted with SiteWrite${by}. The business named in this SWMS reviews, approves and is responsible for it.`;
 }
 
 // Said above the filled review box: where the response came from.
 function reviewedNote(review) {
-  return `The principal contractor's reviewer returned this response in SiteReady${review.ref ? ` on SiteReady reference ${review.ref}` : ''}${review.revision ? `, revision ${review.revision}` : ''}.`;
+  return `The principal contractor's reviewer returned this response in SiteWrite${review.ref ? ` on SiteWrite reference ${review.ref}` : ''}${review.revision ? `, revision ${review.revision}` : ''}.`;
 }
 
-// Printed on every page: who the SWMS was prepared for, and its SiteReady reference and
+// Printed on every page: who the SWMS was prepared for, and its SiteWrite reference and
 // revision. A saved SWMS's reference names the revision it was printed for.
 function preparedFor(company, ref, revision) {
   if (!ref) return '';
   const digits = company && company.abn ? String(company.abn).replace(/\D/g, '') : '';
   const abn = company && company.abn ? ` (ABN ${digits.length === 11 ? `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}` : company.abn})` : '';
-  return `Prepared with SiteReady for ${(company && company.name) || 'the business named above'}${abn}. SiteReady reference ${ref}${revision ? `, revision ${revision}` : ''}.`;
+  return `Prepared with SiteWrite for ${(company && company.name) || 'the business named above'}${abn}. SiteWrite reference ${ref}${revision ? `, revision ${revision}` : ''}.`;
 }
 
 // A saved revision's principal contractor can open it, run the builder check and return the
-// response in SiteReady (goal 3).
+// response in SiteWrite (goal 3).
 function reviewInvite(link) {
-  return link ? `Or review it in SiteReady and send your response from there: ${link}` : '';
+  return link ? `Or review it in SiteWrite and send your response from there: ${link}` : '';
 }
 
 // The Word file is a working copy (owner decision, 6 October 2026): the PDF and the QR sign-on
 // page are the signed copies, made from the saved record.
 function workingCopy(ref, revision) {
   if (!ref || !revision) return '';
-  return `Working copy. The signed record is SiteReady reference ${ref} revision ${revision}. Changes made outside SiteReady are not part of the record.`;
+  return `Working copy. The signed record is SiteWrite reference ${ref} revision ${revision}. Changes made outside SiteWrite are not part of the record.`;
 }
 
 function buildDocument(draft, options = {}) {
   return new Document({
-    creator: 'SiteReady',
+    creator: 'SiteWrite',
     title: 'Safe work method statement',
     description: `${draft.instrument}, ${draft.versionLabel}, ${draft.sectionRef}`,
     // The reference also sits in the file's properties, where an edit to the page text does not reach.
-    ...(options.ref ? { keywords: `SiteReady ${options.ref}`, subject: preparedFor(options.company, options.ref, options.revision) } : {}),
+    ...(options.ref ? { keywords: `SiteWrite ${options.ref}`, subject: preparedFor(options.company, options.ref, options.revision) } : {}),
     styles: {
       default: {
         document: {

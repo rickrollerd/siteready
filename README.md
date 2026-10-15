@@ -1,4 +1,4 @@
-# SiteReady
+# SiteWrite
 
 A writing aid for a safe work method statement (SWMS) for one task, for the states whose legislation is loaded. It prepares a draft from the facts the user gives. The subcontractor checks, finishes and signs it. The draft is marked "Not approved. Not signed."
 
@@ -75,7 +75,7 @@ When a formwork deck is laid, the draft asks how: from below through the joists 
 
 ## Proprietary systems
 
-SiteReady does not write erection methods for proprietary formwork, scaffold or platform systems. Their supplier's instructions set how they are erected, used and dismantled. Where formwork, falsework, scaffold erection or loading platforms are found, the draft asks for the system, its supplier, the instructions it is erected to (document and revision) and who trained the crew, and stands down without them. The job steps then point to those instructions and say not to mix or change components without the supplier's approval. Documents the SWMS relies on are listed in a Documents to keep on site section.
+SiteWrite does not write erection methods for proprietary formwork, scaffold or platform systems. Their supplier's instructions set how they are erected, used and dismantled. Where formwork, falsework, scaffold erection or loading platforms are found, the draft asks for the system, its supplier, the instructions it is erected to (document and revision) and who trained the crew, and stands down without them. The job steps then point to those instructions and say not to mix or change components without the supplier's approval. Documents the SWMS relies on are listed in a Documents to keep on site section.
 
 ## Cranes
 
@@ -115,7 +115,7 @@ Rate limit counts are kept in memory only, in the primary process, so they hold 
 
 ## Native app
 
-The native app loads `public/` from the device, so it must be told where the server is. Set `content` in `<meta name="siteready-api">` in `public/index.html` to the deployed server address before running `npx cap sync`. The web page leaves it blank and calls the server it was loaded from.
+The native app loads `public/` from the device, so it must be told where the server is. Set `content` in `<meta name="sitewrite-api">` in `public/index.html` to the deployed server address before running `npx cap sync`. The web page leaves it blank and calls the server it was loaded from.
 
 ## Legislation references
 
@@ -167,7 +167,7 @@ Without them, the issue is still opened and GitHub notifies the repository owner
 
 ## Telling customers which SWMS to review
 
-Each saved revision is kept as it printed. After a change to the law or the library is released, `library-notices.js` runs each new notice in `library-notices.json` once, when the server starts: it finds every saved, active SWMS whose current revision would now print differently (the same comparison as "Updated wording is available", which includes the regulation's printed version and the list of laws and codes), marks it in My SWMS with the reason ("Review: the law or SiteReady changed"), and emails each business's administrator one list. The mark clears when the SWMS is saved as a new revision or marked reviewed.
+Each saved revision is kept as it printed. After a change to the law or the library is released, `library-notices.js` runs each new notice in `library-notices.json` once, when the server starts: it finds every saved, active SWMS whose current revision would now print differently (the same comparison as "Updated wording is available", which includes the regulation's printed version and the list of laws and codes), marks it in My SWMS with the reason ("Review: the law or SiteWrite changed"), and emails each business's administrator one list. The mark clears when the SWMS is saved as a new revision or marked reviewed.
 
 On staging, `POST /api/test/library-notice` (test hooks on) makes the named test business's SWMS read as if saved under an older regulation version and runs a notice for them, so the email can be read in the test inbox.
 

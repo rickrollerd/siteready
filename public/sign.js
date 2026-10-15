@@ -22,7 +22,7 @@
 
   // Kept on this phone: what was read and typed before a reload. key marks this worker's sign-on,
   // so one sent again after its answer was lost to no signal is not saved twice.
-  const keep = window.siteReadySignKeep || null;
+  const keep = window.siteWriteSignKeep || null;
   const saved = keep ? keep.read(token) : null;
   let key = '';
   let restoreAnswers = null;

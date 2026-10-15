@@ -26,7 +26,7 @@ function useTimes(times = {}) {
 }
 // How long one process waits for another to answer.
 const ASK_MS = 5000;
-const MESSAGE = 'siteready-check-job';
+const MESSAGE = 'sitewrite-check-job';
 
 const jobs = new Map();
 const here = () => (cluster.isWorker ? cluster.worker.id : 0);

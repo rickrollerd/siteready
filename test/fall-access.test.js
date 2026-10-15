@@ -1,7 +1,7 @@
 // Falls answered Yes where none of the task's own job steps stops a fall (hoist installation, crane
 // assembly, PT stressing, bridge barriers, pipework in ceilings, construction use of a lift): the user
 // says how the crew works at height, and the library step for that way is added, opening with the fall
-// hierarchy. Before this, these SWMS failed SiteReady's own Builder check (H2 or H3).
+// hierarchy. Before this, these SWMS failed SiteWrite's own Builder check (H2 or H3).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { prepareDraft, questionsFor } = require('../draft');

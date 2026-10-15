@@ -1,11 +1,13 @@
-// The offline page (goal 7). When a SiteReady page is opened or reloaded with no signal, the
-// phone shows SiteReady's own page saying so, and that typed work is kept, instead of the
+// The offline page (goal 7). When a SiteWrite page is opened or reloaded with no signal, the
+// phone shows SiteWrite's own page saying so, and that typed work is kept, instead of the
 // browser's error. Only that page is kept here: never the server's answers or anything personal.
 // With signal every page comes from the server as before, so a page is never shown from an old
 // copy. The server writes the version below from this file and the files it keeps (delivery.js),
 // so a release that changes any of them installs afresh and removes the old copy.
 const VERSION = '__SHELL_VERSION__';
-const PREFIX = 'siteready-shell-';
+const PREFIX = 'sitewrite-shell-';
+// The copy kept while the app was called SiteReady is removed too (owner D299).
+const OLD_PREFIXES = ['siteready-shell-'];
 const CACHE = `${PREFIX}${VERSION}`;
 const OFFLINE = '/offline.html';
 const SHELL = ['/offline.html'];
@@ -18,7 +20,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(caches.keys()
-    .then((names) => Promise.all(names.filter((name) => name.startsWith(PREFIX) && name !== CACHE).map((name) => caches.delete(name))))
+    .then((names) => Promise.all(names.filter((name) => (name.startsWith(PREFIX) || OLD_PREFIXES.some((prefix) => name.startsWith(prefix))) && name !== CACHE).map((name) => caches.delete(name))))
     .then(() => self.clients.claim()));
 });
 

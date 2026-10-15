@@ -9,7 +9,7 @@
 // are left out rather than guessed.
 const STATE_CITATIONS = require('./scenarios/state-citations.json');
 // Queensland has approved its own versions of most model codes. Their section
-// numbers were compared heading by heading with the model codes SiteReady was
+// numbers were compared heading by heading with the model codes SiteWrite was
 // written from (scenarios/qld-codes.json). A model code section is cited as the
 // Queensland code section where one matches; codes Queensland has not approved,
 // such as Construction work, stay cited as the model code.

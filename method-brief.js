@@ -1,6 +1,6 @@
 // The brief the AI reads a written methodology or sequence of works with (owner, D224 and D230,
 // 12 October 2026: "If its a written methodology, or sequence of works. Yes, it should be an option",
-// then SiteReady reads typed methodologies and suggests job steps for the user to accept). Drawings
+// then SiteWrite reads typed methodologies and suggests job steps for the user to accept). Drawings
 // and scanned pages are never sent (method-read.js). Written in the style of the scope brief
 // (ai-brief.js): every word read, quotes word for word, nothing added that the document does not say.
 // The job step groups for each step are then chosen with the scope reading's own step matching

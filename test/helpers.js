@@ -43,7 +43,7 @@ const ANSWERED = {
 };
 
 // The plant and the emergency response are asked for each task (goal 2): ready() confirms the plant
-// SiteReady lists as used and answers each emergency question, for tests about something else.
+// SiteWrite lists as used and answers each emergency question, for tests about something else.
 function ready(input) {
   const { prepareDraft } = require('../draft');
   const { draftBody } = require('../input');
@@ -54,7 +54,7 @@ function ready(input) {
     const emergency = Object.fromEntries((draft.emergencyQuestions || []).map((item) => [item.id, `${item.short} answer for this site`]));
     // Each design the steps rely on is named (designs.js), unless the test gives its own answers.
     const designs = input.designs || ((draft.designs || []).length ? draft.designs.map((row) => ({ id: row.id, what: row.what, status: 'given', by: 'Smith Engineering', number: `SE-${row.id.toUpperCase()}-101`, revision: 'C', date: '2026-10-03' })) : undefined);
-    // Each type of hazardous substance SiteReady suggests is ticked "Not required" (D277), unless
+    // Each type of hazardous substance SiteWrite suggests is ticked "Not required" (D277), unless
     // the test gives its own products or ticks.
     const types = (draft.substances && draft.substances.items) || [];
     const notUsed = input.substancesNotUsed || (input.substances || !types.length ? undefined : types.map((item) => item.product));

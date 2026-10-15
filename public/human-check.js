@@ -1,22 +1,22 @@
 // The check before a SWMS is downloaded or saved (Goal 12, D286), on the draft, on a saved SWMS and on
 // each SWMS of a project:
-//   1. SiteReady's own check runs once the list "Before you can download this SWMS" is clear: Builder
+//   1. SiteWrite's own check runs once the list "Before you can download this SWMS" is clear: Builder
 //      check on the draft as it prints (no AI). Only must-fix items block; the score and the other
 //      findings show for the person to judge.
 //   2. Then the parts unlock, and a named person ticks each one as checked (check-parts.js).
 //   3. Then their name and role (both required); the date is set by the server; today's sentence is
 //      the last tick.
-// Each tick holds the fingerprint of its part as it was read. SiteReady checks the draft again as it
+// Each tick holds the fingerprint of its part as it was read. SiteWrite checks the draft again as it
 // changes, and a part that now prints differently is unticked, with a line saying so. The ticks are
 // kept on this device, so a reload or Back keeps them while the parts are unchanged.
 (() => {
-  const S = window.SiteReady;
+  const S = window.SiteWrite;
   const { esc } = S;
   const $ = (id) => document.getElementById(id);
-  const P = () => window.SiteReadyCheckParts;
-  const STORE = 'siteready.check';
-  const NAME_KEY = 'siteready-reviewer';
-  const ROLE_KEY = 'siteready-role';
+  const P = () => window.SiteWriteCheckParts;
+  const STORE = 'sitewrite.check';
+  const NAME_KEY = 'sitewrite-reviewer';
+  const ROLE_KEY = 'sitewrite-role';
   const WAIT_MS = 600;
   const KEEP = 40;
 
@@ -24,7 +24,7 @@
   const write = (key, value) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key); } catch { /* not kept */ } };
   const kept = () => { try { return JSON.parse(read(STORE) || '{}') || {}; } catch { return {}; } };
 
-  // Each panel by its prefix ('new', 'saved'): what SiteReady's check found, the ticks with their
+  // Each panel by its prefix ('new', 'saved'): what SiteWrite's check found, the ticks with their
   // fingerprints, and what the page gives it.
   const panels = {};
 
@@ -45,7 +45,7 @@
     const role = read(ROLE_KEY);
     return `<div class="human-check" id="${prefix}-check" data-check-panel="${prefix}">
       <h3>Check it before you ${esc(verb)}</h3>
-      <p class="check-step"><strong>1. SiteReady's check</strong></p>
+      <p class="check-step"><strong>1. SiteWrite's check</strong></p>
       <div id="${prefix}-check-self" class="check-self" role="status"></div>
       <fieldset id="${prefix}-check-parts" class="check-parts">
         <legend><strong>2. Tick each part once you have read it as it will print</strong></legend>
@@ -61,29 +61,29 @@
         <label for="${prefix}-role">Your role (printed on the SWMS)</label>
         <input id="${prefix}-role" type="text" autocomplete="organization-title" maxlength="120" placeholder="For example Supervisor or Director" value="${esc(role)}">
       </div>
-      <p class="meta">The date is set by SiteReady when you ${esc(verb)}.</p>
+      <p class="meta">The date is set by SiteWrite when you ${esc(verb)}.</p>
       <label class="check"><input type="checkbox" id="${prefix}-confirm"><span>I understand this is a draft. My business will check it against the site, change it where needed, and approve it before it is used. <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
     </div>`;
   }
 
-  // What SiteReady's check says, above the ticks.
+  // What SiteWrite's check says, above the ticks.
   function selfHtml(panel) {
     if (panel.locked) return `<p class="meta">${esc(panel.locked)}</p>`;
-    if (panel.error) return `<p class="error">SiteReady could not check the draft just now. ${esc(panel.error)} <button type="button" class="link" data-check-again="${panel.prefix}">Try again</button></p>`;
+    if (panel.error) return `<p class="error">SiteWrite could not check the draft just now. ${esc(panel.error)} <button type="button" class="link" data-check-again="${panel.prefix}">Try again</button></p>`;
     const result = panel.result;
-    if (panel.pending || !result) return '<p class="meta">SiteReady is checking the draft…</p>';
-    if (result.gate && result.gate.length) return '<p class="meta">SiteReady checks the draft once everything listed above is answered.</p>';
+    if (panel.pending || !result) return '<p class="meta">SiteWrite is checking the draft…</p>';
+    if (result.gate && result.gate.length) return '<p class="meta">SiteWrite checks the draft once everything listed above is answered.</p>';
     const builder = result.builder;
-    if (!builder) return '<p class="meta">SiteReady is checking the draft…</p>';
+    if (!builder) return '<p class="meta">SiteWrite is checking the draft…</p>';
     const must = builder.mustFix || [];
     const others = builder.findings || [];
     return `<p><strong>${builder.score} out of 100</strong> (${esc(builder.band)}). ${must.length ? '' : 'Nothing must be fixed.'}</p>
-      ${must.length ? `<div class="warning check-must"><p><strong>Fix ${must.length === 1 ? 'this' : `these ${must.length}`} before you can tick the parts:</strong></p><ul>${must.map((item) => `<li>${esc(item.message)}</li>`).join('')}</ul><p class="meta">Fix it on the page, and SiteReady checks the draft again.</p></div>` : ''}
+      ${must.length ? `<div class="warning check-must"><p><strong>Fix ${must.length === 1 ? 'this' : `these ${must.length}`} before you can tick the parts:</strong></p><ul>${must.map((item) => `<li>${esc(item.message)}</li>`).join('')}</ul><p class="meta">Fix it on the page, and SiteWrite checks the draft again.</p></div>` : ''}
       ${others.length ? `<details class="check-findings"><summary>Other findings (${others.length}), for you to judge</summary><ul>${others.map((item) => `<li>${esc(item.message)}</li>`).join('')}</ul></details>` : '<p class="meta">No other findings.</p>'}`;
   }
 
   const mustFix = (panel) => Boolean(panel.result && panel.result.builder && (panel.result.builder.mustFix || []).length);
-  // The parts can be ticked once SiteReady's check is in and found nothing that must be fixed.
+  // The parts can be ticked once SiteWrite's check is in and found nothing that must be fixed.
   const open = (panel) => Boolean(!panel.locked && !panel.pending && !panel.error && panel.result && panel.result.builder && !(panel.result.gate || []).length && !mustFix(panel));
 
   function draw(panel) {
@@ -125,7 +125,7 @@
   function changed(panel) {
     draw(panel);
     if (panel.onChange) panel.onChange();
-    // Told only once SiteReady's check is in: while it runs, a check given before stands.
+    // Told only once SiteWrite's check is in: while it runs, a check given before stands.
     if (!panel.result || panel.pending || panel.error || panel.locked) return;
     const done = status(panel.prefix).ready;
     if (panel.onDone && done !== panel.done) {
@@ -159,7 +159,7 @@
     changed(panel);
   }
 
-  // Called as the page changes: SiteReady's check runs again a moment after the last change.
+  // Called as the page changes: SiteWrite's check runs again a moment after the last change.
   function refresh(prefix, { now = false } = {}) {
     const panel = panels[prefix];
     if (!panel || panel.initial) return;
@@ -171,8 +171,8 @@
   }
 
   // Sets up a drawn panel. options: key (which SWMS, for the ticks kept on this device), seed (a
-  // check given before, such as a project SWMS's), initial (SiteReady's check already made, for a saved
-  // SWMS), body () (what the draft prints from, sent to SiteReady's check), lockedBy () (why the check
+  // check given before, such as a project SWMS's), initial (SiteWrite's check already made, for a saved
+  // SWMS), body () (what the draft prints from, sent to SiteWrite's check), lockedBy () (why the check
   // waits, or ''), onChange () and onDone (check or null, note).
   function bind(prefix, options = {}) {
     const before = panels[prefix];
@@ -247,10 +247,10 @@
     const panel = panels[prefix];
     if (!panel) return { ready: false, why: '' };
     if (panel.locked) return { ready: false, why: '' };
-    if (panel.error) return { ready: false, why: 'SiteReady could not check the draft. Press Try again above.' };
-    if (panel.pending || !panel.result) return { ready: false, why: 'SiteReady is checking the draft.' };
+    if (panel.error) return { ready: false, why: 'SiteWrite could not check the draft. Press Try again above.' };
+    if (panel.pending || !panel.result) return { ready: false, why: 'SiteWrite is checking the draft.' };
     if ((panel.result.gate || []).length) return { ready: false, why: '' };
-    if (mustFix(panel)) return { ready: false, why: `Fix the must-fix ${panel.result.builder.mustFix.length === 1 ? 'item' : 'items'} SiteReady's check found above.` };
+    if (mustFix(panel)) return { ready: false, why: `Fix the must-fix ${panel.result.builder.mustFix.length === 1 ? 'item' : 'items'} SiteWrite's check found above.` };
     const parts = P().PARTS;
     const left = parts.filter((part) => !panel.ticks[part.id]);
     const name = ($(`${prefix}-name`) || {}).value || '';
@@ -268,7 +268,7 @@
   function value(prefix) {
     const panel = panels[prefix];
     const now = status(prefix);
-    if (!now.ready) throw new Error(now.why || 'SiteReady\'s check waits for the items listed above.');
+    if (!now.ready) throw new Error(now.why || 'SiteWrite\'s check waits for the items listed above.');
     const name = $(`${prefix}-name`).value.replace(/\s+/g, ' ').trim();
     const role = $(`${prefix}-role`).value.replace(/\s+/g, ' ').trim();
     write(NAME_KEY, name);
@@ -276,7 +276,7 @@
     return { check: { parts: Object.fromEntries(P().IDS.map((id) => [id, true])), partHashes: { ...panel.ticks }, name, role, ack: true } };
   }
 
-  // A refusal from the server: parts it found changed are unticked, and SiteReady checks again.
+  // A refusal from the server: parts it found changed are unticked, and SiteWrite checks again.
   function refused(prefix, error) {
     const panel = panels[prefix];
     if (!panel || !error) return;

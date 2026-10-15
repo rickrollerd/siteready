@@ -103,7 +103,7 @@ function recordFor(draft, input, company) {
   const postcode = (String(input.workplace || '').match(/\b(\d{4})\b(?!.*\b\d{4}\b)/) || [])[1] || '';
   const plant = [...new Set((draft.plant || []).map((item) => item.item))].sort();
   const licences = [...new Set((draft.plant || []).flatMap((item) => String(item.licence || '').match(LICENCE) || []))].sort();
-  // Library job steps only: a step SiteReady made from the task's own words, or one the user wrote,
+  // Library job steps only: a step SiteWrite made from the task's own words, or one the user wrote,
   // is free text and left out.
   const steps = [...new Set((draft.jobSteps || []).filter((step) => !step.fallback && !step.own).map((step) => step.step))];
   const month = new Date().toISOString().slice(0, 7);

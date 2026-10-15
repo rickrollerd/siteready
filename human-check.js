@@ -1,5 +1,5 @@
 // The check every SWMS gets before it is downloaded or saved (Goal 12, D286):
-//   1. SiteReady's own check: the download gate (download-gate.js), then Builder check on the draft,
+//   1. SiteWrite's own check: the download gate (download-gate.js), then Builder check on the draft,
 //      with no AI. Only must-fix items block; the score and the other findings show for the person
 //      to judge.
 //   2. A named person ticks each part as checked (public/check-parts.js), gives their name and role,
@@ -16,7 +16,7 @@ const parts = require('./public/check-parts');
 
 // The last day a page from before the check is accepted (owner to confirm, D286 follow-up).
 const OLD_CHECK_UNTIL = '2026-10-28';
-const REFRESH = 'SiteReady now asks you to tick each part of the SWMS as checked, with your name and role. Refresh the page to see it, then try again.';
+const REFRESH = 'SiteWrite now asks you to tick each part of the SWMS as checked, with your name and role. Refresh the page to see it, then try again.';
 
 const fail = (status, message, extra = {}) => Object.assign(new Error(message), { status, publicMessage: true, ...extra });
 
@@ -26,12 +26,12 @@ function longDate(date) {
 
 const oneLine = (value, limit) => textField(value, limit).replace(/\s+/g, ' ').trim();
 
-// Builder check on a SiteReady draft, as a builder reads the printed SWMS: no upload and no AI. The
+// Builder check on a SiteWrite draft, as a builder reads the printed SWMS: no upload and no AI. The
 // must-fix items (the hard fails) block; the others are for the person to judge.
 function builderCheck(draft, state) {
   const result = checkSwms(fromDraft(draft, { state }), { state, stage: 'review' });
   const failed = result.findings.filter((item) => !item.pass);
-  // Before sign-on, a SiteReady draft records consultation by naming who checks the controls, so H7
+  // Before sign-on, a SiteWrite draft records consultation by naming who checks the controls, so H7
   // fails only with H6: one fix, said once.
   const hard = failed.filter((item) => item.hard && !(item.rule === 'H7' && failed.some((other) => other.rule === 'H6')));
   return {
@@ -42,14 +42,14 @@ function builderCheck(draft, state) {
   };
 }
 
-// What the page's check panel shows: SiteReady's check and each part's fingerprint.
+// What the page's check panel shows: SiteWrite's check and each part's fingerprint.
 function selfCheck(draft, state) {
   return { builder: builderCheck(draft, state), partHashes: parts.partHashes(draft) };
 }
 
 function mustFixMessage(builder, doing = 'downloading') {
   const items = builder.mustFix;
-  return `SiteReady's check found ${items.length === 1 ? 'a must-fix item' : `${items.length} must-fix items`}. Fix ${items.length === 1 ? 'it' : 'them'} before ${doing}: ${items.map((item) => item.message.replace(/\.$/, '')).join('. ')}.`;
+  return `SiteWrite's check found ${items.length === 1 ? 'a must-fix item' : `${items.length} must-fix items`}. Fix ${items.length === 1 ? 'it' : 'them'} before ${doing}: ${items.map((item) => item.message.replace(/\.$/, '')).join('. ')}.`;
 }
 
 // Whether a page from before the check may still send its one tick: until OLD_CHECK_UNTIL (end of
@@ -73,7 +73,7 @@ function confirm(body, draft, { state, at = new Date(), doing = 'downloading', o
     if (oldShape !== 'allow' || !oldShapeAllowed(at)) throw fail(400, REFRESH, { field: 'refresh' });
     const name = oneLine(given.reviewedBy, 120);
     if (given.reviewConfirmed !== true || !name) throw fail(400, 'Confirm that your business will review and approve this SWMS, and enter your name.');
-    // SiteReady's own check still applies to an old page.
+    // SiteWrite's own check still applies to an old page.
     const builder = draft ? builderCheck(draft, state) : null;
     if (builder && builder.mustFix.length) throw fail(400, mustFixMessage(builder, doing), { field: 'mustFix' });
     return { name, date: longDate(at) };

@@ -1,7 +1,7 @@
 // The task for a work package the AI read from a scope of works. Used by the browser and the tests.
 //
 // packageTask keeps where each activity is done, its conditions and its plant, so the high risk check
-// sees "near roads", "energised switchboards" or "road sweeper". It is the words SiteReady reads the
+// sees "near roads", "energised switchboards" or "road sweeper". It is the words SiteWrite reads the
 // work from; it is not printed.
 //
 // Owner, 13 October 2026 (D251, D252): the task a SWMS prints is a plain list of the work in short plain
@@ -56,7 +56,7 @@
     return lines.join(' ');
   }
 
-  // Where the work is done, its conditions and its plant, as notes SiteReady reads with the task when
+  // Where the work is done, its conditions and its plant, as notes SiteWrite reads with the task when
   // the user has changed the task's words. Not printed.
   function scopeNotes(rows) {
     const parts = [];
@@ -122,5 +122,5 @@
 
   const api = { packageTask, plainTask, scopeNotes, scopeSite, scopePlant, scopeWords, siteSuggestions };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyScopeTask = api;
+  else root.SiteWriteScopeTask = api;
 })(typeof window !== 'undefined' ? window : globalThis);

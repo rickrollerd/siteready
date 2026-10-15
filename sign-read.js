@@ -2,7 +2,7 @@
 // minimum reading times, the check questions, the line on the sign-on sheet, and translations
 // of the SWMS to help workers read it. The English version applies.
 // Each read gets its own two questions from a pool built from the SWMS (task #95).
-// How a worker read (language, time, sections viewed, check attempts) is kept for SiteReady's
+// How a worker read (language, time, sections viewed, check attempts) is kept for SiteWrite's
 // own learning only (owner decision, 6 October 2026). It is never shown to the business or
 // the builder, never exported, and never put in the industry data: the sign-on sheet shows only
 // that the worker read, agreed and signed.

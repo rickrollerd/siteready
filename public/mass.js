@@ -74,5 +74,5 @@
 
   const api = { withMass, withMassHtml, massText };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyMass = api;
+  else root.SiteWriteMass = api;
 })(typeof window !== 'undefined' ? window : globalThis);

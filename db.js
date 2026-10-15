@@ -194,7 +194,7 @@ const SCHEMA = [
     signed_at TIMESTAMPTZ NOT NULL
   )`,
   // Proof of reading (task #92): how each worker read the SWMS before signing on. Kept for
-  // SiteReady's own learning only: never shown to the business or put in the industry data.
+  // SiteWrite's own learning only: never shown to the business or put in the industry data.
   "ALTER TABLE signons ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT ''",
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS read_seconds INTEGER',
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS sections_viewed INTEGER',
@@ -302,7 +302,7 @@ const SCHEMA = [
   'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS revision INTEGER',
   'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS content_hash TEXT',
   // What users change in their SWMS, once for each saved revision (owner decisions, 6 October
-  // 2026): the step, the kind of change and how it came out, SiteReady's line, the user's words
+  // 2026): the step, the kind of change and how it came out, SiteWrite's line, the user's words
   // with personal details taken out, any warning and reason, and whether the change was kept in
   // the next revision. The SWMS is known only by a keyed fingerprint. Written only when
   // CONTROL_LEARNING is on; kept 3 years. Replaces the counted control_edits rows.
@@ -344,7 +344,7 @@ const SCHEMA = [
     item TEXT NOT NULL DEFAULT '',
     chosen TEXT NOT NULL DEFAULT ''
   )`,
-  // Job steps users write for work SiteReady has no job steps for (owner, 11 October 2026), once for
+  // Job steps users write for work SiteWrite has no job steps for (owner, 11 October 2026), once for
   // each saved revision: the part of the task the step was written for, the step's name, hazards,
   // controls and Who, each with personal details taken out, and the state, trade and month. The
   // SWMS is known only by a keyed fingerprint. Written only when CONTROL_LEARNING is on; kept 3 years.

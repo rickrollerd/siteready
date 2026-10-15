@@ -156,7 +156,7 @@ test('"mobile plant: Stopped by" is asked only where this SWMS uses mobile plant
   const none = { ...draft, plant: [{ item: 'Scaffold' }, { item: 'Ladders' }] };
   assert.ok(none.highRisk.some((item) => /powered mobile plant/i.test(item)));
   assert.ok(!emergencyQuestions(none).some((item) => item.id === 'plantStop'));
-  // Plant SiteReady was not sure of counts only once the plant is confirmed.
+  // Plant SiteWrite was not sure of counts only once the plant is confirmed.
   const maybe = { ...draft, plant: [{ item: 'Forklift' }], plantInferred: [{ item: 'Forklift', maybe: true }], plantChosen: false };
   assert.ok(!emergencyQuestions(maybe).some((item) => item.id === 'plantStop'));
   assert.ok(emergencyQuestions({ ...maybe, plantChosen: true }).some((item) => item.id === 'plantStop'));

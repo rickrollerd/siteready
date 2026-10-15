@@ -7,13 +7,14 @@ const { findState } = require('./legislation');
 
 // Letters and digits that cannot be misread for each other (no 0/O, 1/I/L).
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-// What a reference looks like, such as SR-ABCD-2345.
-const REF_PATTERN = /^SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/;
+// What a reference looks like, such as SW-ABCD-2345. References issued while the app was called
+// SiteReady start SR- and keep working everywhere (owner D295).
+const REF_PATTERN = /^S[RW]-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/;
 
 function newRef() {
   const bytes = crypto.randomBytes(8);
   const chars = [...bytes].map((byte) => ALPHABET[byte % ALPHABET.length]).join('');
-  return `SR-${chars.slice(0, 4)}-${chars.slice(4)}`;
+  return `SW-${chars.slice(0, 4)}-${chars.slice(4)}`;
 }
 
 // The job's state and postcode, from the form. The rest of the address is not kept.

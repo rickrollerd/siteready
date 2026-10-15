@@ -38,7 +38,7 @@ function makeDoc() {
   // paragraph) moves to the next page before it reaches the footer (messy round 4, A fault 2: the
   // dogging licence line printed on top of the footer). Tables stop a little higher (bottom), so a
   // row fitted to the page never runs into the margin.
-  return new PDFDocument({ size: 'A4', layout: 'landscape', margins: { top: MARGIN, bottom: MARGIN + FOOTER_SPACE - 6, left: MARGIN, right: MARGIN }, bufferPages: true, info: { Title: 'Safe work method statement', Creator: 'SiteReady' } });
+  return new PDFDocument({ size: 'A4', layout: 'landscape', margins: { top: MARGIN, bottom: MARGIN + FOOTER_SPACE - 6, left: MARGIN, right: MARGIN }, bufferPages: true, info: { Title: 'Safe work method statement', Creator: 'SiteWrite' } });
 }
 
 function contentWidth(doc) {
@@ -351,7 +351,7 @@ function draftToPdf(draft, options = {}) {
     heading(doc, 'Principal contractor review');
     const review = options.pcReview;
     if (review) {
-      // The response the reviewer returned on this revision in SiteReady (D290).
+      // The response the reviewer returned on this revision in SiteWrite (D290).
       text(doc, reviewedNote(review), { size: 9, color: MUTED, after: 0.3 });
       table(doc, {
         widths: pairWidths,
@@ -385,7 +385,7 @@ function draftToPdf(draft, options = {}) {
     doc.page.margins.bottom = 0;
     const y = doc.page.height - MARGIN - 20;
     doc.font('Helvetica').fontSize(7.5).fillColor(MUTED);
-    // With a SiteReady reference, the footer takes a third line: who the SWMS was prepared for.
+    // With a SiteWrite reference, the footer takes a third line: who the SWMS was prepared for.
     const top = options.prepared ? y - 10 : y;
     doc.text(printable(`${draft.instrument}  ·  ${draft.sectionRef}`), MARGIN, top, { width: contentWidth(doc), lineBreak: false });
     doc.text(printable(options.note || ''), MARGIN, top + 10, { width: contentWidth(doc) - 60, lineBreak: false });

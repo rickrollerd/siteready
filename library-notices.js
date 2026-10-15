@@ -65,13 +65,13 @@ function noticeEmail(notice, items, siteNames = {}) {
   });
   const one = items.length === 1;
   return {
-    subject: `SiteReady: ${plural(items.length, 'SWMS', 'SWMS')} to review after a change`,
+    subject: `SiteWrite: ${plural(items.length, 'SWMS', 'SWMS')} to review after a change`,
     text: [
       'Hello,',
       '',
       notice.reason.trim(),
       '',
-      `SiteReady has been updated to match. ${one ? 'This saved SWMS would now print differently:' : 'These saved SWMS would now print differently:'}`,
+      `SiteWrite has been updated to match. ${one ? 'This saved SWMS would now print differently:' : 'These saved SWMS would now print differently:'}`,
       '',
       ...lines,
       '',
@@ -79,11 +79,11 @@ function noticeEmail(notice, items, siteNames = {}) {
         : 'Nothing in them has changed yet. Each one still prints as it was saved, so it is still the record your workers signed.',
       '',
       'What to do:',
-      `1. Sign in to SiteReady and open My SWMS. ${one ? 'It is' : 'They are'} marked "Review: the law or SiteReady changed".`,
+      `1. Sign in to SiteWrite and open My SWMS. ${one ? 'It is' : 'They are'} marked "Review: the law or SiteWrite changed".`,
       `2. Open ${one ? 'it' : 'each one'} and read "What would change".`,
       '3. If the changes suit the job, make a new revision with the updated wording. Your workers then sign on to the new revision.',
       '',
-      'SiteReady',
+      'SiteWrite',
     ].join('\n'),
   };
 }

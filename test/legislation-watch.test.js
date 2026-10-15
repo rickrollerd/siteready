@@ -118,7 +118,7 @@ test('a hand check is due monthly, from the last one recorded', () => {
   assert.equal(handCheckDue(undefined, '2026-10-09'), true);
 });
 
-test('every law and code SiteReady can print is watched, and each source names what it cites', () => {
+test('every law and code SiteWrite can print is watched, and each source names what it cites', () => {
   const { coverage, printedSources, STATES } = require('../legislation-watch/coverage');
   const printed = printedSources();
   // The list comes from the code: each state prints its own regulation, its codes and the national laws.
@@ -133,7 +133,7 @@ test('every law and code SiteReady can print is watched, and each source names w
   // Each cite names a state and, on a list, the pattern its line on the list matches.
   const lists = [...require('../legislation-watch/sources.json'), ...require('../legislation-watch/codes.json')];
   for (const source of lists) {
-    assert.ok(source.cites && source.cites.length, `${source.id} says what SiteReady cites it as`);
+    assert.ok(source.cites && source.cites.length, `${source.id} says what SiteWrite cites it as`);
     for (const cite of source.cites) {
       assert.ok([...STATES, 'all'].includes(cite.state) && cite.name, source.id);
       if (cite.item) assert.doesNotThrow(() => new RegExp(cite.item, 'i'), source.id);
@@ -208,12 +208,12 @@ test('mock changes to a Victorian compliance code, a WA code and an NT electrica
   assert.match(report, /Northern Territory: Electrical Safety Regulations 2024\*\*: version changed from REPE047R1 to REPE048/);
   assert.match(report, /New or changed: Compliance code plant \| \/resources\/compliance-code-plant \| 2026-10-20/);
   assert.match(report, /New or changed: Construction work: Code of practice \| \/system\/files\/documents\/2026-10\/261020_cp_construction\.pdf/);
-  // Each change names the law or code as SiteReady prints it, the lines citing it in that state, and the command.
+  // Each change names the law or code as SiteWrite prints it, the lines citing it in that state, and the command.
   for (const [state, name, place] of [['nt', 'Electrical Safety Regulations 2024 (NT)', 'the Northern Territory'], ['vic', 'Compliance code: Plant 2019 (Vic)', 'Victoria'], ['wa', 'Construction work Code of practice 2022 (WA)', 'Western Australia']]) {
     const count = linesCiting(state, name, 'all').length;
     assert.ok(count >= 5, `${name}: ${count} lines`);
     const command = `node scripts/lines-citing.js ${state} "${name}" all`;
-    assert.ok(report.includes(`SiteReady cites "${name}" in ${place}. ${count} control lines cite it. List them: \`${command}\``), `${name}\n${report}`);
+    assert.ok(report.includes(`SiteWrite cites "${name}" in ${place}. ${count} control lines cite it. List them: \`${command}\``), `${name}\n${report}`);
     // Step 2: the command lists those lines as that state's SWMS print them.
     const out = execFileSync(process.execPath, [path.join(__dirname, '..', 'scripts', 'lines-citing.js'), state, name, 'all']).toString();
     assert.ok(out.includes(`${state.toUpperCase()}: ${count} control lines citing ${name} (any section)`), out.slice(0, 300));

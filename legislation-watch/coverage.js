@@ -1,4 +1,4 @@
-// Goal 10: every law and code of practice SiteReady can print, in each state, and how the daily
+// Goal 10: every law and code of practice SiteWrite can print, in each state, and how the daily
 // watch covers it. The list is taken from the code, not kept by hand:
 //   the library's control lines as each state prints them (citations.js), read the way the SWMS
 //   lists its legislation and codes (register.js legislationFor);
@@ -6,7 +6,7 @@
 //   citations.js with their state, and each state's own codes and laws in
 //   scenarios/state-codes.json, vic-lines.json and state-lines.json;
 //   the laws legislation.js names in a state's own wording (such as the overhead line rule).
-// Each source in sources.json and codes.json says what SiteReady cites it as ("cites"), so a change
+// Each source in sources.json and codes.json says what SiteWrite cites it as ("cites"), so a change
 // it finds maps to the lines citing it (scripts/lines-citing.js).
 //
 //   node legislation-watch/coverage.js          list each state's laws and codes and how each is watched

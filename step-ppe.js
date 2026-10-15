@@ -414,9 +414,9 @@ function placements(ppe) {
   return out;
 }
 
-// What the user changed from SiteReady's suggestion, for the learning store (D212): items unticked,
+// What the user changed from SiteWrite's suggestion, for the learning store (D212): items unticked,
 // moved to all work, or added to a step or to all work. Only the user's own changes count: the items
-// they ticked or unticked (input.ppe) and the items they placed (input.ppeSteps), not where SiteReady
+// they ticked or unticked (input.ppe) and the items they placed (input.ppeSteps), not where SiteWrite
 // put an item. Each change has its kind, its step ('' for all work) and the item's label.
 function ppeChanges(suggested, final, input = {}) {
   const was = placements(suggested);

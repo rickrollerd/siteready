@@ -64,7 +64,7 @@ test('each blank left is named in the warning (D245); none left, no warning', ()
   assert.equal(fill.blankWarning(text), 'Fill in the blanks: the design number; its revision; who checks and signs off the formwork before the pour.');
   assert.equal(fill.blankWarning(standard('loadLimits', 'Engineer\'s drawing')), 'Fill in the blanks: the drawing number; the load limit in kPa; who checks the loads before loading starts.');
   assert.equal(fill.blankWarning(standard('excavationPlan', 'Geotechnical design')), 'Fill in the blanks: the design number; its revision; the steepest batter angle; the traffic management plan (TMP) number.');
-  // A blank in words SiteReady does not know is named by the words around it.
+  // A blank in words SiteWrite does not know is named by the words around it.
   assert.equal(fill.blankWarning('The exclusion zone is ____ m around the rig.'), 'Fill in the blank: exclusion zone (metres).');
   assert.equal(fill.blankWarning('Checked and signed off by Pat Lee before the pour.'), '');
 });
@@ -129,7 +129,7 @@ test('the page: the question holds its design card, which says what it does ther
   assert.doesNotMatch(p.run(`factHtml(${JSON.stringify({ ...item, id: 'fallControl' })})`), /question-design/);
   const card = p.run(`designCard({ id: 'formwork', what: 'Formwork design', status: '' }, null, { question: true })`);
   assert.match(card, /Give the design once here\. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS\.<\/p>/);
-  assert.match(card, /SiteReady reads the typed words of a PDF's title block to fill in the details above for you to check\. It does not read the drawing itself, a scan or a photo\./);
+  assert.match(card, /SiteWrite reads the typed words of a PDF's title block to fill in the details above for you to check\. It does not read the drawing itself, a scan or a photo\./);
   assert.match(card, /I have it[^]*Not issued yet[^]*Not needed for this work/);
   assert.doesNotMatch(card, /Prints in the designs table near the top of the SWMS\.<\/p>/);
   // A question's design not answered is not sent; answered, it is.

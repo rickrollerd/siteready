@@ -37,7 +37,7 @@ const HRCW_SECTION = { qld: '291', nsw: '291', vic: '322', sa: '291' };
 
 async function get(url) {
   const response = await fetch(url, {
-    headers: { 'User-Agent': 'SiteReady legislation cross-check (github.com/rickrollerd/siteready)' },
+    headers: { 'User-Agent': 'SiteWrite legislation cross-check (github.com/rickrollerd/siteready)' },
     signal: AbortSignal.timeout(30000),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);

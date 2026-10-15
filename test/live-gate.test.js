@@ -126,10 +126,10 @@ function respond(method, route, body) {
   if (route === '/api/sites') return { body: { sites: [] } };
   if (route === '/api/steps') return { body: { groups: [] } };
   if (route === '/api/draft') return { body: server(body) };
-  // SiteReady's check (D286) of the same input.
+  // SiteWrite's check (D286) of the same input.
   if (route === '/api/draft/check') return { body: selfCheck(inputFor(body)) };
   if (route === '/api/draft/questions') return { body: { required: [], steps: { chosen: [] } } };
-  if (route === '/api/draft.docx') return { headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 's1', 'x-siteready-revision': '1', 'x-siteready-title': 'Switchboard' } };
+  if (route === '/api/draft.docx') return { headers: { 'content-type': 'application/octet-stream', 'x-sitewrite-swms': 's1', 'x-sitewrite-revision': '1', 'x-sitewrite-title': 'Switchboard' } };
   return { body: {} };
 }
 
@@ -149,7 +149,7 @@ const listCount = (p) => (p.document.getElementById('result-gate').innerHTML.mat
 const topLine = (p) => p.document.getElementById('result-gate-top').innerHTML;
 
 test('on the page, the list and its count drop each item as it is answered, and the buttons work once it is empty', async () => {
-  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond, { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond, { stored: { 'sitewrite.session': 'token' } });
   await settle();
   p.document.getElementById('task').value = LIVE.task;
   // The site questions were answered before the draft was prepared.
@@ -161,8 +161,8 @@ test('on the page, the list and its count drop each item as it is answered, and 
   assert.ok(draft.gate.some((gap) => gap.kind === 'emergency') && draft.gate.some((gap) => gap.kind === 'line') && draft.gate.some((gap) => gap.id === 'principalContractor'), 'people, emergency questions and blanks are asked');
   assert.equal(listCount(p), first);
   assert.match(topLine(p), new RegExp(`${first} items need dealing with`));
-  // SiteReady's check and the parts wait for the list (D286).
-  assert.match(p.document.getElementById('new-check-self').innerHTML, /SiteReady checks the draft once everything listed above is answered\./);
+  // SiteWrite's check and the parts wait for the list (D286).
+  assert.match(p.document.getElementById('new-check-self').innerHTML, /SiteWrite checks the draft once everything listed above is answered\./);
   assert.equal(p.document.getElementById('new-part-steps').disabled, true);
   assert.equal(p.document.getElementById('new-docx').disabled, true);
 
@@ -191,7 +191,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
   assert.equal(listCount(p), 0);
   assert.equal(p.document.getElementById('result-gate').innerHTML, '');
   assert.equal(topLine(p), '');
-  // The list is clear: SiteReady's check runs, then the parts are ticked with a name and role.
+  // The list is clear: SiteWrite's check runs, then the parts are ticked with a name and role.
   await settle();
   assert.match(p.document.getElementById('new-check-self').innerHTML, /out of 100/);
   assert.equal(p.document.getElementById('new-docx').disabled, true);
@@ -215,7 +215,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
 
 test('on the page, a change that needs a new draft says so beside the buttons, which wait for it', async () => {
   const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], (method, route, body) => (route === '/api/draft' ? { body: { ...server({ ...ANSWERED, ...body }), gate: [], gateChecks: [] } }
-    : route === '/api/draft/check' ? { body: selfCheck(inputFor({ ...ANSWERED, ...body }), { gate: false, clean: true }) } : respond(method, route, body)), { stored: { 'siteready.session': 'token' } });
+    : route === '/api/draft/check' ? { body: selfCheck(inputFor({ ...ANSWERED, ...body }), { gate: false, clean: true }) } : respond(method, route, body)), { stored: { 'sitewrite.session': 'token' } });
   await settle();
   p.document.getElementById('task').value = LIVE.task;
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
@@ -223,7 +223,7 @@ test('on the page, a change that needs a new draft says so beside the buttons, w
   checkAll(p);
   assert.equal(p.document.getElementById('new-docx').disabled, false, p.document.getElementById('new-gate-note').innerHTML + p.document.getElementById('new-check-self').innerHTML);
   // A person's name prints as given: no new draft is needed, but the emergency arrangements print it,
-  // so their tick is cleared once SiteReady checks the draft again (D286), and ticked again.
+  // so their tick is cleared once SiteWrite checks the draft again (D286), and ticked again.
   type(p, 'first-aider', 'Fiona Aid');
   await settle();
   assert.equal(p.document.getElementById('new-part-emergency').checked, false);

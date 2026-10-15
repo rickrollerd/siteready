@@ -14,7 +14,7 @@
 // D181: the controls are the SDS's own words (read word for word, or typed by the user from it).
 //
 // The download waits until each product listed is complete and ticked as matching its SDS, and each
-// type SiteReady suggests has a product or is ticked "Not required" (download-gate.js, D277). A SWMS with no product added prints and checks as before, apart from the old
+// type SiteWrite suggests has a product or is ticked "Not required" (download-gate.js, D277). A SWMS with no product added prints and checks as before, apart from the old
 // table of types, which no longer prints.
 const rules = require('./public/substance-rules');
 const { controlLevel, withoutCitation } = require('./control-level');
@@ -133,7 +133,7 @@ function tableRows(draft) {
     orSection(row.controls, 'section 8'),
     orSection(row.firstAid, 'section 4'),
     orSection(row.storage, 'sections 6 and 7'),
-    [rules.dateOf(row.sdsDate) ? `Issued ${dateText(row.sdsDate)}.` : '', row.file ? `A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : ''].filter(Boolean).join('\n'),
+    [rules.dateOf(row.sdsDate) ? `Issued ${dateText(row.sdsDate)}.` : '', row.file ? `A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''].filter(Boolean).join('\n'),
   ]);
 }
 
@@ -146,7 +146,7 @@ function gateItems(draft) {
   }));
 }
 
-// Each type SiteReady suggests for the work (register.js) must have a product listed or be ticked "Not
+// Each type SiteWrite suggests for the work (register.js) must have a product listed or be ticked "Not
 // used on this job" before download (owner, D277: "Must add or tick"): { type, short, need }. A ticked
 // type prints nothing. A product of the type, even one still being filled in, covers it: the product
 // has its own item.

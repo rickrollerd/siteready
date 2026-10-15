@@ -128,7 +128,7 @@ test('a reviewer link never opens an account, and reviewer and account sessions 
   const expired = await call('POST', '/api/review/verify', { body: { token: late } });
   assert.equal(expired.status, 400);
   assert.match((await expired.json()).message, /expired or has been used\. Ask for a new one/);
-  // A link is only sent for a reference that is in SiteReady's records.
+  // A link is only sent for a reference that is in SiteWrite's records.
   assert.equal((await call('POST', '/api/review/email', { body: { email: 'hse@tierone.example', ref: 'SR-2222-2222' } })).status, 404);
   assert.equal((await call('POST', '/api/review/email', { body: { email: 'hse@tierone.example', ref: 'nonsense' } })).status, 400);
   assert.equal((await call('POST', '/api/review/email', { body: { email: 'not an email', ref } })).status, 400);
@@ -140,17 +140,47 @@ test('a reviewer link never opens an account, and reviewer and account sessions 
 test('a reference is read as typed or pasted, and a wrong one is named plainly', async () => {
   assert.equal(reviews.cleanRef(' sr abcd 2345 '), 'SR-ABCD-2345');
   assert.equal(reviews.cleanRef('SRABCD2345'), 'SR-ABCD-2345');
-  assert.equal(reviews.cleanRef('SiteReady reference SR-ABCD-2345, revision 2'), 'SR-ABCD-2345');
+  assert.equal(reviews.cleanRef('SiteWrite reference SR-ABCD-2345, revision 2'), 'SR-ABCD-2345');
   assert.equal(reviews.cleanRef('SR-ABCD-23456'), 'SR-ABCD-23456');
+  // New references start SW- (D295), read the same ways.
+  assert.equal(reviews.cleanRef(' sw abcd 2345 '), 'SW-ABCD-2345');
+  assert.equal(reviews.cleanRef('SWMS for review, SiteWrite reference SWABCD2345, revision 2'), 'SW-ABCD-2345');
   const { ref } = await savedSwms('typed@business.example');
+  assert.match(ref, /^SW-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/, 'a new SWMS gets an SW- reference');
   const reviewer = await reviewerSignIn('typed@tierone.example', ref.toLowerCase().replace(/-/g, ' '));
   assert.equal((await call('GET', `/api/review/swms/${encodeURIComponent(ref.toLowerCase().replace(/-/g, ''))}`, { reviewer })).status, 200);
   const wrong = await call('GET', '/api/review/swms/SR-2222-2223', { reviewer });
   assert.equal(wrong.status, 404);
-  assert.match((await wrong.json()).message, /not in SiteReady's records\. Check each letter and number/);
+  assert.match((await wrong.json()).message, /not in SiteWrite's records\. Check each letter and number/);
   const shape = await call('GET', '/api/review/swms/12345', { reviewer });
   assert.equal(shape.status, 400);
-  assert.match((await shape.json()).message, /looks like SR-ABCD-2345/);
+  assert.match((await shape.json()).message, /looks like SW-ABCD-2345 \(or SR-ABCD-2345 on older SWMS\)/);
+});
+
+// A SWMS printed while the app was called SiteReady carries an SR- reference (D295). It still verifies,
+// is found however it is typed, and can be reviewed and responded to, as a new SW- reference can.
+test('an old SR- reference still verifies and can be reviewed', async () => {
+  const { token, id, ref } = await savedSwms('old-ref@business.example');
+  const old = `SR-${ref.slice(3)}`;
+  // As it was issued before the change of name.
+  await db.query('UPDATE swms_refs SET ref = $1 WHERE ref = $2', [old, ref]);
+  await db.query('UPDATE swms_revisions SET ref = $1 WHERE ref = $2', [old, ref]);
+  const verified = await (await call('GET', `/api/verify/${old}`)).json();
+  assert.equal(verified.found, true);
+  assert.equal(verified.ref, old);
+  assert.equal(verified.reviewable, true);
+  assert.equal((await (await call('GET', `/api/verify/${old.toLowerCase()}`)).json()).found, true, 'typed in lower case');
+  assert.equal((await (await call('GET', `/api/verify/${ref}`)).json()).found, false, 'the SW- form of an old reference is not a second reference');
+  const reviewer = await reviewerSignIn('old-ref@tierone.example', old.toLowerCase().replace(/-/g, ' '));
+  const opened = await call('GET', `/api/review/swms/${old}`, { reviewer });
+  assert.equal(opened.status, 200);
+  const sent = await call('POST', `/api/review/swms/${old}/response`, { reviewer, body: { response: 'approved', name: 'Priya Shah', company: 'Tier One Builders' } });
+  assert.equal(sent.status, 201);
+  const row = await db.one('SELECT ref, swms_id FROM swms_reviews WHERE swms_id = $1', [id]);
+  assert.deepEqual([row.ref, row.swms_id], [old, id]);
+  assert.equal((await (await call('GET', `/api/verify/${old}`)).json()).review.label, 'Approved');
+  const listed = await (await call('GET', '/api/swms', { token })).json();
+  assert.equal(listed.swms.find((entry) => entry.id === id).review.label, 'Approved');
 });
 
 test('the reviewer sees the revision exactly as saved, never who signed on or how they read it', async () => {
@@ -208,7 +238,7 @@ const pdf = (extra = '') => Buffer.from(`%PDF-1.4\n1 0 obj << /Type /Catalog /Pa
 const upload = async (token, data, name) => (await (await call('POST', '/api/designs/files', { token, raw: data, headers: { 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(name) } })).json()).file;
 
 // A SWMS with today's parts: a design with its file, a product from its safety data sheet with its
-// file, a hazard the user added with its own control, and a SiteReady hazard that does not apply.
+// file, a hazard the user added with its own control, and a SiteWrite hazard that does not apply.
 function richInput(designFile, sdsFile) {
   const start = answered({ ...ANSWERED, state: 'qld', fallRisk: 'no', residential: 'no', task: SHORING, date: '14 October 2026', designs: [{ ...GIVEN, file: designFile }] });
   const first = prepareDraft(draftBody(ready(start)));
@@ -249,7 +279,7 @@ test('the read-only sheet carries today\'s content: designs, products from their
   assert.ok(data.draft.jobSteps.some((item) => item.controls.some((line) => /FuelMax Diesel/.test(line))));
   assert.ok(data.tables.stepPpe.length >= 1, 'PPE for particular steps');
   assert.ok(data.tables.stepPpe.every((item) => item.label && item.steps.length));
-  // The user's own hazard with its own control, and a removed SiteReady hazard marked as not applying.
+  // The user's own hazard with its own control, and a removed SiteWrite hazard marked as not applying.
   const printed = data.draft.jobSteps.find((item) => item.step === step);
   assert.ok(printed.hazards.includes(`${BOGGY} (Our own hazard)`));
   assert.ok(printed.hazards.includes(`${removed} (Does not apply to this job)`));
@@ -284,7 +314,7 @@ test('Builder check runs on the kept revision with no upload and no AI', async (
   assert.equal(result.score, expected.score);
   assert.equal(result.band, expected.band);
   assert.deepEqual(result.hardFails, expected.hardFails);
-  assert.equal(result.email, undefined, 'the response goes through SiteReady, not a copied email');
+  assert.equal(result.email, undefined, 'the response goes through SiteWrite, not a copied email');
 });
 
 test('approved with conditions is recorded against the revision, the business is told its review is back, and sees it under My SWMS', async () => {
@@ -343,9 +373,9 @@ test('approved with conditions is recorded against the revision, the business is
   const item = listed.swms.find((entry) => entry.id === id);
   assert.equal(item.review.label, 'Approved with conditions');
   assert.equal(item.review.date, review.date);
-  // "Fix this in SiteReady" is on the page, not in the email.
+  // "Fix this in SiteWrite" is on the page, not in the email.
   const page = await (await call('GET', '/account.js')).text();
-  assert.ok(page.includes('Fix this in SiteReady'));
+  assert.ok(page.includes('Fix this in SiteWrite'));
   // The business's own check is named for the business, apart from the principal contractor's review (D290).
   assert.ok(page.includes('Mark as checked by ${esc(ownName())}'));
   assert.ok(!page.includes('Mark reviewed') && !page.includes('Mark as reviewed'));
@@ -466,14 +496,14 @@ test('conditions are kept de-identified for learning only when control learning 
   for (const word of ['Jo', 'Bloggs', '0412', 'Tier One', 'tierone', 'own9', 'Business own9', id, ref]) assert.ok(!stored.includes(word), `the learning row does not keep ${word}`);
 });
 
-test('the Word and PDF files say where to review the SWMS in SiteReady', async () => {
+test('the Word and PDF files say where to review the SWMS in SiteWrite', async () => {
   const { token, id, ref } = await savedSwms('own10@business.example');
   const response = await call('GET', `/api/swms/${id}/docx`, { token });
   assert.equal(response.status, 200);
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   const xml = await zip.file('word/document.xml').async('string');
   assert.ok(xml.includes(`/review.html?ref=${ref}`), 'the review link is printed');
-  assert.ok(xml.includes('Or review it in SiteReady and send your response from there'));
+  assert.ok(xml.includes('Or review it in SiteWrite and send your response from there'));
   const { reviewInvite } = require('../docx-draft');
   assert.equal(reviewInvite(''), '');
   assert.equal((await call('GET', `/api/swms/${id}/pdf`, { token })).status, 200);

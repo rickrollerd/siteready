@@ -72,7 +72,7 @@ test('within a task with other work, the part is named and the tick still covers
   const d = draft('Install the cable tray, then skate the transformer');
   assert.ok(names(d).includes('Install cable tray and containment'));
   assert.deepEqual(d.notCovered, ['skate the transformer']);
-  assert.deepEqual(d.notCoveredMain, undefined, 'the cable tray is the work SiteReady has steps for');
+  assert.deepEqual(d.notCoveredMain, undefined, 'the cable tray is the work SiteWrite has steps for');
   assert.match(notCoveredRefusal(d, {}), /say which SWMS covers it/);
   assert.equal(notCoveredRefusal(d, { notCoveredConfirmed: ['skate the transformer'] }), '');
   // Plant moved into position on skates: the plant steps stay, and the skating is named.
@@ -144,9 +144,9 @@ test('work that is all the task\'s work needs the user\'s own step: the tick doe
   const d = draft(TRANSFORMER);
   assert.deepEqual(notCoveredUnwritten(d), [TRANSFORMER]);
   const refused = notCoveredRefusal(d, { notCoveredConfirmed: [TRANSFORMER] });
-  assert.equal(refused, `SiteReady has no job steps for: ${TRANSFORMER}. This is the work of the task, so write your own step for it ("Write a step for this" above the draft) before saving or downloading.`);
+  assert.equal(refused, `SiteWrite has no job steps for: ${TRANSFORMER}. This is the work of the task, so write your own step for it ("Write a step for this" above the draft) before saving or downloading.`);
   const gaps = downloadGaps(draftBody({ ...BASE, task: TRANSFORMER, notCoveredConfirmed: [TRANSFORMER] }), d);
-  assert.deepEqual(gaps.filter((gap) => gap.kind === 'cover').map((gap) => gap.label), ['Your own step for work SiteReady has no job steps for']);
+  assert.deepEqual(gaps.filter((gap) => gap.kind === 'cover').map((gap) => gap.label), ['Your own step for work SiteWrite has no job steps for']);
   const written = draft(TRANSFORMER, { ownSteps: [MINE] });
   assert.deepEqual(notCoveredUnwritten(written), []);
   assert.equal(notCoveredRefusal(written, {}), '');
@@ -155,7 +155,7 @@ test('work that is all the task\'s work needs the user\'s own step: the tick doe
 
 // ---- Jacking and skating a heavy load: the engineered jack and skid step, checked by the user (D219) ----
 
-const JACK_SKID_NOTE = "SiteReady's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
+const JACK_SKID_NOTE = "SiteWrite's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
 
 test('a heavy load jacked and skated takes the jack and skid step, with a note to check it, and nothing is named', () => {
   for (const task of ['Jack and skate the transformer into the plant room', 'Install the cable tray, then jack and skate the transformer', 'Jacking and skating the switchboards into the substation', 'Jack the generator onto skates and skate it into the plant room', 'Jack and skid the bridge span onto the piers on the skidding system']) {
@@ -260,15 +260,15 @@ function respond(method, route) {
 }
 
 test('the page offers "Write a step for this" with no choice of another SWMS, and lists the step as still needed', async () => {
-  const p = loadPage(['app.js', 'account.js', 'scope.js'], respond, { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['app.js', 'account.js', 'scope.js'], respond, { stored: { 'sitewrite.session': 'token' } });
   await settle();
   p.document.getElementById('task').value = TRANSFORMER;
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();
   const result = p.document.getElementById('result').innerHTML;
-  assert.match(result, /SiteReady has no job steps for: Skate the transformer into the plant room\. Add your own step and controls for it\./);
+  assert.match(result, /SiteWrite has no job steps for: Skate the transformer into the plant room\. Add your own step and controls for it\./);
   assert.match(result, /is the work of this task, so the SWMS needs your own step for it before you save or download\. Another SWMS does not cover it\./);
   assert.match(result, /data-own-write="0">Write a step for this</);
   assert.doesNotMatch(result, /data-cover-where|data-cover-name/, 'no choice of another SWMS');
-  assert.match(p.document.getElementById('result-gate').innerHTML, /data-cover-jump>Your own step for work SiteReady has no job steps for</);
+  assert.match(p.document.getElementById('result-gate').innerHTML, /data-cover-jump>Your own step for work SiteWrite has no job steps for</);
 });

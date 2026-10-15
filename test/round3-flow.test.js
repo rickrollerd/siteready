@@ -67,7 +67,7 @@ test('the works manager and contact phone are needed before download (D289), and
   assert.deepEqual(weak.map((gap) => gap.id).sort(), ['firstAider', 'musterPoint', 'principalContractor']);
 });
 
-test('the reference number prints the SiteReady reference when the business gives none', async () => {
+test('the reference number prints the SiteWrite reference when the business gives none', async () => {
   const server = require('../server');
   assert.ok(server.app);
   const accounts = require('../accounts');

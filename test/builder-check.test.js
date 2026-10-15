@@ -218,7 +218,7 @@ test('email: accepted is a short approval; otherwise the changes by priority, ha
   assert.match(rejected.body, /Must fix before work starts:\n1\. Consultation is recorded, but no worker has signed the SWMS\.\n\nAlso fix:\n2\. Add a revision number\./);
 });
 
-// SiteReady's own drafts, checked as a builder would check the printed SWMS. Site details, the
+// SiteWrite's own drafts, checked as a builder would check the printed SWMS. Site details, the
 // person responsible and the principal contractor are filled in, as a user would before sending.
 // Goal 2: the reviewer, first aider and muster point (and the scaffold supervisor, for a scaffold) are
 // answered before any download, so a SWMS sent to a builder has them.
@@ -235,7 +235,7 @@ function draftCheck(index, signed = true, stage = 'review') {
   return checkSwms(fromDraft(draft, { state: 'qld', swms: signed ? { signatures: [{ name: 'Jo Smith', date: '5 October 2026' }] } : {} }), { state: 'qld', stage });
 }
 
-test('SiteReady drafts score sensibly', () => {
+test('SiteWrite drafts score sensibly', () => {
   // Scaffold erection (#8), roof sheets (#0), trench (#1), asbestos eaves (#3).
   const scaffold = draftCheck(8);
   assert.deepEqual(failed(scaffold), []);
@@ -373,7 +373,7 @@ test('W8 (owner decisions, 5 and 6 October 2026): neither a printed risk matrix 
 test('W9: a revision number is credited, as text or as a number', () => {
   for (const revision of ['Rev 2', '1', 1, 0]) assert.equal(item(checkSwms(variant({ revision })), 'W9').points, 6, String(revision));
   for (const revision of ['', 'TBC', null]) assert.match(item(checkSwms(variant({ revision })), 'W9').message, /Add a revision number/, String(revision));
-  // A SiteReady draft that carries draft.revision gets the point for it.
+  // A SiteWrite draft that carries draft.revision gets the point for it.
   const s = scenarios[0];
   const draft = prepareDraft(draftBody({ state: 'qld', task: s.task, fallRisk: s.fallRisk, facts: s.facts, ...SITE }));
   for (const revision of ['2', 0]) {
@@ -810,8 +810,8 @@ test('control levels: lock-out hardware, switching off, sealing, wrapping, HEPA 
 });
 
 // Steel stud cutting with an abrasive disc and grinding steel throw sparks: the drafts name the hot
-// work permit, the extinguisher and the fire watch (W12), as SiteReady drafts of real scopes did not.
-test('spark-producing steps in a SiteReady draft name the hot work permit and the fire watch (W12)', () => {
+// work permit, the extinguisher and the fire watch (W12), as SiteWrite drafts of real scopes did not.
+test('spark-producing steps in a SiteWrite draft name the hot work permit and the fire watch (W12)', () => {
   const { questionsFor } = require('../draft');
   const { answersFor } = require('../presets');
   // The job steps a scope reading picks for the waterproofer's surface preparation.

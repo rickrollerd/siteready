@@ -1,4 +1,4 @@
-// POST /api/check: signed-in users only; a SiteReady draft is checked with no AI, and an
+// POST /api/check: signed-in users only; a SiteWrite draft is checked with no AI, and an
 // uploaded SWMS is read by the stand-in model (nothing is billed). A reading is started as a check
 // and the result asked for by its id (GET /api/check/:id), so a long SWMS does not outlast a proxy.
 const test = require('node:test');
@@ -56,7 +56,7 @@ test('the check needs a signed-in user', async () => {
   assert.equal(response.status, 401);
 });
 
-test('a SiteReady draft is checked without the AI, and the email is drafted', async () => {
+test('a SiteWrite draft is checked without the AI, and the email is drafted', async () => {
   const response = await post('/api/check', { draft: DRAFT, to: 'Jo' }, token);
   assert.equal(response.status, 200);
   const data = await response.json();

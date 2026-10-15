@@ -288,7 +288,7 @@ test('the owner deletes a whole business: every row tied to it goes, another bus
   // The public check no longer finds its references; its people are signed out; the sign-on link is gone.
   const gone = await json('GET', `/api/verify/${a.refs[0]}`);
   assert.equal(gone.data.found, false);
-  assert.match(gone.data.message, /not in SiteReady's records/);
+  assert.match(gone.data.message, /not in SiteWrite's records/);
   assert.equal((await call('GET', '/api/me', { token: a.token })).status, 401);
   assert.equal((await call('GET', `/api/sign/${a.signKey}`)).status, 404);
   assert.equal((await json('GET', `/api/admin/companies/${a.companyId}`, { token: owner })).status, 404);

@@ -55,10 +55,10 @@ async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at) VALUES ($1, $2, $3, $4)',
     [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000)]);
   const link = `${appUrl(req)}/?login=${token}`;
-  const opening = invitedBy ? `${invitedBy} has added you to their company on SiteReady.` : 'Use this link to sign in to SiteReady.';
+  const opening = invitedBy ? `${invitedBy} has added you to their company on SiteWrite.` : 'Use this link to sign in to SiteWrite.';
   await sendMail({
     to: email,
-    subject: 'Your SiteReady sign-in link',
+    subject: 'Your SiteWrite sign-in link',
     text: `${opening}\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
   });
 }
@@ -151,7 +151,7 @@ async function readSession(req, _res, next) {
     next();
   } catch (error) {
     // A database that cannot answer is not a signed-out user: say so, so the app retries.
-    const busy = fail(503, 'SiteReady is busy. Try again in a moment.');
+    const busy = fail(503, 'SiteWrite is busy. Try again in a moment.');
     busy.cause = error;
     next(busy);
   }
@@ -182,8 +182,8 @@ async function sendReviewerLink(req, email, ref) {
   const link = `${appUrl(req)}/review.html?ref=${encodeURIComponent(ref)}&login=${token}`;
   await sendMail({
     to: email,
-    subject: 'Your SiteReady review sign-in link',
-    text: `Use this link to review the SWMS with SiteReady reference ${ref}.\n\n${link}\n\nOpen it on the device you will review on. The link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
+    subject: 'Your SiteWrite review sign-in link',
+    text: `Use this link to review the SWMS with SiteWrite reference ${ref}.\n\n${link}\n\nOpen it on the device you will review on. The link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
   });
 }
 
@@ -219,7 +219,7 @@ async function readReviewer(req, _res, next) {
     }
     next();
   } catch (error) {
-    const busy = fail(503, 'SiteReady is busy. Try again in a moment.');
+    const busy = fail(503, 'SiteWrite is busy. Try again in a moment.');
     busy.cause = error;
     next(busy);
   }
@@ -249,7 +249,7 @@ async function passkeyRegistrationOptions(req) {
   const { rpID } = passkeySettings(req);
   const existing = await db.query('SELECT id, transports FROM passkeys WHERE user_id = $1', [req.user.id]);
   const options = await generateRegistrationOptions({
-    rpName: 'SiteReady',
+    rpName: 'SiteWrite',
     rpID,
     userName: req.user.email,
     userID: Buffer.from(req.user.id),
@@ -287,7 +287,7 @@ async function passkeyLogin(req) {
   const { challengeId, response } = req.body || {};
   const saved = await takeChallenge(challengeId);
   const key = response && await db.one('SELECT * FROM passkeys WHERE id = $1', [String(response.id || '')]);
-  if (!key) throw fail(400, 'This Face ID is not set up for SiteReady on this device. Sign in with an email link first.');
+  if (!key) throw fail(400, 'This Face ID is not set up for SiteWrite on this device. Sign in with an email link first.');
   const { rpID, origin } = passkeySettings(req);
   let result;
   try {

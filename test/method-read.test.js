@@ -77,8 +77,8 @@ test('a typed PDF and a Word file are read in full; pasted text is read as it is
 });
 
 test('drawings, photos and scanned pages are refused with a plain message, and never guessed from', async () => {
-  const attached = /SiteReady can only read typed methodologies\. This file looks like a drawing or a scan, so it is attached but not read\./;
-  const chosen = /SiteReady can only read typed methodologies\. This file looks like a drawing or a scan, so it was not read\./;
+  const attached = /SiteWrite can only read typed methodologies\. This file looks like a drawing or a scan, so it is attached but not read\./;
+  const chosen = /SiteWrite can only read typed methodologies\. This file looks like a drawing or a scan, so it was not read\./;
   await assert.rejects(methodRead.methodText({ file: { name: 'scan.pdf', data: base64(await pdfOf(['scan', 'scan'])) } }), chosen);
   await assert.rejects(methodRead.methodText({ file: { name: 'L-201.pdf', data: base64(await pdfOf(['drawing'])) } }), chosen);
   // Mostly drawings, one typed page: refused.
@@ -352,7 +352,7 @@ test('the methodology card offers "Read it and suggest steps"; the card alone se
   const before = JSON.stringify(p.run('payload()'));
   p.document.getElementById('method-add').click();
   const html = p.document.getElementById('methods-block').innerHTML;
-  assert.match(html, /<div class="method-read" data-method-read-box="method-1"><p class="meta">SiteReady can read a typed methodology and suggest job steps from it\. It cannot read drawings, photos or scanned pages\.<\/p><button type="button" class="secondary small" data-mr-open="method-1">Read it and suggest steps<\/button><\/div>/);
-  assert.ok(html.includes('SiteReady reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology.'));
+  assert.match(html, /<div class="method-read" data-method-read-box="method-1"><p class="meta">SiteWrite can read a typed methodology and suggest job steps from it\. It cannot read drawings, photos or scanned pages\.<\/p><button type="button" class="secondary small" data-mr-open="method-1">Read it and suggest steps<\/button><\/div>/);
+  assert.ok(html.includes('SiteWrite reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology.'));
   assert.equal(JSON.stringify(p.run('payload()')), before, 'an empty methodology card sends nothing');
 });

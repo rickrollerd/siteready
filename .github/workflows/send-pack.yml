@@ -1,6 +1,6 @@
 name: Send SWMS pack
 
-# Builds a project's SWMS set as Word files and emails them, from the SiteReady
+# Builds a project's SWMS set as Word files and emails them, from the SiteWrite
 # account, for people to review. Run it from the Actions tab.
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         description: Project file
         default: scenarios/projects/brisbane-tower.json
       to:
-        description: Send to (blank sends to the SiteReady account)
+        description: Send to (blank sends to the SiteWrite account)
         default: ''
       body:
         description: Email text file
@@ -45,7 +45,7 @@ jobs:
           fi
           RCPT="${TO:-$SMTP_USERNAME}"
           TITLE=$(node -e "console.log(require('./' + process.argv[1]).title)" "$PROJECT")
-          node scenarios/email-pack.js pack "$SMTP_USERNAME" "$RCPT" "SiteReady SWMS for review: $TITLE" "$BODY" > message.eml
+          node scenarios/email-pack.js pack "$SMTP_USERNAME" "$RCPT" "SiteWrite SWMS for review: $TITLE" "$BODY" > message.eml
           ls -la pack
           curl --silent --show-error --ssl-reqd \
             --url 'smtps://smtp.gmail.com:465' \

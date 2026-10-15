@@ -11,7 +11,7 @@
 //   "handCheck": a person checks the page monthly and records it in hand-checks.json.
 // A code's own page (WA, Tasmania, the NT, one NSW code) is read like a list: its file links
 // ("linkPattern") and any dated wording on it ("pagePattern"), so a re-issued code shows as changed.
-// Each source names what SiteReady cites it as ("cites"; coverage.js checks every printed law and
+// Each source names what SiteWrite cites it as ("cites"; coverage.js checks every printed law and
 // code has one), so a change maps to the lines citing it in that state (scripts/lines-citing.js).
 // A page that is not read today, or is marked for a hand check, is listed under "Hand checks due"
 // once a month until a hand check is recorded, so nothing reads as watched when it is not.
@@ -147,7 +147,7 @@ function pageItems(html, source) {
   return [...new Set((pageText(html).match(new RegExp(source.pagePattern, 'gi')) || []).map((text) => `${text} | -`))].sort();
 }
 
-// What SiteReady cites a source as (its "cites"): for a list of codes, only the codes whose line
+// What SiteWrite cites a source as (its "cites"): for a list of codes, only the codes whose line
 // changed; for a law or a code's own page, all of them.
 function citesFor(source, changed) {
   return (source.cites || []).filter((cite) => !cite.item || !changed || changed.some((line) => new RegExp(cite.item, 'i').test(line)));
@@ -169,7 +169,7 @@ function citedLines(cites) {
   return cites.map((cite) => {
     const count = lines ? lines(cite.state, cite.name) : null;
     const found = count == null ? '' : count ? ` ${count} control line${count === 1 ? '' : 's'} cite it.` : ' No control line cites it by section; it is listed in the SWMS that use it.';
-    return `  - SiteReady cites "${cite.name}" in ${STATE_NAMES[cite.state] || cite.state}.${found} List them: \`node scripts/lines-citing.js ${cite.state} "${cite.name}" all\``;
+    return `  - SiteWrite cites "${cite.name}" in ${STATE_NAMES[cite.state] || cite.state}.${found} List them: \`node scripts/lines-citing.js ${cite.state} "${cite.name}" all\``;
   });
 }
 
@@ -234,7 +234,7 @@ async function fetchPage(url, { browser = false, timeout = 20000 } = {}) {
       const response = await fetch(url, {
         headers: {
           // Some regulators' sites refuse anything but a browser, so the code pages are asked for as one.
-          'User-Agent': browser ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' : 'SiteReady legislation check (github.com/rickrollerd/siteready)',
+          'User-Agent': browser ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' : 'SiteWrite legislation check (github.com/rickrollerd/siteready)',
           Accept: 'text/html,application/xhtml+xml,application/rss+xml,application/xml',
           'Accept-Language': 'en-AU,en;q=0.9',
         },
@@ -521,7 +521,7 @@ async function main() {
           `- **${label}** (${source.url})`,
           ...added.map((item) => `  - New or changed: ${item}`),
           ...removed.map((item) => `  - Gone or replaced: ${item}`),
-          ...(cited.length ? cited : ['  - SiteReady cites none of these.']),
+          ...(cited.length ? cited : ['  - SiteWrite cites none of these.']),
         ].join('\n'));
       }
     } else {
@@ -531,7 +531,7 @@ async function main() {
   });
 
   // Safety alerts and incident releases: each new one is read by a person and, where it names a
-  // control SiteReady lacks, turned into a library line cited to the alert (task #107).
+  // control SiteWrite lacks, turned into a library line cited to the alert (task #107).
   const alerts = readJson(ALERTS, []);
   const alertLines = [];
   const alertPages = await readAll(alerts, { browser: true, timeout: 45000 }, viaSitemap);
@@ -621,10 +621,10 @@ async function main() {
     sections.push(`## Legislation changed\n\nThe app may be out of date. Follow handover/CHANGE-PROCESS.md: triage within 2 working days, list the affected lines with \`node scripts/lines-citing.js\`, update \`legislation.js\` and \`draft.js\`, and have the update signed off before it goes live.\n\n${changes.join('\n')}`);
   }
   if (codeChanges.length) {
-    sections.push(`## Codes of practice changed\n\nA code was added, re-issued or removed. Where SiteReady cites it, the lines citing it in that state are listed below (step 2 of handover/CHANGE-PROCESS.md; \`node scripts/lines-citing.js\` narrows them to a section). Update the titles, years and section numbers (\`scenarios/state-codes.json\`, \`scenarios/vic-lines.json\`, \`scenarios/qld-codes.json\`, \`activities.js\`), and have the update signed off before it goes live.\n\n${codeChanges.join('\n')}`);
+    sections.push(`## Codes of practice changed\n\nA code was added, re-issued or removed. Where SiteWrite cites it, the lines citing it in that state are listed below (step 2 of handover/CHANGE-PROCESS.md; \`node scripts/lines-citing.js\` narrows them to a section). Update the titles, years and section numbers (\`scenarios/state-codes.json\`, \`scenarios/vic-lines.json\`, \`scenarios/qld-codes.json\`, \`activities.js\`), and have the update signed off before it goes live.\n\n${codeChanges.join('\n')}`);
   }
   if (alertLines.length) {
-    sections.push(`## Safety alerts to review\n\nNew safety alerts and incident releases. For each one: does SiteReady's step for that work already have the control the alert calls for? If not, add it to \`scenarios/code-controls.json\` or \`activities.js\`, cited to the alert, following the licence noted, and have it signed off before it goes live.\n\n${alertLines.join('\n')}`);
+    sections.push(`## Safety alerts to review\n\nNew safety alerts and incident releases. For each one: does SiteWrite's step for that work already have the control the alert calls for? If not, add it to \`scenarios/code-controls.json\` or \`activities.js\`, cited to the alert, following the licence noted, and have it signed off before it goes live.\n\n${alertLines.join('\n')}`);
   }
   if (newsLines.length) {
     sections.push(`## News to read\n\nArticles about possible changes. These are not confirmed changes: check the official source before changing anything.\n\n${newsLines.join('\n')}`);
@@ -633,7 +633,7 @@ async function main() {
     sections.push(`## Pages that could not be checked\n\nThese were not checked today, so a change could be missed. Check them by hand, or fix the address in \`legislation-watch/sources.json\`.\n\n${problems.join('\n')}`);
   }
   if (handLines.length) {
-    sections.push(`## Hand checks due\n\nThese pages are not read automatically, or were not read today, and have not been checked by hand in the last month. Open each one, compare it with what SiteReady uses, and add the check to \`legislation-watch/hand-checks.json\` (page, date, who, what was found).\n\n${handLines.join('\n')}`);
+    sections.push(`## Hand checks due\n\nThese pages are not read automatically, or were not read today, and have not been checked by hand in the last month. Open each one, compare it with what SiteWrite uses, and add the check to \`legislation-watch/hand-checks.json\` (page, date, who, what was found).\n\n${handLines.join('\n')}`);
   }
   if (sections.length) {
     fs.writeFileSync(REPORT, `${sections.join('\n\n')}\n\nChecked ${today}.\n`);

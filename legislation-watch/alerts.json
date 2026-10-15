@@ -45,7 +45,7 @@
     "title": "SafeWork SA safety alerts",
     "url": "https://safework.sa.gov.au/news-and-alerts/safety-alerts",
     "linkPattern": "/news-and-alerts/safety-alerts/[^\"#?]+",
-    "licence": "Not confirmed: link and write the control in SiteReady's own words."
+    "licence": "Not confirmed: link and write the control in SiteWrite's own words."
   },
   {
     "id": "vic-alerts",
@@ -55,7 +55,7 @@
     "read": "sitemap",
     "sitemap": "https://www.worksafe.vic.gov.au/sitemap.xml",
     "linkPattern": "^/safety-alerts/[^/]+$",
-    "licence": "Copyright, non-profit only: link and write the control in SiteReady's own words.",
+    "licence": "Copyright, non-profit only: link and write the control in SiteWrite's own words.",
     "knownBlocked": "WorkSafe Victoria's sitemap could not be read today. Its safety alert pages are listed there."
   }
 ]

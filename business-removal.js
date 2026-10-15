@@ -113,7 +113,7 @@ function monthsBefore(date, months) {
 }
 
 // Businesses whose subscription ended, or whose free trial ended without one, more than 12
-// months ago, oldest first, with the date. A subscription that ended before SiteReady kept its end
+// months ago, oldest first, with the date. A subscription that ended before SiteWrite kept its end
 // date takes the day the cancellation was counted; with neither, it is listed with no date.
 async function dueForRemoval(now = new Date()) {
   const cutoff = monthsBefore(now, RETENTION_MONTHS);

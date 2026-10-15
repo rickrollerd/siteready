@@ -1,7 +1,7 @@
-SiteReady: SWMS for review
+SiteWrite: SWMS for review
 50 storey tower, Brisbane CBD: structure (Queensland)
 
-This is the first human test of SiteReady. Seven safe work method statements are attached as Word files, ready to review, change and sign:
+This is the first human test of SiteWrite. Seven safe work method statements are attached as Word files, ready to review, change and sign:
 
 01 Floor load-out, tower crane lifts and forklifts
 02 Slab formwork, falsework, stripping and backpropping
@@ -27,4 +27,4 @@ What to look for when reviewing:
 
 Please reply with your notes, or mark up the Word files and send them back.
 
-SiteReady
+SiteWrite

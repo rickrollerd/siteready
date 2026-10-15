@@ -103,5 +103,5 @@
 
   const api = { stateFromAddress, stateFromPostcode, stateFromTyped, placeWords };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyAddress = api;
+  else root.SiteWriteAddress = api;
 })(typeof window !== 'undefined' ? window : globalThis);

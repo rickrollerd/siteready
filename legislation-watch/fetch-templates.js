@@ -51,7 +51,7 @@ function convert(buffer, url, type) {
 
 async function read([name, url]) {
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(60000), headers: { 'User-Agent': 'Mozilla/5.0 SiteReady source check' } });
+    const response = await fetch(url, { signal: AbortSignal.timeout(60000), headers: { 'User-Agent': 'Mozilla/5.0 SiteWrite source check' } });
     const buffer = Buffer.from(await response.arrayBuffer());
     const text = convert(buffer, url, response.headers.get('content-type') || '');
     let shown = text.slice(0, LIMITS.default);

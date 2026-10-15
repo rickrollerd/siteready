@@ -1,4 +1,4 @@
-// Work SiteReady has no job steps for is stood down at the draft (#185). The questions step says so
+// Work SiteWrite has no job steps for is stood down at the draft (#185). The questions step says so
 // first, in plain words, and does not tick the steps for where the work is done (the rail corridor,
 // the road, work above traffic) as if they were the work (goals 2 and 7).
 const test = require('node:test');
@@ -29,12 +29,12 @@ function drafted(task, extra = {}) {
 test('a task with no job steps of its own is told at the questions that it will not be drafted', () => {
   const rail = ask('Thermite weld the rail joints');
   assert.equal(rail.kind, 'questions');
-  assert.equal(rail.standDown.message, 'SiteReady has no job steps for this work yet, so it will not draft this SWMS. The steps found for where the work is done (Work in the rail corridor) are not the work itself, so they are not ticked. To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".');
+  assert.equal(rail.standDown.message, 'SiteWrite has no job steps for this work yet, so it will not draft this SWMS. The steps found for where the work is done (Work in the rail corridor) are not the work itself, so they are not ticked. To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".');
   assert.deepEqual(rail.steps.suggested, ['railCorridor']);
   assert.deepEqual(rail.steps.chosen, [], 'the rail corridor is not ticked as if it were the work');
   assert.deepEqual(rail.steps.around, ['railCorridor']);
   const bridge = ask('Install bridge expansion joints on the overpass');
-  assert.match(bridge.standDown.message, /^SiteReady has no job steps for this work yet, so it will not draft this SWMS\. The steps found for where the work is done \(Traffic management; Work above traffic or a rail line\) are not the work itself, so they are not ticked\. To go on/);
+  assert.match(bridge.standDown.message, /^SiteWrite has no job steps for this work yet, so it will not draft this SWMS\. The steps found for where the work is done \(Traffic management; Work above traffic or a rail line\) are not the work itself, so they are not ticked\. To go on/);
   assert.deepEqual(bridge.steps.chosen, []);
   assert.deepEqual(bridge.steps.around, ['road', 'workAbove']);
   // Which tasks stand down is unchanged: both still do at the draft.
@@ -47,7 +47,7 @@ test('a task with no job steps of its own is told at the questions that it will 
 
 test('work with no job steps at all is told too, and a task that drafts is not', () => {
   const unknown = ask('Recalibrate the tidal gauge');
-  assert.match(unknown.standDown.message, /^SiteReady has no job steps for this work yet, so it will not draft this SWMS\. To go on/);
+  assert.match(unknown.standDown.message, /^SiteWrite has no job steps for this work yet, so it will not draft this SWMS\. To go on/);
   assert.equal(drafted('Recalibrate the tidal gauge').kind, 'stand-down');
   for (const task of ['Install cable trays in the ceiling from a scissor lift', 'Replace a 3m length of timber fence.', 'Install a gas hot water system']) {
     const asked = ask(task);
@@ -73,12 +73,12 @@ test('the user\'s own picks stay as made; a step for the work itself lifts the n
   const only = ask('Install bridge expansion joints on the overpass', { kinds: ['road', 'workAbove'] });
   assert.deepEqual(only.steps.chosen, ['road', 'workAbove'], 'the user ticked them, so they stay ticked');
   assert.deepEqual(only.steps.around, []);
-  assert.match(only.standDown.message, /^SiteReady has no job steps for this work yet, so it will not draft this SWMS\. The steps ticked \(Traffic management; Work above traffic or a rail line\) cover only the access, lifting or other work around it\./);
+  assert.match(only.standDown.message, /^SiteWrite has no job steps for this work yet, so it will not draft this SWMS\. The steps ticked \(Traffic management; Work above traffic or a rail line\) cover only the access, lifting or other work around it\./);
   const withWork = ask('Install bridge expansion joints on the overpass', { kinds: ['road', 'workAbove', 'hotWork'] });
   assert.equal(withWork.standDown, undefined);
   assert.equal(drafted('Install bridge expansion joints on the overpass', { kinds: ['road', 'workAbove', 'hotWork'] }).kind, 'draft');
   const none = ask('Install cable trays in the ceiling from a scissor lift', { kinds: [] });
-  assert.equal(none.standDown.message, 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps, or write your own step for the work with "Write a step for this".');
+  assert.equal(none.standDown.message, 'No job steps are ticked, so SiteWrite will not draft this SWMS. Tick or add the job steps for the work under Job steps, or write your own step for the work with "Write a step for this".');
   assert.equal(drafted('Install cable trays in the ceiling from a scissor lift', { kinds: [] }).kind, 'stand-down');
 });
 

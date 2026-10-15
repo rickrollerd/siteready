@@ -1,4 +1,4 @@
-// Goal 7: a page opened or reloaded with no signal shows SiteReady's own "No signal" page (sw.js
+// Goal 7: a page opened or reloaded with no signal shows SiteWrite's own "No signal" page (sw.js
 // and offline.html) instead of the browser's error. Only that page is kept, never the server's
 // answers; with signal every page comes from the server; a release that changes it replaces the
 // kept copy. A worker's sign-on details kept on the phone (sign-keep.js) go after 24 hours.
@@ -26,7 +26,7 @@ function worker(source = read('sw.js').split(SHELL_MARK).join('v1'), stored = {}
     async keys() { return [...caches.get(name).keys()]; },
   });
   const scope = {
-    location: { origin: 'https://siteready.example' },
+    location: { origin: 'https://sitewrite.example' },
     registration: {},
     clients: { claimed: false, async claim() { scope.clients.claimed = true; } },
     skipWaiting() { scope.skipped = true; },
@@ -60,29 +60,29 @@ function worker(source = read('sw.js').split(SHELL_MARK).join('v1'), stored = {}
     await Promise.all(waits);
     return answer === undefined ? undefined : answer;
   };
-  const open = (url, mode = 'navigate', method = 'GET') => run('fetch', { request: { url: `https://siteready.example${url}`, mode, method } });
+  const open = (url, mode = 'navigate', method = 'GET') => run('fetch', { request: { url: `https://sitewrite.example${url}`, mode, method } });
   return { scope, net, caches, run, open };
 }
 
 test('installing keeps the offline page only, fetched fresh, and takes over at once', async () => {
   const sw = worker();
   await sw.run('install');
-  assert.deepEqual([...sw.caches.keys()], ['siteready-shell-v1']);
-  assert.deepEqual([...sw.caches.get('siteready-shell-v1').keys()], ['/offline.html']);
+  assert.deepEqual([...sw.caches.keys()], ['sitewrite-shell-v1']);
+  assert.deepEqual([...sw.caches.get('sitewrite-shell-v1').keys()], ['/offline.html']);
   assert.equal(sw.scope.skipped, true);
 });
 
 test('with signal a page comes from the server; with none, the offline page at the same address', async () => {
-  const sw = worker(undefined, { 'siteready-shell-v1': { '/offline.html': 'offline page' } });
-  assert.equal(await sw.open('/sign.html?t=abc'), 'server https://siteready.example/sign.html?t=abc');
-  assert.equal(await sw.open('/'), 'server https://siteready.example/');
+  const sw = worker(undefined, { 'sitewrite-shell-v1': { '/offline.html': 'offline page' } });
+  assert.equal(await sw.open('/sign.html?t=abc'), 'server https://sitewrite.example/sign.html?t=abc');
+  assert.equal(await sw.open('/'), 'server https://sitewrite.example/');
   sw.net.up = false;
   assert.equal(await sw.open('/sign.html?t=abc'), 'offline page');
   assert.equal(await sw.open('/'), 'offline page');
 });
 
 test('the server\'s answers, downloads, scripts and posts are never touched', async () => {
-  const sw = worker(undefined, { 'siteready-shell-v1': { '/offline.html': 'offline page' } });
+  const sw = worker(undefined, { 'sitewrite-shell-v1': { '/offline.html': 'offline page' } });
   sw.net.up = false;
   assert.equal(await sw.open('/api/sign/abc'), undefined);
   assert.equal(await sw.open('/api/swms/1/pdf'), undefined);
@@ -94,12 +94,14 @@ test('the server\'s answers, downloads, scripts and posts are never touched', as
 
 test('a new version removes the old kept copy, and leaves other sites\' caches alone', async () => {
   const sw = worker(read('sw.js').split(SHELL_MARK).join('v2'), {
-    'siteready-shell-v1': { '/offline.html': 'old' },
+    'sitewrite-shell-v1': { '/offline.html': 'old' },
+    // The copy kept while the app was called SiteReady goes too (D299).
+    'siteready-shell-v7': { '/offline.html': 'SiteReady offline page' },
     'something-else': { '/x': 'x' },
   });
   await sw.run('install');
   await sw.run('activate');
-  assert.deepEqual([...sw.caches.keys()].sort(), ['siteready-shell-v2', 'something-else']);
+  assert.deepEqual([...sw.caches.keys()].sort(), ['sitewrite-shell-v2', 'something-else']);
   assert.equal(sw.scope.clients.claimed, true);
 });
 
@@ -188,18 +190,18 @@ test('every page with net.js removes sign-on details kept for 24 hours or more, 
   const now = Date.now();
   const p = page(['net.js'], {
     stored: {
-      'siteready.signon.old': JSON.stringify({ kept: now - 25 * HOUR, name: 'Ana Silva' }),
-      'siteready.signon.broken': 'not json',
-      'siteready.signon.new': JSON.stringify({ kept: now - 2 * HOUR, name: 'Bo Li' }),
-      'siteready.unsaved': JSON.stringify({ at: now - 25 * HOUR }),
+      'sitewrite.signon.old': JSON.stringify({ kept: now - 25 * HOUR, name: 'Ana Silva' }),
+      'sitewrite.signon.broken': 'not json',
+      'sitewrite.signon.new': JSON.stringify({ kept: now - 2 * HOUR, name: 'Bo Li' }),
+      'sitewrite.unsaved': JSON.stringify({ at: now - 25 * HOUR }),
     },
   });
-  assert.deepEqual([...p.data.keys()].sort(), ['siteready.signon.new', 'siteready.unsaved']);
+  assert.deepEqual([...p.data.keys()].sort(), ['sitewrite.signon.new', 'sitewrite.unsaved']);
 });
 
 test('sign-keep keeps a worker\'s sign-on per link, clears it, and does not use one 24 hours old', () => {
   const p = page(['sign-keep.js']);
-  const keep = p.window.siteReadySignKeep;
+  const keep = p.window.siteWriteSignKeep;
   const now = Date.now();
   assert.equal(keep.read('abc'), null);
   assert.equal(keep.write('abc', { kept: now, name: 'Ana Silva', readId: 'r1' }), true);
@@ -207,7 +209,7 @@ test('sign-keep keeps a worker\'s sign-on per link, clears it, and does not use 
   assert.equal(keep.read('other'), null);
   assert.equal(keep.read('abc', now + 23 * HOUR).name, 'Ana Silva');
   assert.equal(keep.read('abc', now + 24 * HOUR), null);
-  assert.equal(p.data.has('siteready.signon.abc'), false, 'removed, not just ignored');
+  assert.equal(p.data.has('sitewrite.signon.abc'), false, 'removed, not just ignored');
   keep.write('abc', { kept: now, name: 'Ana Silva' });
   keep.clear('abc');
   assert.equal(p.data.size, 0);
@@ -217,7 +219,7 @@ test('a phone short of space keeps the sign-on without the signature drawing', (
   const p = page(['sign-keep.js']);
   page.full = true;
   try {
-    const keep = p.window.siteReadySignKeep;
+    const keep = p.window.siteWriteSignKeep;
     assert.equal(keep.write('abc', { kept: Date.now(), name: 'Ana', signature: `data:image/png;base64,${'A'.repeat(500)}` }), true);
     assert.equal(keep.read('abc').signature, '');
     assert.equal(keep.read('abc').name, 'Ana');

@@ -29,7 +29,7 @@ function page({ phone }) {
 test('on a phone, a long step shows its first six controls and a button for the rest', async () => {
   const p = page({ phone: true });
   await settle();
-  const html = p.window.SiteReady.render(DRAFT, { movable: true });
+  const html = p.window.SiteWrite.render(DRAFT, { movable: true });
   const rows = html.split('data-step-row=').slice(1);
   const more = (rows[0].match(/class="ctl-more"/g) || []).length;
   // Lines 7 to 12 are folded, except line 11, which has a blank to fill in.
@@ -43,22 +43,22 @@ test('on a phone, a long step shows its first six controls and a button for the 
 test('each step has Change this step, which shows its tools and stays after the draft is prepared again', async () => {
   const p = page({ phone: true });
   await settle();
-  let html = p.window.SiteReady.render(DRAFT, { movable: true });
+  let html = p.window.SiteWrite.render(DRAFT, { movable: true });
   assert.match(html, /data-step-edit="0" aria-expanded="false">Change this step<\/button>/);
   // The step being changed is drawn so again after a change prepares the draft again.
   p.run("stepsEditing.add('Use an elevating work platform'); stepsOpen.add('Fit off')");
-  html = p.window.SiteReady.render(DRAFT, { movable: true });
+  html = p.window.SiteWrite.render(DRAFT, { movable: true });
   assert.match(html, /data-step-row="0" class="editing"/);
   assert.match(html, /data-step-edit="0" aria-expanded="true">Done changing this step<\/button>/);
   assert.match(html, /data-step-row="1" class="open-all"/);
   // A saved SWMS shown read-only has no tools at all.
-  assert.doesNotMatch(p.window.SiteReady.render(DRAFT), /data-step-edit|ctl-show/);
+  assert.doesNotMatch(p.window.SiteWrite.render(DRAFT), /data-step-edit|ctl-show/);
 });
 
 test('the forms printed for others to fill in start folded on a phone, open on a computer', async () => {
   const phone = page({ phone: true });
   await settle();
-  const folded = phone.window.SiteReady.render(DRAFT, { movable: true });
+  const folded = phone.window.SiteWrite.render(DRAFT, { movable: true });
   for (const heading of ['Legislation and codes of practice', 'Principal contractor review', 'Worker sign-on']) {
     assert.match(folded, new RegExp(`<details class="sheet-fold"><summary><h4>${heading}</h4>`), heading);
   }
@@ -67,7 +67,7 @@ test('the forms printed for others to fill in start folded on a phone, open on a
   assert.doesNotMatch(folded, /<summary><h4>(Job steps|Emergency arrangements|Plant and equipment)/);
   const computer = page({ phone: false });
   await settle();
-  const open = computer.window.SiteReady.render(DRAFT, { movable: true });
+  const open = computer.window.SiteWrite.render(DRAFT, { movable: true });
   assert.equal((open.match(/<details class="sheet-fold" open>/g) || []).length, 3);
   // Nothing is lost by folding: the same rows are there.
   assert.match(folded, /Work Health and Safety Act 2011 \(Qld\)/);

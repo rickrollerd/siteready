@@ -54,7 +54,7 @@ test('access, lifting and cutting steps cover only what the draft\'s steps name'
   assert.deepEqual(draft('Install the generator and hang the artwork from the scissor lift.').notCovered, ['hang the artwork from the scissor lift']);
 });
 
-test('work the user took the steps off is not listed: SiteReady has steps for it', () => {
+test('work the user took the steps off is not listed: SiteWrite has steps for it', () => {
   const d = draft('Install the generator and hang the doors.', { kinds: ['generatorPlant'] });
   assert.ok(!d.jobSteps.some((step) => step.step === 'Hang the doors'));
   assert.deepEqual(d.notCovered, []);
@@ -140,7 +140,7 @@ async function signIn(email, tail) {
 }
 
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Sam Lee' };
-const COVERED = 'SiteReady has no job steps for: leak test the fuel line. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.';
+const COVERED = 'SiteWrite has no job steps for: leak test the fuel line. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.';
 const TICKED = { notCoveredConfirmed: ['leak test the fuel line'] };
 // The site questions answered (goal 2), so only the tick is outstanding.
 const READY = ready({ ...GENERATOR, ...ANSWERED });
@@ -172,7 +172,7 @@ test('with the site questions blank as well, the refusal names both, and the pro
   const refused = await call('POST', '/api/draft.docx', { token, body: checked({ ...GENERATOR, ...CONFIRM }) });
   assert.equal(refused.status, 400);
   const data = await refused.json();
-  assert.match(data.message, /^SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it\. Still to answer: Job address; Principal contractor;/);
+  assert.match(data.message, /^SiteWrite does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it\. Still to answer: Job address; Principal contractor;/);
   assert.ok(data.message.endsWith(COVERED), data.message);
   assert.ok(data.gate.some((gap) => gap.kind === 'cover') && data.gate.some((gap) => gap.id === 'musterPoint'));
   // Ticked, only the site questions are left; answered, only the tick.
@@ -181,7 +181,7 @@ test('with the site questions blank as well, the refusal names both, and the pro
   assert.equal((await call('POST', '/api/draft.docx', { token, body: checked({ ...READY, ...TICKED, ...CONFIRM }) })).status, 200);
   const zip = await call('POST', '/api/project.zip', { token, body: { swms: [{ ...READY, ...TICKED, swmsTitle: 'Ready' }, { ...GENERATOR, swmsTitle: 'Generator' }].map((item) => checked(item)) } });
   const note = await (await JSZip.loadAsync(Buffer.from(await zip.arrayBuffer()))).file('Not included.txt').async('string');
-  assert.match(note, /2\. Generator: still to answer: Work SiteReady has no job steps for; Job address;/);
+  assert.match(note, /2\. Generator: still to answer: Work SiteWrite has no job steps for; Job address;/);
 });
 
 test('saving is refused until ticked, and the sign-on page does not show the list', async () => {
@@ -213,7 +213,7 @@ test('a project download leaves out a SWMS whose parts with no job steps are not
   const unticked = await download(READY);
   assert.deepEqual(Object.keys(unticked.files).filter((name) => name.endsWith('.docx')), ['01 Fencing.docx']);
   const note = await unticked.file('Not included.txt').async('string');
-  assert.match(note, /SiteReady has no job steps for part of these SWMS, and it was not dealt with above the draft/);
+  assert.match(note, /SiteWrite has no job steps for part of these SWMS, and it was not dealt with above the draft/);
   assert.match(note, /2\. Generator: leak test the fuel line/);
   assert.doesNotMatch(note, /Fencing/);
   const ticked = await download({ ...READY, ...TICKED });
@@ -244,7 +244,7 @@ function respond(extra = () => null) {
   };
 }
 
-const page = (stored = {}) => loadPage(['app.js', 'account.js', 'scope.js'], respond(), { stored: { 'siteready.session': 'token', ...stored } });
+const page = (stored = {}) => loadPage(['app.js', 'account.js', 'scope.js'], respond(), { stored: { 'sitewrite.session': 'token', ...stored } });
 
 async function prepare(p) {
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
@@ -263,7 +263,7 @@ test('the page names the parts above the draft, and saving waits until each is d
   p.document.getElementById('task').value = GENERATOR.task;
   await prepare(p);
   const result = p.document.getElementById('result').innerHTML;
-  assert.ok(result.indexOf('SiteReady has no job steps for: leak test the fuel line. Write your own step for it, or say which SWMS covers it.') >= 0);
+  assert.ok(result.indexOf('SiteWrite has no job steps for: leak test the fuel line. Write your own step for it, or say which SWMS covers it.') >= 0);
   assert.ok(result.indexOf('data-cover-name="0"') < result.indexOf('class="sheet"'), 'the warning is above the draft');
   assert.equal(p.document.getElementById('new-save').disabled, true, 'not until the part is dealt with above the draft');
   assert.equal(p.document.getElementById('new-docx').disabled, true);
@@ -271,13 +271,13 @@ test('the page names the parts above the draft, and saving waits until each is d
   // item for this going to the box; beside the buttons, a line says why they wait.
   const gate = p.document.getElementById('result-gate').innerHTML;
   assert.match(gate, /Before you can download this SWMS/);
-  assert.match(gate, /data-cover-jump>Work SiteReady has no job steps for</);
+  assert.match(gate, /data-cover-jump>Work SiteWrite has no job steps for</);
   const actions = p.document.getElementById('result-actions').innerHTML;
   assert.ok(actions.indexOf('Download and save wait for the item listed above under "Before you can download this SWMS".') >= 0 && actions.indexOf('Download and save wait') < actions.indexOf('id="new-save"'));
   assert.match(actions, /data-gate-list>Go to the list</);
   assert.equal(p.document.getElementById('new-gate-note').classList.contains('hidden'), false);
   tick(p);
-  // Then SiteReady's check runs, and each part is ticked with a name and role (D286).
+  // Then SiteWrite's check runs, and each part is ticked with a name and role (D286).
   await settle();
   checkAll(p);
   assert.equal(p.document.getElementById('new-save').disabled, false);
@@ -295,7 +295,7 @@ test('the page names the parts above the draft, and saving waits until each is d
 });
 
 test('a fully covered draft shows no warning', async () => {
-  const p = loadPage(['app.js', 'account.js', 'scope.js'], respond((method, route) => (route === '/api/draft' ? { body: { ...GENERATOR_DRAFT, notCovered: [], controlLegal: [[]] } } : null)), { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['app.js', 'account.js', 'scope.js'], respond((method, route) => (route === '/api/draft' ? { body: { ...GENERATOR_DRAFT, notCovered: [], controlLegal: [[]] } } : null)), { stored: { 'sitewrite.session': 'token' } });
   await settle();
   p.document.getElementById('task').value = 'Install the generator.';
   await prepare(p);
@@ -308,23 +308,23 @@ test('in a project, a SWMS with parts that have no job steps is ready once each 
   // A scope package's task has one sentence to a line in the task box.
   const task = 'Install the generator (Plant yard). Leak test the fuel line (Plant yard).';
   const project = { current: 0, items: [{ title: 'Generator', task, trade: '', kinds: null, leaveOut: null, unmatched: ['Leak test the fuel line'], fallRisk: 'no', body: null, status: 'todo' }] };
-  const p = page({ 'siteready.project': JSON.stringify(project) });
+  const p = page({ 'sitewrite.project': JSON.stringify(project) });
   await settle();
   const typed = task.replace('. ', '.\n');
   p.document.getElementById('task').value = typed;
-  p.window.siteReadyScopeTask = { task: typed, unmatched: ['Leak test the fuel line'] };
+  p.window.siteWriteScopeTask = { task: typed, unmatched: ['Leak test the fuel line'] };
   p.document.getElementById('start').dispatchEvent(new FakeEvent('submit'));
   await settle();
   await prepare(p);
   const drafts = p.calls.filter((call) => call.route === '/api/draft');
   assert.deepEqual(drafts[drafts.length - 1].body.unmatched, ['Leak test the fuel line'], 'the scope reader\'s rows go with the task');
-  const stored = () => JSON.parse(p.window.localStorage.getItem('siteready.project')).items[0];
+  const stored = () => JSON.parse(p.window.localStorage.getItem('sitewrite.project')).items[0];
   assert.equal(stored().status, 'tick');
   assert.match(p.document.getElementById('project-panel').innerHTML, /Needs your step or a SWMS named/);
-  assert.match(p.document.getElementById('project-panel').innerHTML, /SWMS 1, Generator, has work SiteReady has no job steps for\. Above its draft, write your own step for it, or say which SWMS covers it[^<]*<button type="button" class="link" data-cover-jump>Go to it/);
+  assert.match(p.document.getElementById('project-panel').innerHTML, /SWMS 1, Generator, has work SiteWrite has no job steps for\. Above its draft, write your own step for it, or say which SWMS covers it[^<]*<button type="button" class="link" data-cover-jump>Go to it/);
   tick(p);
   assert.equal(stored().status, 'ready');
-  assert.doesNotMatch(p.document.getElementById('project-panel').innerHTML, /has work SiteReady has no job steps for/);
+  assert.doesNotMatch(p.document.getElementById('project-panel').innerHTML, /has work SiteWrite has no job steps for/);
   assert.deepEqual(stored().body.notCoveredConfirmed, ['leak test the fuel line']);
   tick(p, false);
   assert.equal(stored().status, 'tick');

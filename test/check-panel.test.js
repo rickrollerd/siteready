@@ -1,5 +1,5 @@
 // The check panel under the draft (public/human-check.js, D286), run in the browser stand-in:
-// SiteReady's check first (must-fix items keep the parts locked), then each part ticked, a name and a
+// SiteWrite's check first (must-fix items keep the parts locked), then each part ticked, a name and a
 // role. A change to a part after it is ticked clears that tick with a line saying so; the server's
 // refusal of a stale tick does the same. The ticks stay while the draft is prepared again unchanged.
 const test = require('node:test');
@@ -36,13 +36,13 @@ function respond(extra = () => null) {
     if (route === '/api/draft') return { body: draftFor(body) };
     if (route === '/api/draft/check') return { body: selfCheck(inputFor(body)) };
     if (route === '/api/draft/questions') return { body: { required: [], steps: { chosen: [] } } };
-    if (route === '/api/draft.docx') return { headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 's1', 'x-siteready-revision': '1', 'x-siteready-title': 'Fence' } };
+    if (route === '/api/draft.docx') return { headers: { 'content-type': 'application/octet-stream', 'x-sitewrite-swms': 's1', 'x-sitewrite-revision': '1', 'x-sitewrite-title': 'Fence' } };
     return { body: {} };
   };
 }
 
 async function shown(extra) {
-  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond(extra), { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond(extra), { stored: { 'sitewrite.session': 'token' } });
   await settle();
   p.document.getElementById('task').value = FENCE.task;
   // The people and site answers are on the page, as a user gives them.
@@ -55,7 +55,7 @@ async function shown(extra) {
 const el = (p, id) => p.document.getElementById(id);
 const note = (p) => el(p, 'new-gate-note').innerHTML;
 
-test('SiteReady\'s check shows its score and findings, then the parts unlock in order', async () => {
+test('SiteWrite\'s check shows its score and findings, then the parts unlock in order', async () => {
   const p = await shown();
   const self = el(p, 'new-check-self').innerHTML;
   assert.match(self, /<strong>\d+ out of 100<\/strong> \((Accepted|Accepted with changes)\)\. Nothing must be fixed\./);
@@ -77,7 +77,7 @@ test('a must-fix item keeps the parts locked and the buttons off, and says what 
   checkAll(p);
   assert.equal(el(p, 'new-part-hazards').checked, false, 'a tick does not take while it is locked');
   assert.equal(el(p, 'new-docx').disabled, true);
-  assert.equal(note(p), 'Fix the must-fix item SiteReady&#39;s check found above.');
+  assert.equal(note(p), 'Fix the must-fix item SiteWrite&#39;s check found above.');
 });
 
 test('a name with no role waits for the role', async () => {
@@ -122,7 +122,7 @@ test('the ticks stay when the draft is prepared again unchanged (Back, then Prep
   assert.equal(el(p, 'new-confirm').checked, true);
   assert.equal(el(p, 'new-docx').disabled, false);
   // Kept on the device for a reload.
-  assert.ok(JSON.parse(p.window.localStorage.getItem('siteready.check'))[`draft::${FENCE.task.toLowerCase()}`].ticks.site);
+  assert.ok(JSON.parse(p.window.localStorage.getItem('sitewrite.check'))[`draft::${FENCE.task.toLowerCase()}`].ticks.site);
 });
 
 test('the server\'s refusal of a stale tick unticks the part and says so', async () => {

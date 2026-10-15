@@ -185,7 +185,7 @@ test('a scope is read with the state picked on the form', async () => {
   assert.match(await labels(''), /in or near a shaft or trench with an excavated depth greater than 1\.5m/);
 });
 
-test('every downloaded SWMS carries a SiteReady reference that traces to the account', async () => {
+test('every downloaded SWMS carries a SiteWrite reference that traces to the account', async () => {
   const JSZip = require('jszip');
   const { findRef } = require('../refs');
   const token = await signIn('refs@siteready.test');
@@ -196,20 +196,20 @@ test('every downloaded SWMS carries a SiteReady reference that traces to the acc
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   const footer = Object.keys(zip.files).filter((name) => /footer/.test(name));
   const text = (await Promise.all(footer.map((name) => zip.file(name).async('string')))).join(' ');
-  const ref = (text.match(/SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/) || [])[0];
+  const ref = (text.match(/SW-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/) || [])[0];
   assert.ok(ref, 'reference in the footer');
-  assert.match(text, /Prepared with SiteReady for Ref Test Pty Ltd/);
+  assert.match(text, /Prepared with SiteWrite for Ref Test Pty Ltd/);
   const found = await findRef(ref);
   assert.equal(found && found.company_name, 'Ref Test Pty Ltd');
 });
 
 test('the prepared-for line names the business, its ABN and the reference', () => {
   const { preparedFor } = require('../docx-draft');
-  assert.equal(preparedFor({ name: 'Lee Fencing', abn: '51824753556' }, 'SR-ABCD-EFGH'), 'Prepared with SiteReady for Lee Fencing (ABN 51 824 753 556). SiteReady reference SR-ABCD-EFGH.');
+  assert.equal(preparedFor({ name: 'Lee Fencing', abn: '51824753556' }, 'SR-ABCD-EFGH'), 'Prepared with SiteWrite for Lee Fencing (ABN 51 824 753 556). SiteWrite reference SR-ABCD-EFGH.');
   assert.equal(preparedFor({ name: 'Lee Fencing' }, ''), '');
 });
 
-test('a SiteReady reference can be verified by anyone, and a wrong one is not found', async () => {
+test('a SiteWrite reference can be verified by anyone, and a wrong one is not found', async () => {
   const { issueRef } = require('../refs');
   const ref = await issueRef({ id: 'c-verify', name: 'Verify Co Pty Ltd', abn: '33102417000' }, 'Install the fence');
   const good = await (await fetch(`${base}/api/verify/${ref}`)).json();

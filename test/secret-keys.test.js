@@ -126,7 +126,7 @@ test('a production server without the keys starts, and its log names each variab
       const timer = setTimeout(() => reject(new Error(`The server did not start: ${output}`)), 20000);
       const read = (chunk) => {
         output += chunk;
-        if (/SiteReady server running/.test(output)) { clearTimeout(timer); resolve(); }
+        if (/SiteWrite server running/.test(output)) { clearTimeout(timer); resolve(); }
       };
       child.stdout.on('data', read);
       child.stderr.on('data', read);

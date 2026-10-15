@@ -42,9 +42,9 @@ const monthOf = (date) => new Date(date.getTime() + 10 * 3600000).toISOString().
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest('hex');
 
 // The wording shown at upload while keeping is on. For the owner's approval (decision list).
-const NOTICE = (years) => `SiteReady keeps a copy of each SWMS you check, with its result, to improve its library. Names are not used outside SiteReady. Copies are kept for ${years} years, or until your business asks us to delete them.`;
+const NOTICE = (years) => `SiteWrite keeps a copy of each SWMS you check, with its result, to improve its library. Names are not used outside SiteWrite. Copies are kept for ${years} years, or until your business asks us to delete them.`;
 const NOT_KEPT_ASKED = 'This document was not kept, as you asked.';
-const KEPT = 'A copy of this document was kept to improve SiteReady\'s library.';
+const KEPT = 'A copy of this document was kept to improve SiteWrite\'s library.';
 const NOT_KEPT_OPTED_OUT = 'This document was not kept: your business opted out of industry data.';
 
 function uploadNotice() {
@@ -393,7 +393,7 @@ const GROUPS_SHOWN = 40;
 const LINES_SHOWN = 15;
 const NO_STEP = '(like no library step)';
 
-// Real SWMS checked in the month, and the lines in them SiteReady's library does not have, grouped by
+// Real SWMS checked in the month, and the lines in them SiteWrite's library does not have, grouped by
 // the library step each is most like. Each line is counted by the different documents and the different
 // organisations (by fingerprint) it appears in, from every document up to the end of the month.
 // null when keeping is off and nothing was ever kept, so the report is as before.
@@ -444,7 +444,7 @@ async function monthSection(month) {
     groups: stepGroups.slice(0, GROUPS_SHOWN),
     groupsNotShown: Math.max(0, stepGroups.length - GROUPS_SHOWN),
     method: [
-      `Real SWMS checked this month: documents first kept in ${month} (a document checked again is kept once). Lines that SiteReady's library does not have: each job step, hazard and control in those documents that shares less than ${Math.round(IN_LIBRARY * 100)}% of its words with every library line.`,
+      `Real SWMS checked this month: documents first kept in ${month} (a document checked again is kept once). Lines that SiteWrite's library does not have: each job step, hazard and control in those documents that shares less than ${Math.round(IN_LIBRARY * 100)}% of its words with every library line.`,
       'Lines are grouped by the same words whatever their order, endings and small words, and placed under the library step whose line they are most like.',
       'Documents and organisations count every kept document up to the end of the month. An organisation is the business the SWMS names as its own, known only by a keyed fingerprint; a document whose business cannot be read counts as a document but not as an organisation.',
       'A line in two or more organisations\' documents meets the two-organisation part of the goal 5 evidence rule. It becomes a library line only with a person\'s check that the documents genuinely say it (D181), the goal 5 evidence test and the line check. This report never changes the library.',
@@ -457,7 +457,7 @@ function sectionMarkdown(section) {
   const cell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
   const out = [`## ${section.title}`, '', `**${section.recordingNote}**`, ''];
   out.push(`Real SWMS checked this month: ${section.checkedThisMonth} (from ${section.organisationsThisMonth} organisation${section.organisationsThisMonth === 1 ? '' : 's'}). Kept to date: ${section.documentsToDate} from ${section.organisationsToDate} organisation${section.organisationsToDate === 1 ? '' : 's'}.`, '');
-  out.push(`Lines that SiteReady's library does not have: ${section.newLines}, of which ${section.twoOrganisationLines} appear in two or more organisations' documents.`, '');
+  out.push(`Lines that SiteWrite's library does not have: ${section.newLines}, of which ${section.twoOrganisationLines} appear in two or more organisations' documents.`, '');
   for (const group of section.groups) {
     out.push(`### ${group.step} (${group.total})`, '');
     out.push('| Kind | Line | Documents | Organisations | Two organisations |', '|---|---|---|---|---|');

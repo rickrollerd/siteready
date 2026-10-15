@@ -17,7 +17,7 @@ const { pdfText, isoDate } = require('./design-read');
 const { SDS_BRIEF, SDS_BRIEF_VERSION, SDS_SCHEMA } = require('./sds-brief');
 
 const MAX_CHARACTERS = 2500000;
-const NO_WORDS = 'This safety data sheet has no typed words SiteReady can read (it may be a scan or a photo). Type the product\'s details from it.';
+const NO_WORDS = 'This safety data sheet has no typed words SiteWrite can read (it may be a scan or a photo). Type the product\'s details from it.';
 const NOT_SDS = 'This file does not read as a safety data sheet. Attach the product\'s safety data sheet, or type its details.';
 const OFF = 'Reading the safety data sheet is not switched on here. Type the product\'s details from it.';
 const fail = (status, message) => Object.assign(new Error(message), { status, publicMessage: true });
@@ -98,7 +98,7 @@ function rowDetails(fields) {
 // Reads the attached SDS of the business, or returns what was read of the same SDS before.
 async function readSds(company, fileId) {
   if (!aiScope.enabled()) throw fail(503, OFF);
-  if (!company) throw fail(401, 'Sign in to have SiteReady read the safety data sheet.');
+  if (!company) throw fail(401, 'Sign in to have SiteWrite read the safety data sheet.');
   const kept = await require('./design-files').fileOfCompany(company.id, String(fileId || ''));
   if (!kept) throw fail(404, 'The attached file was not found. Attach it again.');
   if (kept.row.content_type !== 'application/pdf') throw fail(422, NO_WORDS);

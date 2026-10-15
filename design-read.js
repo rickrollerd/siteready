@@ -16,7 +16,7 @@ const aiScope = require('./ai-scope');
 const { DESIGN_BRIEF, DESIGN_BRIEF_VERSION, DESIGN_SCHEMA } = require('./design-brief');
 
 const MAX_CHARACTERS = 2500000;
-const NO_WORDS = 'This drawing has no typed words SiteReady can read, so type its details.';
+const NO_WORDS = 'This drawing has no typed words SiteWrite can read, so type its details.';
 const OFF = 'Reading the drawing is not switched on here. Type its details.';
 const fail = (status, message) => Object.assign(new Error(message), { status, publicMessage: true });
 
@@ -89,7 +89,7 @@ function cardDetails(fields) {
 // Reads the attached drawing of the business, or returns what was read of the same drawing before.
 async function readDesign(company, fileId) {
   if (!aiScope.enabled()) throw fail(503, OFF);
-  if (!company) throw fail(401, 'Sign in to have SiteReady read the drawing.');
+  if (!company) throw fail(401, 'Sign in to have SiteWrite read the drawing.');
   const kept = await require('./design-files').fileOfCompany(company.id, String(fileId || ''));
   if (!kept) throw fail(404, 'The attached file was not found. Attach it again.');
   if (kept.row.content_type !== 'application/pdf') throw fail(422, NO_WORDS);

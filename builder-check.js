@@ -1,9 +1,9 @@
 // The builder SWMS check, v1 (tasks #106, #99 and part of #78). A builder or principal
 // contractor checks a subcontractor's SWMS: seven hard fails, then 100 points of weighted
-// items, a result band, and a copy-and-paste email to the subcontractor. SiteReady never
+// items, a result band, and a copy-and-paste email to the subcontractor. SiteWrite never
 // sends the email.
 //
-// The rules are the owner-approved v1 rules of 5 October 2026 ("SiteReady builder check and
+// The rules are the owner-approved v1 rules of 5 October 2026 ("SiteWrite builder check and
 // outreach drafts"). Bands: Accepted 90 to 100; Accepted with changes 60 to 89; Not accepted
 // below 60 or any hard fail.
 //
@@ -27,7 +27,7 @@
 //   Q11 (W14) Where the SWMS shows chemicals are used, it names the products or product types and
 //       carries safety data sheet controls.
 //   Q12 (W13) A minimum control set for each high risk category, from the WHS Regulations and the
-//       codes of practice SiteReady cites: points lost for each must-have missing. A crane named for
+//       codes of practice SiteWrite cites: points lost for each must-have missing. A crane named for
 //       a lift needs a lift plan. Extras: dated worker signatures (W9) and operator competency for
 //       the plant named (W5). A reason for using a ladder is not asked for.
 //   Kept: vague lines in steps that name no high risk work cost points in W3 but do not fail H5.
@@ -50,7 +50,7 @@
 // document like a permit, and 1 from W10 (hierarchy order, 4 to 3). A step done to an engineer's or
 // temporary works design that does not say which design (its number, revision or who prepared it)
 // loses its share; so does a step on hold because its design is not issued yet. A design the SWMS
-// records as not needed for this work is not counted. The line SiteReady prints for a design (its
+// records as not needed for this work is not counted. The line SiteWrite prints for a design (its
 // reference or a hold point) is not a control: it is not judged for the hierarchy (W2, W10) or
 // counted as length (W8), and it is checkable (W3).
 // Now: W1 10, W2 10, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 3, W11 4, W12 3, W13 12, W14 3, W15 4, W16 3 = 100.
@@ -60,7 +60,7 @@
 // must-fix item, as a reviewer would fail it. Such a line no longer reads as a pass.
 //
 // The SWMS comes in one structured form, whatever its source (an AI reading of an uploaded
-// document, or a SiteReady draft):
+// document, or a SiteWrite draft):
 // { state, task, fallRisk, site: { address, conditions[] }, highRisk[], steps[{ step, hazards[], controls[], responsible,
 //   riskBefore, riskAfter, riskResponse }], ppe[], responsiblePerson, consultation, signatures[{ name, date }], revision,
 //   date, reviewDate, principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix, riskAcceptance }
@@ -93,7 +93,7 @@ const SOURCES = {
   W10: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check the order)',
   W11: 'Model Code of Practice: Construction Work (who implements, monitors and reviews each control); WHS Regulations s 299(3); a tier 1 builder\'s published SWMS review checklist (evidence: a position per step, not one person for the SWMS)',
   W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check named permits)',
-  W13: 'WHS Regulations part 6.4 (s 304 underground essential services, s 305 managing excavation risks, s 306 trenches 1.5 m or deeper), s 78 to s 80 (falls), s 166 (electric lines), s 69 and s 74 (confined spaces) and chapter 8 (asbestos); the codes of practice SiteReady cites for falls, excavation, electric lines, electrical risks, confined spaces, asbestos, demolition, moving plant, tilt-up and precast, traffic management, silica, cranes and telecommunication towers. A lift plan for each crane lift (owner decision, 6 October 2026)',
+  W13: 'WHS Regulations part 6.4 (s 304 underground essential services, s 305 managing excavation risks, s 306 trenches 1.5 m or deeper), s 78 to s 80 (falls), s 166 (electric lines), s 69 and s 74 (confined spaces) and chapter 8 (asbestos); the codes of practice SiteWrite cites for falls, excavation, electric lines, electrical risks, confined spaces, asbestos, demolition, moving plant, tilt-up and precast, traffic management, silica, cranes and telecommunication towers. A lift plan for each crane lift (owner decision, 6 October 2026)',
   W15: 'Contractor SWMS review checklist items 6 and 10 (each step rated before and after the controls; a High after the controls has a stated response); tier 1 SWMS standard and builder SWMS procedure risk assessment guides (likelihood and consequence, inherent and residual). The law does not require a rating, so a missing one costs points and never fails (goal 3, owner, 7 October 2026)',
   W16: 'Contractor SWMS review checklists (the SWMS identifies the engineer\'s or temporary works design it relies on, so the reviewer can check it matches); Model Code of Practice: Construction Work (temporary works designed by a competent person); owner decision, 11 October 2026',
   W14: 'WHS Regulations s 344 and s 346 (safety data sheets at hand, the hazardous chemicals register); Managing risks of hazardous chemicals code of practice (labelling, following the safety data sheet) (owner decision, 6 October 2026)',
@@ -128,17 +128,17 @@ function normaliseSwms(input = {}) {
   return {
     state: text(input.state),
     task: text(input.task),
-    // "Yes" or "No", or a SiteReady answer such as "No. No work is done where ...".
+    // "Yes" or "No", or a SiteWrite answer such as "No. No work is done where ...".
     fallRisk: (/^(yes|no)\b/i.exec(text(input.fallRisk)) || [''])[0].toLowerCase(),
     site: { address: text(site.address || input.siteAddress), conditions: list(site.conditions || input.siteConditions).filter(filled) },
     // Every site condition as written, for blanks and placeholders (H8).
     siteWritten: list(site.conditions || input.siteConditions),
     // Other printed fields the check does not judge, read only for blanks and placeholders (H8).
     otherFields: list(input.otherFields),
-    // The designs table a SiteReady draft prints (designs.js); null for a SWMS from elsewhere, whose
+    // The designs table a SiteWrite draft prints (designs.js); null for a SWMS from elsewhere, whose
     // steps are read for design wording in general.
     designs: Array.isArray(input.designs) ? input.designs.filter((item) => item && typeof item === 'object').map((item) => ({ id: text(item.id), what: text(item.what), status: text(item.status) })) : null,
-    // The hazardous products a SiteReady draft lists one by one (substances.js, D256); null otherwise.
+    // The hazardous products a SiteWrite draft lists one by one (substances.js, D256); null otherwise.
     substances: Array.isArray(input.substances) ? input.substances.filter((item) => item && typeof item === 'object').map((item) => ({ product: text(item.product), type: text(item.type), controls: list(item.controls), confirmed: item.confirmed === true })) : null,
     highRisk: list(input.highRisk),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
@@ -170,7 +170,7 @@ function normaliseSwms(input = {}) {
 
 // A step's ratings before and after the controls, and what is done about a rating still High after
 // them. Given as riskBefore, riskAfter and riskResponse (the AI reading), or as risk: { before, after,
-// response } (a SiteReady draft). Null where the form gives no rating field at all for the step.
+// response } (a SiteWrite draft). Null where the form gives no rating field at all for the step.
 function ratingOf(item) {
   const risk = item.risk && typeof item.risk === 'object' ? item.risk : null;
   const level = (value) => text(value && typeof value === 'object' ? value.level || value.label : value);
@@ -439,7 +439,7 @@ function dateOf(value, endOfMonth = false) {
 // ---- The minimum control set for each high risk category (W13) ----
 
 // Owner decision (6 October 2026, Q12, built first): each high risk category has a short set of
-// must-have controls, drawn from the WHS Regulations and the codes of practice SiteReady cites, and
+// must-have controls, drawn from the WHS Regulations and the codes of practice SiteWrite cites, and
 // each one missing costs points. Each must-have is a pattern of the wordings that say it: generous
 // with synonyms, so an honest SWMS is not marked down for its wording, and strict about meaning, so
 // a barricade under the work is not shoring and a dust mask is not a respirator. A line that says the
@@ -865,18 +865,18 @@ function hardFails(swms, state, stage = 'review') {
 // ---- Designs the work relies on (W16) ----
 
 // A design named in a line: a document or drawing number ("ABC-S-101", "TW-02"), a revision ("rev C"),
-// or SiteReady's own line ("Work to the shoring design ... (Smith Engineering, 3 October 2026).").
+// or SiteWrite's own line ("Work to the shoring design ... (Smith Engineering, 3 October 2026).").
 const DESIGN_REFERENCE = /\b(?=[A-Z0-9-]*\d)[A-Z]{1,8}[A-Z0-9]*(?:-[A-Z0-9]+)+\b|\brev(?:ision)?\.? ?[A-Z0-9]{1,3}\b|\b(?:drawing|dwg|document|report)\s*(?:no\.?|number|#)\s*\S*\d|^Work to the .+ \([^()]+\)\.$/;
 // In a SWMS from elsewhere: a line that has the work done to an engineer's or temporary works design,
 // not one that applies only where something is so.
 const DESIGN_WORDS = /\b(?:to|as|per|in|follows?) (?:the |an? )?(?:engineer'?s'?|structural engineer'?s|geotechnical engineer'?s|temporary works|formwork|falsework|shoring|scaffold|erection|propping|underpinning|demolition|crane base|excavation|bracing)\s+(?:design|drawings?|plan|procedure|sequence)\b|\b(?:is|are) designed by (?:an? |the )?(?:structural |geotechnical )?engineer\b/i;
 const CONDITIONAL = /^\s*(?:where|if|when|unless)\b/i;
-// The line SiteReady prints for a design (designs.js): its reference, or a hold point.
+// The line SiteWrite prints for a design (designs.js): its reference, or a hold point.
 const OWN_DESIGN_LINE = /^Work to the .+ \([^()]+\)\.$/;
 const isDesignLine = (line) => isHoldPoint(line) || (OWN_DESIGN_LINE.test(String(line || '').trim()) && withoutCitation(line) === line);
 
 // Each step that relies on a design, with the design and whether the step names it ('named'), is on
-// hold until it is issued ('hold'), or does not say ('missing'). A SiteReady draft is read by its own
+// hold until it is issued ('hold'), or does not say ('missing'). A SiteWrite draft is read by its own
 // list of design lines (designs.js); a design its table records as not needed is left out.
 function designUses(swms) {
   const { designsNeeded } = require('./designs');
@@ -1223,7 +1223,7 @@ function weighted(swms, state, context) {
 
   // W14 Hazardous chemicals (3): where the SWMS shows chemicals are used, the products or product
   // types are named (1) and the safety data sheet controls are given (2) (owner decision, 6 October 2026, Q11).
-  // A SiteReady SWMS whose products are listed one by one (owner D256) names them in its substances
+  // A SiteWrite SWMS whose products are listed one by one (owner D256) names them in its substances
   // table; each needs the controls from its safety data sheet and a check against it, as the download does.
   {
     const fixes = [];
@@ -1363,9 +1363,9 @@ function checkSwms(input, options = {}) {
   };
 }
 
-// ---- A SiteReady draft in the structured form ----
+// ---- A SiteWrite draft in the structured form ----
 
-// The checker reads a SiteReady draft as a builder would read the printed SWMS. Nothing
+// The checker reads a SiteWrite draft as a builder would read the printed SWMS. Nothing
 // is added that the draft does not print. The Word file prints a risk matrix whenever the
 // steps carry ratings, and each step's responsible position in its Who column.
 function fromDraft(draft, extra = {}) {
@@ -1426,7 +1426,7 @@ function fromDraft(draft, extra = {}) {
 
 // ---- The email to the subcontractor (#99) ----
 
-// Copy and paste only: SiteReady never sends it. Hard fails come first, then the weighted
+// Copy and paste only: SiteWrite never sends it. Hard fails come first, then the weighted
 // items that lost the most points.
 function emailDraft(result, options = {}) {
   const hello = options.to ? `Hi ${options.to},` : 'Hi,';

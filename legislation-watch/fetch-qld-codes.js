@@ -1,5 +1,5 @@
 // Tries to read Queensland's approved codes of practice from WorkSafe Queensland
-// with a real browser, and writes each as text to qld-codes/, so SiteReady's
+// with a real browser, and writes each as text to qld-codes/, so SiteWrite's
 // code references can be checked against the Queensland versions.
 const { execFileSync } = require('child_process');
 const fs = require('fs');

@@ -1,4 +1,4 @@
-// The hierarchy level SiteReady reads from a control line (goal 5 review, 7 October 2026): the line
+// The hierarchy level SiteWrite reads from a control line (goal 5 review, 7 October 2026): the line
 // is read without its citation, "rather than" swaps count only where a hazardous tool or product is
 // replaced, and a control named only in a check, a negation or a condition is not put in place.
 const test = require('node:test');

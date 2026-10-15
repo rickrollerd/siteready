@@ -4,7 +4,7 @@
 // report.
 (function (root) {
   // Said once, above the work packages on the page and in the report.
-  const HRCW_NOTE = 'Each work package says whether its work is high risk construction work, which needs a SWMS by law. SiteReady works this out with the same rules it uses for the SWMS. Where the scope does not say enough, such as a height or a depth, the SWMS questions will confirm it.';
+  const HRCW_NOTE = 'Each work package says whether its work is high risk construction work, which needs a SWMS by law. SiteWrite works this out with the same rules it uses for the SWMS. Where the scope does not say enough, such as a height or a depth, the SWMS questions will confirm it.';
 
   // flag: { categories: [{ short, likely, dependsOn }], dependsOn: [{ short, on }], offSite }
   function hrcwSummary(flag) {
@@ -32,5 +32,5 @@
 
   const api = { hrcwSummary, HRCW_NOTE };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyHrcw = api;
+  else root.SiteWriteHrcw = api;
 })(typeof window !== 'undefined' ? window : globalThis);

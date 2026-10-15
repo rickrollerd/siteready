@@ -32,5 +32,5 @@
 
   const api = { conflictDialog, ADVICE };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyConflicts = api;
+  else root.SiteWriteConflicts = api;
 })(typeof window !== 'undefined' ? window : globalThis);

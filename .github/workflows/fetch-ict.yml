@@ -1,6 +1,6 @@
 name: Fetch ICT and security sources
 
-# Reads the cabling and security licensing law behind SiteReady's ICT and security job steps, one job per source and chunk so each log can be read back.
+# Reads the cabling and security licensing law behind SiteWrite's ICT and security job steps, one job per source and chunk so each log can be read back.
 on:
   workflow_dispatch:
   push:

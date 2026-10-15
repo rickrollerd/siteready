@@ -278,7 +278,7 @@ function othersLicence(item, allText, task, ownCrane = false) {
 function othersLicenceOf(item, allText, task, ownCrane) {
   if (item.item === 'Mobile crane or crane truck') item = craneClass(item, task);
   // Tube and coupler scaffolds need intermediate scaffolding, hung and suspended scaffolds advanced.
-  // The scaffold type answered sets the class too (the line SiteReady writes for it).
+  // The scaffold type answered sets the class too (the line SiteWrite writes for it).
   const typed = (allText.match(/\bThis scaffold is (modular|tube and coupler|hung|a mobile tower)\b/) || [])[1];
   if (item.item === 'Scaffold' && typed === 'hung') item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SA') };
   else if (item.item === 'Scaffold' && typed === 'tube and coupler') item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SI or SA') };
@@ -617,11 +617,11 @@ function whereUsed(licence) {
 const WHERE_USED = /, where one is used\b/;
 
 // The plant the user confirmed (goal 2: ask for the plant, do not guess it). choice is
-// { used, notUsed, added }: the names of the plant SiteReady listed that the crew uses and does not
-// use, and the user's own items ({ item, licence }). Without a choice, the plant SiteReady listed
+// { used, notUsed, added }: the names of the plant SiteWrite listed that the crew uses and does not
+// use, and the user's own items ({ item, licence }). Without a choice, the plant SiteWrite listed
 // prints as it is (the preview), and the download waits for it (download-gate.js). Plant confirmed
 // as used is no longer "where one is used". An item of the user's own takes its notes from the
-// plant SiteReady knows by that name, otherwise the pre-start check, and the licence the user gave.
+// plant SiteWrite knows by that name, otherwise the pre-start check, and the licence the user gave.
 function confirmedPlant(plant, choice, stateId) {
   if (!choice || typeof choice !== 'object') return plant;
   const used = new Set(Array.isArray(choice.used) ? choice.used : []);
@@ -705,7 +705,7 @@ function registersFor(draft, input = {}) {
   if (buildingGenerator) plant.push({ item: 'Standby generator (building plant)', inspection: 'Serviced and tested to the manufacturer\'s instructions. Guards, exhaust and fuel system checked before each run.', licence: 'No. Switching by licensed electricians' });
   // Register notes cite the state's own regulation.
   const stateId = (findState(draft.state) || { id: 'qld' }).id;
-  // The plant SiteReady lists, for the user to confirm (goal 2), and the plant that prints: only
+  // The plant SiteWrite lists, for the user to confirm (goal 2), and the plant that prints: only
   // what the user confirmed, once they have.
   const plantInferred = plant.map((item) => localPlant(item, stateId)).map((item) => ({ item: item.item, maybe: WHERE_USED.test(item.licence) }));
   const listed = confirmedPlant(plant, input.plantChoice, stateId);
@@ -763,7 +763,7 @@ function registersFor(draft, input = {}) {
   return {
     plant: listed.map((item) => localPlant(item, stateId)).map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
     plantInferred,
-    // The user has confirmed the plant: plant SiteReady was not sure of counts once ticked (emergency.js).
+    // The user has confirmed the plant: plant SiteWrite was not sure of counts once ticked (emergency.js).
     plantChosen: Boolean(input.plantChoice && typeof input.plantChoice === 'object'),
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.

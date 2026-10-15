@@ -1,6 +1,6 @@
 name: Fetch general construction codes
 
-# Reads the construction work, noise and hazardous chemicals codes behind SiteReady's finishing and civil trade job steps, one job per source and chunk so each log can be read back.
+# Reads the construction work, noise and hazardous chemicals codes behind SiteWrite's finishing and civil trade job steps, one job per source and chunk so each log can be read back.
 on:
   workflow_dispatch:
   push:

@@ -1,4 +1,4 @@
-// Checks a SiteReady reference. The reference can also come in the address: /verify.html?ref=SR-ABCD-2345
+// Checks a SiteWrite reference. The reference can also come in the address: /verify.html?ref=SW-ABCD-2345
 (() => {
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const input = document.getElementById('ref');
@@ -20,7 +20,7 @@
       // the way in to review it.
       const review = data.revision ? `<dt>Principal contractor review</dt><dd>${data.review ? `<strong>${esc(data.review.label)}</strong>, ${esc(data.review.date)}` : 'Not reviewed yet'}</dd>` : '';
       const reviewLink = data.reviewable ? `<p><a href="/review.html?ref=${encodeURIComponent(data.ref)}">Principal contractor: review this SWMS and send your response</a></p>` : '';
-      result.innerHTML = `<div class="${data.revision && !data.current ? 'bad' : 'ok'}"><strong>Genuine SiteReady reference.</strong><dl>
+      result.innerHTML = `<div class="${data.revision && !data.current ? 'bad' : 'ok'}"><strong>Genuine SiteWrite reference.</strong><dl>
         <dt>Prepared for</dt><dd>${esc(data.business)}</dd>
         <dt>Title</dt><dd>${esc(data.title || '')}</dd>
         ${data.revision ? `<dt>Revision</dt><dd>${esc(data.revision)}</dd>` : ''}
