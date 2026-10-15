@@ -92,7 +92,9 @@ const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
-app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+// A main contractor's subcontract scope (Goal 12 stage 4) is sent the same way.
+const HSE_SCOPE = /^\/api\/hse\/subcontracts\/[^/]+\/scope$/;
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 // SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
 app.get(['/sitelink', '/sitelink/'], (req, res, next) => {
@@ -142,6 +144,10 @@ app.use(EMAIL_ROUTES, limiter('sign-in-email-ip', positiveNumber(process.env.RAT
 app.use('/api/review', limiter('review', positiveNumber(process.env.RATE_LIMIT_REVIEW_REQUESTS, 60)));
 // The main contractor's pages (Goal 12): its account, team, projects and site details.
 app.use('/api/hse', limiter('hse', positiveNumber(process.env.RATE_LIMIT_HSE_REQUESTS, 300)));
+// Reading a subcontract's scope on a project (stage 4) counts with the AI scope readings' own limit;
+// only sending a scope counts, not the page asking how the reading is going.
+const hseScopeLimit = limiter('hse-scope', positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
+app.use(HSE_SCOPE, (req, res, next) => (req.method === 'POST' ? hseScopeLimit(req, res, next) : next()));
 app.use('/api/sign', limiter('sign-on', positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
@@ -705,7 +711,10 @@ app.use((error, req, res, _next) => {
   // SiteLink's ABN check (D303): the name the ABN register lists, or that another account holds the ABN.
   const register = error.publicMessage && error.register && typeof error.register === 'object' ? { register: error.register } : {};
   const taken = error.publicMessage && error.taken === true ? { taken: true } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken });
+  // SiteLink's scope reading (stage 4): the project's free readings are used up, or a new scope would replace a list.
+  const limit = error.publicMessage && error.limit === true ? { limit: true } : {};
+  const replace = error.publicMessage && error.replace === true ? { replace: true } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace });
 });
 
 // One worker per processor core. A worker that stops is replaced.

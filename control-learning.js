@@ -551,6 +551,7 @@ async function removeOld(now = new Date()) {
   await db.query('DELETE FROM own_step_events WHERE created_at < $1', [cutoff]);
   await db.query('DELETE FROM answer_events WHERE created_at < $1', [cutoff]);
   await db.query('DELETE FROM review_learning WHERE created_at < $1', [cutoff]);
+  await db.query('DELETE FROM list_edit_events WHERE created_at < $1', [cutoff]);
 }
 
 // Counts for the owner: changes by kind and outcome, the steps changed most, and how many changes

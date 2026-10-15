@@ -409,14 +409,17 @@ router.get('/admin/warnings', auth.requireUser, route(async (req, res) => {
 // The readings themselves stay with each account; only their counts and checks are shown here.
 router.get('/admin/ai-readings', auth.requireUser, route(async (req, res) => {
   requireOwner(req);
-  const rows = await db.query(`SELECT r.id, r.status, r.brief_version, r.model, r.characters, r.checks, r.cost_usd, r.error, r.created_at, r.finished_at, c.name AS company_name
-    FROM ai_readings r LEFT JOIN companies c ON c.id = r.company_id ORDER BY r.created_at DESC LIMIT 50`);
+  // A SiteLink project's reading (Goal 12 stage 4) has no company: it is tagged with the main
+  // contractor's account and the project.
+  const rows = await db.query(`SELECT r.id, r.status, r.brief_version, r.model, r.characters, r.checks, r.cost_usd, r.error, r.created_at, r.finished_at, c.name AS company_name,
+    o.name AS org_name, p.name AS project_name
+    FROM ai_readings r LEFT JOIN companies c ON c.id = r.company_id LEFT JOIN orgs o ON o.id = r.org_id LEFT JOIN projects p ON p.id = r.project_id ORDER BY r.created_at DESC LIMIT 50`);
   res.json({
     readings: rows.map((row) => {
       const checks = row.checks ? JSON.parse(row.checks) : null;
       return {
         id: row.id,
-        company: row.company_name || '',
+        company: row.company_name || (row.org_name ? `SiteLink project: ${row.project_name || 'removed'} (${row.org_name})` : ''),
         status: row.status,
         briefVersion: row.brief_version,
         model: row.model,

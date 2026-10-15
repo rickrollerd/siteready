@@ -100,12 +100,13 @@ const TIED = {
   review_access_log: ['SELECT id FROM review_access_log WHERE ref = $1', (b) => [b.reviewRef]],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
-const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations', 'review_learning'];
+const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations', 'review_learning', 'list_edit_events'];
 // Not about any one business: the server's error log, the record of library notices sent, and the
 // principal contractors' reviewers, who are not the business's people.
 // The main contractor's account, team, projects and site details (Goal 12 stage 3) belong to the main
 // contractor, never to a subcontractor's business, so deleting a business leaves them.
-const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details'];
+// Their subcontracts, SWMS lists and answered points (stage 4) are the main contractor's too.
+const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details', 'subcontracts', 'required_swms', 'subcontract_points'];
 
 async function tiedCounts(business) {
   const out = {};

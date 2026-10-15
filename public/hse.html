@@ -46,6 +46,8 @@
     .note { background: #f4f6f8; border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 14px; }
     .ok p, .bad p, .warn p, .note p { margin: 6px 0 0; }
     .field-error { color: #a01818; font-weight: 700; margin: 6px 0 0; }
+    /* The project's free AI readings are used up (D302). */
+    .limit-note { color: #a01818; margin: 6px 0 0; }
     .has-error { border-color: #c02020 !important; border-width: 2px !important; }
     .theirs { background: #fff4dc; border: 1px solid #e6c77a; border-radius: 6px; padding: 8px 10px; margin-top: 6px; }
     .hidden { display: none !important; }
@@ -86,9 +88,70 @@
     details.version summary > span { display: inline-block; vertical-align: top; }
     .crumbs { font-size: 14px; margin: 4px 0 0; }
     .crumbs a { color: #1f4e3d; }
+    /* Stage 4: the subcontractors table, a subcontract's SWMS list, its points to confirm and the preview. */
+    table.subs td.sub-name a { font-weight: 700; font-size: 16px; }
+    table.subs .scope-state { display: block; color: #5c6773; }
+    @media (max-width: 979px) {
+      table.subs tr { border-top: 1px solid #e3e7ec; padding: 8px 0; }
+      table.subs tr:first-child { border-top: 0; }
+      table.subs td { border: 0; padding: 2px 0; }
+      table.subs td[data-label]::before { content: attr(data-label) ": "; color: #5c6773; font-weight: 600; }
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .card-head h2 { margin: 0; }
+    .swms-item { border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 10px; background: #fff; }
+    .swms-item.removed { background: #f4f6f8; color: #5c6773; }
+    .swms-item h3 { margin: 0 0 4px; font-size: 17px; }
+    .swms-item .work { margin: 6px 0 0; }
+    .swms-item .actions { margin-top: 10px; }
+    .hrcw { display: block; font-size: 14px; margin-top: 4px; }
+    .hrcw-yes { color: #8a2b2b; } .hrcw-likely, .hrcw-depends { color: #7a4d00; } .hrcw-none { color: #5c6773; }
+    .point { border-top: 1px solid #e3e7ec; padding: 12px 0; }
+    .point:first-of-type { border-top: 0; }
+    .point textarea { min-height: 70px; }
+    .preview { background: #fff; border: 2px solid #1f4e3d; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    .preview ol { padding-left: 22px; margin: 6px 0 0; }
+    .preview ol > li { margin-top: 10px; }
+    .preview .qa { border-left: 3px solid #9cc9b3; padding: 4px 0 4px 10px; margin-top: 10px; }
+    input[type="file"] { display: block; width: 100%; margin-top: 4px; font: inherit; padding: 10px; border: 1px dashed #9aa5b1; border-radius: 6px; background: #fff; }
+    /* The progress bar while the AI reads a scope (read-progress.js), and the message when it is done. */
+    .read-progress { margin: 12px 0 4px; }
+    .read-progress .rp-lead { font-size: 14px; margin: 0 0 6px; color: #3d4a59; }
+    .rp-bar { position: relative; padding-top: 40px; }
+    .rp-worker { position: absolute; top: 0; left: calc((100% - 40px) * var(--p, 0) / 100); width: 40px; height: 40px; transition: left 0.6s ease-out; }
+    .rp-worker-svg { display: block; width: 40px; height: 40px; overflow: visible; }
+    .rp-track { height: 14px; border-radius: 999px; background: #e1e6ec; border: 1px solid #d5dbe3; overflow: hidden; }
+    .rp-fill { height: 100%; width: calc(var(--p, 0) * 1%); background: repeating-linear-gradient(45deg, #1f4e3d 0 10px, #2a6a52 10px 20px); border-radius: 999px; transition: width 0.6s ease-out; }
+    .rp-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font-size: 14px; margin: 6px 0 0; }
+    .rp-stage { color: #3d4a59; }
+    .rp-pc { font-size: 18px; color: #1f4e3d; font-variant-numeric: tabular-nums; }
+    .rp-slow { margin-top: 4px; color: #9a3b00; }
+    .read-progress[data-state="failed"] .rp-fill { background: #9aa5b1; }
+    .rp-legs, .rp-arm, .rp-handle, .rp-stripe { fill: none; stroke-linecap: round; }
+    .rp-legs { stroke: #2d3a48; stroke-width: 2.4; }
+    .rp-arm { stroke: #e0ac85; stroke-width: 2; }
+    .rp-handle { stroke: #8a5a2b; stroke-width: 1.6; }
+    .rp-stripe { stroke: #fff; stroke-width: 1.2; }
+    .rp-vest { fill: #f26b1d; } .rp-head { fill: #e0ac85; } .rp-blade { fill: #7b8794; } .rp-mound, .rp-dirt { fill: #8a6a45; }
+    .rp-hat { fill: #f2b705; stroke: #c99400; stroke-width: 0.8; stroke-linejoin: round; }
+    .rp-dirt { opacity: 0; animation: rp-dirt 0.9s ease-out infinite; }
+    .rp-dig { transform-box: view-box; transform-origin: 14px 13.5px; animation: rp-dig 0.9s ease-in-out infinite; }
+    .rp-body { transform-box: view-box; transform-origin: 13px 30px; animation: rp-bob 0.9s ease-in-out infinite; }
+    .read-progress:not([data-state="running"]) .rp-dig, .read-progress:not([data-state="running"]) .rp-body, .read-progress:not([data-state="running"]) .rp-dirt { animation: none; }
+    @keyframes rp-dig { 0%, 100% { transform: rotate(-14deg); } 55% { transform: rotate(16deg); } }
+    @keyframes rp-bob { 0%, 100% { transform: translateY(0); } 55% { transform: translateY(1px) rotate(3deg); } }
+    @keyframes rp-dirt { 0%, 50% { opacity: 0; transform: translate(0, 0); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(4px, -8px); } }
+    @media (prefers-reduced-motion: reduce) { .rp-dig, .rp-body, .rp-dirt { animation: none; } .rp-worker, .rp-fill { transition: none; } }
+    .read-done { border: 1px solid #c9d1d9; border-top: 5px solid #1f4e3d; border-radius: 10px; padding: 20px 22px 18px; width: min(440px, calc(100% - 32px)); background: #fff; color: #1c2430; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25); text-align: center; }
+    .read-done::backdrop { background: rgba(28, 36, 48, 0.45); }
+    .read-done h2 { font-size: 20px; margin: 0 0 8px; }
+    .read-done p { margin: 0 0 14px; }
+    .read-done .actions { justify-content: center; }
+    .read-done .read-done-mark { width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%; background: #e3f3e8; color: #1e7e34; font-size: 26px; line-height: 44px; font-weight: 700; }
+    .read-done button.secondary { background: #fff; color: #1f4e3d; }
     /* Phones (goal 7): text at least 16 px. */
     @media (max-width: 640px) {
-      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs, .tabs a span, .brand .by { font-size: 16px; }
+      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs, .tabs a span, .brand .by, .hrcw, .read-progress .rp-lead, .rp-row { font-size: 16px; }
       .log .when { font-size: 15px; }
     }
   </style>
@@ -230,10 +293,11 @@
       <div class="cols">
         <div class="main">
           <div class="panel" id="card-subs">
-            <h2>Subcontractors</h2>
+            <div class="card-head"><h2>Subcontractors</h2><a class="button" id="p-add-sub" href="#">Add a subcontract</a></div>
+            <p class="meta" id="p-readings"></p>
             <table class="subs">
-              <thead><tr><th>Subcontractor</th><th>SWMS in</th><th>Review status</th><th>Conditions outstanding</th><th>Updated after plan change</th><th>Last contact</th></tr></thead>
-              <tbody><tr><td class="empty" colspan="6">No subcontractors yet. Adding subcontractors and their scopes of work is not open yet. Each one will show here with its SWMS.</td></tr></tbody>
+              <thead><tr><th>Subcontractor</th><th>SWMS list</th><th>SWMS in</th><th>Review status</th><th>Conditions outstanding</th><th>Updated after plan change</th><th>Last contact</th></tr></thead>
+              <tbody id="p-subs"></tbody>
             </table>
           </div>
           <div class="panel" id="card-plans">
@@ -262,6 +326,61 @@
       </div>
     </section>
 
+    <!-- A new subcontract, or changing a subcontract's details (stage 4) -->
+    <section id="view-sub-form" class="hidden">
+      <p class="crumbs" id="sf-crumbs"></p>
+      <h1 id="sf-title">Add a subcontract</h1>
+      <form class="panel short" id="sub-form" novalidate>
+        <label for="sf-name">Company name <span class="hint">The subcontractor's company, as you know it.</span></label>
+        <input id="sf-name" type="text" autocomplete="off" maxlength="200">
+        <p class="field-error hidden" id="sf-name-error"></p>
+        <label for="sf-trade">Trade <span class="hint">For example Formwork or Electrical.</span></label>
+        <input id="sf-trade" type="text" autocomplete="off" maxlength="120">
+        <p class="field-error hidden" id="sf-trade-error"></p>
+        <label for="sf-email">Contact email <span class="hint">Optional for now. Sending the list to the subcontractor is not open yet.</span></label>
+        <input id="sf-email" type="email" autocomplete="off" inputmode="email" maxlength="200">
+        <p class="field-error hidden" id="sf-email-error"></p>
+        <div class="actions"><button type="submit" id="sf-save">Add the subcontract</button><a class="button light" id="sf-cancel" href="#/">Cancel</a></div>
+        <div id="sf-status" role="status"></div>
+      </form>
+    </section>
+
+    <!-- A subcontract: its scope, its SWMS list and its points to confirm (stage 4) -->
+    <section id="view-sub" class="hidden">
+      <p class="crumbs" id="s-crumbs"></p>
+      <h1 id="s-name"></h1>
+      <p class="meta" id="s-meta"></p>
+      <p class="meta"><a id="s-edit" href="#">Change details</a> · <button type="button" class="link" id="s-remove">Remove this subcontract</button></p>
+      <div id="s-flash" aria-live="polite"></div>
+      <div class="panel short" id="s-scope"></div>
+      <div class="panel short" id="s-list-card">
+        <div class="card-head"><h2 id="s-list-title">SWMS this subcontract needs</h2><a class="button light" id="s-preview-link" href="#">What the subcontractor sees</a></div>
+        <p class="meta">Keep the SWMS this subcontractor must give you, remove the ones it does not need to, and add any that are missing.</p>
+        <div id="s-list"></div>
+        <form id="s-add" novalidate>
+          <h3>Add a SWMS</h3>
+          <label for="s-add-title">Title <span class="hint">For example Formwork to suspended slabs.</span></label>
+          <input id="s-add-title" type="text" autocomplete="off" maxlength="160">
+          <p class="field-error hidden" id="s-add-title-error"></p>
+          <label for="s-add-task">The work it covers <span class="hint">A sentence or two, as you would say it to the subcontractor.</span></label>
+          <textarea id="s-add-task" maxlength="1500" style="min-height:90px"></textarea>
+          <p class="field-error hidden" id="s-add-task-error"></p>
+          <div class="actions"><button type="submit" class="light" id="s-add-go">Add to the list</button></div>
+        </form>
+      </div>
+      <div class="panel short" id="s-points-card"></div>
+      <div class="actions short"><a class="button" id="s-preview-go" href="#">What the subcontractor sees</a></div>
+    </section>
+
+    <!-- What the subcontractor sees (stage 4) -->
+    <section id="view-preview" class="hidden">
+      <p class="crumbs" id="pv-crumbs"></p>
+      <h1>What the subcontractor sees</h1>
+      <p class="meta short" id="pv-intro"></p>
+      <div class="preview short" id="pv-body"></div>
+      <div class="actions short"><a class="button light" id="pv-back" href="#">Back to the list</a></div>
+    </section>
+
     <!-- Changing the site details -->
     <section id="view-details" class="hidden">
       <p class="crumbs" id="d-crumbs"></p>
@@ -286,6 +405,8 @@
   <script src="/old-keys.js"></script>
   <script src="/net.js" data-message="No signal. What you have typed stays on this page. Try again when you have signal."></script>
   <script src="/address.js"></script>
+  <script src="/read-progress.js"></script>
+  <script src="/scope-hrcw.js"></script>
   <script src="/hse.js"></script>
 </body>
 </html>

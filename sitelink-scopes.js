@@ -1,0 +1,403 @@
+// SiteLink, Goal 12 stage 4: subcontract scopes become SWMS lists, read once on the project (plan
+// section C). The HSE lead adds a subcontract to a project and uploads its scope of works. The scope
+// is read by the AI once, on the project, and paid for by SiteWrite up to the project's free readings
+// (D302). The work packages that need a SWMS become the subcontract's list; the lead keeps, removes,
+// adds or rewords them, answers the reading's points to confirm, and sees what the subcontractor will
+// see. Sending the list is stage 5.
+//
+// Every route names a subcontract or a project and checks the person has joined its account (hse.js).
+// Anything else reads as not found. The reading belongs to the account; no company ever reads it.
+// No price, rate or amount from a scope is kept or shown to anyone (handover.js).
+const crypto = require('crypto');
+const db = require('./db');
+const auth = require('./auth');
+const aiScope = require('./ai-scope');
+const handover = require('./handover');
+const { scopeText } = require('./scope-text');
+const { record } = require('./events');
+const { textField } = require('./input');
+const { BRIEF_VERSION } = require('./ai-brief');
+const controlLearning = require('./control-learning');
+const { controlLearningKey } = require('./secret-keys');
+
+const { fail } = auth;
+const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const oneLine = (value, max) => textField(value, max).replace(/\s+/g, ' ').trim();
+const PLACEHOLDER = /^(?:tbc|tba|tbd|to be confirmed|to be advised|unknown|\?+|-+|\.+|x+)$/i;
+const NOT_FOUND = 'That subcontract was not found.';
+const ITEM_LIMIT = 60;
+
+// ---- Is it a scope? ----
+// Checked before any reading, so a wrong file costs nothing.
+
+const words = (line) => (String(line).match(/[A-Za-z][A-Za-z'’-]+/g) || []).length;
+const smallWords = (line) => (String(line).match(/\b[a-z][a-z'’-]+/g) || []).length;
+const DRAWING = 'This file has very few typed sentences. It looks like a drawing or a scanned page, not a scope of works. Upload the subcontract\'s scope of works as a Word file or a PDF with typed text.';
+const PRICE_SCHEDULE = 'This file looks like a price schedule: most of its lines are prices. Upload the subcontract\'s scope of works instead. SiteLink never passes prices, rates or amounts on to the subcontractor.';
+
+// A scope is written in sentences. A drawing's text is labels, grid lines and levels; a scan has
+// none. Every held scope passes (at least 0.44 of its words are in sentences); a drawing has few.
+function notAScope(text) {
+  const lines = String(text || '').split('\n');
+  const total = lines.reduce((sum, line) => sum + words(line), 0);
+  if (total < 60) return DRAWING;
+  const inSentences = lines.reduce((sum, line) => sum + (smallWords(line) >= 4 ? words(line) : 0), 0);
+  if (inSentences < total * 0.25) return DRAWING;
+  const filled = lines.filter((line) => line.trim());
+  const priced = filled.filter((line) => handover.hasMoney(line)).length;
+  if (priced >= 5 && priced > filled.length * 0.3) return PRICE_SCHEDULE;
+  return '';
+}
+
+// The scope file's text (scope-text.js). Its messages offer to paste the scope, which SiteLink does
+// not; here they say what to upload instead.
+const FILE_MESSAGES = [
+  [/has no text to read/, 'This PDF has no typed text. It may be a drawing or a scanned page. Upload the scope of works as a Word file or a PDF with typed text.'],
+  [/^The PDF could not be read/, 'The PDF could not be read. Save it again as a PDF, or upload the Word file of the scope.'],
+  [/^The Word file could not be read/, 'The Word file could not be read. Save it again as .docx and upload it again.'],
+  [/^Older Word files/, 'Older Word files (.doc) cannot be read. Save it as .docx and upload it again.'],
+  [/^Attach a Word file/, 'SiteLink reads a scope from a Word file (.docx), a PDF or a text file. A photo or picture of a scope cannot be read.'],
+  [/^Attach the scope/, 'Choose the scope file first.'],
+];
+async function fileText(body) {
+  try {
+    return await scopeText({ file: body.file });
+  } catch (error) {
+    const found = error.publicMessage && FILE_MESSAGES.find(([pattern]) => pattern.test(error.message));
+    if (found) throw Object.assign(fail(error.status || 400, found[1]), { field: 'scope' });
+    throw error;
+  }
+}
+
+// ---- What the lead types ----
+
+function typed(value, max, label, field) {
+  const text = oneLine(value, max);
+  if (PLACEHOLDER.test(text)) throw Object.assign(fail(400, `Leave ${label} empty until you know it. The subcontractor would see "${text}".`), { field });
+  if (handover.hasPrice(text)) throw Object.assign(fail(400, 'Take the price out. The subcontractor sees this, and SiteLink never passes on prices, rates or amounts.'), { field });
+  return text;
+}
+
+function cleanSubcontract(body) {
+  const name = oneLine(body && body.name, 200);
+  const trade = oneLine(body && body.trade, 120);
+  const rawEmail = oneLine(body && body.email, 200);
+  if (!name) throw Object.assign(fail(400, 'Enter the subcontractor\'s company name.'), { field: 'name' });
+  if (!trade) throw Object.assign(fail(400, 'Enter the trade, for example Formwork or Electrical.'), { field: 'trade' });
+  const email = rawEmail ? auth.cleanEmail(rawEmail) : '';
+  if (rawEmail && !email) throw Object.assign(fail(400, 'Enter a valid email address, or leave it empty.'), { field: 'email' });
+  return { name, trade, email };
+}
+
+// ---- Learning from the lead's changes (without names) ----
+
+const monthOf = (date) => new Date(date.getTime() + 10 * 3600000).toISOString().slice(0, 7);
+
+// The names this project holds (the account, the project, its address, the subcontractor, the team),
+// taken out of anything kept.
+async function namesOf(ctx) {
+  const team = await db.query('SELECT reviewers.name FROM org_members JOIN reviewers ON reviewers.id = org_members.reviewer_id WHERE org_members.org_id = $1', [ctx.org.id]);
+  const subs = await db.query('SELECT name FROM subcontracts WHERE project_id = $1', [ctx.project.id]);
+  return controlLearning.accountTerms({
+    businesses: [ctx.org.name, ctx.project.pc_name, ...subs.map((row) => row.name)],
+    people: team.map((row) => row.name).filter(Boolean),
+    places: [ctx.project.name, ctx.project.workplace],
+  });
+}
+
+// One change to a list, kept without names or ids. Kinds: removed, restored, added, taskChanged.
+async function recordListEdit(ctx, { kind, pack, wording = '', original = '' }) {
+  if (!controlLearning.enabled() || !db.enabled()) return;
+  const terms = await namesOf(ctx);
+  const keyed = ctx.sub.doc_hash ? crypto.createHmac('sha256', controlLearningKey()).update(`scope:${ctx.sub.doc_hash}`).digest('hex') : '';
+  await db.query('INSERT INTO list_edit_events (id, month, state, brief_version, package, kind, wording, original, reading_key, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [
+    crypto.randomUUID(), monthOf(new Date()), ctx.project.state || '', ctx.sub.list_reading_id ? BRIEF_VERSION : '',
+    controlLearning.scrub(pack, '', terms).slice(0, 200), kind, controlLearning.scrub(wording, original, terms), controlLearning.scrub(original, '', terms), keyed, new Date(),
+  ]);
+}
+
+// ---- Views ----
+
+function install(router, deps) {
+  const { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS } = deps;
+
+  async function subcontractFor(req, id) {
+    const sub = id && await db.one('SELECT * FROM subcontracts WHERE id = $1 AND removed_at IS NULL', [String(id || '')]);
+    if (!sub) throw fail(404, NOT_FOUND);
+    try {
+      return { sub, ...(await projectFor(req, sub.project_id)) };
+    } catch {
+      throw fail(404, NOT_FOUND);
+    }
+  }
+
+  const itemsOf = (subId) => db.query('SELECT * FROM required_swms WHERE subcontract_id = $1 ORDER BY position, created_at', [subId]);
+  const pointsOf = (subId) => db.query('SELECT * FROM subcontract_points WHERE subcontract_id = $1 ORDER BY position', [subId]);
+
+  function itemView(row) {
+    const item = row.item || {};
+    return {
+      id: row.id,
+      title: row.title,
+      task: row.task,
+      source: row.source,
+      removed: Boolean(row.removed_at),
+      removedWhy: row.removed_at ? handover.REMOVED_WHY[row.removed_why] || '' : '',
+      taskChanged: row.task_changed,
+      highRisk: item.highRisk || null,
+      activities: (item.activities || []).length,
+      clauses: [...new Set((item.activities || []).map((entry) => entry.clause).filter(Boolean))].slice(0, 12),
+    };
+  }
+
+  function pointView(row, state) {
+    return { id: row.id, activity: row.activity, clause: row.clause, question: row.question, answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '' };
+  }
+
+  async function readingsLeft(project) {
+    const limit = aiScope.projectFreeReadings();
+    const used = await aiScope.projectReadingsUsed(project.id);
+    return { used, limit, left: Math.max(0, limit - used), message: used >= limit ? aiScope.limitMessage(limit) : '' };
+  }
+
+  // The reading of the subcontract's scope as the page shows it. A finished reading the list was not
+  // made from yet becomes the list here, once.
+  async function readingOf(ctx) {
+    const { sub, org, project } = ctx;
+    if (!sub.reading_id) return { status: 'none' };
+    let reading;
+    try {
+      reading = await aiScope.getProjectReading(org, sub.reading_id, project.state);
+    } catch {
+      return { status: 'none' };
+    }
+    if (reading.status === 'done' && sub.list_reading_id !== reading.id) await buildList(ctx, reading);
+    const read = reading.reading;
+    return {
+      status: reading.status,
+      progress: reading.progress,
+      error: reading.error,
+      checksPassed: reading.checks ? reading.checks.passed !== false : true,
+      duties: read ? (read.activities || []).filter((row) => row.type === 'Duty').map((row) => row.activity) : [],
+      found: read ? new Set((read.activities || []).filter((row) => row.type !== 'Duty').map((row) => row.package)).size : 0,
+    };
+  }
+
+  // The list made from a finished reading: the SWMS it lists (handover.listItems) and its points to
+  // confirm. SWMS the lead added stay. Made once for each reading, by whichever request gets there first.
+  async function buildList(ctx, reading) {
+    const items = handover.listItems(reading.reading);
+    const points = handover.listPoints(reading.reading);
+    const now = new Date();
+    await db.transaction(async (tx) => {
+      const claimed = await tx.query('UPDATE subcontracts SET list_reading_id = $1, list_rev = list_rev + 1, updated_at = $3 WHERE id = $2 AND list_reading_id <> $1 RETURNING list_rev', [reading.id, ctx.sub.id, now]);
+      if (!claimed.length) return;
+      const rev = Number(claimed[0].list_rev);
+      await tx.query("DELETE FROM required_swms WHERE subcontract_id = $1 AND source = 'reading'", [ctx.sub.id]);
+      await tx.query('DELETE FROM subcontract_points WHERE subcontract_id = $1', [ctx.sub.id]);
+      let position = 0;
+      for (const item of items.slice(0, ITEM_LIMIT)) {
+        const { package: pack, removedWhy, title, task, ...rest } = item;
+        await tx.query('INSERT INTO required_swms (id, subcontract_id, position, package, title, task, item, source, removed_at, removed_why, list_rev, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $12)',
+          [auth.newId(), ctx.sub.id, position, pack, title, task, JSON.stringify({ ...rest, title, task }), 'reading', removedWhy ? now : null, removedWhy, rev, now]);
+        position += 1;
+      }
+      const added = await tx.query("SELECT id FROM required_swms WHERE subcontract_id = $1 AND source = 'added' ORDER BY position, created_at", [ctx.sub.id]);
+      for (const row of added) {
+        await tx.query('UPDATE required_swms SET position = $1 WHERE id = $2', [position, row.id]);
+        position += 1;
+      }
+      let at = 0;
+      for (const point of points) {
+        await tx.query('INSERT INTO subcontract_points (id, subcontract_id, position, activity, clause, question) VALUES ($1, $2, $3, $4, $5, $6)', [auth.newId(), ctx.sub.id, at, point.activity, point.clause, point.question]);
+        at += 1;
+      }
+    });
+    ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
+  }
+
+  function subcontractView(sub, state) {
+    return {
+      id: sub.id, projectId: sub.project_id, name: sub.name, trade: sub.trade, email: sub.contact_email, status: sub.status,
+      docName: sub.doc_name, scopeOn: sub.scope_at ? dateTime(sub.scope_at, state) : '', scopeBy: sub.scope_by_name, listRev: Number(sub.list_rev || 0),
+    };
+  }
+
+  async function subcontractPage(ctx, extra = {}) {
+    const reading = await readingOf(ctx);
+    const { sub, project, org, role } = ctx;
+    const rows = await itemsOf(sub.id);
+    const points = await pointsOf(sub.id);
+    const versions = await versionsOf(project.id);
+    const siteDetails = detailsView(versions[versions.length - 1], project.state);
+    // A reading of the same file on another subcontract of this project, said so the lead knows it was not paid twice.
+    const shared = sub.doc_hash ? await db.query('SELECT name, trade FROM subcontracts WHERE project_id = $1 AND doc_hash = $2 AND id <> $3 AND removed_at IS NULL', [project.id, sub.doc_hash, sub.id]) : [];
+    return {
+      subcontract: subcontractView(sub, project.state),
+      project: { id: project.id, name: project.name, workplace: project.workplace, state: project.state, pcName: project.pc_name },
+      org: { id: org.id, name: org.name, role },
+      reading,
+      sameFile: shared.map((row) => `${row.name}${row.trade ? ` (${row.trade})` : ''}`),
+      items: rows.map(itemView),
+      points: points.map((row) => pointView(row, project.state)),
+      readings: await readingsLeft(project),
+      preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS }),
+      ...extra,
+    };
+  }
+
+  // ---- The project's subcontracts, for the project screen ----
+
+  async function projectSubcontracts(project, org) {
+    const subs = await db.query('SELECT * FROM subcontracts WHERE project_id = $1 AND removed_at IS NULL ORDER BY created_at', [project.id]);
+    const out = [];
+    for (const sub of subs) {
+      // A reading finished since anyone opened the subcontract becomes its list here, so the count is right.
+      if (sub.reading_id && sub.list_reading_id !== sub.reading_id) await readingOf({ sub, org, project });
+      const items = await db.query('SELECT removed_at FROM required_swms WHERE subcontract_id = $1', [sub.id]);
+      const open = await db.one("SELECT COUNT(*) AS n FROM subcontract_points WHERE subcontract_id = $1 AND answer = ''", [sub.id]);
+      let scope = sub.reading_id ? 'reading' : 'none';
+      if (sub.reading_id) {
+        const row = await db.one('SELECT status FROM ai_readings WHERE id = $1', [sub.reading_id]);
+        scope = row ? row.status : 'none';
+      }
+      out.push({
+        id: sub.id, name: sub.name, trade: sub.trade, scope, status: sub.status,
+        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at).length,
+        pointsOpen: Number((open && open.n) || 0),
+      });
+    }
+    return { subcontracts: out, readings: await readingsLeft(project) };
+  }
+
+  // ---- Routes ----
+
+  router.post('/hse/projects/:projectId/subcontracts', route(async (req, res) => {
+    const { project, org, role } = await projectFor(req, req.params.projectId);
+    needName(req);
+    const fields = cleanSubcontract(req.body);
+    const id = auth.newId();
+    const now = new Date();
+    await db.query('INSERT INTO subcontracts (id, project_id, name, trade, contact_email, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)',
+      [id, project.id, fields.name, fields.trade, fields.email, req.reviewer.id, now]);
+    record('subcontract_added', null);
+    const sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [id]);
+    res.status(201).json(await subcontractPage({ sub, project, org, role }));
+  }));
+
+  router.get('/hse/subcontracts/:subId', route(async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json(await subcontractPage(await subcontractFor(req, req.params.subId)));
+  }));
+
+  router.put('/hse/subcontracts/:subId', route(async (req, res) => {
+    const ctx = await subcontractFor(req, req.params.subId);
+    const fields = cleanSubcontract(req.body);
+    await db.query('UPDATE subcontracts SET name = $1, trade = $2, contact_email = $3, updated_at = $4 WHERE id = $5', [fields.name, fields.trade, fields.email, new Date(), ctx.sub.id]);
+    ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
+    res.json(await subcontractPage(ctx, { message: 'The subcontract details are saved.' }));
+  }));
+
+  router.delete('/hse/subcontracts/:subId', route(async (req, res) => {
+    const ctx = await subcontractFor(req, req.params.subId);
+    await db.query('UPDATE subcontracts SET removed_at = $1 WHERE id = $2', [new Date(), ctx.sub.id]);
+    res.json({ ok: true, message: `${ctx.sub.name} has been removed from the project.` });
+  }));
+
+  // The subcontract's scope: read once on the project, or the account's reading of the same file used
+  // again at no cost. A list already made from another scope is replaced only when the lead says so.
+  router.post('/hse/subcontracts/:subId/scope', route(async (req, res) => {
+    const ctx = await subcontractFor(req, req.params.subId);
+    needName(req);
+    const body = req.body || {};
+    const text = await fileText(body);
+    const wrong = notAScope(text);
+    if (wrong) throw Object.assign(fail(422, wrong), { field: 'scope' });
+    const hash = aiScope.fingerprint(text);
+    if (ctx.sub.list_reading_id && hash !== ctx.sub.doc_hash && !body.replace) {
+      throw Object.assign(fail(409, 'This subcontract already has a SWMS list from its scope. Reading a new scope replaces that list and the answers you gave. SWMS you added yourself stay.'), { replace: true });
+    }
+    let started;
+    try {
+      started = await aiScope.startProjectReading(ctx, text, ctx.project.state, { clean: (reading, checks) => ({ reading: handover.scrubReading(reading), checks: handover.scrubChecks(checks) }) });
+    } catch (error) {
+      if (error.limit) throw Object.assign(fail(402, error.message), { limit: true });
+      throw error;
+    }
+    const name = String((body.file && body.file.name) || 'Pasted text').replace(/[\\/]/g, ' ').slice(0, 200);
+    await db.query('UPDATE subcontracts SET reading_id = $1, doc_name = $2, doc_hash = $3, scope_at = $4, scope_by_name = $5, updated_at = $4 WHERE id = $6',
+      [started.id, name, hash, new Date(), personName(req.reviewer), ctx.sub.id]);
+    record(started.kept ? 'project_scope_kept' : 'project_scope', null);
+    ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
+    const message = started.kept ? 'This file was read before for your account, so it was not read again. It cost nothing and does not count toward the project\'s free readings.' : '';
+    res.status(started.kept ? 200 : 202).json(await subcontractPage(ctx, { kept: Boolean(started.kept), message }));
+  }));
+
+  // A SWMS the lead adds to the list.
+  router.post('/hse/subcontracts/:subId/items', route(async (req, res) => {
+    const ctx = await subcontractFor(req, req.params.subId);
+    const body = req.body || {};
+    const title = typed(body.title, 160, 'the title', 'title');
+    const task = typed(body.task, 1500, 'the work', 'task');
+    if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
+    if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
+    const rows = await itemsOf(ctx.sub.id);
+    if (rows.length >= ITEM_LIMIT) throw fail(400, `A list holds up to ${ITEM_LIMIT} SWMS.`);
+    const now = new Date();
+    const rev = await bumpList(ctx);
+    await db.query('INSERT INTO required_swms (id, subcontract_id, position, package, title, task, item, source, list_rev, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)',
+      [auth.newId(), ctx.sub.id, rows.length, '', title, task, JSON.stringify({ title, task, scopeTask: { plain: task, full: task, notes: '' }, kinds: null, leaveOut: null, unmatched: null, activities: [] }), 'added', rev, now]);
+    await recordListEdit(ctx, { kind: 'added', pack: title, wording: task });
+    res.status(201).json(await subcontractPage(ctx, { message: `${title} is added to the list.` }));
+  }));
+
+  async function bumpList(ctx) {
+    const rows = await db.query('UPDATE subcontracts SET list_rev = list_rev + 1, updated_at = $2 WHERE id = $1 RETURNING list_rev', [ctx.sub.id, new Date()]);
+    ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
+    return Number(rows[0].list_rev);
+  }
+
+  // Keep, remove or put back a SWMS, or change the words of its work.
+  router.put('/hse/subcontracts/:subId/items/:itemId', route(async (req, res) => {
+    const ctx = await subcontractFor(req, req.params.subId);
+    const row = await db.one('SELECT * FROM required_swms WHERE id = $1 AND subcontract_id = $2', [String(req.params.itemId || ''), ctx.sub.id]);
+    if (!row) throw fail(404, 'That SWMS is not on this list.');
+    const body = req.body || {};
+    const now = new Date();
+    let message = '';
+    if (typeof body.removed === 'boolean' && body.removed !== Boolean(row.removed_at)) {
+      const rev = await bumpList(ctx);
+      await db.query("UPDATE required_swms SET removed_at = $1, removed_why = '', list_rev = $2, updated_at = $3 WHERE id = $4", [body.removed ? now : null, rev, now, row.id]);
+      await recordListEdit(ctx, { kind: body.removed ? 'removed' : 'restored', pack: row.package || row.title, wording: row.task });
+      message = body.removed ? `${row.title} is removed from the list.` : `${row.title} is back on the list.`;
+    }
+    if (typeof body.task === 'string') {
+      const task = typed(body.task, 1500, 'the work', 'task');
+      if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
+      if (task !== row.task) {
+        const rev = await bumpList(ctx);
+        const item = { ...(row.item || {}), task };
+        await db.query('UPDATE required_swms SET task = $1, item = $2, task_changed = TRUE, list_rev = $3, updated_at = $4 WHERE id = $5', [task, JSON.stringify(item), rev, now, row.id]);
+        await recordListEdit(ctx, { kind: 'taskChanged', pack: row.package || row.title, wording: task, original: row.task });
+        message = `The work for ${row.title} is saved.`;
+      }
+    }
+    res.json(await subcontractPage(ctx, { message }));
+  }));
+
+  // The lead's answer to a point to confirm. Only answered points go to the subcontractor.
+  router.put('/hse/subcontracts/:subId/points/:pointId', route(async (req, res) => {
+    const ctx = await subcontractFor(req, req.params.subId);
+    needName(req);
+    const row = await db.one('SELECT * FROM subcontract_points WHERE id = $1 AND subcontract_id = $2', [String(req.params.pointId || ''), ctx.sub.id]);
+    if (!row) throw fail(404, 'That point is not on this subcontract.');
+    const answer = typed(req.body && req.body.answer, 1000, 'the answer', 'answer');
+    await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
+      [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
+    res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));
+  }));
+
+  return { projectSubcontracts };
+}
+
+module.exports = { install, notAScope, DRAWING, PRICE_SCHEDULE };
