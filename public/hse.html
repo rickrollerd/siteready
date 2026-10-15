@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>SiteWrite for main contractors</title>
+  <title>SiteLink by SiteWrite</title>
   <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
@@ -13,6 +13,14 @@
     .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px 48px; }
     .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid #d5dbe3; margin-bottom: 14px; }
     .brand { font-weight: 700; color: #1f4e3d; font-size: 17px; }
+    .brand .by { font-weight: 400; color: #5c6773; font-size: 14px; }
+    /* The tabs at the top of every page (D303): SiteWrite for subcontractors, SiteLink for builders. */
+    .tabs { display: flex; gap: 6px; padding-top: 10px; border-bottom: 1px solid #c5cdd6; }
+    .tabs a { display: block; min-height: 44px; padding: 7px 14px 6px; border: 1px solid #c5cdd6; border-bottom: 0; border-radius: 8px 8px 0 0; background: #e3e8ee; color: #1c2430; text-decoration: none; font-weight: 700; line-height: 1.2; margin-bottom: -1px; }
+    .tabs a span { display: block; font-weight: 400; font-size: 13px; color: #5c6773; }
+    .tabs a[aria-current="page"] { background: #fff; border-top: 3px solid #1f4e3d; color: #1f4e3d; }
+    .tag.unverified { background: #fff4dc; color: #7a4d00; border: 1px solid #e6c77a; }
+    .abn-shown { font-size: 17px; font-weight: 600; margin: 2px 0 0; letter-spacing: 0.02em; }
     .who { font-size: 14px; color: #5c6773; }
     h1 { font-size: 24px; margin: 6px 0 4px; }
     h2 { font-size: 19px; margin: 0 0 8px; }
@@ -80,15 +88,19 @@
     .crumbs a { color: #1f4e3d; }
     /* Phones (goal 7): text at least 16 px. */
     @media (max-width: 640px) {
-      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs { font-size: 16px; }
+      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs, .tabs a span, .brand .by { font-size: 16px; }
       .log .when { font-size: 15px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
+    <nav class="tabs" aria-label="SiteWrite and SiteLink">
+      <a href="/">SiteWrite<span>For subcontractors</span></a>
+      <a href="/sitelink" aria-current="page">SiteLink<span>For builders</span></a>
+    </nav>
     <div class="top">
-      <span class="brand">SiteWrite for main contractors</span>
+      <span class="brand">SiteLink <span class="by">by SiteWrite</span></span>
       <span class="who hidden" id="who-line">Signed in as <strong id="who"></strong> · <button type="button" class="link" id="you-link">Your details</button> · <button type="button" class="link" id="sign-out">Sign out</button></span>
     </div>
     <div id="flash" aria-live="polite"></div>
@@ -96,7 +108,7 @@
     <!-- Signing in -->
     <section id="view-signin" class="hidden">
       <h1>Your projects, set up once for every contractor</h1>
-      <p class="short">Set up each project and the site details every contractor must use: muster point, first aid, hospital, site rules and the people to contact. It is free for main contractors. There is no trial and nothing to pay.</p>
+      <p class="short">SiteLink is for builders. Set up each project and the site details every contractor must use on their SWMS: muster point, first aid, hospital, site rules and the people to contact. SiteLink is free for main contractors. There is no trial and nothing to pay.</p>
       <form class="panel short" id="signin" novalidate>
         <h2>Sign in</h2>
         <div id="signin-note"></div>
@@ -108,7 +120,7 @@
       </form>
       <div class="note short">
         <strong>Already use SiteWrite for your own SWMS?</strong>
-        <p>This sign-in is separate. Your main contractor account and your SWMS account are kept apart, even with the same email address. Signing in here does not sign you in to your SWMS account, and signing in there does not sign you in here.</p>
+        <p>This sign-in is separate. Your SiteLink account and your SiteWrite SWMS account are kept apart, even with the same email address. Signing in here does not sign you in to your SWMS account, and signing in there does not sign you in here.</p>
       </div>
     </section>
 
@@ -131,19 +143,19 @@
 
     <!-- Setting up the main contractor's account -->
     <section id="view-setup" class="hidden">
-      <h1>Set up your main contractor account</h1>
+      <h1>Set up your SiteLink account</h1>
       <p class="meta short">Your team and your projects sit under it. You are its lead: you add and remove people.</p>
       <form class="panel short" id="setup" novalidate>
         <label for="setup-name">Company name <span class="hint">As contractors know it, for example Corbel Build Pty Ltd. Contractors see it on the site details you set.</span></label>
         <input id="setup-name" type="text" autocomplete="organization" maxlength="200">
         <p class="field-error hidden" id="setup-name-error"></p>
-        <label for="setup-abn">ABN <span class="hint">Optional.</span></label>
+        <label for="setup-abn">ABN <span class="hint">The company's 11 digit ABN. It links this account to your company and cannot be changed later.</span></label>
         <input id="setup-abn" type="text" inputmode="numeric" maxlength="20">
         <p class="field-error hidden" id="setup-abn-error"></p>
-        <div class="actions"><button type="submit">Set up the account</button></div>
+        <div class="actions"><button type="submit" id="setup-go">Set up the account</button></div>
         <div id="setup-status" role="status"></div>
       </form>
-      <div class="note short"><strong>Joining a team?</strong><p>If your company already uses SiteWrite, ask its lead to add you. Then sign in with the email they used.</p></div>
+      <div class="note short"><strong>Joining a team?</strong><p>If your company already uses SiteLink, ask its lead to add you. Then sign in with the email they used.</p></div>
     </section>
 
     <!-- The person's projects -->
@@ -152,10 +164,17 @@
       <div id="home"></div>
     </section>
 
+    <!-- Account settings (D303): the name, the ABN (shown, not changed) and handing over the lead -->
+    <section id="view-account" class="hidden">
+      <p class="crumbs"><a href="#/">Your projects</a></p>
+      <div id="account"></div>
+    </section>
+
     <!-- The team -->
     <section id="view-team" class="hidden">
       <p class="crumbs"><a href="#/">Your projects</a></p>
       <h1 id="team-title">Team</h1>
+      <p class="meta"><a id="team-settings" href="#">Account settings</a></p>
       <p class="meta short" id="team-intro"></p>
       <div class="panel short"><ul class="plain" id="team-list"></ul></div>
       <form class="panel short hidden" id="invite" novalidate>
@@ -247,7 +266,7 @@
     <section id="view-details" class="hidden">
       <p class="crumbs" id="d-crumbs"></p>
       <h1>Site details</h1>
-      <p class="meta short">Contractors on this project use these on their SWMS. Each time you save, SiteWrite keeps a new version with your name and the date.</p>
+      <p class="meta short">Contractors on this project use these on their SWMS. Each time you save, SiteLink keeps a new version with your name and the date.</p>
       <div id="d-note" class="short"></div>
       <form class="panel short" id="details" novalidate>
         <div id="d-fields"></div>

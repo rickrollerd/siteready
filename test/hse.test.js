@@ -1,4 +1,4 @@
-// Goal 12 stage 3: the main contractor's HSE lead and team. They sign in free on /hse.html as
+// Goal 12 stage 3: SiteLink, the main contractor's HSE lead and team. They sign in free on /sitelink as
 // reviewers (no company, no trial), set up the account, invite and remove people, make projects and
 // set each project's site details, where each change is a new version. One account never sees
 // another's projects: every route checks the person has joined the account.
@@ -10,6 +10,27 @@ const { app } = require('../server');
 const db = require('../db');
 const hse = require('../hse');
 const { setupAccounts, lastLinkToken, mailbox } = require('./helpers');
+const abnRegister = require('../abn');
+const { validAbn } = require('../accounts');
+
+// The ABN register, as the tests set it. An ABN not listed here is answered as when the lookup is
+// not set up, so no test reaches the real register.
+const register = new Map();
+abnRegister.lookupAbn = async (raw) => {
+  const abn = String(raw || '').replace(/\D/g, '');
+  const answer = register.get(abn);
+  if (typeof answer === 'function') return answer();
+  return answer || { enabled: false };
+};
+const listed = (entityName, businessNames = [], status = 'Active') => ({ enabled: true, found: true, active: status === 'Active', status, entityName, businessNames });
+const NOT_LISTED = { enabled: true, found: false, error: 'The ABN was not found on the Australian Business Register.' };
+const DOWN = { enabled: true, found: false, unavailable: true, error: 'The ABN lookup is not available right now. Type your business details.' };
+
+// A different valid ABN each time.
+let abnSeed = 51000000000;
+function nextAbn() {
+  for (abnSeed += 101; ; abnSeed += 1) if (validAbn(String(abnSeed))) return String(abnSeed);
+}
 
 let server;
 let base;
@@ -40,7 +61,7 @@ async function call(method, route, { body, reviewer, token } = {}) {
 // The HSE page's sign-in link from the last email to that address.
 function hseLink(email) {
   const message = [...mailbox].reverse().find((item) => item.to === email);
-  return message && /\/hse\.html\?login=([A-Za-z0-9_-]+)/.exec(message.text);
+  return message && /\/sitelink\?login=([A-Za-z0-9_-]+)/.exec(message.text);
 }
 
 async function hseSignIn(email, name = '') {
@@ -62,7 +83,7 @@ async function accountSignIn(email) {
 // A lead with an account and a project.
 async function leadWithProject(email, orgName, name = 'Riley Morgan') {
   const lead = await hseSignIn(email, name);
-  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: orgName } });
+  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: orgName, abn: nextAbn() } });
   assert.equal(org.status, 201, JSON.stringify(org.data));
   const project = await call('POST', `/api/hse/orgs/${org.data.org.id}/projects`, { reviewer: lead, body: { name: 'Harbour Street offices', workplace: '40 Harbour Street, Sydney NSW 2000', state: 'nsw' } });
   assert.equal(project.status, 201, JSON.stringify(project.data));
@@ -97,11 +118,14 @@ test('no company, user or trial is ever made for the HSE lead or the team', asyn
   assert.equal(await count('companies'), before.companies);
   assert.equal(await count('users'), before.users);
   assert.equal(Number((await db.one("SELECT COUNT(*) AS n FROM events WHERE type = 'trial_started'")).n), before.trials);
-  // The sign-in email says SiteWrite and links to the HSE page; an HSE link never opens an account.
+  // The sign-in email says SiteLink and links to /sitelink; a SiteLink link never opens an account.
   await call('POST', '/api/hse/email', { body: { email: 'nobody@corbel.example' } });
   const message = [...mailbox].reverse().find((item) => item.to === 'nobody@corbel.example');
-  assert.match(message.subject, /SiteWrite/);
-  assert.match(message.text, /\/hse\.html\?login=/);
+  assert.equal(message.subject, 'Your SiteLink sign-in link');
+  assert.match(message.text, /^Use this link to sign in to SiteLink by SiteWrite\./);
+  assert.match(message.text, /\/sitelink\?login=/);
+  assert.match(message.text, /SiteLink is free for main contractors\./);
+  assert.doesNotMatch(message.text, /main contractors\.\n|SiteWrite for main contractors/);
   assert.equal((await call('POST', '/api/auth/verify', { body: { token: hseLink('nobody@corbel.example')[1] } })).status, 400);
   assert.equal(await count('users'), before.users);
 });
@@ -126,7 +150,7 @@ test('the same email as a subcontractor account signs in separately, and neither
   assert.equal((await call('GET', '/api/me', { token: account })).status, 200);
 });
 
-test('setting up the account needs a name, and a valid ABN if one is given', async () => {
+test('setting up the account needs a name and a valid ABN', async () => {
   const lead = await hseSignIn('lead2@corbel.example');
   const noName = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd' } });
   assert.equal(noName.status, 400);
@@ -137,7 +161,14 @@ test('setting up the account needs a name, and a valid ABN if one is given', asy
   const badAbn = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: '12 345 678 901' } });
   assert.equal(badAbn.status, 400);
   assert.equal(badAbn.data.field, 'abn');
-  const made = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: '' } });
+  assert.equal(badAbn.data.message, 'That ABN is not valid. Check the 11 digits.');
+  // The ABN links the account to the company, so it is needed (D303).
+  const noAbn = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: '' } });
+  assert.equal(noAbn.status, 400);
+  assert.equal(noAbn.data.field, 'abn');
+  assert.match(noAbn.data.message, /Enter the company's ABN/);
+  assert.equal((await call('GET', '/api/hse/me', { reviewer: lead })).data.orgs.length, 0);
+  const made = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: nextAbn() } });
   assert.equal(made.status, 201);
   assert.equal(made.data.org.role, 'lead');
   const me = await call('GET', '/api/hse/me', { reviewer: lead });
@@ -151,8 +182,10 @@ test('the lead invites and removes people; a member cannot remove the lead or an
   const typo = await call('POST', `/api/hse/orgs/${orgId}/members`, { reviewer: lead, body: { email: 'ash@corbel.exmaple' } });
   assert.equal(typo.status, 201);
   const mail = [...mailbox].reverse().find((item) => item.to === 'ash@corbel.exmaple');
-  assert.match(mail.subject, /Riley Morgan has added you to Corbel Build Pty Ltd on SiteWrite/);
-  assert.match(mail.text, /hse\.html/);
+  assert.equal(mail.subject, 'Riley Morgan has added you to Corbel Build Pty Ltd on SiteLink');
+  assert.match(mail.text, /^Riley Morgan has added you to the Corbel Build Pty Ltd team on SiteLink by SiteWrite\./);
+  assert.match(mail.text, /\/sitelink\?login=/);
+  assert.match(mail.text, /go to http:\/\/[^ ]+\/sitelink and sign in/);
   const wrong = typo.data.team.find((person) => person.email === 'ash@corbel.exmaple');
   assert.equal(wrong.joined, false);
   const cancelled = await call('DELETE', `/api/hse/orgs/${orgId}/members/${wrong.id}`, { reviewer: lead });
@@ -293,6 +326,8 @@ test('one account never sees another account\'s projects, on every route', async
     ['GET', `/api/hse/projects/${a.projectId}`],
     ['PUT', `/api/hse/projects/${a.projectId}`, { name: 'Spy', workplace: '1 A St, Sydney NSW 2000', state: 'nsw' }],
     ['GET', `/api/hse/projects/${a.projectId}/site-details/1`],
+    ['POST', `/api/hse/orgs/${a.orgId}/abn-check`],
+    ['POST', `/api/hse/orgs/${a.orgId}/members/${aLeadRow}/lead`],
     ['PUT', `/api/hse/projects/${a.projectId}/site-details`, { baseRev: 1, details: { ...DETAILS, musterPoint: 'Spy' } }],
   ];
   const projectsBefore = await count('projects');
@@ -324,4 +359,237 @@ test('the site details keep the SWMS field names, and list the two new ones', ()
   assert.deepEqual(hse.cleanDetails({ siteRules: ['1. One', '• Two', '', '  '] }).siteRules, ['One', 'Two']);
   assert.throws(() => hse.cleanDetails({ musterPoint: 'tba' }), /Leave muster point empty until you know it/);
   assert.throws(() => hse.cleanDetails({ siteRules: 'Hard hats\nTBC' }), /Take out the rule "TBC"/);
+});
+
+// ---- D303: SiteLink, the ABN check, one account for each ABN, and handing over the lead ----
+
+const leadsOf = async (orgId) => Number((await db.one("SELECT COUNT(*) AS n FROM org_members WHERE org_id = $1 AND role = 'lead'", [orgId])).n);
+
+test('an account shows Unverified until its ABN matches the ABN register', async () => {
+  const lead = await hseSignIn('verify1@corbel.example', 'Riley Morgan');
+  const orgs = await count('orgs');
+  // The register is down, or not set up: the account is set up, Unverified, and nothing breaks.
+  const downAbn = nextAbn();
+  register.set(downAbn, DOWN);
+  const down = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: downAbn } });
+  assert.equal(down.status, 201, JSON.stringify(down.data));
+  assert.equal(down.data.org.verified, false);
+  assert.equal(down.data.org.abnCheck, 'unavailable');
+  assert.match(down.data.message, /The ABN register could not be checked just now, so the account shows Unverified for now\./);
+  const offLead = await hseSignIn('verify-off@corbel.example', 'Sam Lee');
+  const off = await call('POST', '/api/hse/orgs', { reviewer: offLead, body: { name: 'Corbel Build Pty Ltd', abn: nextAbn() } });
+  assert.equal(off.status, 201);
+  assert.equal(off.data.org.verified, false);
+  // A lookup that fails outright is the same as the register being down.
+  const brokenLead = await hseSignIn('verify-broken@corbel.example', 'Jo Park');
+  const brokenAbn = nextAbn();
+  register.set(brokenAbn, () => { throw new Error('offline'); });
+  const broken = await call('POST', '/api/hse/orgs', { reviewer: brokenLead, body: { name: 'Corbel Build Pty Ltd', abn: brokenAbn } });
+  assert.equal(broken.status, 201);
+  assert.equal(broken.data.org.verified, false);
+  // When the register is back, the lead checks again. A member cannot.
+  register.set(downAbn, listed('CORBEL BUILD PTY LTD', ['Corbel Build']));
+  const member = await invite(lead, down.data.org.id, 'verify1-member@corbel.example', 'Ash Kim');
+  assert.equal((await call('POST', `/api/hse/orgs/${down.data.org.id}/abn-check`, { reviewer: member })).status, 403);
+  const again = await call('POST', `/api/hse/orgs/${down.data.org.id}/abn-check`, { reviewer: lead });
+  assert.equal(again.status, 200);
+  assert.equal(again.data.org.verified, true);
+  assert.equal(again.data.message, 'The account is verified: its ABN matches the ABN register.');
+  // Every member sees the account as verified.
+  assert.equal((await call('GET', '/api/hse/me', { reviewer: member })).data.orgs[0].verified, true);
+  // A new name that is not on the register makes it Unverified, and a business name on it counts.
+  const renamed = await call('PUT', `/api/hse/orgs/${down.data.org.id}`, { reviewer: lead, body: { name: 'Harbour Projects' } });
+  assert.equal(renamed.data.org.verified, false);
+  assert.equal(renamed.data.org.registerName, 'Corbel Build Pty Ltd');
+  assert.equal(renamed.data.message, 'The account details are saved.');
+  assert.equal(renamed.data.org.abnNote, 'The ABN register lists this ABN under Corbel Build Pty Ltd. The account shows Unverified until its name matches the register.');
+  // While the register is down, the names it gave before still count.
+  register.set(downAbn, DOWN);
+  const back = await call('PUT', `/api/hse/orgs/${down.data.org.id}`, { reviewer: lead, body: { name: 'Corbel Build' } });
+  assert.equal(back.data.org.verified, true);
+  const legal = await call('PUT', `/api/hse/orgs/${down.data.org.id}`, { reviewer: lead, body: { name: 'Corbel Build Pty. Ltd.' } });
+  assert.equal(legal.data.org.verified, true);
+  assert.equal(await count('orgs'), orgs + 3);
+});
+
+test('setting up with a wrong ABN asks first, and an ABN that is not on the register is refused', async () => {
+  const lead = await hseSignIn('verify2@tallow.example', 'Pat Doyle');
+  const orgs = await count('orgs');
+  // The ABN belongs to another company: nothing is set up, and the register's name is offered.
+  const wrong = nextAbn();
+  register.set(wrong, listed('MARLIN CONSTRUCTIONS PTY LTD'));
+  const asked = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Tallow Build Pty Ltd', abn: wrong } });
+  assert.equal(asked.status, 409);
+  assert.equal(asked.data.field, 'abn');
+  assert.deepEqual(asked.data.register, { name: 'Marlin Constructions Pty Ltd' });
+  assert.match(asked.data.message, new RegExp(`The ABN register lists ABN ${wrong.slice(0, 2)} ${wrong.slice(2, 5)} ${wrong.slice(5, 8)} ${wrong.slice(8)} under Marlin Constructions Pty Ltd, not Tallow Build Pty Ltd\\. Check the ABN\\.`));
+  assert.equal(await count('orgs'), orgs);
+  // Not on the register, or cancelled: refused at the ABN box.
+  const missing = nextAbn();
+  register.set(missing, NOT_LISTED);
+  const notListed = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Tallow Build Pty Ltd', abn: missing } });
+  assert.equal(notListed.status, 400);
+  assert.equal(notListed.data.message, 'That ABN is not on the ABN register. Check the 11 digits.');
+  const cancelled = nextAbn();
+  register.set(cancelled, listed('TALLOW BUILD PTY LTD', [], 'Cancelled'));
+  assert.match((await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Tallow Build Pty Ltd', abn: cancelled } })).data.message, /shows that ABN as cancelled/);
+  assert.equal(await count('orgs'), orgs);
+  // The right ABN: set up and verified.
+  const right = nextAbn();
+  register.set(right, listed('TALLOW BUILD PTY LTD', ['Tallow Scaffolding']));
+  const made = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Tallow Build Pty Ltd', abn: `${right.slice(0, 2)} ${right.slice(2, 5)} ${right.slice(5, 8)} ${right.slice(8)}` } });
+  assert.equal(made.status, 201);
+  assert.equal(made.data.org.verified, true);
+  assert.equal(made.data.org.abn, right);
+  assert.match(made.data.message, /^Your account is set up\. Its ABN matches the ABN register\./);
+  // Someone who keeps their own name is set up Unverified.
+  const other = await hseSignIn('verify2b@kestrel.example', 'Kit Ray');
+  register.set(wrong, listed('KESTREL GROUP PTY LTD'));
+  const kept = await call('POST', '/api/hse/orgs', { reviewer: other, body: { name: 'Kestrel Interiors', abn: wrong, keepName: true } });
+  assert.equal(kept.status, 201);
+  assert.equal(kept.data.org.verified, false);
+  assert.equal(kept.data.org.registerName, 'Kestrel Group Pty Ltd');
+  assert.equal(hse.readableCompany('CORBEL BUILD (NSW) PTY LTD'), 'Corbel Build (NSW) Pty Ltd');
+  assert.equal(hse.readableCompany('Corbel Build'), 'Corbel Build');
+  // Using the register's name later makes it verified.
+  assert.equal((await call('PUT', `/api/hse/orgs/${kept.data.org.id}`, { reviewer: other, body: { name: 'KESTREL GROUP PTY LTD' } })).data.org.verified, true);
+});
+
+test('the ABN cannot be changed once the account is set up', async () => {
+  const { lead, orgId } = await leadWithProject('fixed1@corbel.example', 'Corbel Build Pty Ltd');
+  const before = (await call('GET', `/api/hse/orgs/${orgId}`, { reviewer: lead })).data.org;
+  assert.match(before.abn, /^\d{11}$/);
+  const changed = await call('PUT', `/api/hse/orgs/${orgId}`, { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: nextAbn() } });
+  assert.equal(changed.status, 400);
+  assert.equal(changed.data.field, 'abn');
+  assert.equal(changed.data.message, 'The ABN links this account and cannot be changed. If it is wrong, contact SiteWrite.');
+  assert.equal((await call('GET', `/api/hse/orgs/${orgId}`, { reviewer: lead })).data.org.abn, before.abn);
+  // The same ABN, typed with spaces, or none at all, is not a change.
+  assert.equal((await call('PUT', `/api/hse/orgs/${orgId}`, { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: before.abnShown } })).status, 200);
+  assert.equal((await call('PUT', `/api/hse/orgs/${orgId}`, { reviewer: lead, body: { name: 'Corbel Build (NSW) Pty Ltd' } })).data.org.abn, before.abn);
+  // An account set up before the ABN was asked for is given one once, and then it is fixed.
+  const legacyLead = await hseSignIn('fixed2@corbel.example', 'Lee Ng');
+  const legacyId = 'legacy-org-1';
+  await db.query('INSERT INTO orgs (id, name, abn, created_by, source, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [legacyId, 'Pillar Homes Pty Ltd', '', 'x', 'hse-page', new Date()]);
+  const meRow = await db.one('SELECT id FROM reviewers WHERE email = $1', ['fixed2@corbel.example']);
+  await db.query('INSERT INTO org_members (id, org_id, email, reviewer_id, role, invited_by, invited_at, joined_at, lead_of) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $2)', ['legacy-member-1', legacyId, 'fixed2@corbel.example', meRow.id, 'lead', meRow.id, new Date()]);
+  const legacy = (await call('GET', `/api/hse/orgs/${legacyId}`, { reviewer: legacyLead })).data.org;
+  assert.equal(legacy.verified, false);
+  assert.match(legacy.abnNote, /^Add the company's ABN\./);
+  assert.equal((await call('PUT', `/api/hse/orgs/${legacyId}`, { reviewer: legacyLead, body: { name: 'Pillar Homes Pty Ltd', abn: before.abn } })).status, 409, 'an ABN another account holds');
+  const given = nextAbn();
+  const gave = await call('PUT', `/api/hse/orgs/${legacyId}`, { reviewer: legacyLead, body: { name: 'Pillar Homes Pty Ltd', abn: given } });
+  assert.equal(gave.status, 200, JSON.stringify(gave.data));
+  assert.equal(gave.data.org.abn, given);
+  assert.equal((await call('PUT', `/api/hse/orgs/${legacyId}`, { reviewer: legacyLead, body: { name: 'Pillar Homes Pty Ltd', abn: nextAbn() } })).status, 400);
+  assert.equal((await db.one('SELECT abn FROM orgs WHERE id = $1', [legacyId])).abn, given);
+});
+
+test('a second account with the same ABN is asked to join the first, and learns nothing of its people', async () => {
+  const abn = nextAbn();
+  register.set(abn, listed('CORBEL BUILD PTY LTD'));
+  const first = await hseSignIn('dup-lead@corbel.example', 'Riley Morgan');
+  const made = await call('POST', '/api/hse/orgs', { reviewer: first, body: { name: 'Corbel Build Pty Ltd', abn } });
+  assert.equal(made.status, 201);
+  await invite(first, made.data.org.id, 'dup-member@corbel.example', 'Ash Kim');
+  const orgs = await count('orgs');
+  const second = await hseSignIn('dup-second@corbel.example', 'Dana Cho');
+  for (const typed of [abn, `${abn.slice(0, 2)} ${abn.slice(2, 5)} ${abn.slice(5, 8)} ${abn.slice(8)}`]) {
+    const again = await call('POST', '/api/hse/orgs', { reviewer: second, body: { name: 'Corbel Build', abn: typed, keepName: true } });
+    assert.equal(again.status, 409);
+    assert.equal(again.data.field, 'abn');
+    assert.equal(again.data.taken, true);
+    assert.equal(again.data.message, 'An account with this ABN is already on SiteLink. Ask that account\'s lead to add you to its team, then sign in with the email they used. You do not need a second account.');
+    assert.doesNotMatch(JSON.stringify(again.data), /Riley|Morgan|Ash|Kim|dup-lead|dup-member|corbel\.example/);
+  }
+  assert.equal(await count('orgs'), orgs);
+  assert.deepEqual((await call('GET', '/api/hse/me', { reviewer: second })).data.orgs, []);
+  // Even when the register is down, and even at the same moment, there is one account for the ABN.
+  const raceAbn = nextAbn();
+  register.set(raceAbn, DOWN);
+  const a = await hseSignIn('race-a@corbel.example', 'Race A');
+  const b = await hseSignIn('race-b@corbel.example', 'Race B');
+  const both = await Promise.all([a, b].map((reviewer) => call('POST', '/api/hse/orgs', { reviewer, body: { name: 'Race Build', abn: raceAbn } })));
+  assert.deepEqual(both.map((r) => r.status).sort(), [201, 409]);
+  assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM orgs WHERE abn = $1', [raceAbn])).n), 1);
+  // The database itself refuses a second account with the ABN.
+  await assert.rejects(db.query('INSERT INTO orgs (id, name, abn, created_by, source, created_at) VALUES ($1, $2, $3, $4, $5, $6)', ['dup-org', 'Copy', abn, 'x', 'test', new Date()]));
+});
+
+test('the lead hands over the lead role; there is always exactly one lead', async () => {
+  const { lead, orgId, projectId } = await leadWithProject('hand-lead@corbel.example', 'Corbel Build Pty Ltd');
+  const ash = await invite(lead, orgId, 'hand-ash@corbel.example', 'Ash Kim');
+  const lee = await invite(lead, orgId, 'hand-lee@corbel.example', 'Lee Ng');
+  await call('POST', `/api/hse/orgs/${orgId}/members`, { reviewer: lead, body: { email: 'hand-waiting@corbel.example' } });
+  const team = (await call('GET', `/api/hse/orgs/${orgId}`, { reviewer: lead })).data.team;
+  const row = (email) => team.find((person) => person.email === email).id;
+  // Only the lead hands over, and only to someone who has joined this team.
+  const byMember = await call('POST', `/api/hse/orgs/${orgId}/members/${row('hand-ash@corbel.example')}/lead`, { reviewer: ash });
+  assert.equal(byMember.status, 403);
+  assert.equal(byMember.data.message, 'Only the lead can hand over the lead role.');
+  const waiting = await call('POST', `/api/hse/orgs/${orgId}/members/${row('hand-waiting@corbel.example')}/lead`, { reviewer: lead });
+  assert.equal(waiting.status, 400);
+  assert.equal(waiting.data.message, 'hand-waiting@corbel.example has not signed in yet. They can be made lead once they have joined the team.');
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/members/${row('hand-lead@corbel.example')}/lead`, { reviewer: lead })).data.message, 'You are already the lead.');
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/members/nobody/lead`, { reviewer: lead })).status, 404);
+  const elsewhere = await leadWithProject('hand-other@marlin.example', 'Marlin Constructions Pty Ltd', 'Dana Cho');
+  const theirRow = (await call('GET', `/api/hse/orgs/${elsewhere.orgId}`, { reviewer: elsewhere.lead })).data.team[0].id;
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/members/${theirRow}/lead`, { reviewer: lead })).status, 404, 'a person in another account');
+  assert.equal(await leadsOf(elsewhere.orgId), 1);
+  assert.equal(await leadsOf(orgId), 1);
+  // The lead makes Ash lead. The old lead is a member.
+  const handed = await call('POST', `/api/hse/orgs/${orgId}/members/${row('hand-ash@corbel.example')}/lead`, { reviewer: lead });
+  assert.equal(handed.status, 200, JSON.stringify(handed.data));
+  assert.equal(handed.data.message, 'Ash Kim is now the lead. You are now a member.');
+  assert.equal(handed.data.org.role, 'member');
+  assert.deepEqual(handed.data.team.filter((person) => person.joined).map((person) => [person.email, person.role]),
+    [['hand-ash@corbel.example', 'lead'], ['hand-lead@corbel.example', 'member'], ['hand-lee@corbel.example', 'member']]);
+  assert.equal(await leadsOf(orgId), 1);
+  // The old lead can no longer add or remove people, rename, check the ABN or hand over.
+  assert.equal((await call('DELETE', `/api/hse/orgs/${orgId}/members/${row('hand-lee@corbel.example')}`, { reviewer: lead })).status, 403);
+  assert.equal((await call('DELETE', `/api/hse/orgs/${orgId}/members/${row('hand-ash@corbel.example')}`, { reviewer: lead })).data.message, 'The lead cannot be removed.');
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/members`, { reviewer: lead, body: { email: 'x@corbel.example' } })).status, 403);
+  assert.equal((await call('PUT', `/api/hse/orgs/${orgId}`, { reviewer: lead, body: { name: 'Other' } })).status, 403);
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/abn-check`, { reviewer: lead })).status, 403);
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/members/${row('hand-lee@corbel.example')}/lead`, { reviewer: lead })).status, 403);
+  // As a member, the old lead still changes site details and makes projects (D303 1).
+  assert.equal((await call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: lead, body: { baseRev: 0, details: DETAILS } })).status, 200);
+  assert.equal((await call('POST', `/api/hse/orgs/${orgId}/projects`, { reviewer: lead, body: { name: 'Second job', workplace: '2 B St, Sydney NSW 2000', state: 'nsw' } })).status, 201);
+  // The new lead can do all of it, and the old lead's view says who the lead is.
+  assert.equal((await call('PUT', `/api/hse/orgs/${orgId}`, { reviewer: ash, body: { name: 'Corbel Build Pty Ltd' } })).status, 200);
+  assert.deepEqual((await call('GET', '/api/hse/me', { reviewer: lead })).data.orgs.map((org) => org.role), ['member']);
+  // Two handovers sent at once: one is made, and there is still one lead.
+  const twice = await Promise.all([row('hand-lead@corbel.example'), row('hand-lee@corbel.example')].map((id) => call('POST', `/api/hse/orgs/${orgId}/members/${id}/lead`, { reviewer: ash })));
+  assert.deepEqual(twice.map((r) => r.status).sort(), [200, 403], JSON.stringify(twice.map((r) => r.data)));
+  assert.equal(await leadsOf(orgId), 1);
+  // The new lead removes Lee, who then sees nothing.
+  const newLead = (await call('GET', `/api/hse/orgs/${orgId}`, { reviewer: lead })).data.team.find((person) => person.role === 'lead');
+  const remover = newLead.email === 'hand-lead@corbel.example' ? lead : lee;
+  const leaver = remover === lead ? 'hand-lee@corbel.example' : 'hand-ash@corbel.example';
+  assert.equal((await call('DELETE', `/api/hse/orgs/${orgId}/members/${row(leaver)}`, { reviewer: remover })).status, 200);
+  assert.equal(await leadsOf(orgId), 1);
+  // The database itself refuses a second lead.
+  await assert.rejects(db.query("UPDATE org_members SET role = 'lead', lead_of = org_id WHERE org_id = $1", [orgId]));
+  assert.equal(await leadsOf(orgId), 1);
+});
+
+test('SiteLink is served at /sitelink and /hse.html, with a SiteLink tab at the top of the app, the start page and SiteLink', async () => {
+  for (const path of ['/sitelink', '/sitelink/', '/sitelink?login=abc', '/hse.html']) {
+    const response = await fetch(`${base}${path}`);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    assert.match(html, /<title>SiteLink by SiteWrite<\/title>/, path);
+    assert.match(html, /<a href="\/sitelink" aria-current="page">SiteLink<span>For builders<\/span><\/a>/, path);
+    assert.doesNotMatch(html, /SiteWrite for main contractors|main contractor account/, path);
+    assert.match(html, /SiteLink is free for main contractors\./);
+  }
+  const fs = require('fs');
+  const page = (name) => fs.readFileSync(require('path').join(__dirname, '..', 'public', name), 'utf8');
+  for (const [name, here] of [['index.html', '/'], ['welcome.html', '/welcome.html']]) {
+    assert.match(page(name), new RegExp(`<a href="${here.replace(/\./g, '\\.')}" aria-current="page">SiteWrite<span>For subcontractors</span></a>`), name);
+    assert.match(page(name), /<a href="\/sitelink"[^>]*>SiteLink<span>For builders<\/span><\/a>/, name);
+  }
+  assert.doesNotMatch(page('hse.js'), /SiteWrite for main contractors/);
+  assert.match(page('hse.html'), /The company's 11 digit ABN\. It links this account to your company and cannot be changed later\./);
+  assert.match(page('hse.js'), /The ABN links this account and cannot be changed\. If it is wrong, contact SiteWrite\./);
 });

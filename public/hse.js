@@ -1,6 +1,6 @@
-// The main contractor's page (Goal 12 stage 3): /hse.html. The HSE lead and team sign in free by
+// SiteLink, the main contractor's page (Goal 12 stage 3, D303): /sitelink, also /hse.html. The HSE lead and team sign in free by
 // email link, as reviewers (the review page shares the same sign-in on this device), set up the
-// account, add and remove people, make projects and set each project's site details. Each saved
+// account, add and remove people, hand over the lead, make projects and set each project's site details. Each saved
 // change to the site details is a new version. Pages are reached by the address after #, so Back
 // and reload work. Site details typed but not saved are kept on this device until saved or cancelled.
 (() => {
@@ -41,11 +41,11 @@
     });
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && token) signedOut('You have been signed out. Sign in again to carry on.');
-    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, conflict: data.conflict });
+    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, conflict: data.conflict, register: data.register, taken: data.taken });
     return data;
   }
 
-  const VIEWS = ['signin', 'you', 'setup', 'home', 'team', 'project-form', 'project', 'details', 'versions'];
+  const VIEWS = ['signin', 'you', 'setup', 'home', 'account', 'team', 'project-form', 'project', 'details', 'versions'];
   function view(name) {
     for (const id of VIEWS) $(`view-${id}`).classList.toggle('hidden', id !== name);
   }
@@ -155,18 +155,37 @@
     view('setup');
     box('setup-status', '');
   }
-  $('setup').addEventListener('submit', async (event) => {
-    event.preventDefault();
+  // The ABN register can list another name for the ABN. The ABN cannot be changed later, so the
+  // person checks it, then uses the register's name or keeps their own (the account shows Unverified).
+  async function setUp(keepName = false) {
     clearErrors($('setup'));
+    box('setup-status', '');
     if (!$('setup-name').value.trim()) { fieldError('setup-name', 'Enter your company name, as contractors know it.'); return; }
-    try {
-      await call('POST', '/api/hse/orgs', { name: $('setup-name').value, abn: $('setup-abn').value });
-      await loadMe();
-      go('#/', 'Your account is set up. Make your first project, then set its site details.');
-    } catch (error) {
-      if (error.field === 'name' || error.field === 'abn') fieldError(`setup-${error.field}`, error.message);
-      else box('setup-status', esc(error.message), 'bad');
-    }
+    if (!$('setup-abn').value.trim()) { fieldError('setup-abn', 'Enter the company\'s ABN. It links this account to your company.'); return; }
+    await busy($('setup-go'), 'Checking the ABN...', async () => {
+      try {
+        const data = await call('POST', '/api/hse/orgs', { name: $('setup-name').value, abn: $('setup-abn').value, keepName });
+        await loadMe();
+        go('#/', esc(data.message));
+      } catch (error) {
+        if (error.register && error.register.name) {
+          fieldError('setup-abn', 'Check this ABN.');
+          box('setup-status', `<strong>${esc(error.message)}</strong>
+            <div class="actions"><button type="button" class="light" id="setup-use">Use ${esc(error.register.name)}</button><button type="button" class="light" id="setup-keep">Keep ${esc($('setup-name').value.trim())} and set up</button></div>
+            <p>If you keep your own name, the account shows Unverified until its name matches the ABN register.</p>`, 'warn');
+          $('setup-use').dataset.name = error.register.name;
+        } else if (error.taken) {
+          fieldError('setup-abn', 'This ABN already has an account.');
+          box('setup-status', `<strong>${esc(error.message)}</strong>`, 'warn');
+        } else if (error.field === 'name' || error.field === 'abn') fieldError(`setup-${error.field}`, error.message);
+        else box('setup-status', esc(error.message), 'bad');
+      }
+    });
+  }
+  $('setup').addEventListener('submit', (event) => { event.preventDefault(); setUp(false); });
+  $('setup-status').addEventListener('click', (event) => {
+    if (event.target.closest('#setup-use')) { $('setup-name').value = event.target.closest('#setup-use').dataset.name; setUp(false); }
+    if (event.target.closest('#setup-keep')) setUp(true);
   });
 
   // ---- Your projects ----
@@ -174,17 +193,126 @@
   function roleTag(role) {
     return role === 'lead' ? '<span class="tag">Lead</span>' : '<span class="tag grey">Member</span>';
   }
+  // Beside the account's name: Unverified until its ABN matches the ABN register (D303).
+  function checkTag(org) {
+    return org.verified ? '<span class="tag" title="The ABN matches the ABN register.">Verified</span>' : '<span class="tag unverified" title="The ABN does not match the ABN register yet.">Unverified</span>';
+  }
 
   async function showHome() {
     await loadMe();
     view('home');
     $('home').innerHTML = orgs.map((org) => `<div class="panel">
-      <div class="row-line"><h2 style="margin:0">${esc(org.name)}</h2>${org.role === 'lead' ? '<span class="tag">You are the lead</span>' : '<span class="tag grey">You are in the team</span>'}</div>
+      <div class="row-line"><h2 style="margin:0">${esc(org.name)} ${checkTag(org)}</h2>${org.role === 'lead' ? '<span class="tag">You are the lead</span>' : '<span class="tag grey">You are in the team</span>'}</div>
       ${org.projects.length ? org.projects.map((project) => `<a class="project-link" href="#/project/${esc(project.id)}"><strong>${esc(project.name)}</strong><span class="meta" style="display:block">${esc(project.workplace)}</span></a>`).join('')
     : '<p class="meta">No projects yet. Make your first project, then set its site details.</p>'}
-      <div class="actions"><a class="button" href="#/new/${esc(org.id)}">New project</a><a class="button light" href="#/team/${esc(org.id)}">Team</a></div>
+      <div class="actions"><a class="button" href="#/new/${esc(org.id)}">New project</a><a class="button light" href="#/team/${esc(org.id)}">Team</a><a class="button light" href="#/account/${esc(org.id)}">Account settings</a></div>
     </div>`).join('');
   }
+
+  // ---- Account settings: the name, the ABN and handing over the lead (D303) ----
+
+  let account = null;
+  function renderAccount(org, team) {
+    account = { org, team };
+    const lead = org.role === 'lead';
+    const leadPerson = team.find((person) => person.role === 'lead');
+    const leadName = leadPerson ? leadPerson.name || leadPerson.email : 'the lead';
+    const check = org.verified ? '' : `<div class="warn"><strong>Unverified.</strong> ${esc(org.abnNote)}${lead && org.registerName ? `<div class="actions"><button type="button" class="light" data-use-name="${esc(org.registerName)}">Use ${esc(org.registerName)} as the account name</button></div>` : ''}${lead && org.abn && (org.abnCheck === 'unavailable' || !org.abnCheck) ? '<div class="actions"><button type="button" class="light" id="acct-recheck">Check the ABN register again</button></div>' : ''}</div>`;
+    const abnBlock = org.abn
+      ? `<label>ABN</label><p class="abn-shown" id="acct-abn-shown">${esc(org.abnShown)}</p><p class="meta">The ABN links this account and cannot be changed. If it is wrong, contact SiteWrite.</p>`
+      : lead ? `<label for="acct-abn">ABN <span class="hint">The company's 11 digit ABN. It links this account to your company and cannot be changed once saved.</span></label><input id="acct-abn" type="text" inputmode="numeric" maxlength="20"><p class="field-error hidden" id="acct-abn-error"></p>`
+        : '<label>ABN</label><p class="meta">Not given yet.</p>';
+    const others = team.filter((person) => person.role !== 'lead');
+    const people = others.map((person) => {
+      const who = person.name ? `<strong>${esc(person.name)}</strong><div class="meta">${esc(person.email)}</div>` : `<strong>${esc(person.email)}</strong>`;
+      const action = !lead ? '' : person.joined
+        ? `<button type="button" class="light" data-make-lead="${esc(person.id)}" data-who="${esc(person.name || person.email)}">Make lead</button>`
+        : '<span class="meta">Invited. They can be made lead once they have signed in.</span>';
+      return `<li><div class="row-line"><div>${who}</div>${action ? `<div>${action}</div>` : ''}</div></li>`;
+    }).join('');
+    $('account').innerHTML = `
+      <h1>${esc(org.name)} ${checkTag(org)}</h1>
+      <p class="meta short">Account settings. ${lead ? 'You are the lead.' : `${esc(leadName)} is the lead. Only the lead can change these settings or hand the lead role to someone else.`}</p>
+      <form class="panel short" id="acct-form" novalidate>
+        <h2>Company</h2>
+        ${lead ? `<label for="acct-name">Company name <span class="hint">As contractors know it. Contractors see it on the site details you set.</span></label>
+        <input id="acct-name" type="text" autocomplete="organization" maxlength="200" value="${esc(org.name)}">
+        <p class="field-error hidden" id="acct-name-error"></p>` : `<label>Company name</label><p class="abn-shown">${esc(org.name)}</p>`}
+        ${abnBlock}
+        ${check}
+        ${lead ? '<div class="actions"><button type="submit" id="acct-save">Save</button></div>' : ''}
+        <div id="acct-status" role="status"></div>
+      </form>
+      <div class="panel short">
+        <h2>Lead</h2>
+        <p class="meta">There is always one lead. The lead adds and removes people, changes these settings and can hand the lead role to someone else in the team.</p>
+        <p><strong>${esc(leadName)}</strong> ${roleTag('lead')}${leadPerson && leadPerson.email === me.email ? ' <span class="meta">(you)</span>' : ''}</p>
+        ${others.length ? `<ul class="plain" id="acct-people">${people}</ul>` : `<p class="meta">No one else is in the team yet. <a href="#/team/${esc(org.id)}">Add people on the team page</a>.</p>`}
+        ${lead && others.length && !others.some((person) => person.joined) ? '<p class="meta">You can make someone lead once they have signed in.</p>' : ''}
+        <div id="acct-lead-status" role="status"></div>
+      </div>`;
+  }
+  async function showAccount(orgId) {
+    const data = await call('GET', `/api/hse/orgs/${encodeURIComponent(orgId)}`);
+    view('account');
+    document.title = `${data.org.name}: SiteLink`;
+    renderAccount(data.org, data.team);
+  }
+  async function saveAccount(name) {
+    const form = $('acct-form');
+    clearErrors(form);
+    box('acct-status', '');
+    if (!name.trim()) { fieldError('acct-name', 'Enter your company name, as contractors know it.'); return; }
+    const body = { name };
+    if ($('acct-abn')) body.abn = $('acct-abn').value;
+    await busy($('acct-save'), 'Saving...', async () => {
+      try {
+        const data = await call('PUT', `/api/hse/orgs/${encodeURIComponent(account.org.id)}`, body);
+        renderAccount(data.org, data.team);
+        box('acct-status', esc(data.message), data.org.verified ? 'ok' : 'warn');
+      } catch (error) {
+        if (error.field === 'name' && $('acct-name')) fieldError('acct-name', error.message);
+        else if (error.field === 'abn' && $('acct-abn')) fieldError('acct-abn', error.message);
+        else box('acct-status', esc(error.message), 'bad');
+      }
+    });
+  }
+  $('account').addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (event.target.id === 'acct-form') saveAccount($('acct-name').value);
+  });
+  $('account').addEventListener('click', async (event) => {
+    const useName = event.target.closest('[data-use-name]');
+    const recheck = event.target.closest('#acct-recheck');
+    const makeLead = event.target.closest('[data-make-lead]');
+    if (useName) {
+      $('acct-name').value = useName.dataset.useName;
+      await saveAccount(useName.dataset.useName);
+    } else if (recheck) {
+      await busy(recheck, 'Checking...', async () => {
+        try {
+          const data = await call('POST', `/api/hse/orgs/${encodeURIComponent(account.org.id)}/abn-check`);
+          renderAccount(data.org, account.team);
+          box('acct-status', esc(data.message), data.org.verified ? 'ok' : 'warn');
+        } catch (error) {
+          box('acct-status', esc(error.message), 'bad');
+        }
+      });
+    } else if (makeLead) {
+      const who = makeLead.dataset.who;
+      if (!window.confirm(`Make ${who} the lead of ${account.org.name}? You will become a member. Only ${who} will then be able to add or remove people, change the account name or hand the lead role on.`)) return;
+      makeLead.disabled = true;
+      try {
+        const data = await call('POST', `/api/hse/orgs/${encodeURIComponent(account.org.id)}/members/${encodeURIComponent(makeLead.dataset.makeLead)}/lead`);
+        renderAccount(data.org, data.team);
+        orgs = orgs.map((org) => (org.id === data.org.id ? { ...org, role: 'member' } : org));
+        box('acct-lead-status', esc(data.message), 'ok');
+      } catch (error) {
+        makeLead.disabled = false;
+        box('acct-lead-status', esc(error.message), 'bad');
+      }
+    }
+  });
 
   // ---- The team ----
 
@@ -209,7 +337,8 @@
     const data = await call('GET', `/api/hse/orgs/${encodeURIComponent(orgId)}`);
     teamOrg = data.org;
     view('team');
-    $('team-title').textContent = `${data.org.name}: team`;
+    $('team-title').innerHTML = `${esc(data.org.name)}: team ${checkTag(data.org)}`;
+    $('team-settings').href = `#/account/${data.org.id}`;
     box('invite-status', '');
     box('invite-hint', '');
     renderTeam(data.team);
@@ -368,7 +497,7 @@
     const { project, siteDetails, versions, team, log, fields } = page;
     const id = project.id;
     view('project');
-    document.title = `${project.name}: SiteWrite`;
+    document.title = `${project.name}: SiteLink`;
     $('p-name').textContent = project.name;
     $('p-meta').textContent = `${project.workplace} · ${STATE_NAME[project.state] || project.state} · Principal contractor: ${project.pcName}`;
     $('p-edit').href = `#/project/${id}/edit`;
@@ -438,7 +567,7 @@
       values = draft.details;
       box('d-note', draft.baseRev === current.rev
         ? '<strong>Your changes from before are back.</strong> They are not saved yet. Save them, or press Cancel to drop them.'
-        : `<strong>Your changes from before are back.</strong> ${esc(current.setBy)} has saved version ${esc(current.rev)} since you started. When you save, SiteWrite keeps their changes and yours, unless you both changed the same detail.`, 'warn');
+        : `<strong>Your changes from before are back.</strong> ${esc(current.setBy)} has saved version ${esc(current.rev)} since you started. When you save, SiteLink keeps their changes and yours, unless you both changed the same detail.`, 'warn');
     }
     view('details');
     $('d-crumbs').innerHTML = `<a href="#/">Your projects</a> › <a href="#/project/${esc(page.project.id)}">${esc(page.project.name)}</a>`;
@@ -542,12 +671,13 @@
     flash(waiting ? waiting.message : '', waiting ? waiting.kind : 'ok');
     if (!token) { signedOut(''); return; }
     const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
-    document.title = 'SiteWrite for main contractors';
+    document.title = 'SiteLink by SiteWrite';
     try {
       if (!me) await loadMe();
       if (!me.name || parts[0] === 'you') { showYou(); return; }
       if (!orgs.length) { showSetup(); return; }
       if (parts[0] === 'team') await showTeam(parts[1]);
+      else if (parts[0] === 'account') await showAccount(parts[1]);
       else if (parts[0] === 'new') await showProjectForm(parts[1], null);
       else if (parts[0] === 'project' && parts[2] === 'details') await showDetails(parts[1]);
       else if (parts[0] === 'project' && parts[2] === 'versions') await showVersions(parts[1]);

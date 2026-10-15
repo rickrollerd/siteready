@@ -601,6 +601,22 @@ const SCHEMA = [
   )`,
   'CREATE UNIQUE INDEX IF NOT EXISTS org_members_email ON org_members (org_id, email)',
   'CREATE INDEX IF NOT EXISTS org_members_reviewer ON org_members (reviewer_id)',
+  // D303: there is never more than one lead in an account. lead_of holds the account's id on the
+  // lead's row and is empty on everyone else's, so the unique index allows one lead for each account.
+  // Handing over (hse.js) empties the old lead's before setting the new lead's, in one transaction.
+  'ALTER TABLE org_members ADD COLUMN IF NOT EXISTS lead_of TEXT',
+  "UPDATE org_members SET lead_of = org_id WHERE role = 'lead' AND lead_of IS NULL",
+  'CREATE UNIQUE INDEX IF NOT EXISTS org_members_one_lead ON org_members (lead_of)',
+  // D303: an account is unverified until its ABN matches the ABN register. abn_check is the last
+  // answer: verified, name (the register lists another name), cancelled, missing (not on the
+  // register) or unavailable (the register was not checked). abn_names keeps the names the register
+  // gave (legal name, then business names), so a rename can be checked while the register is down.
+  'ALTER TABLE orgs ADD COLUMN IF NOT EXISTS abn_verified_at TIMESTAMPTZ',
+  "ALTER TABLE orgs ADD COLUMN IF NOT EXISTS abn_check TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE orgs ADD COLUMN IF NOT EXISTS abn_names TEXT NOT NULL DEFAULT '[]'",
+  'ALTER TABLE orgs ADD COLUMN IF NOT EXISTS abn_checked_at TIMESTAMPTZ',
+  // One account for each ABN: a second account with the same ABN is asked to join the first.
+  "CREATE UNIQUE INDEX IF NOT EXISTS orgs_abn ON orgs (abn) WHERE abn <> ''",
   // A project of the main contractor's. log_token makes the project's log email address (stage 10).
   `CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
@@ -658,4 +674,27 @@ async function migrate() {
   }
 }
 
-module.exports = { connect, useDatabase, enabled, query, one, migrate };
+// Runs fn with a client of its own between BEGIN and COMMIT, and rolls back if fn throws. fn gets
+// query and one, as above, bound to that client.
+async function transaction(fn) {
+  const pool = connect();
+  if (!pool) throw Object.assign(new Error('Accounts are not set up on this server.'), { status: 503, publicMessage: true });
+  const client = await pool.connect();
+  const tx = {
+    query: async (text, params = []) => (await client.query(text, params)).rows,
+    one: async (text, params = []) => (await client.query(text, params)).rows[0] || null,
+  };
+  try {
+    await client.query('BEGIN');
+    const result = await fn(tx);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { connect, useDatabase, enabled, query, one, migrate, transaction };

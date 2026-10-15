@@ -187,12 +187,13 @@ async function reviewerToken(email) {
 // sign in once the link has expired, as an invitation is often opened later.
 async function sendHseLink(req, email, { invitedBy = '', orgName = '' } = {}) {
   const token = await reviewerToken(email);
-  const page = `${appUrl(req)}/hse.html`;
-  const opening = invitedBy && orgName ? `${invitedBy} has added you to the ${orgName} team on SiteWrite.` : 'Use this link to sign in to SiteWrite for main contractors.';
+  // SiteLink, the builders' side (D303), is served at /sitelink as well as /hse.html.
+  const page = `${appUrl(req)}/sitelink`;
+  const opening = invitedBy && orgName ? `${invitedBy} has added you to the ${orgName} team on SiteLink by SiteWrite.` : 'Use this link to sign in to SiteLink by SiteWrite.';
   await sendMail({
     to: email,
-    subject: invitedBy ? `${invitedBy} has added you to ${orgName} on SiteWrite` : 'Your SiteWrite sign-in link',
-    text: `${opening}\n\n${page}?login=${token}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${page} and sign in with this email address. It is free. If you did not expect this email, you can ignore it.`,
+    subject: invitedBy ? `${invitedBy} has added you to ${orgName} on SiteLink` : 'Your SiteLink sign-in link',
+    text: `${opening}\n\n${page}?login=${token}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${page} and sign in with this email address. SiteLink is free for main contractors. If you did not expect this email, you can ignore it.`,
   });
 }
 

@@ -94,6 +94,11 @@ const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
 app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
+// SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
+app.get(['/sitelink', '/sitelink/'], (req, res, next) => {
+  req.url = `/hse.html${req.url.slice(req.path.length)}`;
+  next();
+});
 app.use(delivery.staticFiles(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public'), delivery.staticOptions));
 
@@ -695,7 +700,10 @@ app.use((error, req, res, _next) => {
   const stale = error.publicMessage && Array.isArray(error.stale) ? { stale: error.stale } : {};
   // Site details someone else saved while this person was editing (Goal 12 stage 3), for the page to show.
   const conflict = error.publicMessage && error.conflict && typeof error.conflict === 'object' ? { conflict: error.conflict } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict });
+  // SiteLink's ABN check (D303): the name the ABN register lists, or that another account holds the ABN.
+  const register = error.publicMessage && error.register && typeof error.register === 'object' ? { register: error.register } : {};
+  const taken = error.publicMessage && error.taken === true ? { taken: true } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken });
 });
 
 // One worker per processor core. A worker that stops is replaced.

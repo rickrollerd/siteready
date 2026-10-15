@@ -11,7 +11,14 @@
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 17px; line-height: 1.55; color: #1c2430; background: #fff; }
     .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
-    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
+    nav.top { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
+    /* The tabs at the top (D303): SiteWrite for subcontractors, SiteLink for builders. */
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid #c5cdd6; margin: 0; padding-top: 10px; }
+    .tabs a { display: block; min-height: 44px; padding: 7px 14px 6px; border: 1px solid #c5cdd6; border-bottom: 0; border-radius: 8px 8px 0 0; background: #e3e8ee; color: #1c2430; text-decoration: none; font-weight: 700; font-size: 16px; line-height: 1.2; margin-bottom: -1px; }
+    .tabs a span { display: block; font-weight: 400; font-size: 13px; color: #5c6773; }
+    .tabs a[aria-current="page"] { background: #fff; border-top: 3px solid #1f4e3d; color: #1f4e3d; }
+    @media (max-width: 640px) { .tabs a span { font-size: 16px; } }
+
     .brand { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: #1f4e3d; text-decoration: none; }
     .cta { display: inline-block; background: #1f4e3d; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px; padding: 11px 18px; }
     .cta.light { background: #fff; color: #1f4e3d; border: 1px solid #1f4e3d; }
@@ -40,7 +47,11 @@
 </head>
 <body>
   <div class="wrap">
-    <nav><a class="brand" href="/welcome.html">SiteWrite</a><a class="cta light" href="/">Open SiteWrite</a></nav>
+    <nav class="tabs" aria-label="SiteWrite and SiteLink">
+      <a href="/welcome.html" aria-current="page">SiteWrite<span>For subcontractors</span></a>
+      <a href="/sitelink">SiteLink<span>For builders</span></a>
+    </nav>
+    <nav class="top"><a class="brand" href="/welcome.html">SiteWrite</a><a class="cta light" href="/">Open SiteWrite</a></nav>
   </div>
 
   <div class="hero">

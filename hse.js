@@ -1,5 +1,5 @@
-// The main contractor's side of Goal 12 (stage 3): the HSE lead and team, their account, their
-// projects and the site details every contractor on a project must use. The lead and team sign in
+// SiteLink, the main contractor's side of Goal 12 (stage 3, D303): the HSE lead and team, their
+// account, their projects and the site details every contractor on a project must use. The lead and team sign in
 // free, as reviewers (auth.js): no company, no trial and no payment is ever made for them. The
 // sign-in is kept apart from a SiteWrite company account, even for the same email.
 //
@@ -11,6 +11,7 @@ const auth = require('./auth');
 const { record } = require('./events');
 const { textField } = require('./input');
 const { validAbn } = require('./accounts');
+const abnRegister = require('./abn');
 
 const router = express.Router();
 const { fail } = auth;
@@ -112,8 +113,95 @@ async function joinInvites(reviewer) {
   for (const row of waiting) await db.query('UPDATE org_members SET reviewer_id = $1, joined_at = $2 WHERE id = $3', [reviewer.id, new Date(), row.id]);
 }
 
+// ---- The account's ABN and the ABN register (D303) ----
+// The ABN links the account to the company: it is given when the account is set up, and cannot be
+// changed. The account shows Unverified until the register lists that ABN as active under the
+// account's name (its legal name or one of its business names). When the register is not set up or
+// not reachable, the account stays Unverified and nothing else stops.
+
+const abnDigits = (value) => String(value || '').replace(/\D/g, '');
+const formatAbn = (abn) => (abn.length === 11 ? `${abn.slice(0, 2)} ${abn.slice(2, 5)} ${abn.slice(5, 8)} ${abn.slice(8)}` : abn);
+const ABN_FIXED = 'The ABN links this account and cannot be changed. If it is wrong, contact SiteWrite.';
+const ABN_TAKEN = 'An account with this ABN is already on SiteLink. Ask that account\'s lead to add you to its team, then sign in with the email they used. You do not need a second account.';
+
+// A company name the way the register and people both write it: no case, no punctuation, and no
+// "Pty", "Ltd" or "The".
+function companyKey(name) {
+  return String(name || '').toLowerCase().replace(/&/g, ' and ').replace(/\bproprietary\b/g, 'pty').replace(/\blimited\b/g, 'ltd')
+    .replace(/[^a-z0-9]+/g, ' ').split(' ').filter((word) => word && !['pty', 'ltd', 'the'].includes(word)).join(' ');
+}
+// The register writes most names in capitals. Offered as an account name, "CORBEL BUILD PTY LTD"
+// reads as "Corbel Build Pty Ltd"; a short word with no vowel ("NSW") stays in capitals.
+function readableCompany(name) {
+  const value = String(name || '').trim();
+  if (/[a-z]/.test(value)) return value;
+  return value.replace(/[A-Z0-9'’]+/g, (word) => (word.length <= 3 && word !== 'LTD' && !/[AEIOUY]/.test(word) ? word : word.charAt(0) + word.slice(1).toLowerCase()));
+}
+const namesMatch = (name, names) => Boolean(companyKey(name)) && names.some((other) => companyKey(other) === companyKey(name));
+const keptNames = (org) => {
+  if (!org || !['verified', 'name'].includes(org.abn_check)) return [];
+  try { return JSON.parse(org.abn_names || '[]').filter((item) => typeof item === 'string'); } catch { return []; }
+};
+
+// What the register says of this ABN for this name. A name the register gave before still counts
+// while the register cannot be reached.
+async function checkAbn(abn, name, kept = []) {
+  let found = null;
+  try { found = await abnRegister.lookupAbn(abn); } catch { found = null; }
+  if (!found || !found.enabled || found.unavailable) {
+    return kept.length ? { check: namesMatch(name, kept) ? 'verified' : 'name', names: kept } : { check: 'unavailable', names: [] };
+  }
+  if (!found.found) return { check: 'missing', names: [] };
+  const names = [found.entityName, ...(found.businessNames || [])].filter(Boolean);
+  if (!found.active) return { check: 'cancelled', names };
+  return { check: namesMatch(name, names) ? 'verified' : 'name', names };
+}
+
+const duplicateKey = (error) => Boolean(error) && (error.code === '23505' || /duplicate key/i.test(String(error.message || '')));
+
+async function refuseTakenAbn(abn) {
+  if (await db.one('SELECT id FROM orgs WHERE abn = $1', [abn])) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
+}
+
+// A new ABN for an account (when it is set up): valid, not held by another account, and on the
+// register. When the register lists another name, the person is asked before the account is set up
+// unverified, because the ABN cannot be changed afterwards.
+async function newAbn(body, name) {
+  const abn = abnDigits(body.abn);
+  if (!abn) throw Object.assign(fail(400, 'Enter the company\'s ABN. It links this account to your company.'), { field: 'abn' });
+  if (!validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits.'), { field: 'abn' });
+  await refuseTakenAbn(abn);
+  const result = await checkAbn(abn, name);
+  if (result.check === 'missing') throw Object.assign(fail(400, 'That ABN is not on the ABN register. Check the 11 digits.'), { field: 'abn' });
+  if (result.check === 'cancelled') throw Object.assign(fail(400, 'The ABN register shows that ABN as cancelled. Check the 11 digits, or enter the company\'s current ABN.'), { field: 'abn' });
+  if (result.check === 'name' && !body.keepName) {
+    const listedName = readableCompany(result.names[0]);
+    throw Object.assign(fail(409, `The ABN register lists ABN ${formatAbn(abn)} under ${listedName}, not ${name}. Check the ABN. If it is right, use the name on the register.`), {
+      field: 'abn', register: { name: listedName },
+    });
+  }
+  return { abn, ...result };
+}
+
+const checkColumns = (result, org, now) => [result.check, JSON.stringify(result.names), now, result.check === 'verified' ? (org && org.abn_verified_at) || now : null];
+
+// What the account's tag and settings say about its ABN.
+function abnNote(org) {
+  const names = keptNames(org);
+  if (!org.abn) return 'Add the company\'s ABN. The account shows Unverified until its ABN matches the ABN register.';
+  if (org.abn_verified_at) return 'The ABN matches the ABN register.';
+  if (org.abn_check === 'name' && names.length) return `The ABN register lists this ABN under ${readableCompany(names[0])}. The account shows Unverified until its name matches the register.`;
+  if (org.abn_check === 'cancelled') return 'The ABN register shows this ABN as cancelled. The account shows Unverified.';
+  if (org.abn_check === 'missing') return 'This ABN is not on the ABN register. The account shows Unverified.';
+  return 'The ABN register could not be checked yet. The account shows Unverified until it is.';
+}
+
 function orgView(org, role) {
-  return { id: org.id, name: org.name, abn: org.abn, role };
+  const names = keptNames(org);
+  return {
+    id: org.id, name: org.name, abn: org.abn, abnShown: formatAbn(org.abn || ''), role,
+    verified: Boolean(org.abn_verified_at), abnCheck: org.abn_check || '', registerName: org.abn_check === 'name' ? readableCompany(names[0]) : '', abnNote: abnNote(org),
+  };
 }
 
 async function teamOf(orgId) {
@@ -229,20 +317,36 @@ router.put('/hse/me', route(async (req, res) => {
 
 // ---- The main contractor's account and its team ----
 
+const SET_UP_NEXT = 'Make your first project, then set its site details.';
+const checkMessage = (check) => ({
+  verified: 'Its ABN matches the ABN register.',
+  name: 'It shows Unverified until its name matches the ABN register.',
+  unavailable: 'The ABN register could not be checked just now, so the account shows Unverified for now.',
+})[check] || 'It shows Unverified.';
+
 router.post('/hse/orgs', route(async (req, res) => {
   needName(req);
   const body = req.body || {};
   const name = oneLine(body.name, 200);
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
-  const abn = String(body.abn || '').replace(/\D/g, '');
-  if (abn && !validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits, or leave it empty.'), { field: 'abn' });
+  const checked = await newAbn(body, name);
   const id = auth.newId();
   const now = new Date();
-  await db.query('INSERT INTO orgs (id, name, abn, created_by, source, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [id, name, abn, req.reviewer.id, 'hse-page', now]);
-  await db.query('INSERT INTO org_members (id, org_id, email, reviewer_id, role, invited_by, invited_at, joined_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)',
+  try {
+    await db.query('INSERT INTO orgs (id, name, abn, created_by, source, created_at, abn_check, abn_names, abn_checked_at, abn_verified_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+      [id, name, checked.abn, req.reviewer.id, 'hse-page', now, ...checkColumns(checked, null, now)]);
+  } catch (error) {
+    // Two people set up the same ABN at the same moment: the first is kept.
+    if (duplicateKey(error)) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
+    throw error;
+  }
+  await db.query('INSERT INTO org_members (id, org_id, email, reviewer_id, role, invited_by, invited_at, joined_at, lead_of) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $2)',
     [auth.newId(), id, req.reviewer.email, req.reviewer.id, 'lead', req.reviewer.id, now]);
   record('org_created', null);
-  res.status(201).json({ org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [id]), 'lead') });
+  res.status(201).json({
+    org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [id]), 'lead'),
+    message: `Your account is set up. ${checkMessage(checked.check)} ${SET_UP_NEXT}`,
+  });
 }));
 
 router.get('/hse/orgs/:orgId', route(async (req, res) => {
@@ -251,16 +355,91 @@ router.get('/hse/orgs/:orgId', route(async (req, res) => {
   res.json({ org: orgView(org, role), team: await teamOf(org.id) });
 }));
 
+// The lead changes the account's name. The ABN cannot be changed (D303). An account set up before
+// the ABN was asked for can be given one, once, with the same checks as setting up.
 router.put('/hse/orgs/:orgId', route(async (req, res) => {
   const { org, role } = await membership(req, req.params.orgId);
   requireLead(role, 'Only the lead can change the account details.');
   const body = req.body || {};
   const name = oneLine(body.name, 200);
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
-  const abn = String(body.abn || '').replace(/\D/g, '');
-  if (abn && !validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits, or leave it empty.'), { field: 'abn' });
-  await db.query('UPDATE orgs SET name = $1, abn = $2 WHERE id = $3', [name, abn, org.id]);
-  res.json({ org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]), role) });
+  const sent = body.abn === undefined || body.abn === null ? '' : abnDigits(body.abn);
+  let checked;
+  if (org.abn) {
+    if (sent && sent !== org.abn) throw Object.assign(fail(400, ABN_FIXED), { field: 'abn' });
+    checked = { abn: org.abn, ...(await checkAbn(org.abn, name, keptNames(org))) };
+  } else if (sent) {
+    checked = await newAbn(body, name);
+  } else {
+    checked = { abn: '', check: '', names: [] };
+  }
+  const now = new Date();
+  try {
+    await db.transaction(async (tx) => {
+      // With the account locked, an ABN given at the same moment by someone else is not replaced.
+      const locked = await tx.one('SELECT abn FROM orgs WHERE id = $1 FOR UPDATE', [org.id]);
+      if (!locked || (locked.abn && locked.abn !== checked.abn)) throw Object.assign(fail(400, ABN_FIXED), { field: 'abn' });
+      await tx.query('UPDATE orgs SET name = $1, abn = $2, abn_check = $3, abn_names = $4, abn_checked_at = $5, abn_verified_at = $6 WHERE id = $7',
+        [name, checked.abn, ...checkColumns(checked, org, now), org.id]);
+    });
+  } catch (error) {
+    if (duplicateKey(error)) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
+    throw error;
+  }
+  const saved = await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]);
+  res.json({
+    org: orgView(saved, role),
+    team: await teamOf(org.id),
+    // When it is still Unverified, the settings say why beside the ABN.
+    message: `The account details are saved.${saved.abn_verified_at ? ' The account is verified: its ABN matches the ABN register.' : ''}`,
+  });
+}));
+
+// The register is asked again, for an account set up while it could not be reached.
+router.post('/hse/orgs/:orgId/abn-check', route(async (req, res) => {
+  const { org, role } = await membership(req, req.params.orgId);
+  requireLead(role, 'Only the lead can change the account details.');
+  if (!org.abn) throw Object.assign(fail(400, 'Add the company\'s ABN first.'), { field: 'abn' });
+  const checked = await checkAbn(org.abn, org.name, keptNames(org));
+  await db.query('UPDATE orgs SET abn_check = $1, abn_names = $2, abn_checked_at = $3, abn_verified_at = $4 WHERE id = $5', [...checkColumns(checked, org, new Date()), org.id]);
+  const saved = await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]);
+  res.json({
+    org: orgView(saved, role),
+    message: saved.abn_verified_at ? 'The account is verified: its ABN matches the ABN register.' : checked.check === 'unavailable' ? 'The ABN register could not be checked just now. Try again later.' : abnNote(saved),
+  });
+}));
+
+// The lead hands the lead role to someone who has joined the team. The old lead becomes a member.
+// The account's row is locked while the roles change, so two handovers at once cannot both pass,
+// and there is always one lead (and the database allows no more than one).
+router.post('/hse/orgs/:orgId/members/:memberId/lead', route(async (req, res) => {
+  const { org, role, member } = await membership(req, req.params.orgId);
+  requireLead(role, 'Only the lead can hand over the lead role.');
+  const memberId = String(req.params.memberId || '');
+  const message = await db.transaction(async (tx) => {
+    await tx.query('SELECT id FROM orgs WHERE id = $1 FOR UPDATE', [org.id]);
+    const me = await tx.one('SELECT * FROM org_members WHERE id = $1 AND org_id = $2', [member.id, org.id]);
+    if (!me || me.role !== 'lead') throw fail(403, 'Only the lead can hand over the lead role.');
+    const target = await tx.one('SELECT * FROM org_members WHERE id = $1 AND org_id = $2', [memberId, org.id]);
+    if (!target) throw fail(404, 'That person is not in the team.');
+    if (target.id === me.id) throw fail(400, 'You are already the lead.');
+    if (!target.joined_at || !target.reviewer_id) throw fail(400, `${target.email} has not signed in yet. They can be made lead once they have joined the team.`);
+    const stepped = await tx.query("UPDATE org_members SET role = 'member', lead_of = NULL WHERE id = $1 AND role = 'lead' RETURNING id", [me.id]);
+    if (stepped.length !== 1) throw fail(403, 'Only the lead can hand over the lead role.');
+    const changed = 'The team changed while you were doing this. Refresh the page, then try again.';
+    let made;
+    try {
+      made = await tx.query("UPDATE org_members SET role = 'lead', lead_of = org_id WHERE id = $1 AND org_id = $2 AND joined_at IS NOT NULL RETURNING id", [target.id, org.id]);
+    } catch (error) {
+      if (duplicateKey(error)) throw fail(409, changed);
+      throw error;
+    }
+    if (made.length !== 1) throw fail(409, changed);
+    const person = await tx.one('SELECT name FROM reviewers WHERE id = $1', [target.reviewer_id]);
+    return `${(person && person.name) || target.email} is now the lead. You are now a member.`;
+  });
+  record('org_lead_changed', null);
+  res.json({ ok: true, message, org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]), 'member'), team: await teamOf(org.id) });
 }));
 
 router.post('/hse/orgs/:orgId/members', route(async (req, res) => {
@@ -282,12 +461,18 @@ router.post('/hse/orgs/:orgId/members', route(async (req, res) => {
 }));
 
 router.delete('/hse/orgs/:orgId/members/:memberId', route(async (req, res) => {
-  const { org, role } = await membership(req, req.params.orgId);
-  const row = await db.one('SELECT * FROM org_members WHERE id = $1 AND org_id = $2', [String(req.params.memberId || ''), org.id]);
-  if (!row) throw fail(404, 'That person is not in the team.');
-  if (row.role === 'lead') throw fail(403, 'The lead cannot be removed.');
-  requireLead(role, 'Only the lead can remove people from the team.');
-  await db.query('DELETE FROM org_members WHERE id = $1', [row.id]);
+  const { org, member } = await membership(req, req.params.orgId);
+  // Read again with the account locked, so a handover at the same moment is seen.
+  const row = await db.transaction(async (tx) => {
+    await tx.query('SELECT id FROM orgs WHERE id = $1 FOR UPDATE', [org.id]);
+    const found = await tx.one('SELECT * FROM org_members WHERE id = $1 AND org_id = $2', [String(req.params.memberId || ''), org.id]);
+    if (!found) throw fail(404, 'That person is not in the team.');
+    if (found.role === 'lead') throw fail(403, 'The lead cannot be removed.');
+    const me = await tx.one('SELECT role FROM org_members WHERE id = $1', [member.id]);
+    requireLead(me && me.role, 'Only the lead can remove people from the team.');
+    await tx.query("DELETE FROM org_members WHERE id = $1 AND role <> 'lead'", [found.id]);
+    return found;
+  });
   res.json({ ok: true, message: row.joined_at ? `${row.email} has been removed from the team.` : `The invitation to ${row.email} has been cancelled.`, team: await teamOf(org.id) });
 }));
 
@@ -403,4 +588,4 @@ router.put('/hse/projects/:projectId/site-details', route(async (req, res) => {
   });
 }));
 
-module.exports = { router, FIELDS, cleanDetails, EMPTY };
+module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey };
