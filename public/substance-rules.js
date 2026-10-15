@@ -62,6 +62,10 @@
   // Steps that prepare for the work, or clean up or store after it, rather than use the product.
   const PREPARES = /^(?:prepare|sand|clean|mask|protect|remove|strip|wash|cart|store|set up|plan|check|inspect|pressure clean|load|move|deliver)\b/i;
   // The step a type of product is used in, where no step names the type: fuel in the step running plant.
+  const PREFER = {
+    'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b)/i,
+    'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
+  };
   const STEP_HINT = { 'Fuels (diesel, petrol)': /\b(plant|machines?|generators?|trucks?|excavat\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
   // The job step that uses a product of this type: the first whose name names the type, else the
   // first whose hazards or controls do. Not the general steps at the start and end, nor the user's own
@@ -71,6 +75,11 @@
     if (!entry) return '';
     const [, pattern] = entry;
     const usable = (Array.isArray(steps) ? steps : []).filter((step) => step && !step.own && !GENERAL.has(step.step));
+    // The step that does the main work with the product, before one that only names it (messy round 5:
+    // concrete matched to "Core fill blockwork" ahead of the pour, and diesel to "Excavate" ahead of the
+    // step that runs the earthmoving plant).
+    const preferred = PREFER[type] && usable.find((step) => PREFER[type].test(step.step || ''));
+    if (preferred) return preferred.step;
     // A step that uses the product before one that prepares for it or cleans up after it (messy round 4:
     // paint matched to "Prepare to paint", not "Paint").
     const named = usable.filter((step) => pattern.test(step.step || ''));
@@ -160,11 +169,26 @@
   const REASON_EXAMPLE = 'for example "supplied and applied by others"';
   // What a type ticked "Not required" still needs (D292 item 3), or '': a reason where the user's own
   // words name that kind of product.
-  function notUsedNeed(type, reason, words) {
+  // The job steps' own words: their names and hazards, not the general steps (messy round 5: "Not
+  // required" was taken with no reason for the tile adhesive and grout the steps mix and spread, and for
+  // cement in a pour).
+  function stepWords(draft) {
+    return ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step))
+      .flatMap((step) => [step.step, ...(step.hazards || []).filter((line) => typeof line === 'string')]).join('\n');
+  }
+  // Where "Not required" needs a reason: the word in the user's own task or answers, else in the job steps.
+  function reasonAsked(type, words, steps = '') {
     const named = namedIn(type, words);
-    if (!named) return '';
+    if (named) return { word: named, said: `your task or answers name "${named}"`, hint: `Your task or answers name "${named}".` };
+    const used = namedIn(type, steps);
+    return used ? { word: used, said: `the job steps name "${used}"`, hint: `The job steps name "${used}".` } : null;
+  }
+  function notUsedNeed(type, reason, words, steps = '') {
+    const asked = reasonAsked(type, words, steps);
+    if (!asked) return '';
+    const named = asked.word;
     const need = reasonNeed(reason);
-    if (need === 'missing') return `${SHORT.get(type)}: your task or answers name "${named}". Add the product you use, or give a short reason it is not required, ${REASON_EXAMPLE}.`;
+    if (need === 'missing') return `${SHORT.get(type)}: ${asked.said}. Add the product you use, or give a short reason it is not required, ${REASON_EXAMPLE}.`;
     if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${REASON_EXAMPLE}, or add the product you use.`;
     return '';
   }
@@ -237,7 +261,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed };
+  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

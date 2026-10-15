@@ -25,7 +25,7 @@ const NOT_USED = /\b(?:never|not|no|rather than|instead of|avoid\w*)\b/i;
 const ABRASIVE_SOURCE = CITE.QCODE('Managing the risks of plant in the workplace', 's 2.3');
 
 // The words that show a step needs an item. Broad on purpose: an item a step may need stays with it.
-const NOISE = String.raw`\bnoise\b|\bnoisy\b|\bhearing\b|\bear (?:muffs|plugs)\b|\bdB\b|\bjack ?hammers?\b|\bbreakers?\b|\bnail guns?\b|\bpowder[- ]actuated\b|\bchainsaws?\b|\bcompressors?\b|\brock drill\w*|\bpiling\b|\bvibrat\w*`;
+const NOISE = String.raw`\bnoise\b|\bnoisy\b|\bhearing\b|\bear (?:muffs|plugs)\b|\bdB\b|\bjack ?hammers?\b|\bbreakers?\b|\bnail guns?\b|\bpowder[- ]actuated\b|\bchainsaws?\b|\bcompressors?\b|\brock drill\w*|\bpiling\b|\bvibrat\w*|\b(?:drop|circular|mitre|concrete|tile|road|wall|demolition) saws?\b|\bsaw ?cut\w*|\bgenerators?\b|\btamp\w*|\bcompactors?\b|\bpower trowels?\b|\bpost drivers?\b`;
 const CHEMICAL = String.raw`\bchemical\w*|\bwet concrete\b|\bconcrete\b|\bcement\w*|\bmortar\b|\bgrout\w*|\brender\w*|\bepoxy\b|\bresins?\b|\bsolvents?\b|\badhesives?\b|\bglues?\b|\bprimers?\b|\bsealants?\b|\bsilicone\b|\bcuring\b|\bdegreas\w*|\bbitumen\b|\bpaints?\b|\bcoatings?\b|\bmembranes?\b|\bacids?\b|\bfuel\b|\bdiesel\b|\bpetrol\b|\boils?\b|\bsafety data sheets?\b|\bSDS\b|\bherbicides?\b|\bpesticides?\b|\bsewage\b|\bslurry\b|\bpools?\b|\bchlorine\b|\bpour\w*|\bfillers?\b|\bplaster\b|\bcompounds?\b|\bgloves resistant\b|\brefrigerant\w*`;
 // A torch here is a flame (a cutting, gas or blow torch, or torch-on membrane), not a light; oxy means a gas flame.
 const HOT = String.raw`\bweld\w*|\bbraz\w*|\boxy[- ]?(?:acetylene|propane|fuel|cutting|lpg)\b|\b(?:cutting|gas|blow|lpg|propane) ?torch\w*|\btorch[- ]on\b|\bplasma\b|\bsolder\w*|\bhot work\b|\bthermal (?:cutting|lances?)\b|\bfilter eye\b`;
@@ -239,8 +239,19 @@ for (const activity of ACTIVITIES) {
 // The steps of the work that need an item: where the item comes from a kind of work's own PPE, the
 // steps of that work (those whose words call for it, where any do); otherwise the steps whose words
 // call for it. A step whose own line already says the item is worn needs it too.
+// Where no step works at height, a harness is for rescue from a trench, pit or excavation (messy round 5: a
+// harness ticked for trench rescue printed as worn for all work): it goes with the steps whose lines name a
+// harness or a rescue, else with the digging steps. None of those: it stays for all work, as before.
+const RESCUE_STEP = /^(?:Excavate|Work in the trench|Work in a trench others dug|Excavate pile caps, lift pits and trenches|Bulk excavate and load trucks|Dig\b|Work inside a deep excavation)/;
+function harnessSteps(work) {
+  const high = work.filter(atHeight);
+  if (high.length) return high;
+  const named = work.filter((step) => needs('harness', step) || says('harness', step) || stepLines(step).some((line) => /\brescue\b/i.test(lineText(line))));
+  return named.length ? named : work.filter((step) => RESCUE_STEP.test(step.step || ''));
+}
 function stepsNeeding(id, work) {
-  if (id === 'harness') work = work.filter(atHeight);
+  if (id === 'harness' && !work.some(atHeight)) return harnessSteps(work).map((step) => step.step);
+  if (id === 'harness') work = harnessSteps(work);
   const own = work.filter((step) => LIBRARY.has(step.step) && LIBRARY.get(step.step).has(id));
   const worded = (own.length ? own : work).filter((step) => needs(id, step));
   // An item read sentence by sentence goes only to the steps whose own lines call for it.
@@ -355,7 +366,8 @@ function withStepPpeLines(jobSteps, ppe, stateId) {
     const mine = items.filter((item) => item.steps.includes(step.step)).map((item) => item.id);
     const line = mine.length ? stepPpeLine(step, mine, { glasses, stateId }) : null;
     // A harness comes with the library's anchor line where the step has no rated anchor (D266).
-    const anchor = mine.includes('harness') ? anchorLine(step, stateId) : null;
+    // Not for a harness kept for rescue in a step that is not at height.
+    const anchor = mine.includes('harness') && atHeight(step) ? anchorLine(step, stateId) : null;
     const added = [line, anchor].filter((text) => text && !step.controls.includes(text));
     // The lines are marked (ppeLines), as design lines are, so the page sends the user to the PPE section to change them.
     return added.length ? { ...step, controls: [...step.controls, ...added], ppeLines: added } : step;

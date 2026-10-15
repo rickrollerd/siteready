@@ -40,13 +40,15 @@ test('the typed rail task reads as rail work in use, as the pick list task does'
 
 test('an item SiteWrite\'s check reads from a job step name, and the draft does not list, is cleared by adding it on the page', () => {
   // The task words alone name no traffic corridor; the step "Work in the rail corridor" does.
+  // The draft now lists it from the step itself (content5); a SWMS without it is checked as before.
   const input = ready({ ...TYPED, task: 'resleepering 200m and tamping, thermite welds' });
-  const draft = prepareDraft(draftBody(input));
-  assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.ok(draft.jobSteps.some((step) => step.step === 'Work in the rail corridor'));
-  assert.ok(!draft.highRisk.includes(TRAFFIC));
+  const prepared = prepareDraft(draftBody(input));
+  assert.equal(prepared.kind, 'draft', (prepared.missing || []).join('; '));
+  assert.ok(prepared.jobSteps.some((step) => step.step === 'Work in the rail corridor'));
+  assert.ok(prepared.highRisk.includes(TRAFFIC));
+  const draft = { ...prepared, highRisk: prepared.highRisk.filter((label) => label !== TRAFFIC) };
   const h1 = builderCheck(draft, 'sa').mustFix.find((item) => item.rule === 'H1');
-  assert.match(h1.message, /SiteWrite read it in the job steps "Work in the rail corridor" and "Tamp and regulate the ballast"\.$/, 'it says where it was read');
+  assert.match(h1.message, /SiteWrite read it in the job steps "Work in the rail corridor" and "Replace the sleepers and ballast"\.$/, 'it says where it was read');
   assert.ok(highRiskOptions(draftBody(input), draft).highRiskChoices.some((item) => item.id === 'road'), 'the page offers it');
   const added = prepareDraft(draftBody({ ...input, highRiskAdded: ['road'] }));
   assert.ok(added.highRisk.includes(TRAFFIC));
@@ -108,7 +110,8 @@ test('the crane chart and ground questions go with the crane lift steps that pri
 });
 
 test('a question about work whose steps were taken off is not asked; one from the task\'s own work stays', () => {
-  const task = 'Access control: install card readers, door controllers, electric strikes, mortice and magnetic locks and door hubs, drill and rout the doors and frames, and cut the steel frames.';
+  // Doors and frames only drilled for hardware are not steel erection (content5), so the steel is named.
+  const task = 'Install access control card readers and electric strikes, and erect the steel frame of the new gatehouse.';
   const base = { state: 'qld', fallRisk: 'no', crane: 'company', slinging: 'company', task, ...ANSWERED };
   assert.ok(questionsFor(draftBody(base)).required.some((item) => item.id === 'erectionSequence'));
   const kinds = questionsFor(draftBody(base)).steps.chosen.filter((id) => id !== 'steelErect');

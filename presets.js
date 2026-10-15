@@ -29,6 +29,8 @@ const ANSWERS = {
     ['EWP or mobile scaffold', 'Work above 2 m is done from an EWP or a mobile scaffold with guardrails, and platform ladders are used only for short work below 2 m.'],
     ['Roof edge guardrail', 'Roof edge guardrail is installed to every open edge before work starts, and no one works outside it.'],
     ['Stair void platforms', 'Work over the stair void is done from stair platforms or a scaffold with guardrails, built to fit the stairs, and no one works from a ladder on the stairs or leans over the balustrade.'],
+    // From the Excavation work code's guardrails or barrier set back from the trench (scenarios/code-controls.json).
+    ['Excavation edge barriers', 'Wherever a person could fall into the excavation, guardrails or a barrier set back from the edge are fitted so people cannot approach it, and open pits are covered or fenced when left.'],
   ],
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
@@ -49,6 +51,8 @@ const ANSWERS = {
   silicaControls: [
     ['On-tool extraction', 'Drilling and cutting are done with on-tool dust extraction. Fit tested P2 respirators are worn while drilling or cutting. The written silica assessment is done before work starts and attached to this SWMS.'],
     ['Wet cutting', 'Cutting and coring are done wet with a water-fed tool. Fit tested P2 respirators are worn while cutting. The written silica assessment is done before work starts and attached to this SWMS.'],
+    // The grinding line is the library's (NSW Silica code s 2.3, appendix A).
+    ['Shrouded grinder', 'Grinding concrete is done with a shrouded grinder on on-tool dust extraction. Fit tested P2 respirators are worn while grinding. The written silica assessment is done before work starts and attached to this SWMS.'],
   ],
   hotWorkPermit: [
     ['Principal contractor permit', 'The principal contractor issues a hot work permit each day. A fire extinguisher is kept at each work area, and the area is checked after hot work ends.'],
@@ -140,16 +144,40 @@ const FALL_FIRST = [
   ['EWP or mobile scaffold', /\b(shade (?:structures?|sails?|covers?)|carports?|awnings?|verandahs?|patio (?:roofs?|covers?)|doors?|ceilings?|cabl\w*|data|wi-?fi|access points?|lights?|lighting|ducts?|ductwork|dampers?|signs?|signage|pylons?|cameras?|cctv|sprinklers?|alarms?|detectors?|screens?|windows?|pergolas?|walls?|paint\w*|exterior|cladding|awnings?|netting|spikes|frames?|beams?|pipework|pipes?|trays?|conduits?|fans?|heaters?|shelving|racking|curtains?|blinds?|poles?|street ?lights?)\b/i],
 ];
 
+const OPEN_GROUND = /\b(excavat\w*|trench\w*|dig(?:s|ging)?|earthworks?|batters?|bulk earthworks?)\b/i;
+const BURIED_SERVICES = /\b(?:underground|buried|in-ground|below-ground|stormwater|sewer|drainage)\s+(?:\w+\s+)?(?:pipes?|pipework|pipelines?|conduits?|cables?|services)\b/gi;
+const BUILDING_HEIGHT = /\b(roofs?|ceilings?|scaffold\w*|storeys?|level [1-9]\d*|upper (?:floors?|levels?)|suspended|decks?(?! pool)|balcon\w*|risers?|shafts?(?! excavat)|stairs?|mezzanine\w*|ewps?|scissor lifts?|boom lifts?|ladders?|walls?|facades?|towers?|bridges?|formwork|falsework|precast|steel)\b/i;
+
 // Standard answers for a required fact, as { label, text }. With the task, the fall
 // control answers are put in the order that suits it.
 function answersFor(id, task) {
   const list = (ANSWERS[id] || []).map(([label, text]) => ({ label, text }));
   if (id === 'pressureTesting' && task) return pressureAnswers(list, task);
-  if (id !== 'fallControl' || !task) return list;
+  if (id === 'silicaControls') return silicaAnswers(list, task);
+  if (id !== 'fallControl' || !task) return list.filter((answer) => answer.label !== 'Excavation edge barriers');
+  // A fall into an open excavation, pit or pool hole, with no building work at height: the excavation's
+  // own answers, not roof mesh, riser screens or scissor lifts (messy round 5).
+  // Pipes, cables or conduits laid in the ground are not work reached from below.
+  const above = String(task).replace(BURIED_SERVICES, '');
+  if (OPEN_GROUND.test(task) && !BUILDING_HEIGHT.test(task) && !FALL_FIRST.some(([label, pattern]) => label !== 'Edge protection' && pattern.test(above))) return ['Excavation edge barriers', 'Penetration covers', 'Edge protection'].map((label) => list.find((answer) => answer.label === label)).filter(Boolean);
+  list.splice(0, list.length, ...list.filter((answer) => answer.label !== 'Excavation edge barriers'));
   const first = FALL_FIRST.find(([, pattern]) => pattern.test(task));
   if (!first) return list;
   const pick = list.find((answer) => answer.label === first[0]);
   return [pick, ...list.filter((answer) => answer !== pick)];
+}
+
+// The silica answers that fit the work (messy round 5: "Cutting and coring are done wet" printed for
+// grinding a pool shell): the grinding answer where the work grinds, the cutting ones where it cuts,
+// drills or cores. With no task, or neither named, the cutting answers as before.
+function silicaAnswers(list, task) {
+  const grinds = /\b(grind\w*|grinders?|scabbl\w*|polish\w*)\b/i.test(task || '');
+  const cuts = /\b(cut\w*|saw\w*|cor(?:e|es|ed|ing)|drill\w*|chas(?:e|es|ed|ing)|rout\w*)\b/i.test(task || '');
+  const grinding = list.filter((answer) => answer.label === 'Shrouded grinder');
+  const cutting = list.filter((answer) => answer.label !== 'Shrouded grinder');
+  if (grinds && !cuts) return grinding;
+  if (grinds) return [...cutting, ...grinding];
+  return cutting;
 }
 
 // The gas line test is offered only where the task names gas: a pool, water or air test is
