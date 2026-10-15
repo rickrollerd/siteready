@@ -644,6 +644,89 @@ const SCHEMA = [
     set_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (project_id, rev)
   )`,
+  // Goal 12 stage 4: a scope read on a main contractor's project is kept against the account (org_id)
+  // and the project it was read for, never a company (company_id is ''). The project's readings count
+  // toward its free readings (D302).
+  "ALTER TABLE ai_readings ADD COLUMN IF NOT EXISTS org_id TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE ai_readings ADD COLUMN IF NOT EXISTS project_id TEXT NOT NULL DEFAULT ''",
+  'CREATE INDEX IF NOT EXISTS ai_readings_org_doc ON ai_readings (org_id, doc_hash, brief_version)',
+  'CREATE INDEX IF NOT EXISTS ai_readings_project ON ai_readings (project_id)',
+  // A subcontract on a project: the company's name as typed, its trade, a contact email (sending is
+  // stage 5) and the reading of its scope. list_reading_id is the reading its SWMS list was made from;
+  // list_rev counts each change to the list. A removed subcontract keeps its row (removed_at).
+  `CREATE TABLE IF NOT EXISTS subcontracts (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    trade TEXT NOT NULL DEFAULT '',
+    contact_email TEXT NOT NULL DEFAULT '',
+    abn TEXT NOT NULL DEFAULT '',
+    company_id TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'draft',
+    reading_id TEXT NOT NULL DEFAULT '',
+    doc_name TEXT NOT NULL DEFAULT '',
+    doc_hash TEXT NOT NULL DEFAULT '',
+    scope_at TIMESTAMPTZ,
+    scope_by_name TEXT NOT NULL DEFAULT '',
+    list_reading_id TEXT NOT NULL DEFAULT '',
+    list_rev INTEGER NOT NULL DEFAULT 0,
+    created_by TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    removed_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS subcontracts_project ON subcontracts (project_id)',
+  // The SWMS a subcontract needs, in the shape the one-go page opens (scope-choice.js projectItems),
+  // with prices taken out (handover.js). source is 'reading' or 'added'. A removed SWMS keeps its row
+  // (removed_at), so the lead can put it back; removed_why says why one started removed.
+  `CREATE TABLE IF NOT EXISTS required_swms (
+    id TEXT PRIMARY KEY,
+    subcontract_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    package TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL,
+    task TEXT NOT NULL DEFAULT '',
+    item JSONB NOT NULL,
+    source TEXT NOT NULL,
+    removed_at TIMESTAMPTZ,
+    removed_why TEXT NOT NULL DEFAULT '',
+    task_changed BOOLEAN NOT NULL DEFAULT FALSE,
+    list_rev INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS required_swms_subcontract ON required_swms (subcontract_id, position)',
+  // The reading's points to confirm with the main contractor (D302, K12): the lead may answer them, and
+  // only answered ones go to the subcontractor.
+  `CREATE TABLE IF NOT EXISTS subcontract_points (
+    id TEXT PRIMARY KEY,
+    subcontract_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    activity TEXT NOT NULL DEFAULT '',
+    clause TEXT NOT NULL DEFAULT '',
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL DEFAULT '',
+    answered_by TEXT NOT NULL DEFAULT '',
+    answered_by_name TEXT NOT NULL DEFAULT '',
+    answered_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS subcontract_points_subcontract ON subcontract_points (subcontract_id, position)',
+  // The HSE lead's changes to a SWMS list, kept to improve how SiteWrite reads scopes (Goal 12): the
+  // month, state, brief version, the package's name and wording with names taken out, the kind of
+  // change, and the reading by a keyed fingerprint. No project, account, subcontract or person.
+  // Written only when CONTROL_LEARNING is on; kept 3 years.
+  `CREATE TABLE IF NOT EXISTS list_edit_events (
+    id TEXT PRIMARY KEY,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    brief_version TEXT NOT NULL DEFAULT '',
+    package TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL,
+    wording TEXT NOT NULL DEFAULT '',
+    original TEXT NOT NULL DEFAULT '',
+    reading_key TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
 ];
 
 async function migrate() {

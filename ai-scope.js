@@ -707,36 +707,123 @@ function rowOut(row) {
 async function startReading(company, text, stateName) {
   if (!enabled()) throw fail(503, 'The AI reading is not switched on. Try again later, or write the tasks in the Task box.');
   if (!company) throw fail(401, 'Sign in to have the AI read a scope.');
-  const content = String(text || '');
-  if (!content.trim()) throw fail(400, 'There is no text in this file to read.');
-  if (content.length > MAX_CHARACTERS) throw fail(413, 'This document is too long for one reading. Split it into parts and read each one.');
+  const content = checkedContent(text);
   const hash = fingerprint(content);
   await markStale();
-  const kept = await db.one("SELECT * FROM ai_readings WHERE company_id = $1 AND doc_hash = $2 AND brief_version = $3 AND status <> 'failed' ORDER BY created_at DESC LIMIT 1",
+  // A main contractor's project reading (company_id '') is never one of a company's.
+  const kept = await db.one("SELECT * FROM ai_readings WHERE company_id = $1 AND org_id = '' AND doc_hash = $2 AND brief_version = $3 AND status <> 'failed' ORDER BY created_at DESC LIMIT 1",
     [company.id, hash, BRIEF_VERSION]);
   if (kept) return { ...(await withHighRisk(rowOut(kept), stateName)), kept: true };
   const id = crypto.randomUUID();
   const now = new Date();
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $8)',
     [id, company.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, now, 'reading']);
-  const work = askModel(content)
+  return { id, status: 'reading', kept: false, progress: progressOf({ status: 'reading', stage: 'reading', created_at: now, characters: content.length }), done: runReading(id, content) };
+}
+
+function checkedContent(text) {
+  const content = String(text || '');
+  if (!content.trim()) throw fail(400, 'There is no text in this file to read.');
+  if (content.length > MAX_CHARACTERS) throw fail(413, 'This document is too long for one reading. Split it into parts and read each one.');
+  return content;
+}
+
+// The two calls of a reading, run after the request returns. The result is kept with its check
+// against the brief and what it cost. clean (a project's reading) takes every price out of the
+// reading and its checks before it is kept (handover.js); the checks are made on the reading first.
+function runReading(id, content, clean = null) {
+  return askModel(content)
     .then(async ({ reading: read, usage: readUsage, model }) => {
       await markStage(id, 'steps');
       const steps = await mapSteps(read);
-      const reading = { ...read, packages: steps.packages };
+      let reading = { ...read, packages: steps.packages };
       const usage = addUsage(readUsage, steps.usage);
-      const checks = {
+      let checks = {
         ...checkReading(reading, content),
         packagesWithoutSteps: steps.packages.filter((item) => !item.groups.length).map((item) => item.package),
         unknownStepIds: steps.packages.flatMap((item) => item.unknown),
       };
+      if (clean) ({ reading, checks } = clean(reading, checks));
       await db.query('UPDATE ai_readings SET status = $2, reading = $3, checks = $4, usage = $5, cost_usd = $6, model = $7, finished_at = $8 WHERE id = $1',
         [id, 'done', JSON.stringify(reading), JSON.stringify(checks), JSON.stringify(usage), costOf(usage), model, new Date()]);
     })
     .catch(async (error) => {
       await db.query('UPDATE ai_readings SET status = $2, error = $3, finished_at = $4 WHERE id = $1', [id, 'failed', errorMessage(error), new Date()]).catch(() => {});
     });
-  return { id, status: 'reading', kept: false, progress: progressOf({ status: 'reading', stage: 'reading', created_at: now, characters: content.length }), done: work };
+}
+
+// ---- A main contractor's project (Goal 12 stage 4, D302) ----
+// The HSE lead uploads each subcontract's scope once, on the project. The reading is kept against the
+// main contractor's account (org) and the document's fingerprint, so the same file again, for any
+// subcontract or project of that account, costs nothing and does not count. No company, and no other
+// account, ever reads it. SiteWrite pays for a project's readings up to PROJECT_FREE_READINGS (50 to
+// start); after that no reading runs, and the lead is asked to contact SiteWrite. Every AI reading
+// made for the project counts (scopes now; plans and outside SWMS checks later), except one that failed.
+
+function projectFreeReadings() {
+  const value = Number(process.env.PROJECT_FREE_READINGS);
+  return process.env.PROJECT_FREE_READINGS !== undefined && process.env.PROJECT_FREE_READINGS !== '' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 50;
+}
+const limitMessage = (limit) => `You have used this project's ${limit} free readings. Contact SiteWrite to add more.`;
+
+async function projectReadingsUsed(projectId, query = db) {
+  const row = await query.one("SELECT COUNT(*) AS n FROM ai_readings WHERE project_id = $1 AND status <> 'failed'", [String(projectId || '')]);
+  return Number((row && row.n) || 0);
+}
+
+// Work on one project's readings, one request at a time in this process.
+const queues = new Map();
+async function oneAtATime(key, fn) {
+  const before = queues.get(key) || Promise.resolve();
+  let release;
+  const mine = new Promise((resolve) => { release = resolve; });
+  const chain = before.then(() => mine);
+  queues.set(key, chain);
+  await before;
+  try {
+    return await fn();
+  } finally {
+    release();
+    if (queues.get(key) === chain) queues.delete(key);
+  }
+}
+
+// Starts a project's reading, or returns the one the account already has for this document (kept: true).
+async function startProjectReading({ org, project }, text, stateName, { clean = null } = {}) {
+  if (!enabled()) throw fail(503, 'Reading scopes is not switched on just now. Try again later, or add the SWMS this subcontract needs yourself.');
+  if (!org || !project) throw fail(404, 'That project was not found.');
+  const content = checkedContent(text);
+  const hash = fingerprint(content);
+  await markStale();
+  const keptFor = (query) => query.one("SELECT * FROM ai_readings WHERE org_id = $1 AND company_id = '' AND doc_hash = $2 AND brief_version = $3 AND status <> 'failed' ORDER BY created_at DESC LIMIT 1",
+    [org.id, hash, BRIEF_VERSION]);
+  const before = await keptFor(db);
+  if (before) return { ...(await withHighRisk(rowOut(before), stateName)), kept: true };
+  const limit = projectFreeReadings();
+  const id = crypto.randomUUID();
+  const now = new Date();
+  // With the project locked, two uploads at the same moment cannot both take the last free reading,
+  // and the same file sent twice at once is read once: in this process by a queue for each project,
+  // and across processes by the database's lock on the project's row.
+  const kept = await oneAtATime(project.id, () => db.transaction(async (tx) => {
+    await tx.query('SELECT id FROM projects WHERE id = $1 FOR UPDATE', [project.id]);
+    const again = await keptFor(tx);
+    if (again) return again;
+    if (await projectReadingsUsed(project.id, tx) >= limit) throw Object.assign(fail(402, limitMessage(limit)), { limit: true });
+    await tx.query("INSERT INTO ai_readings (id, company_id, org_id, project_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, '', $2, $3, $4, $5, $6, $7, $8, $9, $10, $9)",
+      [id, org.id, project.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, now, 'reading']);
+    return null;
+  }));
+  if (kept) return { ...(await withHighRisk(rowOut(kept), stateName)), kept: true };
+  return { id, status: 'reading', kept: false, progress: progressOf({ status: 'reading', stage: 'reading', created_at: now, characters: content.length }), done: runReading(id, content, clean) };
+}
+
+// A project reading, for the account that owns it only.
+async function getProjectReading(org, id, stateName) {
+  await markStale();
+  const row = await db.one("SELECT * FROM ai_readings WHERE id = $1 AND org_id = $2 AND org_id <> '' AND company_id = ''", [String(id || ''), String((org && org.id) || '')]);
+  if (!row) throw fail(404, 'That reading was not found.');
+  return withHighRisk(rowOut(row), stateName);
 }
 
 async function markStale() {
@@ -747,9 +834,9 @@ async function markStale() {
 async function getReading(company, id, stateName) {
   if (!company) throw fail(401, 'Sign in to see this reading.');
   await markStale();
-  const row = await db.one('SELECT * FROM ai_readings WHERE id = $1 AND company_id = $2', [String(id || ''), company.id]);
+  const row = await db.one("SELECT * FROM ai_readings WHERE id = $1 AND company_id = $2 AND org_id = ''", [String(id || ''), company.id]);
   if (!row) throw fail(404, 'That reading was not found.');
   return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, startProjectReading, getProjectReading, projectReadingsUsed, projectFreeReadings, limitMessage, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };

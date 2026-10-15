@@ -502,6 +502,8 @@ async function projectPage(project, org, role) {
   return {
     project: projectView(project),
     org: orgView(org, role),
+    // Stage 4: each subcontract with its SWMS list count, and the project's free readings.
+    ...(await scopes.projectSubcontracts(project, org)),
     siteDetails: detailsView(rows[rows.length - 1], project.state),
     versions: versionList(rows, project.state),
     team: await teamOf(org.id),
@@ -587,5 +589,9 @@ router.put('/hse/projects/:projectId/site-details', route(async (req, res) => {
     ...(await projectPage(project, org, role)),
   });
 }));
+
+// ---- Subcontracts and their scopes (stage 4, sitelink-scopes.js) ----
+
+const scopes = require('./sitelink-scopes').install(router, { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS });
 
 module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey };
