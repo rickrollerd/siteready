@@ -37,9 +37,23 @@ function builderCheck(draft, state) {
   return {
     score: result.score,
     band: result.band,
-    mustFix: hard.map((item) => ({ rule: item.rule, title: item.title, message: item.message })),
+    mustFix: hard.map((item) => ({ rule: item.rule, title: item.title, message: item.rule === 'H1' ? withWhereFound(item.message, draft, state) : item.message })),
     findings: failed.filter((item) => !item.hard).map((item) => ({ rule: item.rule, title: item.title, message: item.message, points: item.points, max: item.max })),
   };
+}
+
+// High risk work the check finds but the draft does not list says where it was read: the task or a job
+// step, so the person can trace it, add the item or take the step off (messy round 5, run 2: it came
+// from steps the site answers brought, and nothing said so).
+function withWhereFound(message, draft, state) {
+  const { highRiskMatches } = require('./draft');
+  const { findState } = require('./legislation');
+  const found = findState(state);
+  if (!found || !/does not list:|The work involves:/.test(message)) return message;
+  const names = (text) => highRiskMatches(text, '', found).some((item) => message.includes(item.label) && !(draft.highRisk || []).includes(item.label));
+  const steps = [...new Set((draft.jobSteps || []).map((step) => step.step).filter(names))].slice(0, 3);
+  const where = [names(draft.task) ? 'the task' : '', steps.length ? `the job step${steps.length === 1 ? '' : 's'} ${steps.map((name) => `"${name}"`).join(' and ')}` : ''].filter(Boolean);
+  return where.length ? `${message.replace(/\s+$/, '')} SiteWrite read it in ${where.join(' and in ')}.` : message;
 }
 
 // What the page's check panel shows: SiteWrite's check and each part's fingerprint.

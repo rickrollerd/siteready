@@ -506,8 +506,11 @@ function besideRoad(raw) {
 }
 // Track work and work beside running lines are in or next to a railway in use.
 // Ballast is track ballast only beside track words: roofs and planters have gravel ballast too.
-const RAIL_RAW = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?)\b/i;
-const RAIL_IN_USE = { test: (text) => RAIL_RAW.test(String(text || '')) || /\bballast\b/i.test(String(text || '')) && /\b(rail\w*|tracks?|sleepers?|trains?|tamp\w*)\b/i.test(String(text || '')) };
+// "During possession" is a track possession with or without "a" or "the", and reballasting is ballast
+// work (messy round 5: the typed "reballast 200m of track during possession" was not read as rail work,
+// while the pick list's task was).
+const RAIL_RAW = /\b(rail (?:lines?|tracks?)|live track|track possessions?|(?:during|under) (?:a |the )?(?:track |rail(?:way)? )?possessions?(?! of\b)|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?)\b/i;
+const RAIL_IN_USE = { test: (text) => RAIL_RAW.test(String(text || '')) || /\b(?:re-?)?ballast\w*/i.test(String(text || '')) && /\b(rail\w*|tracks?|sleepers?|trains?|tamp\w*)\b/i.test(String(text || '')) };
 // The water authority, utility or company is who does the work, not water a person could fall into.
 const WATER = /\b(drown(?:ing)?|in or near water|(?:maintain\w*|maintenance of|servic\w*|commission\w*)\s+(?:of\s+)?(?:the\s+)?(?:swimming\s+|lap\s+)?pools?\b(?![- ]?(?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services|cleaners?|areas?|surrounds?|decks?|pipe\w*)\b)|(?:near|adjacent to|alongside|beside|next to) (?:an? |the )?(?:filled |full |existing |operating |\d+ ?(?:m2|m²|sq ?m) )?(?:swimming |lap |public |outdoor |indoor )?(?:pools?|spas?)\b(?! (?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services))|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|diving (?:towers?|platforms?)|mov(?:e)?able pool floors?|(?:into|in) (?:a |the )?(?:swimming |competition |lap |\d+ ?m )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|(?:river|creek|lake|harbour|canal|sea|ocean|dam|water(?:way)?)s? (?:is )?(?:directly )?(?:below|beneath|underneath)|(?:near|above|adjacent to|alongside|beside|by|over) (?:a |the )?(?:tidal |fast[- ]flowing |open )?(?:river|creek|lake|harbour|canal|ocean|dam wall|waterways?|open water|water(?! (?:meters?|tanks?|heaters?|pipes?|pipework|mains?|services?|lines?|supply|supplies|connections?|filters?|treatment|proofing|based|jets?|blast\w*|carts?|trucks?|bottles?|coolers?|outlets?|taps?|points?|fountains?|bubblers?|fixtures?|authorit\w*|utilit\w*|corporations?|compan\w*|boards?|retailers?|suppliers?))(?=\b))|(?:over|above) (?:a |the )?(?:swimming |lap |public )?pools?(?! (?:fences?|fencing|equipment|plant|rooms?|decks?|surrounds?|areas?|copings?|edges?|tiles?|houses?|pumps?|filters?))|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
 
@@ -1564,6 +1567,9 @@ const CATEGORY_FACTS = [
     prompt: 'The harness and lanyard or line used, the anchor points and who rated or installed them, when the harness was last inspected, who trained the users, and the rescue plan.',
     level: 'Administrative',
     applies: (text) => HARNESS_WORDS.test(String(text || '')),
+    // Asked also for a harness in the PPE (withHarness): the answer given then prints in the controls,
+    // whatever the task's words (messy round 5, run 8: it printed nowhere).
+    printsWhenAsked: true,
   },
   {
     // Life jackets: the type, their checks and servicing, and rescue from the water. Asked
@@ -1955,13 +1961,34 @@ function factPrompt(item, state) {
 }
 
 function requiredFactsFor(fullTask, answer, state) {
-  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)];
+  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state));
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
     const kinds = FACT_KINDS.get(item.id);
     return !kinds || kinds.some((when) => allowed.has(when));
   });
+}
+
+// A question is asked only while something that prints needs its answer (messy round 5). Where the
+// user has picked the job steps:
+//   - a question about work whose job steps the user took off is not asked (run 3: the steel erection
+//     sequence was still asked, and its forced answer printed, after steel erection was unticked);
+//   - a question asked from the task's words is asked where its answer prints in the SWMS's own lines
+//     (its controls, or the documents to keep on site), or a job step picked prints it (run 8: the crane
+//     chart and the ground under the crane were asked after the crane lift steps were taken off, then
+//     printed nowhere).
+// Questions about the whole SWMS (the fall control, the safety data sheet) are always asked.
+const WHOLE_SWMS_FACTS = new Set(['fallControl', 'controlsConsidered', 'safetyDataSheet', 'asbestosArrangement', 'trenchSupport', 'harnessSystem', 'lifeJacketDetails']);
+function printsSomewhere(item, task, state) {
+  if (item.choices || !state || !Array.isArray(state.kinds)) return true;
+  const kinds = FACT_KINDS.get(item.id);
+  if (!kinds || WHOLE_SWMS_FACTS.has(item.id)) return true;
+  if (kinds.some((when) => state.kinds.includes(when))) return true;
+  if (kinds.some((when) => suggestedKinds(task, {}, { ...state, kinds: null }).includes(when))) return false;
+  if (REFERENCE_FACTS.some(([id]) => id === item.id)) return true;
+  const category = CATEGORY_FACTS.find((entry) => entry.id === item.id);
+  return Boolean(category && (category.fromPpe || category.printsWhenAsked || category.applies(task)));
 }
 
 // Facts a picked job step relies on that the task's words did not call for.
@@ -2446,7 +2473,7 @@ function controlsFor(task, facts, pack) {
       if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
       continue;
     }
-    if (value && (item.applies(source) || item.fromPpe)) {
+    if (value && (item.applies(source) || item.fromPpe || (item.printsWhenAsked && pack && pack.asked && pack.asked.has(item.id)))) {
       for (const line of controlRows(value)) {
         push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
       }
@@ -2677,6 +2704,22 @@ function reviewFor(draft, facts = {}) {
 // A step still rated High after its controls says what happens before it starts, naming the
 // person responsible for the SWMS (review checklist item 10: a residual High needs further controls
 // or a named person who accepts it). The lines shared with an earlier step were only for the rating.
+// The rating after the controls that the supervisor set for a step on the draft (messy round 5, run 4:
+// a step left High by SiteWrite's suggestion could not be rated again, though the draft says the
+// supervisor checks the ratings and changes them to suit the site). It prints marked as their rating.
+function withStepRatings(draft, input) {
+  const given = input && input.stepRatings;
+  if (!given || typeof given !== 'object') return draft;
+  const { MATRIX, LIKELIHOOD, CONSEQUENCE } = require('./register');
+  const jobSteps = (draft.jobSteps || []).map((step) => {
+    const mine = given[step.step];
+    if (!mine || !step.risk) return step;
+    const after = { likelihood: mine.likelihood, consequence: mine.consequence, level: MATRIX[mine.likelihood][mine.consequence - 1], label: `${LIKELIHOOD[mine.likelihood]} x ${CONSEQUENCE[mine.consequence]}, our rating` };
+    return { ...step, risk: { ...step.risk, after, ownRating: true } };
+  });
+  return { ...draft, jobSteps };
+}
+
 function withRiskResponse(draft) {
   const who = draft.complianceResponsible || draft.siteManager || draft.worksManager || 'the supervisor';
   const jobSteps = (draft.jobSteps || []).map(({ sharedControls: _shared, ...step }) => (step.risk && step.risk.after.level === 'High'
@@ -2926,7 +2969,9 @@ const MAIN_WORK = [
   // Removing units alone is the removal entry below.
   [/\b(?:install|replac|lift)\w*\b[^.]{0,40}\b(?:air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install split system|Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
   [/^(?![^]*\bhydro[- ]?demoli)[^]*\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
-  [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete|Spray the pool shell)\b/i],
+  // The pool shell is the main work where it is built or sprayed, not where it is only the surface the
+  // finishes go on ("pool shell waterproofing membrane", "grind the pool shell": messy round 5, run 4).
+  [/\b(?:(?:construct\w*|build\w*|form\w*|spray\w*|shoot\w*|pour\w*|reo\w*)\b[^.]{0,30}\bpool shells?|pool shells?\s+(?:construction|spraying|reo\w*|pour\w*)|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete|Spray the pool shell)\b/i],
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints|Seal glazing|Apply sealant|Seal the facade joints)/i],
   [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|Erect the frame|Prop and repair)\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
@@ -3605,6 +3650,8 @@ function buildDraft(input, screen) {
     state,
   };
   const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, askedFallFacts(facts, pack.fallAnswer), state, input.ppe)).filter(notSdsQuestion(input));
+  // The questions asked from the PPE or the fall control (the harness), whose answers print as asked.
+  pack.asked = new Set(withHarness([], facts, ppeInUse(task, askedFallFacts(facts, pack.fallAnswer), state, input.ppe)).map((item) => item.id));
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
@@ -3788,6 +3835,12 @@ function buildDraft(input, screen) {
         if (!draft.highRisk.includes(item.label)) draft.highRisk = [...draft.highRisk, item.label];
       }
     }
+    const fallLabel = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
+    // High risk construction work the user says applies, picked from the regulation's list on the draft
+    // (messy round 5). It prints, and SiteWrite adds its own lines for it where it has them.
+    const added = highRiskAddedOf(input, state);
+    draft.highRiskOwn = added.filter((item) => !draft.highRisk.includes(fallLabel(item))).map((item) => item.id);
+    for (const item of added) if (!draft.highRisk.includes(fallLabel(item))) draft.highRisk = [...draft.highRisk, fallLabel(item)];
     // The permits the high risk work listed needs, such as confined space entry, now the list is final.
     // A permit line added here goes in at its place in the hierarchy; the user's own lines keep theirs.
     const stepNames = draft.jobSteps.map((step) => step.step);
@@ -3843,6 +3896,11 @@ function buildDraft(input, screen) {
     }
   }
   if (workshopOnly(riskTask)) draft.highRisk = [];
+  // Where each item SiteWrite listed was found, said beside it on the draft, so an item that comes from
+  // a site answer can be traced (messy round 5, run 2: the street and the switchroom in the shared site
+  // answers brought items the person could not trace).
+  draft.highRiskFrom = highRiskFrom(draft.highRisk, { task: riskTask, site: input.site || {}, steps: (draft.jobSteps || []).map((step) => step.step), answer: pack.fallAnswer, state });
+  if (!draft.highRiskOwn || workshopOnly(riskTask)) draft.highRiskOwn = [];
   // The PPE the questions page suggests: for all work, and for particular steps (D246, D247), with
   // the names of the steps an item can be added to.
   // The suggestion agrees with the lines the steps print, the user's own steps included (step-ppe.js
@@ -3898,7 +3956,7 @@ function buildDraft(input, screen) {
   // Each hazardous product the user listed, in the substances table and in the step that uses it
   // (substances.js, owner D256, D257). A SWMS with no product listed is unchanged.
   // The PPE table agrees with every printed line, the products' lines and the user's own steps included.
-  return withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input), input)));
+  return withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input), input)));
 }
 
 // Wherever a harness is listed, harness training is listed too, also where falls is No (a boom EWP)
@@ -4690,6 +4748,51 @@ const CLOSING_STEP = 'Finish and clean up';
 const sameText = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
 
 // The steps the user wrote that print: each has a name, a hazard and a control.
+// Where each listed item of high risk construction work was found: the task, a site answer or a job
+// step, the first that names it, by its label. An item none of them names alone (read from answers
+// together, or from the plant) is left out.
+function highRiskFrom(labels, { task, site, steps, answer, state }) {
+  const label = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
+  const sources = [
+    ['the task', task],
+    ...SITE_FIELDS.map((field) => [`your ${field.label} answer`, siteConditions({ [field.id]: site[field.id] })]),
+    ...steps.map((name) => [`the job step "${name}"`, name]),
+  ].filter(([, text]) => String(text || '').trim());
+  const out = {};
+  for (const [where, text] of sources) {
+    for (const item of highRiskMatches(text, answer, state)) {
+      const name = label(item);
+      if (labels.includes(name) && !out[name]) out[name] = where;
+    }
+  }
+  // Moving plant not named in the words comes from the plant the SWMS lists.
+  const plant = highRiskList(state).find((item) => item.id === 'plant');
+  if (plant && labels.includes(plant.label) && !out[plant.label]) out[plant.label] = 'the plant listed';
+  return out;
+}
+
+// For the page only (server.js): the rest of the regulation's list, offered on the draft for the user to
+// add what applies, and the items the user added, each { id, label }. Not part of the SWMS.
+function highRiskOptions(input, draft) {
+  const state = stateFor(input);
+  if (!state || !draft || draft.kind !== 'draft') return {};
+  const label = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
+  const listed = new Set(draft.highRisk || []);
+  const own = new Set(draft.highRiskOwn || []);
+  const all = highRiskList(state).map((item) => ({ id: item.id, label: label(item) }));
+  return {
+    highRiskChoices: workshopOnly(namedInPassing(othersAndDenials(readSlang(fixSpelling(cleanLine(input.task)).text)).denied)) ? [] : all.filter((item) => !listed.has(item.label)),
+    highRiskOwn: all.filter((item) => own.has(item.id) && listed.has(item.label)),
+  };
+}
+
+// The high risk construction work the user added on the draft, from the regulation's list for the
+// state (messy round 5): [{ id, label }], each item once.
+function highRiskAddedOf(input, state) {
+  const ids = new Set(Array.isArray(input && input.highRiskAdded) ? input.highRiskAdded : []);
+  return highRiskList(state).filter((item) => ids.has(item.id));
+}
+
 function ownStepsOf(input) {
   return (Array.isArray(input && input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name && (item.hazards || []).length && (item.controls || []).length);
 }
@@ -7741,6 +7844,7 @@ module.exports = { withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, m
   isCraneOrLift,
   workFlags,
   highRiskMatches,
+  highRiskOptions,
   questionsFor,
   askQuestions,
   prepareDraft,

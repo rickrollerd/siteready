@@ -72,7 +72,7 @@ test('SiteWrite\'s check shows its score and findings, then the parts unlock in 
 
 test('a must-fix item keeps the parts locked and the buttons off, and says what to fix', async () => {
   const p = await shown((method, route, body) => (route === '/api/draft/check' ? { body: { ...selfCheck(inputFor(body)), builder: { score: 70, band: 'Not accepted', mustFix: [{ rule: 'H5', title: 'Controls are definite', message: 'Controls for high risk hazards leave the decision to the worker: "Be careful near the edge."' }], findings: [] } } } : null));
-  assert.match(el(p, 'new-check-self').innerHTML, /Fix this before you can tick the parts:<\/strong><\/p><ul><li>Controls for high risk hazards leave the decision to the worker: &quot;Be careful near the edge\.&quot;<\/li><\/ul>/);
+  assert.match(el(p, 'new-check-self').innerHTML, /Fix this before you can tick the parts:<\/strong><\/p><ul><li>Controls for high risk hazards leave the decision to the worker: &quot;Be careful near the edge\.&quot; <button type="button" class="link" data-must-go="new" data-must-n="0">Go to Job steps<\/button><\/li><\/ul><p class="meta">Go to it and fix it there\. SiteWrite then checks the draft again\.<\/p>/);
   assert.equal(el(p, 'new-part-hazards').disabled, true);
   checkAll(p);
   assert.equal(el(p, 'new-part-hazards').checked, false, 'a tick does not take while it is locked');
@@ -134,4 +134,17 @@ test('the server\'s refusal of a stale tick unticks the part and says so', async
   assert.equal(el(p, 'new-check-stale').textContent, 'You changed the site details after ticking them. Tick them again.');
   assert.match(el(p, 'new-status').textContent, /You changed the site details after ticking them/);
   assert.equal(el(p, 'new-docx').disabled, true);
+});
+
+test('a role typed on after the last tick is recorded as typed, not as its first letter (messy round 5)', async () => {
+  const p = await shown();
+  const seen = [];
+  p.window.SiteWrite.onCheckDone = (_input, check) => seen.push(check ? check.role : null);
+  checkAll(p, 'new', { role: 'f' });
+  for (const role of ['fo', 'foreman']) {
+    el(p, 'new-role').value = role;
+    el(p, 'new-role').dispatchEvent(new FakeEvent('input'));
+  }
+  assert.equal(seen[seen.length - 1], 'foreman');
+  assert.ok(seen.includes('f'), 'each change is told, the last one as typed');
 });

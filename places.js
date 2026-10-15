@@ -51,6 +51,9 @@ const STATE_NAME = { act: 'Australian Capital Territory', nsw: 'New South Wales'
 // address; null for a business named with no street. A business is offered only with its street
 // number and street (D278): "Qld transport, St Georges Terrace" does not say where the work is.
 const STREET_NUMBER = /\b\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+[A-Za-z]/;
+// Only a city doubled ("East Perth Perth") or a "City" suburb after another suburb ("Carina Brisbane
+// City") is taken off: "North Sydney" stays as it is.
+const CITY_AFTER_SUBURB = /,\s*([A-Z][A-Za-z' -]*?)\s+(Brisbane City|Sydney City|Darwin City|Brisbane|Perth|Sydney|Melbourne|Adelaide|Hobart|Darwin|Canberra)(?=,?\s*(?:QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\b)/;
 function toSuggestion(prediction) {
   const full = prediction && prediction.text && prediction.text.text;
   if (!full) return null;
@@ -59,7 +62,9 @@ function toSuggestion(prediction) {
   const rest = prediction.structuredFormat && prediction.structuredFormat.secondaryText && prediction.structuredFormat.secondaryText.text;
   const business = types.length > 0 && types.some((type) => type === 'establishment' || type === 'point_of_interest') && !types.some((type) => ['street_address', 'premise', 'subpremise', 'route'].includes(type))
     || (types.length > 0 && !types.some((type) => ADDRESS_TYPES.has(type)));
-  const text = String(full).replace(/,\s*Australia$/i, '');
+  // Google adds the city after the suburb ("Carina Brisbane City", "East Perth Perth", messy round 5,
+  // runs 3 and 4): the suburb alone is kept, so the city typed does not make the wrong suburb rank first.
+  const text = String(full).replace(/,\s*Australia$/i, '').replace(CITY_AFTER_SUBURB, (whole, suburb, city) => (/ City$/.test(city) || suburb.trim().toLowerCase().endsWith(` ${city.toLowerCase()}`) ? `, ${suburb.trim()}` : whole));
   // A named building or place with no street ("Gordon Stephenson House, Perth WA", messy round 4, run 4)
   // is a business name too: it is offered only with its street number and street.
   const namedPlace = Boolean(main) && !STREET_NUMBER.test(main) && !STREET.test(main) && types.some((type) => ['premise', 'establishment', 'point_of_interest'].includes(type));

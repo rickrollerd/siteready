@@ -39,6 +39,17 @@ function controlEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// The supervisor's own rating after the controls, by job step name.
+function stepRatings(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value).slice(0, 60).map(([step, rating]) => {
+    const likelihood = Number(rating && rating.likelihood);
+    const consequence = Number(rating && rating.consequence);
+    return [likelihood, consequence].every((n) => Number.isInteger(n) && n >= 1 && n <= 5) && textField(step, 300) ? [textField(step, 300), { likelihood, consequence }] : null;
+  }).filter(Boolean);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 // The user's own hazards by job step name: hazards reworded, added, and SiteWrite's hazards marked
 // as not applying (they cannot be deleted), with an optional reason; and who is responsible for
 // each step's controls (the Who column).
@@ -262,6 +273,12 @@ function draftBody(body) {
     swmsRef: field(body.swmsRef, 80),
     // The job steps picked in the form, by kind of work. Unknown ones are dropped when drafted.
     kinds: Array.isArray(body.kinds) ? body.kinds.filter((id) => typeof id === 'string').slice(0, 80).map((id) => id.slice(0, 40)) : undefined,
+    // The rating after the controls the supervisor set for a job step, by its name: likelihood and
+    // consequence, each 1 to 5 (messy round 5, run 4: a step still High had no way to be rated again).
+    stepRatings: stepRatings(body.stepRatings),
+    // High risk construction work the user added on the draft, by its id in the regulation's list
+    // (messy round 5). Unknown ones are dropped when drafted.
+    highRiskAdded: Array.isArray(body.highRiskAdded) ? [...new Set(body.highRiskAdded.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 30) : undefined,
     // The job steps in the order the user put them, by name.
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     // The rows of a scope reading that the reader matched to no job steps (owner decision D184).

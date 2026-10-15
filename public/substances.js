@@ -236,6 +236,16 @@
     const key = field.dataset.subField;
     row[key] = LISTS.includes(key) ? String(field.value).split(/\r?\n/) : field.value;
     if (key === 'product') cardEl.querySelector('legend').textContent = field.value.trim() || 'New product';
+    // A line changed after "These match the SDS" was ticked is not checked against the SDS yet: the tick
+    // comes off until it is ticked again (messy round 5, run 2: it stayed on while the lines changed).
+    if (row.confirmed) {
+      row.confirmed = false;
+      const tick = cardEl.querySelector('[data-sub-confirm]');
+      if (tick) tick.checked = false;
+      let note = cardEl.querySelector('.sub-untick');
+      if (!note && tick) { note = document.createElement('p'); note.className = 'meta sub-untick'; note.setAttribute('role', 'status'); tick.closest('label').after(note); }
+      if (note) note.textContent = 'You changed a line, so "These match the SDS" is ticked off. Check the lines against the safety data sheet and tick it again.';
+    }
     const own = cardEl.querySelector('.sub-need');
     if (own) own.textContent = R.substanceNeed(row, stepNow(row));
     if (S.keepUnsaved) S.keepUnsaved();

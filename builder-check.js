@@ -689,7 +689,14 @@ const NAMED_PERSON = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z'-]+)+\b/;
 const GENERIC_RESPONSE = /^\s*add (?:more |further |extra )?controls?\b[^.]*\bor\b[^.]*\baccept|\bwhere a rating\b[^.]*\bstill high\b/i;
 // What is said about a rating still High after the controls: a named person or position who accepts it
 // before work starts, or further controls. The SWMS-wide statement counts for every step.
+// SiteWrite's own line for a step still High names the person responsible for the SWMS, who adds
+// controls or accepts the risk in writing before the step starts (D292 item 4: the SWMS downloads with
+// it). It counts however the name is written: "gaz" blocked a SWMS where "Priya Nair" and "the
+// supervisor" did not (messy round 5, runs 2 and 4).
+const OWN_RESPONSE = /^This step does not start until (.+?) adds controls that lower this rating, or accepts the risk in writing\.$/;
 function residualAnswered(rating, swms) {
+  const own = OWN_RESPONSE.exec(String(rating.response || '').trim());
+  if (own && filled(own[1].replace(/,$/, ''))) return true;
   return [rating.response, swms.riskAcceptance].some((line) => filled(line) && !GENERIC_RESPONSE.test(line) && (/\baccept\w*\b/i.test(line)
     ? (POSITION.test(line) || NAMED_PERSON.test(line.replace(/^\s*\w+/, ' ')))
     : checkable(line) || HIGHER.has(controlLevel(line))));

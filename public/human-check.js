@@ -77,8 +77,12 @@
     if (!builder) return '<p class="meta">SiteWrite is checking the draft…</p>';
     const must = builder.mustFix || [];
     const others = builder.findings || [];
+    // Each must-fix item says where on the page it is fixed, with a button that goes there (messy round
+    // 5: "Fix it on the page" said nothing of where).
+    const place = (item) => (S.mustFixPlace ? S.mustFixPlace(panel.prefix, item) : null);
+    const go = (item, i) => { const where = place(item); return where ? ` <button type="button" class="link" data-must-go="${panel.prefix}" data-must-n="${i}">${esc(where.label)}</button>` : ''; };
     return `<p><strong>${builder.score} out of 100</strong> (${esc(builder.band)}). ${must.length ? '' : 'Nothing must be fixed.'}</p>
-      ${must.length ? `<div class="warning check-must"><p><strong>Fix ${must.length === 1 ? 'this' : `these ${must.length}`} before you can tick the parts:</strong></p><ul>${must.map((item) => `<li>${esc(item.message)}</li>`).join('')}</ul><p class="meta">Fix it on the page, and SiteWrite checks the draft again.</p></div>` : ''}
+      ${must.length ? `<div class="warning check-must"><p><strong>Fix ${must.length === 1 ? 'this' : `these ${must.length}`} before you can tick the parts:</strong></p><ul>${must.map((item, i) => `<li>${esc(item.message)}${go(item, i)}</li>`).join('')}</ul><p class="meta">${panel.prefix === 'saved' ? 'Change opens this SWMS to fix it. Save it as its next revision, and SiteWrite checks it again.' : `Go to ${must.length === 1 ? 'it' : 'each one'} and fix it there. SiteWrite then checks the draft again.`}</p></div>` : ''}
       ${others.length ? `<details class="check-findings"><summary>Other findings (${others.length}), for you to judge</summary><ul>${others.map((item) => `<li>${esc(item.message)}</li>`).join('')}</ul></details>` : '<p class="meta">No other findings.</p>'}`;
   }
 
@@ -127,10 +131,18 @@
     if (panel.onChange) panel.onChange();
     // Told only once SiteWrite's check is in: while it runs, a check given before stands.
     if (!panel.result || panel.pending || panel.error || panel.locked) return;
+    // The must-fix items found, for a project's list (messy round 5, run 4: it said "Ready for your
+    // check" while the ticks stayed greyed out).
+    const count = mustFix(panel) ? panel.result.builder.mustFix.length : 0;
+    if (panel.onResult && count !== panel.mustCount) { panel.mustCount = count; panel.onResult(count); }
+    // Told again whenever what would be recorded changes, not only when it becomes ready: a role typed
+    // on after the last tick was kept as its first letter (messy round 5, run 4: "foreman" printed "f").
     const done = status(panel.prefix).ready;
-    if (panel.onDone && done !== panel.done) {
-      panel.done = done;
-      panel.onDone(done ? value(panel.prefix).check : null, panel.note);
+    const check = done ? value(panel.prefix, { keep: false }).check : null;
+    const sig = check ? JSON.stringify(check) : null;
+    if (panel.onDone && sig !== panel.done) {
+      panel.done = sig;
+      panel.onDone(check, panel.note);
     }
   }
 
@@ -194,6 +206,8 @@
       initial: Boolean(options.initial),
       onChange: options.onChange || null,
       onDone: options.onDone || null,
+      onResult: options.onResult || null,
+      mustCount: undefined,
       done: undefined,
       locked: '',
     };
@@ -265,14 +279,13 @@
   }
 
   // What the buttons send: { check }. Throws with what is still needed.
-  function value(prefix) {
+  function value(prefix, { keep = true } = {}) {
     const panel = panels[prefix];
     const now = status(prefix);
     if (!now.ready) throw new Error(now.why || 'SiteWrite\'s check waits for the items listed above.');
     const name = $(`${prefix}-name`).value.replace(/\s+/g, ' ').trim();
     const role = $(`${prefix}-role`).value.replace(/\s+/g, ' ').trim();
-    write(NAME_KEY, name);
-    write(ROLE_KEY, role);
+    if (keep) { write(NAME_KEY, name); write(ROLE_KEY, role); }
     return { check: { parts: Object.fromEntries(P().IDS.map((id) => [id, true])), partHashes: { ...panel.ticks }, name, role, ack: true } };
   }
 
@@ -301,6 +314,12 @@
   }
 
   document.addEventListener('click', (event) => {
+    const must = event.target && event.target.closest && event.target.closest('[data-must-go]');
+    const at = must && panels[must.dataset.mustGo];
+    if (at && at.result && at.result.builder && S.goToMustFix) {
+      S.goToMustFix(at.prefix, (at.result.builder.mustFix || [])[Number(must.dataset.mustN)]);
+      return;
+    }
     const again = event.target && event.target.closest && event.target.closest('[data-check-again]');
     const panel = again && panels[again.dataset.checkAgain];
     if (panel) { panel.sent = ''; panel.error = ''; refresh(panel.prefix, { now: true }); }

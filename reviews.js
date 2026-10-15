@@ -22,7 +22,7 @@ const designs = require('./designs');
 const substances = require('./substances');
 const { stepPpeRows } = require('./step-ppe');
 const designFiles = require('./design-files');
-const { checkedRows } = require('./human-check');
+const { checkedRows, preparedFromCheck } = require('./human-check');
 
 const router = express.Router();
 const { fail } = auth;
@@ -164,9 +164,9 @@ async function currentReviews(companyId, rows) {
   return out;
 }
 
-// The business's people are told the review is back, and by whom (D283). Nothing else is in the
-// email: the response, any conditions and "Fix this in SiteWrite" are on the SWMS in SiteWrite. A
-// failed email never loses the response.
+// The business's people are told the review is back, and by whom (D283, D290 item 1). Nothing else is
+// in the email: the response, any conditions and "Fix this in SiteWrite" are on the SWMS in SiteWrite.
+// A failed email never loses the response.
 const REVIEW_BACK = 'Your SWMS review is back';
 function reviewBackMail(review) {
   return { subject: REVIEW_BACK, text: `${REVIEW_BACK}.\n\nFrom ${review.name}, ${review.company}.` };
@@ -230,6 +230,9 @@ router.get('/review/swms/:ref', auth.requireReviewer, route(async (req, res) => 
     current, latestRevision: Number(swms.revision || 1), draft: forReviewer(kept.draft), tables, responses,
     // Who checked the revision part by part before it was saved (D286), as it prints.
     checked: checkedRows(kept.confirmation),
+    // "Prepared by" as the Word file and the PDF print it: the name given, or the checker's name and role
+    // (messy round 5: the page said "Left blank" while the file printed a name).
+    prepared: preparedFromCheck(kept.draft, kept.confirmation),
   });
 }));
 
