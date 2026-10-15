@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>SiteLink by SiteWrite</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; overflow-wrap: anywhere; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px 48px; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid #d5dbe3; margin-bottom: 14px; }
+    .brand { font-weight: 700; color: #1f4e3d; font-size: 17px; }
+    .brand .by { font-weight: 400; color: #5c6773; font-size: 14px; }
+    /* The tabs at the top of every page (D303): SiteWrite for subcontractors, SiteLink for builders. */
+    .tabs { display: flex; gap: 6px; padding-top: 10px; border-bottom: 1px solid #c5cdd6; }
+    .tabs a { display: block; min-height: 44px; padding: 7px 14px 6px; border: 1px solid #c5cdd6; border-bottom: 0; border-radius: 8px 8px 0 0; background: #e3e8ee; color: #1c2430; text-decoration: none; font-weight: 700; line-height: 1.2; margin-bottom: -1px; }
+    .tabs a span { display: block; font-weight: 400; font-size: 13px; color: #5c6773; }
+    .tabs a[aria-current="page"] { background: #fff; border-top: 3px solid #1f4e3d; color: #1f4e3d; }
+    .tag.unverified { background: #fff4dc; color: #7a4d00; border: 1px solid #e6c77a; }
+    .abn-shown { font-size: 17px; font-weight: 600; margin: 2px 0 0; letter-spacing: 0.02em; }
+    .who { font-size: 14px; color: #5c6773; }
+    h1 { font-size: 24px; margin: 6px 0 4px; }
+    h2 { font-size: 19px; margin: 0 0 8px; }
+    h3 { font-size: 16px; margin: 16px 0 6px; }
+    .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
+    a { color: #1f4e3d; }
+    .short { max-width: 680px; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 4px; }
+    label .hint { display: block; font-weight: 400; color: #5c6773; margin-top: 2px; }
+    input[type="text"], input[type="email"], input[type="tel"], select, textarea { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; background: #fff; color: inherit; }
+    textarea { min-height: 150px; resize: vertical; }
+    button, .button { display: inline-block; border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 11px 14px; min-height: 44px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; }
+    button.light, .button.light { background: #fff; color: #1f4e3d; }
+    button.link { background: none; border: 0; color: #1f4e3d; text-decoration: underline; padding: 0; min-height: 0; font-weight: 400; text-align: left; }
+    button.danger { background: #fff; color: #8a1f1f; border-color: #c98b8b; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+    @media (max-width: 640px) { .actions > button, .actions > .button { flex: 1 1 100%; } }
+    .ok { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+    .bad { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+    .warn { background: #fff4dc; border: 1px solid #e6c77a; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+    .note { background: #f4f6f8; border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 14px; }
+    .ok p, .bad p, .warn p, .note p { margin: 6px 0 0; }
+    .field-error { color: #a01818; font-weight: 700; margin: 6px 0 0; }
+    .has-error { border-color: #c02020 !important; border-width: 2px !important; }
+    .theirs { background: #fff4dc; border: 1px solid #e6c77a; border-radius: 6px; padding: 8px 10px; margin-top: 6px; }
+    .hidden { display: none !important; }
+    .tag { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #e8f3ee; color: #1f4e3d; }
+    .tag.grey { background: #eef1f4; color: #5c6773; }
+    dl.details { margin: 8px 0 0; }
+    dl.details dt { font-weight: 600; font-size: 14px; margin-top: 10px; }
+    dl.details dd { margin: 2px 0 0; }
+    dl.details dd.unset { color: #8a5a00; }
+    dl.details ul { margin: 2px 0 0; padding-left: 20px; }
+    ul.plain { list-style: none; margin: 0; padding: 0; }
+    ul.plain > li { border-top: 1px solid #e3e7ec; padding: 10px 0; }
+    ul.plain > li:first-child { border-top: 0; }
+    .row-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .project-link { display: block; text-decoration: none; color: inherit; border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 10px; background: #fff; }
+    .project-link:hover { border-color: #1f4e3d; }
+    .project-link strong { color: #1f4e3d; font-size: 17px; }
+    /* The project screen: one column of cards on a phone; on a computer the subcontractors take the
+       wide column and the site details and team sit beside them. */
+    .cols { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+    .cols .main, .cols .side { display: contents; }
+    .cols .panel { margin-top: 0; }
+    #card-details { order: 1; } #card-subs { order: 2; } #card-plans { order: 3; } #card-log { order: 4; } #card-team { order: 5; }
+    @media (min-width: 980px) {
+      .cols { display: grid; grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
+      .cols .main, .cols .side { display: flex; flex-direction: column; gap: 14px; }
+    }
+    table.subs { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.subs th, table.subs td { border-bottom: 1px solid #e3e7ec; padding: 8px 6px; text-align: left; vertical-align: top; }
+    table.subs th { color: #5c6773; font-weight: 600; }
+    table.subs td.empty { color: #5c6773; padding: 18px 6px; }
+    @media (max-width: 979px) { table.subs thead { display: none; } table.subs, table.subs tbody, table.subs tr, table.subs td { display: block; } table.subs td.empty { padding: 4px 0; border: 0; } }
+    .log li { font-size: 14px; }
+    .log .when { color: #5c6773; display: block; font-size: 13px; }
+    details.version { border-top: 1px solid #e3e7ec; padding: 10px 0; }
+    details.version:first-child { border-top: 0; padding-top: 0; }
+    details.version summary { cursor: pointer; min-height: 44px; padding: 4px 0; }
+    details.version summary > span { display: inline-block; vertical-align: top; }
+    .crumbs { font-size: 14px; margin: 4px 0 0; }
+    .crumbs a { color: #1f4e3d; }
+    /* Phones (goal 7): text at least 16 px. */
+    @media (max-width: 640px) {
+      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs, .tabs a span, .brand .by { font-size: 16px; }
+      .log .when { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="tabs" aria-label="SiteWrite and SiteLink">
+      <a href="/">SiteWrite<span>For subcontractors</span></a>
+      <a href="/sitelink" aria-current="page">SiteLink<span>For builders</span></a>
+    </nav>
+    <div class="top">
+      <span class="brand">SiteLink <span class="by">by SiteWrite</span></span>
+      <span class="who hidden" id="who-line">Signed in as <strong id="who"></strong> · <button type="button" class="link" id="you-link">Your details</button> · <button type="button" class="link" id="sign-out">Sign out</button></span>
+    </div>
+    <div id="flash" aria-live="polite"></div>
+
+    <!-- Signing in -->
+    <section id="view-signin" class="hidden">
+      <h1>Your projects, set up once for every contractor</h1>
+      <p class="short">SiteLink is for builders. Set up each project and the site details every contractor must use on their SWMS: muster point, first aid, hospital, site rules and the people to contact. SiteLink is free for main contractors. There is no trial and nothing to pay.</p>
+      <form class="panel short" id="signin" novalidate>
+        <h2>Sign in</h2>
+        <div id="signin-note"></div>
+        <label for="signin-email">Your work email</label>
+        <input id="signin-email" type="email" autocomplete="email" inputmode="email">
+        <p class="field-error hidden" id="signin-email-error"></p>
+        <div class="actions"><button type="submit" id="send-link">Email me a sign-in link</button></div>
+        <div id="signin-status" role="status"></div>
+      </form>
+      <div class="note short">
+        <strong>Already use SiteWrite for your own SWMS?</strong>
+        <p>This sign-in is separate. Your SiteLink account and your SiteWrite SWMS account are kept apart, even with the same email address. Signing in here does not sign you in to your SWMS account, and signing in there does not sign you in here.</p>
+      </div>
+    </section>
+
+    <!-- Your details -->
+    <section id="view-you" class="hidden">
+      <h1>Your details</h1>
+      <p class="meta short">Contractors see your name on the site details you set.</p>
+      <form class="panel short" id="you" novalidate>
+        <label for="you-name">Your name</label>
+        <input id="you-name" type="text" autocomplete="name" maxlength="120">
+        <p class="field-error hidden" id="you-name-error"></p>
+        <label for="you-position">Your role <span class="hint">For example HSE manager or Site manager.</span></label>
+        <input id="you-position" type="text" autocomplete="organization-title" maxlength="120">
+        <label for="you-phone">Phone <span class="hint">Optional.</span></label>
+        <input id="you-phone" type="tel" autocomplete="tel" maxlength="40">
+        <div class="actions"><button type="submit">Save and continue</button></div>
+        <div id="you-status" role="status"></div>
+      </form>
+    </section>
+
+    <!-- Setting up the main contractor's account -->
+    <section id="view-setup" class="hidden">
+      <h1>Set up your SiteLink account</h1>
+      <p class="meta short">Your team and your projects sit under it. You are its lead: you add and remove people.</p>
+      <form class="panel short" id="setup" novalidate>
+        <label for="setup-name">Company name <span class="hint">As contractors know it, for example Corbel Build Pty Ltd. Contractors see it on the site details you set.</span></label>
+        <input id="setup-name" type="text" autocomplete="organization" maxlength="200">
+        <p class="field-error hidden" id="setup-name-error"></p>
+        <label for="setup-abn">ABN <span class="hint">The company's 11 digit ABN. It links this account to your company and cannot be changed later.</span></label>
+        <input id="setup-abn" type="text" inputmode="numeric" maxlength="20">
+        <p class="field-error hidden" id="setup-abn-error"></p>
+        <div class="actions"><button type="submit" id="setup-go">Set up the account</button></div>
+        <div id="setup-status" role="status"></div>
+      </form>
+      <div class="note short"><strong>Joining a team?</strong><p>If your company already uses SiteLink, ask its lead to add you. Then sign in with the email they used.</p></div>
+    </section>
+
+    <!-- The person's projects -->
+    <section id="view-home" class="hidden">
+      <h1>Your projects</h1>
+      <div id="home"></div>
+    </section>
+
+    <!-- Account settings (D303): the name, the ABN (shown, not changed) and handing over the lead -->
+    <section id="view-account" class="hidden">
+      <p class="crumbs"><a href="#/">Your projects</a></p>
+      <div id="account"></div>
+    </section>
+
+    <!-- The team -->
+    <section id="view-team" class="hidden">
+      <p class="crumbs"><a href="#/">Your projects</a></p>
+      <h1 id="team-title">Team</h1>
+      <p class="meta"><a id="team-settings" href="#">Account settings</a></p>
+      <p class="meta short" id="team-intro"></p>
+      <div class="panel short"><ul class="plain" id="team-list"></ul></div>
+      <form class="panel short hidden" id="invite" novalidate>
+        <h2>Add a person</h2>
+        <p class="meta">They sign in free with this email. They can see every project and change its site details. Only you can add or remove people.</p>
+        <label for="invite-email">Their work email</label>
+        <input id="invite-email" type="email" autocomplete="off" inputmode="email">
+        <p class="field-error hidden" id="invite-email-error"></p>
+        <div id="invite-hint"></div>
+        <div class="actions"><button type="submit" id="invite-send">Send invitation</button></div>
+        <div id="invite-status" role="status"></div>
+      </form>
+    </section>
+
+    <!-- A new project, or changing a project's details -->
+    <section id="view-project-form" class="hidden">
+      <p class="crumbs" id="pf-crumbs"></p>
+      <h1 id="pf-title">New project</h1>
+      <form class="panel short" id="project-form" novalidate>
+        <label for="pf-name">Project name</label>
+        <input id="pf-name" type="text" maxlength="160">
+        <p class="field-error hidden" id="pf-name-error"></p>
+        <label for="pf-workplace">Job address <span class="hint">The street address of the site. The state is read from it.</span></label>
+        <input id="pf-workplace" type="text" autocomplete="off" maxlength="300">
+        <p class="field-error hidden" id="pf-workplace-error"></p>
+        <label for="pf-state">State or territory <span class="hint">The law where the work is done applies.</span></label>
+        <select id="pf-state">
+          <option value="">Choose</option>
+          <option value="act">Australian Capital Territory</option>
+          <option value="nsw">New South Wales</option>
+          <option value="nt">Northern Territory</option>
+          <option value="qld">Queensland</option>
+          <option value="sa">South Australia</option>
+          <option value="tas">Tasmania</option>
+          <option value="vic">Victoria</option>
+          <option value="wa">Western Australia</option>
+        </select>
+        <p class="field-error hidden" id="pf-state-error"></p>
+        <label for="pf-pc">Principal contractor <span class="hint">As it prints on each SWMS. Leave it as your company name unless this project uses another.</span></label>
+        <input id="pf-pc" type="text" maxlength="200">
+        <div class="actions"><button type="submit" id="pf-save">Make the project</button><a class="button light" id="pf-cancel" href="#/">Cancel</a></div>
+        <div id="pf-status" role="status"></div>
+      </form>
+    </section>
+
+    <!-- The project screen -->
+    <section id="view-project" class="hidden">
+      <p class="crumbs"><a href="#/">Your projects</a></p>
+      <h1 id="p-name"></h1>
+      <p class="meta" id="p-meta"></p>
+      <p class="meta"><a id="p-edit" href="#">Change project details</a></p>
+      <div id="p-draft"></div>
+      <div class="cols">
+        <div class="main">
+          <div class="panel" id="card-subs">
+            <h2>Subcontractors</h2>
+            <table class="subs">
+              <thead><tr><th>Subcontractor</th><th>SWMS in</th><th>Review status</th><th>Conditions outstanding</th><th>Updated after plan change</th><th>Last contact</th></tr></thead>
+              <tbody><tr><td class="empty" colspan="6">No subcontractors yet. Adding subcontractors and their scopes of work is not open yet. Each one will show here with its SWMS.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="panel" id="card-plans">
+            <h2>Management plans</h2>
+            <p class="meta">No management plans yet. Uploading plans is not open yet.</p>
+          </div>
+          <div class="panel" id="card-log">
+            <h2>Project log</h2>
+            <ul class="plain log" id="p-log"></ul>
+          </div>
+        </div>
+        <div class="side">
+          <div class="panel" id="card-details">
+            <div class="row-line"><h2 style="margin:0">Site details</h2><span id="p-rev" class="tag grey"></span></div>
+            <p class="meta" id="p-set"></p>
+            <div id="p-missing"></div>
+            <dl class="details" id="p-details"></dl>
+            <div class="actions"><a class="button" id="p-change" href="#">Change site details</a><a class="button light" id="p-versions" href="#">All versions</a></div>
+          </div>
+          <div class="panel" id="card-team">
+            <h2>Team</h2>
+            <ul class="plain" id="p-team"></ul>
+            <div class="actions"><a class="button light" id="p-team-link" href="#">Manage the team</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Changing the site details -->
+    <section id="view-details" class="hidden">
+      <p class="crumbs" id="d-crumbs"></p>
+      <h1>Site details</h1>
+      <p class="meta short">Contractors on this project use these on their SWMS. Each time you save, SiteLink keeps a new version with your name and the date.</p>
+      <div id="d-note" class="short"></div>
+      <form class="panel short" id="details" novalidate>
+        <div id="d-fields"></div>
+        <div class="actions"><button type="submit" id="d-save">Save</button><button type="button" class="light" id="d-cancel">Cancel</button></div>
+        <div id="d-status" role="status"></div>
+      </form>
+    </section>
+
+    <!-- Every version of the site details -->
+    <section id="view-versions" class="hidden">
+      <p class="crumbs" id="v-crumbs"></p>
+      <h1>Site details versions</h1>
+      <p class="meta short">Every version is kept as it was saved. The newest is first.</p>
+      <div class="panel short" id="v-list"></div>
+    </section>
+  </div>
+  <script src="/old-keys.js"></script>
+  <script src="/net.js" data-message="No signal. What you have typed stays on this page. Try again when you have signal."></script>
+  <script src="/address.js"></script>
+  <script src="/hse.js"></script>
+</body>
+</html>

@@ -103,7 +103,9 @@ const TIED = {
 const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations', 'review_learning'];
 // Not about any one business: the server's error log, the record of library notices sent, and the
 // principal contractors' reviewers, who are not the business's people.
-const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions'];
+// The main contractor's account, team, projects and site details (Goal 12 stage 3) belong to the main
+// contractor, never to a subcontractor's business, so deleting a business leaves them.
+const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details'];
 
 async function tiedCounts(business) {
   const out = {};

@@ -22,6 +22,11 @@
     button, input, textarea, select { font: inherit; color: inherit; }
     .wrap { max-width: 760px; margin: 0 auto; padding: 28px 20px 64px; }
     header { margin-bottom: 22px; }
+    /* The tabs at the top (D303): SiteWrite for subcontractors, SiteLink for builders. */
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid #c5cdd6; margin: 0 0 18px; }
+    .tabs a { display: block; min-height: 44px; padding: 7px 14px 6px; border: 1px solid #c5cdd6; border-bottom: 0; border-radius: 8px 8px 0 0; background: #e3e8ee; color: #1c2430; text-decoration: none; font-weight: 700; font-size: 16px; line-height: 1.2; margin-bottom: -1px; }
+    .tabs a span { display: block; font-weight: 400; font-size: 13px; color: #5c6773; }
+    .tabs a[aria-current="page"] { background: #fff; border-top: 3px solid #1f4e3d; color: #1f4e3d; }
     h1 { font-size: 28px; line-height: 1.15; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.02em; }
     .lede { margin: 0; color: #5c6773; font-size: 15px; }
     .panel {
@@ -530,7 +535,7 @@
       .ppe-group legend, .choice legend, .picks-label, .pick-button, th, td, .sheet p, .sheet li, .sign div, input[type="file"],
       button.small, .scope-task h3, .scope-task p, .scope-task details, .scope-clauses, .scope-hrcw, .scope-conflicts,
       .conflict-dialog, .read-progress .rp-lead, .rp-row, .read-done, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
-      .gate p, .answer-panel legend, .answer-panel .check, .ctl-shared, .own-tools, .cover-tools, .risk-response, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note, .method-kind { font-size: 16px; }
+      .gate p, .answer-panel legend, .answer-panel .check, .ctl-shared, .own-tools, .cover-tools, .risk-response, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note, .method-kind, .tabs a span { font-size: 16px; }
       table.stack td::before { font-size: 16px; }
       /* On a phone each job step is a card of its own (D260). */
       table.steps-table, table.steps-table > tbody { border: 0; }
@@ -587,6 +592,10 @@
 </head>
 <body>
   <div class="wrap">
+    <nav class="tabs" aria-label="SiteWrite and SiteLink">
+      <a href="/" aria-current="page">SiteWrite<span>For subcontractors</span></a>
+      <a href="/sitelink" id="sitelink-tab">SiteLink<span>For builders</span></a>
+    </nav>
     <header>
       <h1>SiteWrite</h1>
       <p class="lede">A writing aid for one task. The subcontractor finishes the statement. <a href="/welcome.html">How it works and pricing</a></p>

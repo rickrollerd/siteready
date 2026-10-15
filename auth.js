@@ -174,11 +174,31 @@ function requireAccess(req, _res, next) {
 
 // A reviewer proves an email address with a link like an account's, but the link opens the
 // review page for the reference, and signing in makes a reviewer: no company, no trial, no payment.
-async function sendReviewerLink(req, email, ref) {
+async function reviewerToken(email) {
   const token = newToken();
   await db.query('DELETE FROM login_tokens WHERE email = $1 AND purpose = $2 AND used_at IS NULL', [email, REVIEWER]);
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, purpose) VALUES ($1, $2, NULL, $3, $4)',
     [hash(token), email, later(LINK_MINUTES * 60 * 1000), REVIEWER]);
+  return token;
+}
+
+// The main contractor's HSE lead and team (Goal 12 stage 3) sign in the same way, as reviewers, on
+// /hse.html. An invited person's email names who added them and to which account, and says how to
+// sign in once the link has expired, as an invitation is often opened later.
+async function sendHseLink(req, email, { invitedBy = '', orgName = '' } = {}) {
+  const token = await reviewerToken(email);
+  // SiteLink, the builders' side (D303), is served at /sitelink as well as /hse.html.
+  const page = `${appUrl(req)}/sitelink`;
+  const opening = invitedBy && orgName ? `${invitedBy} has added you to the ${orgName} team on SiteLink by SiteWrite.` : 'Use this link to sign in to SiteLink by SiteWrite.';
+  await sendMail({
+    to: email,
+    subject: invitedBy ? `${invitedBy} has added you to ${orgName} on SiteLink` : 'Your SiteLink sign-in link',
+    text: `${opening}\n\n${page}?login=${token}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${page} and sign in with this email address. SiteLink is free for main contractors. If you did not expect this email, you can ignore it.`,
+  });
+}
+
+async function sendReviewerLink(req, email, ref) {
+  const token = await reviewerToken(email);
   const link = `${appUrl(req)}/review.html?ref=${encodeURIComponent(ref)}&login=${token}`;
   await sendMail({
     to: email,
@@ -316,6 +336,6 @@ module.exports = {
   TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl,
   sendLoginLink, finishLogin, createSession, hasAccess,
   readSession, requireUser, requireAccess,
-  sendReviewerLink, finishReviewerLogin, readReviewer, requireReviewer,
+  sendReviewerLink, sendHseLink, finishReviewerLogin, readReviewer, requireReviewer,
   passkeyRegistrationOptions, passkeyRegister, passkeyLoginOptions, passkeyLogin,
 };

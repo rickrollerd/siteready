@@ -54,7 +54,7 @@ async function lookupAbn(raw, { fetchImpl = fetch, timeoutMs = 6000 } = {}) {
     cache.set(abn, { at: Date.now(), result });
     return result;
   } catch (error) {
-    return { enabled: true, found: false, error: 'The ABN lookup is not available right now. Type your business details.' };
+    return { enabled: true, found: false, unavailable: true, error: 'The ABN lookup is not available right now. Type your business details.' };
   } finally {
     clearTimeout(timer);
   }

@@ -2,6 +2,8 @@
 // <meta name="sitewrite-api"> to the server address.
 const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
 const api = (route) => `${API_BASE}${route}`;
+// In the phone app the page is the app's own copy, so the SiteLink tab goes to the server (D303).
+if (API_BASE && document.getElementById('sitelink-tab')) document.getElementById('sitelink-tab').href = api('/sitelink');
 
 // A reply that is not SiteWrite's own (a 502 from the host, a page of HTML) or no reply at all says so
 // plainly, never as raw JSON text (messy round 3: "Unexpected token 'u', "upstream r"... is not valid JSON").
