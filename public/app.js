@@ -276,6 +276,48 @@ function setProfile(next) {
   showProfile();
 }
 
+// Signing in: the company details typed on this device before signing in fill the account's empty
+// ones and are saved to the company, so the sign-in link does not empty the profile (messy round 5,
+// runs 5 and 7). A detail the company already has is kept: a blank never replaces it, and the device's
+// copy never overwrites it. Returns the company as saved, or null when nothing was saved.
+async function signedInProfile(company) {
+  const saved = company || {};
+  const typed = keptProfileTyping() || {};
+  const device = { ...loadProfile() };
+  for (const key of Object.keys(PROFILE_FIELDS)) if (String(typed[key] || '').trim()) device[key] = String(typed[key]).trim();
+  const fill = {};
+  for (const key of Object.keys(PROFILE_FIELDS)) if (!String(saved[key] || '').trim() && String(device[key] || '').trim()) fill[key] = String(device[key]).trim();
+  if (!saved.logo && device.logo) fill.logo = device.logo;
+  setProfile(saved);
+  if (!Object.keys(fill).length) return null;
+  const next = { ...Object.fromEntries(Object.keys(PROFILE_FIELDS).map((key) => [key, String(saved[key] || '')])), ...fill };
+  // The boxes show what will be saved, and stay so if it cannot be saved yet.
+  Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { document.getElementById(id).value = next[key] || ''; });
+  if (fill.logo) pendingLogo = fill.logo;
+  keepProfileTyping();
+  if (!next.name || String(next.abn || '').replace(/\D/g, '').length !== 11) {
+    // Not complete enough to save: they show as typed, said so (showProfile), until the name and ABN are in.
+    document.getElementById('profile').open = true;
+    profileStatus('Your company details are back as you typed them. Press Save profile to keep them.');
+    return null;
+  }
+  try {
+    window.SiteWrite.lastCompanyNotice = '';
+    const kept = await window.SiteWrite.saveCompany(fill.logo ? next : (({ logo, ...rest }) => rest)(next));
+    forgetProfileTyping();
+    // The device's copy has gone to the company: it is not offered to the next account on this device.
+    try { localStorage.removeItem(PROFILE_KEY); } catch { /* nothing kept */ }
+    setProfile(kept);
+    profileStatus(window.SiteWrite.lastCompanyNotice || 'Your company details from before you signed in are saved for your company.');
+    if (shownDraft) showGate();
+    return kept;
+  } catch (error) {
+    document.getElementById('profile').open = true;
+    profileStatus(`Your company details from before you signed in are back, but not saved yet: ${error.message} Fix it, then press Save profile.`);
+    return null;
+  }
+}
+
 function esc(value) {
   return String(value || '').replace(/[&<>"']/g, (ch) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -426,6 +468,8 @@ function payload() {
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
     ownSteps: ownSteps || undefined,
+    highRiskAdded: highRiskAdded && highRiskAdded.length ? highRiskAdded : undefined,
+    stepRatings: stepRatings && Object.keys(stepRatings).length ? stepRatings : undefined,
     fills: fills || undefined,
     plantChoice: plantChoice || undefined,
     emergency: emergencyAnswers || undefined,
@@ -586,7 +630,9 @@ function addressLookup(input, list, onPick = () => {}, recent = () => [], near =
     active = -1;
   };
   const show = () => {
-    if (!picks.length) return close();
+    // Suggestions that arrive after the user has left the box are not shown over the next box (messy
+    // round 5, run 6: they stayed open over the Phone box after a Tab).
+    if (!picks.length || document.activeElement !== input) return close();
     list.innerHTML = picks.map((item, i) => `<li role="option" id="${list.id}-${i}" aria-selected="${i === active}" data-i="${i}">${esc(item.text)}${item.used ? ' <span class="meta">(used before)</span>' : ''}</li>`).join('');
     list.classList.remove('hidden');
     input.setAttribute('aria-expanded', 'true');
@@ -597,6 +643,9 @@ function addressLookup(input, list, onPick = () => {}, recent = () => [], near =
     input.value = item.text;
     close();
     onPick();
+    // A pick is kept like typing, so leaving and coming back brings back the address picked, not the
+    // words typed (messy round 5, run 4).
+    input.dispatchEvent(new Event('change', { bubbles: true }));
   };
   const usedBefore = (text) => {
     const words = text.toLowerCase().split(/[\s,]+/).filter(Boolean);
@@ -846,6 +895,85 @@ let designsFound = [];
 let designsKept = new Map();
 // The task the step picks and steps left out were made for.
 let choicesTask = null;
+// High risk construction work the user added on the draft, by its id in the regulation's list (messy
+// round 5), and the note under the box after an item is added or taken off.
+let highRiskAdded = null;
+let hrcwNote = '';
+// The rating after the controls the supervisor set for a job step, by its name (messy round 5, run 4),
+// and the steps whose rating form is open.
+let stepRatings = null;
+const ratingOpen = new Set();
+
+// A task picked from the list in place of the one in the box keeps the answers that still apply: the
+// site answers, the plant confirmed, the user's own controls, steps and hazards, the substances, the
+// emergency answers and the answers to questions asked again (messy round 5: replacing a written task
+// emptied the site answers, the plant, an own control and the hot work answer). What belonged to the
+// old task's words goes, and the page says what: here, and under the questions once they are asked.
+let replaced = null;
+function replaceTask(written) {
+  const dropped = [written ? 'the task you wrote' : 'the task picked before'];
+  if (stepPicks || stepOrder || leaveOut) dropped.push('the job steps you ticked, added or moved for it');
+  if (coverTicked || Object.keys(coverElsewhere || {}).length) dropped.push('what you said about its work SiteWrite had no job steps for');
+  // The answers on the page now, so the questions asked again for the new task show them.
+  if (document.querySelector('#required-block [data-fact]')) Object.assign(factMemory, shownAnswers('#required-block [data-fact]', 'fact'));
+  if (document.querySelector('[data-site]')) Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
+  replaced = { labels: new Map(((questions && questions.required) || []).map((item) => [item.id, item.label])) };
+  stepPicks = null;
+  leaveOut = null;
+  scopeUnmatched = null;
+  scopeWordsNow = null;
+  pickGaps = null;
+  coverTicked = null;
+  coverElsewhere = {};
+  coverMovedKept = new Set();
+  coverTyping.clear();
+  stepOrder = null;
+  choicesTask = null;
+  // As a new SWMS was, it saves as a new SWMS, not as the next revision of one being changed.
+  if (window.SiteWrite) window.SiteWrite.editing = null;
+  // What is kept, as given: only what the user has answered or changed is named.
+  const given = (map) => Object.values(map || {}).some((value) => String(value || '').trim());
+  const substances = window.SiteWriteSubstances && ((window.SiteWriteSubstances.payload() || []).length || (window.SiteWriteSubstances.notUsedPayload() || []).length);
+  const kept = [
+    given(siteMemory) && 'your site answers',
+    plantChoice && 'the plant you confirmed',
+    (controlEdits || hazardEdits || whoEdits || ownSteps) && 'your own controls, steps and hazards',
+    substances && 'your hazardous substance answers',
+    given(emergencyAnswers) && 'your emergency answers',
+    highRiskAdded && 'the high risk work you added',
+    given(factMemory) && 'your answers to questions this task asks too',
+  ].filter(Boolean);
+  sayReplaced(`Task replaced. ${kept.length ? `Kept: ${kept.join(', ')}. ` : ''}Dropped: ${dropped.join('; ')}. Press Continue to see this task's job steps and questions.`);
+}
+function sayReplaced(text) {
+  let note = document.getElementById('task-replaced');
+  if (!note) {
+    note = document.createElement('p');
+    note.id = 'task-replaced';
+    note.className = 'note';
+    note.setAttribute('role', 'status');
+    presetNote.after(note);
+  }
+  note.textContent = text;
+  note.classList.toggle('hidden', !text);
+}
+// Once the new task's questions are asked: answers given before that it does not ask for, so not used.
+function sayUnasked(required) {
+  if (!replaced) return;
+  const asked = new Set((required || []).map((item) => item.id));
+  const unused = [...replaced.labels].filter(([id]) => !asked.has(id) && String(factMemory[id] || '').trim()).map(([, label]) => label);
+  replaced = null;
+  let note = document.getElementById('replaced-unasked');
+  if (!note) {
+    note = document.createElement('p');
+    note.id = 'replaced-unasked';
+    note.className = 'note';
+    note.setAttribute('role', 'status');
+    document.getElementById('required-block').before(note);
+  }
+  note.textContent = unused.length ? `This task does not ask ${unused.length === 1 ? 'this question' : 'these questions'}, so ${unused.length === 1 ? 'its answer is' : 'their answers are'} not used: ${unused.join('; ')}. ${unused.length === 1 ? 'It comes' : 'They come'} back if you add the work to the task.` : '';
+  note.classList.toggle('hidden', !unused.length);
+}
 
 // A new SWMS starts from SiteWrite's steps, order, controls and PPE, and is saved as a new SWMS.
 // Typing in the task box keeps the user's changes: those that no longer match are reported.
@@ -868,6 +996,10 @@ function newSwms() {
   plantChoice = null;
   plantPending = null;
   emergencyAnswers = null;
+  highRiskAdded = null;
+  hrcwNote = '';
+  stepRatings = null;
+  ratingOpen.clear();
   designAnswers = null;
   designsFound = [];
   designsKept = new Map();
@@ -879,6 +1011,8 @@ function newSwms() {
   ppePlaced = {};
   weakNotes = new Map();
   missingNotes = new Map();
+  replaced = null;
+  ['task-replaced', 'replaced-unasked'].forEach((id) => { const note = document.getElementById(id); if (note) note.classList.add('hidden'); });
   // Its questions start blank.
   freshFacts = true;
   if (window.SiteWrite) window.SiteWrite.editing = null;
@@ -1047,8 +1181,21 @@ document.getElementById('ppe-block').addEventListener('change', (event) => {
     for (const group of ppeShown.groups) for (const item of group.items) if (item.id === id) { delete item.steps; item.ticked = true; }
     redrawPpe();
   }
-  if (['harness', 'lifeJacket'].includes(id) && event.target.matches('[data-ppe], [data-ppe-step]')) refreshSteps();
+  if (['harness', 'lifeJacket'].includes(id) && event.target.matches('[data-ppe], [data-ppe-step]')) ppeQuestions();
 });
+// A harness or life jacket ticked or unticked asks its questions again. With a draft shown, the draft
+// stays, as it does for any other answer, and is updated in place once nothing new is left to answer
+// (messy round 5, run 8: ticking a harness sent the page back to the task form and the draft went).
+async function ppeQuestions() {
+  if (!shownDraft || resultEl.classList.contains('hidden')) return refreshSteps();
+  await askAgain();
+  const open = ((questions && questions.required) || []).filter((item) => !item.choices && !String((document.getElementById(`fact-${item.id}`) || {}).value || '').trim());
+  if (open.length) {
+    goToAnswer(open[0].id);
+    return undefined;
+  }
+  return prepareDraft({ scroll: false });
+}
 document.getElementById('ppe-block').addEventListener('click', (event) => {
   const move = event.target.closest('[data-ppe-all]');
   if (move) {
@@ -1074,7 +1221,7 @@ document.getElementById('ppe-block').addEventListener('click', (event) => {
   ppeTouched.add(id);
   drawPpe(ppeShown.groups, ppeShown.steps);
   for (const group of ppeShown.groups) for (const other of group.items) setPpe(other.id, ticked.has(other.id));
-  if (['harness', 'lifeJacket'].includes(id)) refreshSteps();
+  if (['harness', 'lifeJacket'].includes(id)) ppeQuestions();
 });
 
 document.getElementById('steps-block').addEventListener('change', (event) => {
@@ -1255,10 +1402,20 @@ const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // What fills each blank of the sentence in the answer, or null where the answer is no longer that sentence.
 function blankValues(template, text) {
   const parts = template.split(BLANK_SPLIT);
-  const found = new RegExp(`^${parts.map((part) => escapeRe(part.replace(/\s+/g, ' '))).join('([^]*?)')}$`).exec(String(text).replace(/\s+/g, ' ').trim());
+  // A blank's hint is there until the blank is filled (blankText), so it may or may not be in the text.
+  const partRe = (part, i) => { const hint = i > 0 && BLANK_HINT.exec(part.replace(/\s+/g, ' ')); return hint ? `(?:${escapeRe(hint[0])})?${escapeRe(part.replace(/\s+/g, ' ').slice(hint[0].length))}` : escapeRe(part.replace(/\s+/g, ' ')); };
+  const found = new RegExp(`^${parts.map(partRe).join('([^]*?)')}$`).exec(String(text).replace(/\s+/g, ' ').trim());
   return found ? found.slice(1).map((value) => (/^_{3,}$/.test(value.trim()) ? '' : value)) : null;
 }
-const blankText = (template, values) => template.split(BLANK_SPLIT).map((part, i, all) => `${part}${i < all.length - 1 ? (String(values[i] || '').trim() ? values[i] : '____') : ''}`).join('');
+// A bracket straight after a blank that only says what goes in it ("(for example clean fill)", "(a site
+// or facility able to receive it)", "(backup supply, such as cylinders)") is a hint: once the blank is
+// filled, the hint leaves the answer (messy round 5, run 2: the hint words stayed in the spoil answer).
+const BLANK_HINT = /^\s?\((?:for example|e\.g\.|such as|an? |[^()_]*\bsuch as\b)[^()_]*\)/i;
+const blankText = (template, values) => template.split(BLANK_SPLIT).map((part, i, all) => {
+  const filled = i > 0 && String(values[i - 1] || '').trim();
+  const text = filled ? part.replace(BLANK_HINT, '') : part;
+  return `${text}${i < all.length - 1 ? (String(values[i] || '').trim() ? values[i] : '____') : ''}`;
+}).join('');
 function drawBlankForm(box) {
   const rules = fillRules();
   if (!rules || !box || !box.id || !rules.blankLabels) return;
@@ -1528,6 +1685,7 @@ async function loadQuestions(options = {}) {
     Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
   }
   drawRequired(data.required || []);
+  sayUnasked(data.required);
   // PPE the user ticked or unticked stays as they set it. The rest follows the new suggestion, and
   // when only the steps changed, what was ticked stays ticked. The server has already put each item
   // where the user put it (ppeSteps).
@@ -1539,8 +1697,10 @@ async function loadQuestions(options = {}) {
     document.querySelectorAll('[data-ppe], [data-ppe-step]').forEach((el) => {
       // An item for particular steps is ticked in its row, not in the all work list.
       if (el.matches('[data-ppe]') && rows.has(el.value)) return;
+      // An item the user did not touch follows the new suggestion: one ticked only for steps taken off
+      // goes with them, and so does its question (messy round 5, run 3: the harness ticked for steel
+      // erection stayed, with its question, after steel erection was unticked).
       if (ppeTouched.has(el.value)) el.checked = ticked.has(el.value);
-      else if (options.keepTicked && ticked.has(el.value)) el.checked = true;
     });
   }
   document.getElementById('site-block').innerHTML = (data.site || []).map((item) => `
@@ -1618,6 +1778,10 @@ function fillStart(input) {
   plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
   plantPending = null;
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
+  highRiskAdded = Array.isArray(input.highRiskAdded) && input.highRiskAdded.length ? [...input.highRiskAdded] : null;
+  hrcwNote = '';
+  stepRatings = input.stepRatings && typeof input.stepRatings === 'object' ? JSON.parse(JSON.stringify(input.stepRatings)) : null;
+  ratingOpen.clear();
   ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
   if (window.SiteWriteSubstances) window.SiteWriteSubstances.load(input.substances, input.substancesNotUsed, input.substancesNotUsedWhy);
@@ -1662,12 +1826,17 @@ async function fillForm(input, options = {}) {
 // Testing live equipment needs arc-rated clothing and insulated gloves (Model Code s 9.5).
 factsForm.addEventListener('change', (event) => {
   if (event.target.dataset.fact !== 'energisedWork' || event.target.value !== 'testing') return;
-  ['arcRated', 'gloveInsulated'].forEach((id) => setPpe(id, true));
+  ['arcRated', 'gloveInsulated'].forEach((id) => { setPpe(id, true); ppeTouched.add(id); });
 });
 
 // A standard answer's wording as a pattern: blanks (____) match whatever was filled in.
 function pickPattern(text) {
-  const parts = String(text).split('____').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  // A blank's hint leaves the answer once the blank is filled (blankText), so it is optional here.
+  const parts = String(text).split('____').map((part, i) => {
+    const hint = i > 0 && BLANK_HINT.exec(part);
+    const esc = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return hint ? `(?:${esc(hint[0])})?${esc(part.slice(hint[0].length))}` : esc(part);
+  });
   return new RegExp(parts.join('[^]*?'));
 }
 
@@ -1800,8 +1969,11 @@ presetEl.addEventListener('change', () => {
   const item = trade && trade.tasks[Number(presetEl.value)];
   if (!item) return;
   const taskEl = document.getElementById('task');
-  if (taskEl.value.trim() && taskEl.value.trim() !== taskEl.dataset.preset && !confirm('Replace the task you have written?')) return;
-  newSwms();
+  const written = Boolean(taskEl.value.trim()) && taskEl.value.trim() !== taskEl.dataset.preset;
+  if (written && !confirm('Replace the task you have written? Your answers that still apply are kept.')) return;
+  // A task picked once the questions have been shown replaces only the old task's words and steps: the
+  // answers that still apply stay (messy round 5). A first pick starts a new SWMS as before.
+  if (questions || written) replaceTask(written); else newSwms();
   taskEl.value = item.task;
   taskEl.dataset.preset = item.task;
   pickedTask = { task: item.task, kinds: item.kinds || [], leaveOut: item.leaveOut || [], gaps: item.gaps || [] };
@@ -2530,9 +2702,25 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
       ${noSteps && movable ? '<div class="actions"><button type="button" data-own-early-go>Write a step for this</button></div>' : ''}
       <p>No method is included.</p>`;
   }
-  const risks = draft.highRisk.length
-    ? `<ul>${draft.highRisk.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`
-    : '<p>This task is not identified as high risk construction work.</p>';
+  // The high risk construction work SiteWrite found prints as found. On the draft the user can add an
+  // item from the regulation's list that applies, and take off only the ones they added (messy round 5:
+  // SiteWrite's check asked for an item the page had no way to add).
+  const ownRisk = new Map((draft.highRiskOwn || []).map((item) => [item.label, item.id]));
+  // Where SiteWrite found each item is said beside it, so one from a site answer can be traced.
+  const riskFrom = (item) => (movable && (draft.highRiskFrom || {})[item] ? ` <span class="meta">(from ${esc(draft.highRiskFrom[item])})</span>` : '');
+  const riskItem = (item) => (movable && ownRisk.has(item)
+    ? `<li>${esc(item)} <span class="meta">(added by you)</span> <button type="button" class="link" data-hrcw-remove="${esc(ownRisk.get(item))}">Remove</button></li>`
+    : `<li>${esc(item)}${riskFrom(item)}</li>`);
+  const riskChoices = movable ? draft.highRiskChoices || [] : [];
+  const risks = (draft.highRisk.length
+    ? `<ul>${draft.highRisk.map(riskItem).join('')}</ul>`
+    : '<p>This task is not identified as high risk construction work.</p>')
+    + (riskChoices.length ? `<div class="field hrcw-add" id="hrcw-add">
+      <label for="hrcw-add-item">Add high risk construction work that applies<span class="hint">Choose from the list in the regulation. It prints on the SWMS, and SiteWrite adds its controls for it where it has them. Check the job steps cover it.</span></label>
+      <select id="hrcw-add-item" class="plain"><option value="">Choose an item</option>${riskChoices.map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`).join('')}</select>
+      <div class="actions"><button type="button" class="secondary small" id="hrcw-add-go">Add it to the SWMS</button></div>
+      <p class="meta" id="hrcw-add-note" role="status">${esc(hrcwNote)}</p>
+    </div>` : '');
   // A control with a blank (____) has a box in each blank for the user's answer (goal 2).
   const blankKeys = draft.blankKeys || { steps: [], controls: [] };
   const anchored = new Set();
@@ -2601,7 +2789,21 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   // A rating still High after the controls says what happens before the step starts, as printed.
   // One line each on screen (D260): "Before: Moderate (Likely x Moderate)".
   const riskCell = (risk) => (risk ? `<span class="risk-line">Before: <strong>${esc(risk.before.level)}</strong> (${esc(risk.before.label)})</span><span class="risk-line">After: <strong>${esc(risk.after.level)}</strong> (${esc(risk.after.label)})</span>${risk.response ? `<span class="risk-response">${esc(risk.response)}</span>` : ''}` : '');
-  const libraryRow = (step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`;
+  // A step still High after its controls has a way out on the page (messy round 5, run 4): the
+  // supervisor rates it again after the controls, or the step is taken off the SWMS. Before starting
+  // and Finish and clean up stay on every SWMS.
+  const fixedStep = (step) => ['Before starting', 'Finish and clean up'].includes(step.step);
+  // On its own line under the arrows.
+  const removeButton = (step, index) => (fixedStep(step) ? '' : `<span class="step-remove-row" style="display:block;margin-top:6px"><button type="button" class="link step-remove" data-step-remove="${index}">Remove this step</button></span>`);
+  const rateTools = (step, index) => {
+    if (!movable || !step.risk) return '';
+    const mine = (stepRatings || {})[step.step];
+    if (!ratingOpen.has(step.step)) return `<span class="rate-tools"><button type="button" class="link" data-rate-open="${index}">Change the rating</button></span>`;
+    const value = mine || step.risk.after;
+    const select = (part, list, label) => `<label class="rate-pick">${label} <select data-rate-part="${part}">${list.map(([n, text]) => `<option value="${n}"${n === Number(value[part]) ? ' selected' : ''}>${text}</option>`).join('')}</select></label>`;
+    return `<div class="rate-form" data-rate-step="${index}"><p class="meta">Rate it after the controls, as it is on this site. It prints as your rating.</p>${select('likelihood', LIKELIHOODS, 'How likely')}${select('consequence', CONSEQUENCES, 'How bad')}<div class="actions"><button type="button" class="small" data-rate-save="${index}">Save the rating</button>${mine ? `<button type="button" class="small secondary" data-rate-reset="${index}">Use SiteWrite's rating</button>` : ''}<button type="button" class="small secondary" data-rate-cancel="${index}">Cancel</button></div></div>`;
+  };
+  const libraryRow = (step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>${removeButton(step, index)}` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}${rateTools(step, index)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`;
   // A step the user wrote (owner, 11 October 2026): its lines as written, with what a reviewer would
   // mark down said beside it, changed or removed in the form it was written in, and moved like any step.
   let ownSeen = 0;
@@ -2615,7 +2817,11 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
       ${notes.map((note) => `<p class="warning ctl-warn">${esc(note)}</p>`).join('')}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${esc(step.responsible || '')}</td></tr>`;
   };
   const ownHazardRows = (index) => (draft.ownHazards || []).map((item, n) => (item.stepIndex === index ? ownHazardRow(item, n) : '')).join('');
-  const steps = `<table class="stack steps-table"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : `${libraryRow(step, index, all)}${movable ? ownHazardRows(index) : ''}`)).join('')}</tbody></table>
+  // Steps the user took off, each with Put back.
+  const shownNames = new Set((draft.jobSteps || []).map((step) => step.step));
+  const offSteps = movable ? (leaveOut || []).filter((name) => !shownNames.has(name)) : [];
+  const removedSteps = offSteps.length ? `<p class="meta steps-removed">Steps you took off: ${offSteps.map((name) => `${esc(name)} <button type="button" class="link" data-step-back="${esc(name)}">Put back</button>`).join('; ')}</p>` : '';
+  const steps = `${removedSteps}<table class="stack steps-table"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : `${libraryRow(step, index, all)}${movable ? ownHazardRows(index) : ''}`)).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
@@ -2637,10 +2843,10 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     </tbody></table>`;
   return `${head}
     <h4>Responsibilities</h4>${people}
-    <h4>High risk construction work</h4>${risks}
+    <h4${movable ? ' id="hrcw-head" tabindex="-1"' : ''}>High risk construction work</h4>${risks}
     ${designsTable(draft, swmsId)}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change or remove it. Lines you write or change are marked as your own. A hazard of SiteWrite&#39;s that you remove still prints, marked &quot;Does not apply to this job&quot;. SiteWrite warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why. A hazard you add needs at least one control.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
+    <h4${movable ? ' id="steps-head" tabindex="-1"' : ''}>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change or remove it. Lines you write or change are marked as your own. A hazard of SiteWrite&#39;s that you remove still prints, marked &quot;Does not apply to this job&quot;. SiteWrite warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why. A hazard you add needs at least one control.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
     ${movable ? '<p class="own-new"><button type="button" class="secondary small" data-own-new>Write a step of your own</button> <span class="meta">For work SiteWrite has no job step for. It prints marked as your own.</span></p>' : ''}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
@@ -3019,6 +3225,8 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     if (scaffoldField) scaffoldField.classList.toggle('hidden', !shownChecks.some((check) => check.id === 'scaffoldSupervisor'));
     gateDrawn = '';
     resultEl.innerHTML = `${fixingHtml()}${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
+    // The note under the high risk work box is said once, by the draft drawn after the change.
+    hrcwNote = '';
     resultEl.classList.remove('hidden');
     // A stood down draft names the facts still needed; each is asked for on the page, with what it
     // needs said under its box.
@@ -3161,6 +3369,68 @@ resultEl.addEventListener('click', async (event) => {
     await prepareDraft({ scroll: false });
     const panel = document.getElementById('plant-panel');
     if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  // A step's rating after the controls, set by the supervisor, and a library step taken off or put back.
+  const rateOpen = event.target.closest('[data-rate-open]');
+  const rateCancel = event.target.closest('[data-rate-cancel]');
+  const rateSave = event.target.closest('[data-rate-save]');
+  const rateReset = event.target.closest('[data-rate-reset]');
+  const rateAt = rateOpen || rateCancel || rateSave || rateReset;
+  if (rateAt && shownDraft) {
+    const index = Number(rateAt.dataset.rateOpen ?? rateAt.dataset.rateCancel ?? rateAt.dataset.rateSave ?? rateAt.dataset.rateReset);
+    const step = (shownDraft.jobSteps || [])[index];
+    if (!step) return;
+    if (rateOpen) ratingOpen.add(step.step); else ratingOpen.delete(step.step);
+    if (rateSave) {
+      const form = resultEl.querySelector(`[data-rate-step="${index}"]`);
+      const pick = (part) => Number(form.querySelector(`[data-rate-part="${part}"]`).value);
+      stepRatings = { ...(stepRatings || {}), [step.step]: { likelihood: pick('likelihood'), consequence: pick('consequence') } };
+    }
+    if (rateReset && stepRatings) { delete stepRatings[step.step]; if (!Object.keys(stepRatings).length) stepRatings = null; }
+    await prepareDraft({ scroll: false, keep: `[data-step-row="${index}"]` });
+    const focus = resultEl.querySelector(rateOpen ? `[data-rate-step="${index}"] select` : `[data-rate-open="${index}"]`);
+    if (focus) focus.focus({ preventScroll: true });
+    return;
+  }
+  const stepOff = event.target.closest('[data-step-remove]');
+  if (stepOff && shownDraft) {
+    const step = (shownDraft.jobSteps || [])[Number(stepOff.dataset.stepRemove)];
+    if (!step || !confirm(`Take "${step.step}" off this SWMS? You can put it back.`)) return;
+    leaveOut = [...new Set([...(leaveOut || []), step.step])];
+    await prepareDraft({ scroll: false, keep: '#steps-head' });
+    return;
+  }
+  const stepBack = event.target.closest('[data-step-back]');
+  if (stepBack) {
+    leaveOut = (leaveOut || []).filter((name) => name !== stepBack.dataset.stepBack);
+    if (!leaveOut.length) leaveOut = null;
+    await prepareDraft({ scroll: false, keep: '#steps-head' });
+    return;
+  }
+  // High risk construction work the user adds, or takes off again, goes into the draft at once.
+  if (event.target.closest('#hrcw-add-go')) {
+    const select = document.getElementById('hrcw-add-item');
+    const id = select ? select.value : '';
+    const note = document.getElementById('hrcw-add-note');
+    if (!id) {
+      if (note) note.textContent = 'Choose an item from the list first.';
+      if (select) select.focus();
+      return;
+    }
+    const label = select.options[select.selectedIndex].textContent;
+    highRiskAdded = [...new Set([...(highRiskAdded || []), id])];
+    hrcwNote = `Added: ${label}. It prints under High risk construction work, and SiteWrite checks the draft again.`;
+    await prepareDraft({ scroll: false, keep: '#hrcw-head' });
+    const head = document.getElementById('hrcw-head');
+    if (head) head.focus({ preventScroll: true });
+    return;
+  }
+  const hrcwOff = event.target.closest('[data-hrcw-remove]');
+  if (hrcwOff) {
+    highRiskAdded = (highRiskAdded || []).filter((id) => id !== hrcwOff.dataset.hrcwRemove);
+    hrcwNote = 'Taken off. Only items you added can be taken off.';
+    await prepareDraft({ scroll: false, keep: '#hrcw-head' });
     return;
   }
   if (event.target.closest('#emergency-update')) {
@@ -4170,7 +4440,73 @@ function goToFirstNeed() {
   return true;
 }
 
+// Where each must-fix item of SiteWrite's check is fixed on the page, with a "Go to" that opens it
+// (messy round 5: "Fix it on the page" said nothing of where, and the page had no way to add a high
+// risk item). Every must-fix rule of the check (builder-check.js H1 to H9) has its place here; any
+// other goes to the job steps. On a saved SWMS, the place is Change, which opens it to fix.
+function stepRowFor(item) {
+  const steps = (shownDraft && shownDraft.jobSteps) || [];
+  if (item.rule === 'H9' && window.SiteWrite && window.SiteWrite.highAfter) {
+    const first = window.SiteWrite.highAfter(shownDraft)[0];
+    if (first) return first.index;
+  }
+  // The step named in brackets in the message, as the check names it.
+  const at = steps.findIndex((step) => String(item.message || '').includes(`(${step.step})`) || String(item.message || '').includes(`: ${step.step}`));
+  return at;
+}
+function mustFixPlace(prefix, item) {
+  if (prefix === 'saved') return { label: 'Go to Change, to fix it', target: () => document.getElementById('saved-edit') };
+  const byId = (id) => () => document.getElementById(id);
+  const steps = { label: 'Go to Job steps', target: byId('steps-head') };
+  const step = (n) => ({ label: `Go to step ${n + 1}`, target: () => stepTarget(n) });
+  switch (item && item.rule) {
+    case 'H1': return { label: 'Go to High risk construction work', target: () => document.getElementById('hrcw-add-item') || document.getElementById('hrcw-head') };
+    case 'H3': return document.getElementById('fact-fallControl') ? { label: 'Go to the fall control', target: () => answerTarget(document.getElementById('fact-fallControl')) } : steps;
+    case 'H4': return /No site address/.test(item.message || '') ? { label: 'Go to Job address', target: byId('workplace') } : { label: 'Go to the site questions', target: () => document.querySelector('#site-block textarea') };
+    case 'H6':
+    case 'H7': return { label: 'Go to Person who makes sure the SWMS is followed', target: byId('compliance-responsible') };
+    case 'H8': return { label: 'Go to the first blank', target: () => resultEl.querySelector('.blank-input') || document.querySelector('textarea.has-blank') || document.getElementById('steps-head') };
+    case 'H2':
+    case 'H5':
+    case 'H9': { const n = stepRowFor(item); return n >= 0 ? step(n) : steps; }
+    default: return steps;
+  }
+}
+// A step's "Add your own control". On a phone the step's tools show once Change this step is pressed.
+function stepTarget(n) {
+  const row = resultEl.querySelector(`tr[data-step-row="${n}"]`);
+  if (!row) return document.getElementById('steps-head');
+  let add = row.querySelector('[data-ctl="add"]');
+  if (add && !add.getClientRects().length) {
+    const edit = row.querySelector('[data-step-edit]');
+    if (edit && !row.classList.contains('editing')) edit.click();
+    add = resultEl.querySelector(`tr[data-step-row="${n}"] [data-ctl="add"]`);
+  }
+  return add && add.getClientRects().length ? add : row;
+}
+function goToMustFix(prefix, item) {
+  const place = mustFixPlace(prefix, item);
+  return goToEl(place && place.target());
+}
+// "Show me" beside a step still High after its controls goes to that step (messy round 5, run 4: it went
+// to the emergency arrangements).
+document.addEventListener('click', (event) => {
+  const high = event.target.closest && event.target.closest('[data-high-go]');
+  if (high) goToEl(stepTarget(Number(high.dataset.highGo)));
+});
+function goToEl(el) {
+  if (!el) return false;
+  const closed = el.closest('details:not([open])');
+  if (closed) closed.open = true;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (el.focus) el.focus({ preventScroll: true });
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 2000);
+  return true;
+}
+
 window.SiteWrite = Object.assign(window.SiteWrite || {}, {
+  mustFixPlace, goToMustFix, signedInProfile,
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.

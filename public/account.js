@@ -185,6 +185,10 @@
     session = '';
     me = null;
     write(SESSION_KEY, '');
+    // The offer to set up Face ID is for someone signed in (messy round 5: it stayed after sign out).
+    $('faceid-offer').classList.add('hidden');
+    status('faceid-status', '');
+    reviewsBackNote([]);
     renderBar();
   }
 
@@ -192,7 +196,9 @@
     if (!session) return renderBar();
     try {
       me = await call('GET', '/api/me');
-      S.setProfile(me.company);
+      // Company details typed before signing in fill the company's empty ones and are saved to it.
+      const kept = S.signedInProfile ? await S.signedInProfile(me.company) : (S.setProfile(me.company), null);
+      if (kept) me.company = { ...me.company, ...kept };
       sites = (await call('GET', '/api/sites')).sites;
       S.addPrincipals(sites.map((site) => site.principalContractor), false);
       S.setPreparedBy(me.user.name || read(REVIEWER_KEY));
@@ -202,6 +208,7 @@
     renderBar();
     renderSitePicker();
     if (me && S.redrawActions) S.redrawActions();
+    if (me && !mineOpen()) checkReviewsBack();
   }
 
   function trialText(company) {
@@ -303,11 +310,18 @@
     }
   });
 
+  // The browser's own words for a device with no passkey are not shown (messy round 5: a desktop said
+  // "Resident credentials or empty 'allowCredentials' lists are not supported at this time."). SiteWrite's
+  // own refusals keep their plain message. Either way the email link is offered.
+  const FACE_ID_NONE = 'Face ID is not set up for SiteWrite on this device. Sign in with the email link instead: enter your email above and press Email me a sign-in link. Once signed in, you can set up Face ID on this device.';
+  const faceIdMessage = (error) => (error && error.status !== undefined ? `${error.message} You can sign in with the email link instead.` : error && error.name === 'NotAllowedError' ? 'Face ID was cancelled or is not set up on this device. You can sign in with the email link instead.' : FACE_ID_NONE);
+  S.faceIdMessage = faceIdMessage;
   $('faceid-signin').addEventListener('click', async () => {
     try {
       await signInWithFaceId();
     } catch (error) {
-      status('signin-status', error.name === 'NotAllowedError' ? 'Face ID was cancelled.' : error.message, true);
+      status('signin-status', faceIdMessage(error), true);
+      $('signin-email').focus();
     }
   });
 
@@ -359,8 +373,10 @@
   function highAfterHtml(draft, id) {
     const list = highAfter(draft);
     if (!list.length) return '';
-    return `<div class="warning high-after" id="${id}" role="status"><p><strong>${list.length === 1 ? 'One step is' : `${list.length} steps are`} still rated High after controls:</strong> ${list.map(({ step, index }) => `step ${index + 1} (${esc(step.step)})`).join('; ')}.</p>
-      <p>${list.length === 1 ? 'It prints' : 'Each prints'} "This step does not start until" the supervisor adds controls that lower the rating, or accepts the risk in writing. Add controls to the step now, or make sure the risk is accepted in writing before the work starts. You can still download this SWMS.</p></div>`;
+    // Each step has Show me, which goes to the step (messy round 5, run 4), where it can be given more
+    // controls, rated again after the controls, or taken off.
+    return `<div class="warning high-after" id="${id}" role="status"><p><strong>${list.length === 1 ? 'One step is' : `${list.length} steps are`} still rated High after controls:</strong> ${list.map(({ step, index }) => `step ${index + 1} (${esc(step.step)}) <button type="button" class="link" data-high-go="${index}">Show me</button>`).join('; ')}.</p>
+      <p>${list.length === 1 ? 'It prints' : 'Each prints'} "This step does not start until" the supervisor adds controls that lower the rating, or accepts the risk in writing. At the step you can add controls, change the rating after the controls to suit the site, or take the step off if it is not part of this job. You can still download this SWMS.</p></div>`;
   }
   S.highAfter = highAfter;
 
@@ -449,6 +465,7 @@
         lockedBy: () => { const held = holdNow(); return held.hold ? (held.html === redrawNote ? 'SiteWrite checks the draft once it is updated with your answers.' : 'SiteWrite checks the draft once everything listed above is answered.') : ''; },
         onChange: ready,
         onDone: (check, note) => { if (S.onCheckDone) S.onCheckDone(input, check, note); },
+        onResult: (count) => { if (S.onCheckResult) S.onCheckResult(input, count); },
       });
     }
     // The list above changes as the user answers, and with the tick above the draft (app.js); SiteWrite
@@ -538,6 +555,9 @@
       const reviewed = new Map(swms.filter((item) => item.review).map((item) => [item.id, `${item.review.label}|${item.review.date}`]));
       const arrived = reviewsSeen ? swms.filter((item) => item.review && reviewsSeen.get(item.id) !== reviewed.get(item.id)) : [];
       reviewsSeen = reviewed;
+      // My SWMS open shows each review: the note above the page goes.
+      markReviewsSeen(swms);
+      reviewsBackNote([]);
       const arrivedHtml = arrived.length ? `<p class="note" role="status" id="swms-review-arrived">A principal contractor's review has come back: ${arrived.map((item) => `${esc(item.title)} (${esc(item.review.label)})`).join('; ')}.</p>` : '';
       const html = arrivedHtml + (swms.length ? swms.map((item) => `
         <div class="swms-row">
@@ -555,8 +575,49 @@
     }
   }
   const mineOpen = () => Boolean(me && $('my-swms') && !$('my-swms').classList.contains('hidden'));
-  setInterval(() => { if (mineOpen() && document.visibilityState !== 'hidden') loadSwms({ quiet: true }); }, 30000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && mineOpen()) loadSwms({ quiet: true }); });
+  setInterval(() => { if (document.visibilityState === 'hidden') return; if (mineOpen()) loadSwms({ quiet: true }); else checkReviewsBack(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') return; if (mineOpen()) loadSwms({ quiet: true }); else checkReviewsBack(); });
+
+  // A principal contractor's review that has come back shows when the page loads, and as it arrives,
+  // with My SWMS open or not (messy round 5: it showed only once My SWMS was pressed). Each one shows
+  // until My SWMS is opened. What has been seen is kept on this device, for each person.
+  const REVIEWS_SEEN_KEY = 'sitewrite.reviewsSeen';
+  const reviewKey = (item) => `${item.review.revision}|${item.review.label}|${item.review.date}`;
+  function seenReviews() {
+    try { const all = JSON.parse(read(REVIEWS_SEEN_KEY) || '{}'); return (all && me && all[me.user.email]) || {}; } catch { return {}; }
+  }
+  function markReviewsSeen(swms) {
+    if (!me) return;
+    let all = {};
+    try { all = JSON.parse(read(REVIEWS_SEEN_KEY) || '{}') || {}; } catch { all = {}; }
+    all[me.user.email] = Object.fromEntries(swms.filter((item) => item.review).map((item) => [item.id, reviewKey(item)]));
+    write(REVIEWS_SEEN_KEY, JSON.stringify(all));
+  }
+  function reviewsBackNote(list) {
+    let note = $('reviews-back');
+    if (!list.length) { if (note) note.remove(); return; }
+    if (!note) {
+      note = document.createElement('div');
+      note.id = 'reviews-back';
+      note.className = 'note reviews-back';
+      note.setAttribute('role', 'status');
+      $('account-bar').after(note);
+    }
+    const shown = list.slice(0, 3).map((item) => `${esc(item.title)} (${esc(item.review.label)}, ${esc(item.review.date)})`).join('; ');
+    const html = `<p><strong>${list.length === 1 ? 'A principal contractor\'s review is back' : `${list.length} principal contractor reviews are back`}:</strong> ${shown}${list.length > 3 ? `; and ${list.length - 3} more` : ''}.</p><div class="actions"><button type="button" class="small" data-panel="my-swms">Open My SWMS</button></div>`;
+    if (note.innerHTML !== html) note.innerHTML = html;
+  }
+  async function checkReviewsBack() {
+    if (!me || !config.accounts) return;
+    try {
+      const { swms } = await call('GET', '/api/swms');
+      if (mineOpen()) return;
+      const seen = seenReviews();
+      reviewsBackNote(swms.filter((item) => item.review && seen[item.id] !== reviewKey(item)));
+    } catch {
+      // Shown next time.
+    }
+  }
 
   $('swms-list').addEventListener('click', async (event) => {
     if (event.target.closest('#swms-export')) {

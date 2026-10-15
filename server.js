@@ -8,7 +8,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { listStates, findState } = require('./legislation');
 const designFiles = require('./design-files');
-const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredLeft, coverCheck } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredLeft, coverCheck, highRiskOptions } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -456,7 +456,9 @@ app.post('/api/draft', (req, res) => {
   // Each part's fingerprint (public/check-parts.js), so a page holding a check can tell which ticks a
   // change has cleared (D286).
   const checkParts = result.kind === 'draft' ? { checkParts: partHashes(result) } : {};
-  res.json({ ...result, ...legal, ...checkParts });
+  // The high risk work the page offers to add, and the items the user added (messy round 5).
+  const options = highRiskOptions(draftBody(req.body || {}), result);
+  res.json({ ...result, ...legal, ...checkParts, ...options });
 });
 
 // SiteWrite's own check before the person's (D286): the download gate, then Builder check on the

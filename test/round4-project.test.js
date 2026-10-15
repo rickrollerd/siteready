@@ -79,7 +79,9 @@ test('work with no job steps gets "Write a step for this" on the project page, a
   await settle();
   const said = p.element('go-status').innerHTML;
   assert.match(said, /One SWMS is<\/strong>|One SWMS is not finished/);
-  assert.match(said, /or write your own step for the work with &quot;Write a step for this&quot;\. <button type="button" class="link" data-go-to-item="1">Write a step for it<\/button>/);
+  // This page has no Job steps list, so the way on is the user's own step in its section (messy round 5).
+  assert.match(said, /Write your own step for the work with &quot;Write a step for this&quot; in its section below\. <button type="button" class="link" data-go-to-item="1">Write a step for it<\/button>/);
+  assert.doesNotMatch(said, /under Job steps/);
   assert.doesNotMatch(said, /\.\./);
   assert.doesNotMatch(said, /write this SWMS yourself/);
   // Back on the questions, the kept box counts only the SWMS prepared as a draft.

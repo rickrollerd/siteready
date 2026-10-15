@@ -168,6 +168,10 @@
   // reading still running when the page was left or reloaded is picked up again.
   S.onSignedIn = async () => {
     const body = await takeScope();
+    // Signed in with nothing started, the scope section is open on a phone too: reading a scope is
+    // what signing in opens up (messy round 5, run 4: it was closed, and the scope went into the logo box).
+    const task = document.getElementById('task');
+    if (!body && !project && !(task && task.value.trim())) $('scope-panel').open = true;
     if (!body) { await resumeReading(); return; }
     $('scope-panel').open = true;
     $('scope-error').textContent = '';
@@ -344,7 +348,7 @@
       <div class="actions scope-tick-all"><button type="button" class="small secondary" data-scope-tick="all">Tick all</button><button type="button" class="small secondary" data-scope-tick="none">Untick all</button></div>
       <div class="scope-packages">${work.map((pack, index) => packageCard(pack, index)).join('')}</div>
       ${duties.length ? `<details class="scope-duties"><summary>${duties.length} ${duties.length === 1 ? 'duty' : 'duties'} in the scope: no SWMS needed</summary><ul>${duties.map((row) => `<li>${esc(row.activity)}</li>`).join('')}</ul></details>` : ''}
-      ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
+      ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open" aria-label="Show the conflicts in full">Show the conflicts in full</button></details>` : ''}
       <div class="actions scope-go"><button type="button" id="scope-confirm">${prepareButton()}</button></div>
       <p class="error" id="scope-choice-error" role="alert"></p>
       <p class="meta">Fill in the site details once. SiteWrite then takes you through each SWMS in turn, and you can download them all together.</p>
@@ -785,6 +789,14 @@
     const before = JSON.stringify([item.check || null, item.checkNote || '']);
     if (check) { item.check = check; delete item.checkNote; } else if (item.check) { delete item.check; if (note) item.checkNote = note; }
     if (JSON.stringify([item.check || null, item.checkNote || '']) === before) return;
+    saveProject();
+    renderProject();
+  };
+  // The must-fix items SiteWrite's check found on a project's SWMS, said on the project's list.
+  S.onCheckResult = (input, count) => {
+    const item = itemShown(input);
+    if (!item || (item.mustFix || 0) === count) return;
+    if (count) item.mustFix = count; else delete item.mustFix;
     saveProject();
     renderProject();
   };

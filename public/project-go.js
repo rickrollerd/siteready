@@ -243,9 +243,13 @@
       const before = asked.get(index);
       asked.set(index, data);
       // A question already on the page keeps its box while the user types; only new or gone ones redraw.
-      const shape = (got) => JSON.stringify(got && !got.error ? [(got.required || []).map((q) => q.id), (got.designs || []).filter((row) => row.needed).map((row) => row.id), Boolean(got.standDown), got.substanceTypes || [], got.notCoveredLeft || []] : null);
+      // Waiting for the fall answer or the state is part of the shape: answered, the SWMS's questions are
+      // drawn even when it has none (messy round 5, run 6: "Answer the fall question" stayed under a
+      // fall answer filled from SWMS 1).
+      const shape = (got) => JSON.stringify(got && !got.error ? [(got.required || []).map((q) => q.id), (got.designs || []).filter((row) => row.needed).map((row) => row.id), Boolean(got.standDown), got.substanceTypes || [], got.notCoveredLeft || [], Boolean(got.needsFall), Boolean(got.needsState)] : null);
       if (shape(before) !== shape(data) || !document.getElementById(`go-item-${index}`)) drawItem(index);
       else notesFor(index);
+      refreshMissing();
     } catch (error) {
       // The questions already shown stay; with none yet, the page says why, with Try again.
       const now = asked.get(index);
@@ -377,7 +381,9 @@
     else if (got.needsFall) parts.push('<p class="note">Answer the fall question to see this SWMS\'s questions.</p>', coverHtml(index));
     else if (got.error) parts.push(`<p class="error">${esc(got.error)}${got.retry ? ` <button type="button" class="link" data-go-ask-again="${index}">Try again</button>` : ''}</p>`);
     else {
-      if (got.standDown) parts.push(`<p class="warning">${esc(got.standDown.message)}</p>`);
+      // This page has no Job steps list: the way on is said for this page (messy round 5, run 4: it
+      // pointed to a "Job steps" list the project page does not have).
+      if (got.standDown) parts.push(`<p class="warning">${esc(projectWayOn(got.standDown.message))}</p>`);
       parts.push(coverHtml(index));
       const required = got.required || [];
       parts.push(required.length ? required.map((question) => questionHtml(index, question)).join('') : '<p class="meta">No further question for this SWMS.</p>');
@@ -389,6 +395,10 @@
       if ((item.plant || []).length) parts.push(`<p class="meta">Plant the scope names: ${esc(item.plant.join(', '))}. You confirm the plant when you check this SWMS.</p>`);
     }
     return parts.join('');
+  }
+
+  function projectWayOn(message) {
+    return String(message || '').replace(/(?:To go on|Tick or add)[^.]*\bunder Job steps\b.*$/, 'To go on, write your own step for the work with "Write a step for this" below. Or press Prepare all, then Check this SWMS, and pick the job steps that cover the work under Job steps there.');
   }
 
   function questionHtml(index, question) {
@@ -1113,7 +1123,10 @@
     const el = entry && document.querySelector(entry.at);
     if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus({ preventScroll: true }); }
   }
+  // Set once the list by Prepare all is shown, so it follows the answers from then on.
+  let missingShown = false;
   function showMissing(list) {
+    missingShown = true;
     const status = $('go-status');
     document.querySelectorAll('.go-fall-error').forEach((note) => { note.textContent = ''; });
     for (const entry of list) {
@@ -1127,6 +1140,18 @@
     }
     const later = laterMissing();
     if (status) status.innerHTML = `<div class="warning go-missing" role="alert"><p><strong>Before Prepare all, answer ${list.length === 1 ? 'this' : `these ${list.length}`}:</strong></p><ul>${list.map((entry, i) => `<li>${esc(entry.text)} <button type="button" class="link" data-go-missing="${i}">Go to it</button></li>`).join('')}</ul>${later.length ? `<p class="meta">Also still to give before download (you can prepare without them): ${esc(later.join('; '))}.</p>` : ''}</div>`;
+  }
+
+  // The list by Prepare all follows the answers as they are given (messy round 5, run 6: it still asked
+  // for fall and site answers already given). It is drawn again once shown, and goes when nothing is left.
+  function refreshMissing() {
+    const status = $('go-status');
+    if (!project || project.stage !== 'questions' || !status || !missingShown) return;
+    missing = prepareMissing();
+    if (missing.length) { showMissing(missing); return; }
+    document.querySelectorAll('.go-fall-error').forEach((note) => { note.textContent = ''; });
+    const later = laterMissing();
+    status.innerHTML = `<p class="note go-missing-done" role="status">Everything Prepare all needs is answered. Press Prepare all ${project.items.length} SWMS.${later.length ? ` Still to give before download (you can prepare without them): ${esc(later.join('; '))}.` : ''}</p>`;
   }
 
   async function prepareAll(button) {
@@ -1146,6 +1171,7 @@
       return;
     }
     if ($('go-slinging-error')) $('go-slinging-error').textContent = '';
+    missingShown = false;
     button.disabled = true;
     try {
       for (let index = 0; index < project.items.length; index += 1) {
@@ -1211,7 +1237,8 @@
   }
   // What a SWMS not prepared still needs, in one line with no doubled full stop (messy round 4:
   // "or write this SWMS yourself..").
-  const needsLine = (item) => (item.needs || []).map((need) => String(need).replace(/[.\s]+$/, '')).join('; ');
+  // This page has no Job steps list, so the way on is the user's own step in the SWMS's section.
+  const needsLine = (item) => (item.needs || []).map((need) => String(need).replace(/Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this"/g, 'Write your own step for the work with "Write a step for this" in its section below').replace(/[.\s]+$/, '')).join('; ');
   // Stood down for want of job steps: its own steps are written in its section.
   const noSteps = (item) => (item.needs || []).some((need) => /^Job steps for this work:/.test(String(need)));
   const weakAnswer = (box) => {
@@ -1289,6 +1316,7 @@
     if (item.status === 'ready') {
       const check = checkOf(item);
       if (check) return { ready: true, text: `Ready to download. Checked by ${check.name}, ${check.role}.` };
+      if (item.mustFix) return { ready: false, check: true, text: `SiteWrite's check found ${item.mustFix === 1 ? 'a must-fix item' : `${item.mustFix} must-fix items`}. Open it and fix ${item.mustFix === 1 ? 'it' : 'each one'} with its Go to button, then tick the parts.` };
       return { ready: false, check: true, text: `${item.checkNote ? `${item.checkNote} ` : ''}Ready for your check: ${CHECK_IT}.` };
     }
     if (item.kind && item.kind !== 'draft' && noSteps(item)) return { ready: false, text: 'Not finished: SiteWrite has no job steps for its work. Write your own step for it under its questions (Back to the questions), or when you check it.' };
@@ -1380,6 +1408,8 @@
   });
   document.addEventListener('input', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onInput(event); });
   document.addEventListener('change', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onChange(event); });
+  // Any answer on the page, the state and the people above included, redraws the list by Prepare all.
+  ['input', 'change'].forEach((type) => document.addEventListener(type, () => { if (project) refreshMissing(); }));
   document.addEventListener('click', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onClick(event); });
 
   // The shared boxes say why an answer is refused as the user types (messy round 3).

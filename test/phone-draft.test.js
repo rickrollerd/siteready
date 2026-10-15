@@ -63,7 +63,7 @@ test('the forms printed for others to fill in start folded on a phone, open on a
     assert.match(folded, new RegExp(`<details class="sheet-fold"><summary><h4>${heading}</h4>`), heading);
   }
   // The job steps and the site's own sections are never folded.
-  for (const heading of ['Job steps', 'Personal protective equipment', 'Site-specific', 'Prepared by']) assert.match(folded, new RegExp(`<h4>${heading}</h4>`));
+  for (const heading of ['Job steps', 'Personal protective equipment', 'Site-specific', 'Prepared by']) assert.match(folded, new RegExp(`<h4[^>]*>${heading}</h4>`));
   assert.doesNotMatch(folded, /<summary><h4>(Job steps|Emergency arrangements|Plant and equipment)/);
   const computer = page({ phone: false });
   await settle();
