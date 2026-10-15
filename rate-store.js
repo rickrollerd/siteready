@@ -10,7 +10,7 @@
 const cluster = require('cluster');
 const { MemoryStore } = require('express-rate-limit');
 
-const TAG = 'siteready-rate-limit';
+const TAG = 'sitewrite-rate-limit';
 const COMMANDS = new Set(['increment', 'decrement', 'resetKey']);
 // A count the primary has not given back in this time is left to the worker's own count.
 const TIMEOUT_MS = 2000;

@@ -1,7 +1,7 @@
 // Start from a scope of works: the scope is attached or pasted, the server lists
 // the tasks in it that need a SWMS, and a picked task fills in the form.
 (() => {
-  const S = window.SiteReady;
+  const S = window.SiteWrite;
   const { api, esc } = S;
   const $ = (id) => document.getElementById(id);
 
@@ -15,11 +15,11 @@
   }
 
   // A package's high risk construction work, in the words the list and the report share.
-  const hrcwOf = (flag) => (flag && window.SiteReadyHrcw ? window.SiteReadyHrcw.hrcwSummary(flag) : null);
+  const hrcwOf = (flag) => (flag && window.SiteWriteHrcw ? window.SiteWriteHrcw.hrcwSummary(flag) : null);
   const hrcwText = (summary) => `<strong>${esc(summary.heading)}.</strong> ${summary.lines.map((line) => esc(/[.]$/.test(line) ? line : `${line}.`)).join(' ')}`;
 
   // A file can also be dragged onto the panel. Dropping it anywhere on the panel is caught,
-  // so the browser does not open the file in place of SiteReady.
+  // so the browser does not open the file in place of SiteWrite.
   let dropped = null;
   const drop = $('scope-drop');
   const panel = $('scope-panel');
@@ -48,7 +48,7 @@
     $('scope-file-clear').classList.remove('hidden');
   });
   // A picture chosen for the scope (messy round 4, run 7: a PNG got no message) is said plainly and taken off.
-  const NOT_A_SCOPE = 'SiteReady reads a scope from a Word file (.docx), a PDF or a text file. A photo or picture of a scope cannot be read: attach the document, or paste its words in the box below.';
+  const NOT_A_SCOPE = 'SiteWrite reads a scope from a Word file (.docx), a PDF or a text file. A photo or picture of a scope cannot be read: attach the document, or paste its words in the box below.';
   $('scope-file').addEventListener('change', () => {
     dropped = null;
     $('scope-error').textContent = '';
@@ -87,7 +87,7 @@
     // A new scope starts a new project: the one in progress is closed first, with the user's OK.
     if (project && !closeProject(`You have a project in progress (${project.items.filter((item) => item.status === 'ready').length} of ${project.items.length} SWMS ready). Reading a new scope closes it, and SWMS you have not downloaded or saved will need preparing again. Read the new scope?`)) return;
     // The chime when the reading is finished may only play after a press on the page: set it up now.
-    if (window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
+    if (window.SiteWriteProgress) window.SiteWriteProgress.unlockAudio();
     button.disabled = true;
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
@@ -105,7 +105,7 @@
 
   const TYPE_TASKS = 'Or write the tasks in the Task box below.';
 
-  // Owner decision, 7 October 2026: SiteReady's keyword quick read is no longer used on this page.
+  // Owner decision, 7 October 2026: SiteWrite's keyword quick read is no longer used on this page.
   // When the AI is off or fails, the page says so and the user tries again later or types the tasks.
   async function readScope(body) {
     if (!(await aiOn())) {
@@ -118,11 +118,12 @@
   // A scope given before signing in waits in this browser until the user signs in, even when the
   // sign-in link opens in a new tab. It is kept in IndexedDB, which holds a large file.
   let waiting = null;
-  function keptScope(mode, use) {
+  // A scope kept while the app was called SiteReady (owner D299) is still found under its old name.
+  function keptScope(mode, use, name = 'sitewrite') {
     return new Promise((resolve) => {
       if (!window.indexedDB) { resolve(null); return; }
       try {
-        const open = indexedDB.open('siteready', 1);
+        const open = indexedDB.open(name, 1);
         open.onupgradeneeded = () => open.result.createObjectStore('kept');
         open.onerror = () => resolve(null);
         open.onsuccess = () => {
@@ -137,10 +138,18 @@
     });
   }
   const keepScope = (body) => keptScope('readwrite', (store) => store.put(body, 'scope'));
+  // Looked for only where the browser can say which stores it has, so no empty old store is made.
+  const oldStoreThere = async () => {
+    try { return Boolean(window.indexedDB && indexedDB.databases) && (await indexedDB.databases()).some((item) => item.name === 'siteready'); } catch { return false; }
+  };
   const takeScope = async () => {
-    const body = waiting || await keptScope('readonly', (store) => store.get('scope'));
-    waiting = null;
+    let body = waiting || await keptScope('readonly', (store) => store.get('scope'));
     if (body) await keptScope('readwrite', (store) => store.delete('scope'));
+    else if (await oldStoreThere()) {
+      body = await keptScope('readonly', (store) => store.get('scope'), 'siteready');
+      try { indexedDB.deleteDatabase('siteready'); } catch { /* left as it is */ }
+    }
+    waiting = null;
     return body;
   };
 
@@ -185,7 +194,7 @@
 
   // A reading still running is kept in this browser by its id, so the page picks it up again when the
   // user comes back after it was closed or reloaded (a phone often reloads a page left in the background).
-  const READING_KEY = 'siteready-scope-reading';
+  const READING_KEY = 'sitewrite-scope-reading';
   const keepReading = (value) => { try { if (value) localStorage.setItem(READING_KEY, JSON.stringify(value)); else localStorage.removeItem(READING_KEY); } catch { /* not kept */ } };
   const keptReading = () => { try { return JSON.parse(localStorage.getItem(READING_KEY) || 'null'); } catch { return null; } };
   let running = false;
@@ -210,9 +219,9 @@
   // The bar shown while the AI reads (read-progress.js): its stage and time from the server.
   const LEAD = 'The AI is reading every word of the scope, including tables and appendices.';
   function progressBar(reading) {
-    const RP = window.SiteReadyProgress;
+    const RP = window.SiteWriteProgress;
     if (!RP) return null;
-    const tracker = RP.track({ what: 'scope', lead: LEAD, steps: ['reading every word of the scope', 'matching each work package to SiteReady\'s job steps'] });
+    const tracker = RP.track({ what: 'scope', lead: LEAD, steps: ['reading every word of the scope', 'matching each work package to SiteWrite\'s job steps'] });
     tracker.update(reading.progress);
     $('scope-results').innerHTML = tracker.html();
     return tracker;
@@ -268,7 +277,7 @@
   // runs the crane or the scope gives us the cranage (item 9).
   let aiReading = null;
   let choice = null;
-  const C = () => window.SiteReadyScopeChoice;
+  const C = () => window.SiteWriteScopeChoice;
   // Each package's high risk construction work, worked out on the server by the SWMS's own rules.
   const flagsOf = (reading) => new Map((reading.highRisk || []).map((item) => [item.package, item]));
   // Unanswered until the user answers: no crane company is assumed (messy-user test, 14 October 2026).
@@ -319,7 +328,7 @@
     const warn = checks.passed === false ? `<p class="note">Some of the AI's quotes could not be matched word for word to the document (${(checks.quotesNotFound || []).length + (checks.quotesShortened || []).length}). Check those tasks against the scope.</p>` : '';
     const conflicts = reading.reading.conflicts || [];
     const flags = flagsOf(reading.reading);
-    const note = flags.size && window.SiteReadyHrcw ? ` ${esc(window.SiteReadyHrcw.HRCW_NOTE)}` : '';
+    const note = flags.size && window.SiteWriteHrcw ? ` ${esc(window.SiteWriteHrcw.HRCW_NOTE)}` : '';
     const clause = C().craneClause(reading.reading);
     const crane = kept ? kept.crane : craneNow();
     choice = {
@@ -338,13 +347,13 @@
       ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
       <div class="actions scope-go"><button type="button" id="scope-confirm">${prepareButton()}</button></div>
       <p class="error" id="scope-choice-error" role="alert"></p>
-      <p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>
+      <p class="meta">Fill in the site details once. SiteWrite then takes you through each SWMS in turn, and you can download them all together.</p>
       <div class="actions"><button type="button" class="secondary" data-scope-report>Scope review report (Word)</button></div>
       <p class="error" id="scope-report-error"></p>`;
     // After a wait, a message says the reading is finished (with a chime), then any conflicts show.
     // Coming back to change the choice shows neither again.
     if (kept) return;
-    if (waited && window.SiteReadyProgress) announceRead(work, () => showConflicts(conflicts));
+    if (waited && window.SiteWriteProgress) announceRead(work, () => showConflicts(conflicts));
     else showConflicts(conflicts);
   }
 
@@ -352,7 +361,7 @@
   // takes the user to the work packages to choose from.
   function announceRead(packages, after) {
     const any = packages.length > 0;
-    window.SiteReadyProgress.announce({
+    window.SiteWriteProgress.announce({
       heading: 'The scope has been read',
       text: any ? 'The AI has finished reading the scope. Choose the SWMS you need.' : 'The AI has finished reading the scope. It found no work packages in it.',
       button: any ? 'Choose the SWMS' : 'Show the result',
@@ -407,7 +416,7 @@
   function showConflicts(conflicts) {
     const old = $('conflict-dialog');
     if (old) old.remove();
-    const html = window.SiteReadyConflicts ? window.SiteReadyConflicts.conflictDialog(conflicts) : '';
+    const html = window.SiteWriteConflicts ? window.SiteWriteConflicts.conflictDialog(conflicts) : '';
     if (!html) return;
     // In the page above the work packages, so it never covers the form (messy round 3).
     const list = document.querySelector('#scope-results .scope-packages');
@@ -495,7 +504,7 @@
       from.textContent = label || `From the scope: ${item.title}`;
       from.classList.remove('hidden');
     }
-    // A new task starts from SiteReady's steps, order, controls and PPE again, as a new SWMS.
+    // A new task starts from SiteWrite's steps, order, controls and PPE again, as a new SWMS.
     if (S.newSwms) S.newSwms();
     taskEl.dispatchEvent(new Event('input', { bubbles: true }));
     taskEl.dataset.preset = text;
@@ -511,7 +520,7 @@
     if (slinging) slinging.checked = true;
     if (crane) crane.dispatchEvent(new Event('change', { bubbles: true }));
     // The scope reader's steps for this task are ticked when the task is used as it stands.
-    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null, scope: item.scopeTask || null };
+    window.siteWriteScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null, scope: item.scopeTask || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     // In a project, openItem moves the page once the project box is drawn.
@@ -520,7 +529,7 @@
   }
 
   // A project: every task from the scope, each prepared in turn with the same site details.
-  const PROJECT_KEY = 'siteready.project';
+  const PROJECT_KEY = 'sitewrite.project';
   let project = null;
   const saveProject = () => { try { localStorage.setItem(PROJECT_KEY, JSON.stringify(project)); } catch { /* not kept */ } };
   try { project = JSON.parse(localStorage.getItem(PROJECT_KEY) || 'null'); } catch { project = null; }
@@ -588,7 +597,7 @@
 
   function openItem(index, { toNeed = false, toCover = false } = {}) {
     if (!project || !project.items[index]) return;
-    if (window.SiteReadyProjectGo && window.SiteReadyProjectGo.clearNotes) window.SiteReadyProjectGo.clearNotes();
+    if (window.SiteWriteProjectGo && window.SiteWriteProjectGo.clearNotes) window.SiteWriteProjectGo.clearNotes();
     project.current = index;
     // From the one-go page or the review list, a SWMS opens to be checked (D240).
     if (project.stage) project.stage = 'check';
@@ -601,8 +610,8 @@
     // Answers given on the one-go page since it was prepared (it is marked as needing preparing again)
     // go with it, so checking it does not bring back the old ones.
     const opened = project.items[index];
-    if (opened.body && opened.stale && window.SiteReadyProjectGo && window.SiteReadyProjectGo.payloadFor) {
-      const now = window.SiteReadyProjectGo.payloadFor(index);
+    if (opened.body && opened.stale && window.SiteWriteProjectGo && window.SiteWriteProjectGo.payloadFor) {
+      const now = window.SiteWriteProjectGo.payloadFor(index);
       opened.body = { ...opened.body, task: now.task, site: now.site, facts: { ...(opened.body.facts || {}), ...now.facts }, crane: now.crane, slinging: now.slinging, designs: now.designs, movedIn: now.movedIn };
     }
     saveProject();
@@ -626,7 +635,7 @@
       // round 4, A fault 5: it fell back to its task form with no word).
       const failed = (error) => {
         const bar = $('check-bar');
-        const text = `${error && error.message && !error.serverDown ? `${error.message} ` : 'SiteReady could not reach the server, so this SWMS could not be opened. '}It is kept as prepared.`;
+        const text = `${error && error.message && !error.serverDown ? `${error.message} ` : 'SiteWrite could not reach the server, so this SWMS could not be opened. '}It is kept as prepared.`;
         if (bar) { bar.insertAdjacentHTML('beforeend', `<p class="error" role="alert" id="project-open-error">${esc(text)} <button type="button" class="link" data-project-open="${index}">Try again</button></p>`); bar.classList.remove('hidden'); bar.scrollIntoView({ block: 'start' }); }
         else if ($('project-error')) $('project-error').textContent = text;
       };
@@ -659,7 +668,7 @@
     if (!confirm(question)) return false;
     project = null;
     try { localStorage.removeItem(PROJECT_KEY); } catch { /* nothing kept */ }
-    window.siteReadyScopeTask = null;
+    window.siteWriteScopeTask = null;
     showSingle(true);
     const taskEl = $('task');
     taskEl.value = '';
@@ -669,7 +678,7 @@
     return true;
   }
 
-  // A saved SWMS opened to change from My SWMS ("Fix this in SiteReady") that is not one of the project's
+  // A saved SWMS opened to change from My SWMS ("Fix this in SiteWrite") that is not one of the project's
   // own puts the project aside until the user goes back to it (messy round 4, A fault 11).
   let paused = false;
   S.projectForSaved = (id) => {
@@ -700,10 +709,10 @@
       return;
     }
     // The one-go page and the review list (project-go.js).
-    if ((project.stage === 'questions' || project.stage === 'review') && window.SiteReadyProjectGo) {
+    if ((project.stage === 'questions' || project.stage === 'review') && window.SiteWriteProjectGo) {
       now.classList.add('hidden');
       showSingle(false);
-      window.SiteReadyProjectGo.render(panel, project, projectHooks);
+      window.SiteWriteProjectGo.render(panel, project, projectHooks);
       panel.classList.remove('hidden');
       return;
     }
@@ -711,7 +720,7 @@
     if (bar) {
       const checking = project.stage === 'check' && project.items[project.current];
       const nextToCheck = checking ? project.items.findIndex((other, index) => index > project.current && !other.checked) : -1;
-      bar.innerHTML = checking ? `<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change beside its line (on a phone, press Change this step first). Your changes are kept, and SiteReady learns from them. When it is right, go back to the list.</p>
+      bar.innerHTML = checking ? `<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change beside its line (on a phone, press Change this step first). Your changes are kept, and SiteWrite learns from them. When it is right, go back to the list.</p>
         <div class="actions"><button type="button" class="secondary" data-project-review>Back to the list of SWMS</button>${nextToCheck >= 0 ? `<button type="button" class="secondary" data-project-open="${nextToCheck}">Check SWMS ${nextToCheck + 1}: ${esc(project.items[nextToCheck].title)}</button>` : ''}</div>` : '';
       bar.classList.toggle('hidden', !checking);
     }
@@ -741,8 +750,8 @@
       ${project.from ? '<div class="actions" style="margin-top:0"><button type="button" class="small secondary" id="project-change">Change the SWMS chosen</button></div>' : ''}
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick', 'write'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
-      ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteReady has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
-      ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, has work SiteReady has no job steps for. Above its draft, write your own step for it, or say which SWMS covers it, to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
+      ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteWrite has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
+      ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, has work SiteWrite has no job steps for. Above its draft, write your own step for it, or say which SWMS covers it, to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? (checked ? `<div class="actions"><button type="button" id="project-zip">Download ${checked} checked SWMS (Word and PDF, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '') + (checked < ready ? `<p class="note">${ready - checked === 1 ? 'One SWMS is' : `${ready - checked} SWMS are`} ready but not checked yet. Open each, tick each part as checked under its draft, and give your name and role.</p>` : '') : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <p class="meta" id="project-status" role="status"></p>
@@ -750,7 +759,7 @@
     panel.classList.remove('hidden');
   }
 
-  // A draft that names work SiteReady has no job steps for is ready once the box above it is
+  // A draft that names work SiteWrite has no job steps for is ready once the box above it is
   // ticked (owner decision D184), or the user has written a step for each part.
   // One with site questions or blanks still to answer (goal 2) needs answers first.
   const statusOf = (item) => {
@@ -817,7 +826,7 @@
     const next = list.length ? list : undefined;
     item.ownSteps = next;
     if (item.body) item.body = { ...item.body, ownSteps: next };
-    if (item.kind) { item.stale = why; if (window.SiteReadyProjectGo && window.SiteReadyProjectGo.uncheck) window.SiteReadyProjectGo.uncheck(item); }
+    if (item.kind) { item.stale = why; if (window.SiteWriteProjectGo && window.SiteWriteProjectGo.uncheck) window.SiteWriteProjectGo.uncheck(item); }
   }
   S.projectGiveStep = (title, step) => {
     const at = byTitle(title);
@@ -866,7 +875,7 @@
     const changed = project.items.map((_other, at) => at).filter((at) => at !== project.current && JSON.stringify(movedInto(at) || []) !== before[at]);
     for (const at of changed) if (project.items[at].kind) project.items[at].stale = `Work was moved here from SWMS ${project.current + 1}: write its steps in this SWMS.`;
     // Its ticks go with it: it is checked again once prepared (D286).
-    for (const at of changed) if (project.items[at].stale && window.SiteReadyProjectGo && window.SiteReadyProjectGo.uncheck) window.SiteReadyProjectGo.uncheck(project.items[at]);
+    for (const at of changed) if (project.items[at].stale && window.SiteWriteProjectGo && window.SiteWriteProjectGo.uncheck) window.SiteWriteProjectGo.uncheck(project.items[at]);
     saveProject();
     renderProject();
   };
@@ -1010,7 +1019,7 @@
         const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsNumber: project.items.indexOf(item) + 1, swmsId: item.swmsId || undefined, check: checkOf(item) }));
         const site = S.siteId ? S.siteId() : '';
         // Word and PDF of each, in one zip (D240).
-        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, pdf: true });
+        const result = await S.download('/api/project.zip', 'SiteWrite-project-SWMS.zip', { swms, siteId: site || undefined, pdf: true });
         // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
         for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
         saveProject();

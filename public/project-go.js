@@ -14,11 +14,11 @@
 // them all as Word and PDF in one zip once each has cleared its checks. Each saves as its own SWMS
 // and revision. The project, with every answer, is kept on this device (scope.js).
 (() => {
-  const S = window.SiteReady;
+  const S = window.SiteWrite;
   const { api, esc } = S;
   const $ = (id) => document.getElementById(id);
-  const fill = () => window.SiteReadyDesignFill || null;
-  const gate = () => window.SiteReadyGate || null;
+  const fill = () => window.SiteWriteDesignFill || null;
+  const gate = () => window.SiteWriteGate || null;
 
   let project = null;
   let hooks = null;
@@ -79,7 +79,7 @@
     return site.site;
   }
   function siteSuggestFrom(items) {
-    const T = window.SiteReadyScopeTask;
+    const T = window.SiteWriteScopeTask;
     const out = {};
     for (const [id] of SITE) {
       const texts = items.map((item) => (item.site || {})[id]).filter(Boolean);
@@ -159,12 +159,12 @@
   const whyOf = (item) => ({ ...((item.body && item.body.substancesNotUsedWhy) || item.substancesNotUsedWhy || {}) });
   const wordsOf = (index) => {
     const item = project.items[index];
-    const rules = window.SiteReadySubstanceRules;
+    const rules = window.SiteWriteSubstanceRules;
     return rules ? rules.ownWords({ task: item.goTask !== undefined ? item.goTask : item.task, facts: item.facts, site: item.siteOwn || sharedSite() }) : '';
   };
   // What a type ticked "Not required" still needs: a reason where the SWMS's own words name it.
   function notUsedNeed(index, type) {
-    const rules = window.SiteReadySubstanceRules;
+    const rules = window.SiteWriteSubstanceRules;
     return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(project.items[index])[type], wordsOf(index)) : '';
   }
   function setNotUsed(index, type, ticked) {
@@ -189,7 +189,7 @@
   // The list says at once what the SWMS still needs: the tick and the reason need no new draft.
   function syncNeeds(index, type) {
     const item = project.items[index];
-    const rules = window.SiteReadySubstanceRules;
+    const rules = window.SiteWriteSubstanceRules;
     if (item.kind !== 'draft' || !rules) return;
     const label = `${TYPE_LABEL}${rules.promptName(type)}`;
     const covered = ((item.body && item.body.substances) || []).some((row) => row && row.type === type && String(row.product || '').trim());
@@ -203,7 +203,7 @@
   // data sheets are added in the SWMS's own draft.
   function typesHtml(index, types) {
     const item = project.items[index];
-    const rules = window.SiteReadySubstanceRules;
+    const rules = window.SiteWriteSubstanceRules;
     if (!types.length || !rules) return '';
     const ticked = new Set(notUsedOf(item));
     const products = ((item.body && item.body.substances) || []).filter((row) => row && String(row.product || '').trim());
@@ -249,7 +249,7 @@
     } catch (error) {
       // The questions already shown stay; with none yet, the page says why, with Try again.
       const now = asked.get(index);
-      if (askSeq.get(index) === mine && (!now || now.needsState)) { asked.set(index, { error: error && error.serverDown ? `${error.message}` : 'No signal. The questions show once SiteReady can be reached.', retry: true }); drawItem(index); }
+      if (askSeq.get(index) === mine && (!now || now.needsState)) { asked.set(index, { error: error && error.serverDown ? `${error.message}` : 'No signal. The questions show once SiteWrite can be reached.', retry: true }); drawItem(index); }
     }
   }
   // Before the fall question is answered, the work with no job steps is still found and listed: it
@@ -464,7 +464,7 @@
 
   // ---- Work with no job steps, named before Prepare all (messy round 3) ----
 
-  // The work in a SWMS SiteReady has no job steps for and not yet dealt with: as the server found it
+  // The work in a SWMS SiteWrite has no job steps for and not yet dealt with: as the server found it
   // for the questions (before Prepare all), or from the prepared draft.
   function coverLeftOf(index) {
     const item = project.items[index];
@@ -484,7 +484,7 @@
   };
   // Work with no job steps, with "Write a step for this" for each piece (messy round 4, B fault 1: own
   // steps were offered only once a SWMS was prepared, and Prepare all refused a SWMS with no steps).
-  // A SWMS SiteReady would stand down for want of job steps gets the button for its work as a whole.
+  // A SWMS SiteWrite would stand down for want of job steps gets the button for its work as a whole.
   function coverHtml(index) {
     const left = coverLeftOf(index);
     const got = asked.get(index) || {};
@@ -499,7 +499,7 @@
     const writes = left.length
       ? `<ul class="go-own-writes">${left.map((part, n) => `<li><strong>${esc(part)}</strong> <button type="button" class="small" data-go-own-write="${index}" data-part="${n}">Write a step for this</button></li>`).join('')}</ul>`
       : `<p><button type="button" class="small" data-go-own-write="${index}" data-part="">Write a step for this</button> <span class="meta">for the work of this SWMS. A SWMS of your own steps is prepared like any other.</span></p>`;
-    return `<div class="warning go-cover" id="go-cover-${index}">${left.length ? `<p><strong>SiteReady has no job steps for:</strong> ${esc(left.join('; '))}.</p>` : ''}
+    return `<div class="warning go-cover" id="go-cover-${index}">${left.length ? `<p><strong>SiteWrite has no job steps for:</strong> ${esc(left.join('; '))}.</p>` : ''}
       ${moved.length ? `<p>${moved.map((entry) => `"${esc(entry.part)}" was moved here from ${esc(entry.from)}`).join('; ')}: write its steps in this SWMS.</p>` : ''}
       ${mine}${writes}${ownSaid && ownSaid.index === index ? `<p class="meta" role="status">${esc(ownSaid.text)}</p>` : ''}
       <p class="meta">${left.length && !all ? 'Write your own step for each here, or when you check this SWMS. There you can also say which SWMS of this project covers it.' : 'Write your own step for each here, or when you check this SWMS.'} A step of a word or two is not enough: say what is done, the hazard and how it is controlled.</p></div>`;
@@ -581,7 +581,7 @@
     if (!project) return '';
     const rows = project.items.map((item, index) => ({ item, index, left: coverLeftOf(index) })).filter((row) => row.left.length);
     if (!rows.length) return '';
-    return `<div class="note go-cover-sum"><p><strong>Work SiteReady has no job steps for, in ${rows.length === 1 ? 'one SWMS' : `${rows.length} SWMS`}.</strong> Write a step for each in its SWMS's section below, or when you check that SWMS, where you can also say which SWMS covers it:</p>
+    return `<div class="note go-cover-sum"><p><strong>Work SiteWrite has no job steps for, in ${rows.length === 1 ? 'one SWMS' : `${rows.length} SWMS`}.</strong> Write a step for each in its SWMS's section below, or when you check that SWMS, where you can also say which SWMS covers it:</p>
       <ul>${rows.map((row) => `<li>SWMS ${row.index + 1} (${esc(row.item.title)}): ${esc(row.left.join('; '))}. <button type="button" class="link" data-go-cover="${row.index}">Go to it</button></li>`).join('')}</ul></div>`;
   }
   function drawCoverSum() {
@@ -806,7 +806,7 @@
     if (target.dataset.goWhy !== undefined) {
       const index = Number(target.dataset.goWhy);
       setWhy(index, target.dataset.type, target.value);
-      const rules = window.SiteReadySubstanceRules;
+      const rules = window.SiteWriteSubstanceRules;
       const note = rules && $(`go-why-need-${index}-${rules.TYPES.indexOf(target.dataset.type)}`);
       const need = notUsedNeed(index, target.dataset.type);
       if (note) { note.textContent = need; note.hidden = !need; }
@@ -867,7 +867,7 @@
       const index = Number(target.dataset.goNotused);
       setNotUsed(index, target.dataset.type, target.checked);
       // A type this SWMS's own words name asks why, under the tick (D292 item 3).
-      const rules = window.SiteReadySubstanceRules;
+      const rules = window.SiteWriteSubstanceRules;
       if (rules && rules.namedIn && rules.namedIn(target.dataset.type, wordsOf(index))) {
         drawItem(index);
         const box = $(`go-why-${index}-${rules.TYPES.indexOf(target.dataset.type)}`);
@@ -1185,7 +1185,7 @@
     item.status = hooks.statusOf(item);
     // A part ticked as checked that now prints differently (a detail every SWMS shares, changed on this
     // page) is ticked again before this SWMS downloads (D286).
-    const parts = window.SiteReadyCheckParts;
+    const parts = window.SiteWriteCheckParts;
     if (item.check && parts && draft.checkParts) {
       const cleared = parts.staleParts(item.check.partHashes, draft.checkParts);
       if (cleared.length) { delete item.check; item.checkNote = parts.staleMessage(cleared); }
@@ -1272,12 +1272,12 @@
   const TYPE_LABEL = 'Hazardous substance: ';
   const TYPE_DO = 'for each hazardous substance, add the product you use or tick "Not required"';
   function splitTypes(labels) {
-    const rules = window.SiteReadySubstanceRules;
+    const rules = window.SiteWriteSubstanceRules;
     const names = new Set(rules ? rules.TYPES.map(rules.promptName) : []);
     const isType = (label) => label.startsWith(TYPE_LABEL) && names.has(label.slice(TYPE_LABEL.length));
     return { give: labels.filter((label) => !isType(label)), types: labels.filter(isType).map((label) => label.slice(TYPE_LABEL.length)) };
   }
-  // Each SWMS is checked on its own before it downloads (D240, D286): SiteReady's check, each part
+  // Each SWMS is checked on its own before it downloads (D240, D286): SiteWrite's check, each part
   // ticked, a name and role. The list says whose check it has, or that it needs one.
   const checkOf = (item) => (S.projectCheckOf ? S.projectCheckOf(item) : null);
   const CHECK_IT = 'open it, tick each part as checked, and give your name and role';
@@ -1291,7 +1291,7 @@
       if (check) return { ready: true, text: `Ready to download. Checked by ${check.name}, ${check.role}.` };
       return { ready: false, check: true, text: `${item.checkNote ? `${item.checkNote} ` : ''}Ready for your check: ${CHECK_IT}.` };
     }
-    if (item.kind && item.kind !== 'draft' && noSteps(item)) return { ready: false, text: 'Not finished: SiteReady has no job steps for its work. Write your own step for it under its questions (Back to the questions), or when you check it.' };
+    if (item.kind && item.kind !== 'draft' && noSteps(item)) return { ready: false, text: 'Not finished: SiteWrite has no job steps for its work. Write your own step for it under its questions (Back to the questions), or when you check it.' };
     if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.map((need) => String(need).replace(/[.\s]+$/, '')).join('; ')} need more.` };
     if (item.status === 'write' || item.status === 'tick') {
       const index = project.items.indexOf(item);
@@ -1335,7 +1335,7 @@
       ? (ready
         ? `<div class="note" id="go-not-ready"><p>${ready} of ${n} SWMS ${ready === 1 ? 'is' : 'are'} ready and checked. You can download ${ready === 1 ? 'it' : 'them'} now, and the rest once they are ready and checked. Not ready yet:</p><ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul></div>`
         : '<p class="note">None of the SWMS is ready to download yet. Each one in the list above says what it still needs.</p>')
-      : !last ? '<p class="meta">Every SWMS has cleared SiteReady\'s checks and has been checked part by part.</p>' : '';
+      : !last ? '<p class="meta">Every SWMS has cleared SiteWrite\'s checks and has been checked part by part.</p>' : '';
     // The state whose law every SWMS uses (D292 item 1), and the steps still rated High (D292 item 4).
     const radio = document.querySelector('input[name="state"]:checked');
     const label2 = radio && radio.closest && radio.closest('label');
@@ -1356,7 +1356,7 @@
     const firstToCheck = project.items.findIndex((item, index) => !states[index].ready);
     const can = S.canDownload && S.canDownload();
     return `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
-      <p class="lede">${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Under its draft, SiteReady checks it, then you tick each part as checked and give your name and role. Only SWMS checked this way download.</p>
+      <p class="lede">${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Under its draft, SiteWrite checks it, then you tick each part as checked and give your name and role. Only SWMS checked this way download.</p>
       <p class="error" id="project-error"></p>${said()}
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again and checked.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
@@ -1387,7 +1387,7 @@
     if (project && event.target && PEOPLE.concat([SCAFFOLD]).some(([id]) => event.target.id === id)) sharedNotes();
   });
 
-  window.SiteReadyProjectGo = { render, payloadFor: (index) => payloadFor(index), clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); }, uncheck };
+  window.SiteWriteProjectGo = { render, payloadFor: (index) => payloadFor(index), clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); }, uncheck };
   // A project kept from before opens on its page (scope.js drew it before this script was loaded),
   // and again once the account is known, which the download and the company details depend on.
   if (S.renderProject) S.renderProject();

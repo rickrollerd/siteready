@@ -73,7 +73,7 @@ function fail(status, message) {
 }
 
 const MAX_CHARACTERS = 400000;
-const OFF = 'Reading an uploaded SWMS is not switched on. Check a SiteReady draft instead.';
+const OFF = 'Reading an uploaded SWMS is not switched on. Check a SiteWrite draft instead.';
 
 function validSwms(value) {
   const strings = (items) => Array.isArray(items) && items.every((item) => typeof item === 'string');
@@ -146,7 +146,7 @@ async function strippedText(body, company) {
   return stripped;
 }
 
-// An uploaded or pasted SWMS is read by the AI; a SiteReady draft or a SWMS already in the
+// An uploaded or pasted SWMS is read by the AI; a SiteWrite draft or a SWMS already in the
 // structured form is not, so it is checked at once.
 function readsDocument(body) {
   return !(body.draft && typeof body.draft === 'object') && !(body.swms && typeof body.swms === 'object');
@@ -159,7 +159,7 @@ function readyToRead(body) {
   if (!aiScope.enabled()) throw fail(503, OFF);
 }
 
-// POST /api/check: a SiteReady draft (no AI), a SWMS already in the structured form, or an
+// POST /api/check: a SiteWrite draft (no AI), a SWMS already in the structured form, or an
 // uploaded or pasted document read by the AI. Returns the score, the findings and the email.
 // user: the person checking, kept with an uploaded document when KEEP_CHECKED_SWMS is on.
 async function runCheck(body, company, { user = null } = {}) {
@@ -175,7 +175,7 @@ async function runCheck(body, company, { user = null } = {}) {
     const input = draftBody(body.draft);
     const draft = prepareDraft(input);
     if (draft.kind !== 'draft') {
-      throw fail(400, draft.kind === 'stand-down' ? `This SiteReady draft is stood down. It still needs: ${(draft.missing || []).join('; ')}` : (draft.message || 'This draft could not be prepared.'));
+      throw fail(400, draft.kind === 'stand-down' ? `This SiteWrite draft is stood down. It still needs: ${(draft.missing || []).join('; ')}` : (draft.message || 'This draft could not be prepared.'));
     }
     result = checkSwms(fromDraft(draft, { state: input.state }), { state: input.state, stage });
     source = 'draft';

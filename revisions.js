@@ -1,6 +1,6 @@
 // Each saved revision of a SWMS is kept as it was printed (owner decision, 6 October 2026):
 // its input, the finished draft the Word file, PDF and sign-on page are made from, a
-// fingerprint of its content, the library version it was drafted with, its SiteReady
+// fingerprint of its content, the library version it was drafted with, its SiteWrite
 // reference, who saved it and why. Downloads and sign-on read the kept draft, so an old
 // revision prints the same on any day, whatever has changed in the library or the law since.
 // Where today's library words it differently, the saved SWMS says "Updated wording is
@@ -151,7 +151,7 @@ function view(record) {
 // Keeps a revision as it prints. row is the saved SWMS as it now stands; draft is the draft
 // prepared from its input with the company's details. A reference is issued for the revision.
 // confirmation is the check it was saved with (human-check.js: name, role, date, the parts ticked,
-// their fingerprints and SiteReady's score); without one, the name given and the date.
+// their fingerprints and SiteWrite's score); without one, the name given and the date.
 async function keepRevision({ row, company, input, draft, userId = '', name = '', reason = '', at = new Date(), confirmation: given = null }) {
   const printed = { ...draft, revision: String(row.revision || 1), revisionDate: longDate(at) };
   const fingerprint = contentHash(printed);

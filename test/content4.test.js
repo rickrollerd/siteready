@@ -261,7 +261,7 @@ test('the builder check finds a harness or respirator the PPE list leaves out, a
   const sparky = checkSwms({ ...base, ppe: [...base.ppe, 'Full body harness', 'P2 respirator (fit tested)'], steps: [{ step: 'Before starting', hazards: ['x'], controls: ['Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor.'] }, ...steps] }, { state: 'nsw' });
   assert.match(w(sparky, 'W5').message, /electrical licensing lines/);
   assert.equal(w(agreed, 'W5').points - w(sparky, 'W5').points, 2);
-  // A well-formed draft loses nothing: a SiteReady draft's PPE agrees with its steps.
+  // A well-formed draft loses nothing: a SiteWrite draft's PPE agrees with its steps.
   const draft = draftOf({ ...SITE, state: 'nsw', crane: 'company', slinging: 'ours', kinds: ['steelLift', 'steelErect'], task: 'Erect structural steel roof frame.', facts: { fallControl: 'Connections are made from boom lifts with guardrails, with harnesses attached to the boom lift anchor points.' } });
   const own = checkSwms(fromDraft(draft, { state: 'nsw', swms: { signatures: [{ name: 'Jo' }] } }), { state: 'nsw' });
   assert.doesNotMatch(w(own, 'W2').message, /PPE list leaves/);

@@ -172,7 +172,7 @@ test('when changing the steps ticks a harness in the PPE, Harness and anchors is
   const { page, context, errors } = await openTask('Intumescent fire spray to the steel beams');
   await addStep(page, 'spray', 'Spray painting');
   await page.waitForSelector('#fact-fallControl');
-  // An EWP of no stated type may be a boom lift, so SiteReady suggests a harness once it asks again.
+  // An EWP of no stated type may be a boom lift, so SiteWrite suggests a harness once it asks again.
   await page.fill('#fact-fallControl', 'Work is done from an EWP with guardrails.');
   await page.dispatchEvent('#fact-fallControl', 'change');
   await page.waitForTimeout(500);

@@ -2,7 +2,7 @@
 // for the questions asked most often. The trades and tasks come from the owner's trade
 // catalogue (goal 1, D189 to D192): pick-lists.json is built from it by
 // scripts/build-presets.js, with the task words from pick-wording.js. Each task carries the
-// job steps that cover it and the parts SiteReady has no job steps for. Answers are starting
+// job steps that cover it and the parts SiteWrite has no job steps for. Answers are starting
 // points the user edits; ____ marks a blank.
 
 const fs = require('fs');

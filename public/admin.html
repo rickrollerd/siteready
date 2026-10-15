@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SiteReady numbers</title>
+  <title>SiteWrite numbers</title>
   <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
@@ -46,14 +46,14 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>SiteReady numbers</h1>
+    <h1>SiteWrite numbers</h1>
     <p class="error" id="error"></p>
     <div class="tiles" id="tiles"></div>
     <div class="panel"><h2>What people did</h2><table id="actions"></table></div>
     <div class="panel">
       <h2>Reference lookup</h2>
-      <p class="note">Enter the SiteReady reference from the footer of a SWMS to see which account downloaded it.</p>
-      <form id="ref-form"><input type="text" id="ref-input" placeholder="SR-XXXX-XXXX" autocomplete="off" aria-label="SiteReady reference"><button type="submit">Look up</button></form>
+      <p class="note">Enter the SiteWrite reference from the footer of a SWMS to see which account downloaded it.</p>
+      <form id="ref-form"><input type="text" id="ref-input" placeholder="SW-XXXX-XXXX" autocomplete="off" aria-label="SiteWrite reference"><button type="submit">Look up</button></form>
       <div id="ref-result"></div>
     </div>
     <div class="panel">
@@ -89,6 +89,7 @@
     <div class="panel"><h2>Access log</h2><p class="note">Each time a reference is looked up, an account opened or accounts searched. The last 100.</p><table id="access-log"></table></div>
     <div class="panel"><h2>Recent errors</h2><table id="errors"></table></div>
   </div>
+  <script src="/old-keys.js"></script>
   <script src="/admin.js"></script>
 </body>
 </html>

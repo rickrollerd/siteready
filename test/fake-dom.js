@@ -165,7 +165,7 @@ function loadPage(given, respond, { stored = {} } = {}) {
     const body = options.body ? JSON.parse(options.body) : undefined;
     calls.push({ method, route: String(url), body });
     let answer = (await respond(method, String(url), body)) || {};
-    // SiteReady's check (D286), unless the test answers it: nothing to fix, and each part's fingerprint
+    // SiteWrite's check (D286), unless the test answers it: nothing to fix, and each part's fingerprint
     // as the draft of what the page sent prints. A test about the check answers it itself (selfCheck).
     if (String(url).endsWith('/api/draft/check') && !answer.status && !Object.keys(answer.body || {}).length) answer = { body: cleanCheck(body) };
     const status = answer.status || 200;
@@ -217,7 +217,7 @@ function loadPage(given, respond, { stored = {} } = {}) {
   return { window, document, calls, context, run: (code) => vm.runInContext(code, context) };
 }
 
-// SiteReady's own check of a draft, as the server's /api/draft/check answers it. gate false: as if
+// SiteWrite's own check of a draft, as the server's /api/draft/check answers it. gate false: as if
 // everything the gate asks were answered, for a page whose draft says so.
 function selfCheck(body, { gate: withGate = true, clean = false } = {}) {
   const { prepareDraft } = require('../draft');

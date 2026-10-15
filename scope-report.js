@@ -145,7 +145,7 @@ function workBlocks(sections, options = {}) {
       item.clause || 'Not given',
       quoted(item.quotes),
     ])));
-    if (pack.unmatched.length) out.push(para(`No job steps in SiteReady's library for: ${pack.unmatched.join('; ')}. Add the steps for these to the SWMS yourself.`, { color: MUTED, size: 20, before: 80 }));
+    if (pack.unmatched.length) out.push(para(`No job steps in SiteWrite's library for: ${pack.unmatched.join('; ')}. Add the steps for these to the SWMS yourself.`, { color: MUTED, size: 20, before: 80 }));
   }
   return out;
 }
@@ -251,7 +251,7 @@ function today() {
 async function reportToDocx(reading, options = {}) {
   const settings = { ...options, date: options.date || today() };
   const document = new Document({
-    creator: 'SiteReady',
+    creator: 'SiteWrite',
     title: 'Scope review report',
     styles: { default: { document: { run: { font: FONT, size: 22, color: INK } } } },
     sections: [{
@@ -261,7 +261,7 @@ async function reportToDocx(reading, options = {}) {
           children: [new Paragraph({
             alignment: AlignmentType.LEFT,
             spacing: { before: 80 },
-            children: [run('Scope review report prepared with SiteReady from the AI\'s reading of the scope. Check it against the scope before you rely on it.', { size: 16, color: MUTED })],
+            children: [run('Scope review report prepared with SiteWrite from the AI\'s reading of the scope. Check it against the scope before you rely on it.', { size: 16, color: MUTED })],
           })],
         }),
       },

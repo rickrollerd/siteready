@@ -1,4 +1,4 @@
-// Goal 2 (owner, 7 October 2026): SiteReady will not produce a download until the site questions
+// Goal 2 (owner, 7 October 2026): SiteWrite will not produce a download until the site questions
 // are answered. The gate (download-gate.js) on Word, PDF, the project zip, saving and saved SWMS;
 // "None" or "Not applicable" where a question can truly have none; blanks (____) and "To be
 // completed" filled before download; and the builder check failing them (H8).
@@ -39,7 +39,7 @@ test('a SWMS with every site question and key person blank lists each one as nee
   assert.deepEqual(list.map((gap) => gap.field), ['workplace', 'principal', 'compliance-responsible', 'reviewer', 'works-manager', 'works-manager-phone', 'first-aider', 'muster-point', 'hospital',
     'site-liveServices', 'site-publicInterface', 'site-otherTrades', 'site-ground', 'site-access']);
   for (const gap of list) assert.ok(gap.need.length > 20 && !/\u2014/.test(gap.need), gap.id);
-  assert.match(gateMessage(list), /^SiteReady does not produce a SWMS until the site questions are answered/);
+  assert.match(gateMessage(list), /^SiteWrite does not produce a SWMS until the site questions are answered/);
   assert.match(gateMessage(list), /Principal contractor; Person who makes sure the SWMS is followed/);
   // Answered, nothing is left to do.
   assert.deepEqual(ids({ ...FENCE, ...ANSWERED }), []);

@@ -99,9 +99,9 @@ test('a scan or a photo has no typed words: not read, with the plain message', a
   const model = standIn({ title: '', by: '', number: 'X', revision: '', date: '' });
   aiScope.useClient(model);
   const scan = await upload(await drawing(null), 'scan.pdf');
-  await assert.rejects(designRead.readDesign(company, scan.id), /^Error: This drawing has no typed words SiteReady can read, so type its details\.$/);
+  await assert.rejects(designRead.readDesign(company, scan.id), /^Error: This drawing has no typed words SiteWrite can read, so type its details\.$/);
   const photo = await upload(require('fs').readFileSync(require('path').join(__dirname, '../public/icon-192.png')), 'photo.png');
-  await assert.rejects(designRead.readDesign(company, photo.id), /This drawing has no typed words SiteReady can read, so type its details\./);
+  await assert.rejects(designRead.readDesign(company, photo.id), /This drawing has no typed words SiteWrite can read, so type its details\./);
   assert.equal(model.calls.length, 0);
 });
 

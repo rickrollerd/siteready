@@ -1,7 +1,7 @@
 name: Fetch state WHS regulations
 
 # Fetches each state and territory's WHS regulation in full and commits the text to
-# the state-sources branch, so SiteReady's citations for those states can be
+# the state-sources branch, so SiteWrite's citations for those states can be
 # checked against them.
 on:
   workflow_dispatch:

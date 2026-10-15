@@ -85,7 +85,7 @@
 
   // One reading's bar. what: 'scope' or 'methodology'. Its HTML can be drawn again at any time
   // (a card redrawn mid-reading) and shows where the reading is.
-  function track({ what = 'scope', lead = '', steps = ['Reading every word', 'Matching the work to SiteReady\'s job steps'] } = {}) {
+  function track({ what = 'scope', lead = '', steps = ['Reading every word', 'Matching the work to SiteWrite\'s job steps'] } = {}) {
     count += 1;
     const id = `read-progress-${count}`;
     const tracker = {
@@ -271,5 +271,5 @@
     return dialog;
   }
 
-  root.SiteReadyProgress = { ...api, track, unlockAudio, chime, announce };
+  root.SiteWriteProgress = { ...api, track, unlockAudio, chime, announce };
 })(typeof window !== 'undefined' ? window : globalThis);

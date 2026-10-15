@@ -6,7 +6,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadPage, settle, FakeEvent, checkAll } = require('./fake-dom');
 
-const KEY = 'siteready.unsaved';
+const KEY = 'sitewrite.unsaved';
 const DRAFT = {
   kind: 'draft', state: 'Queensland', task: 'Dig a trench.', highRisk: [], controls: [], site: [], ppe: [], references: [], sources: { legislation: [], codes: [] },
   jobSteps: [{ step: 'Excavate', hazards: ['Collapse.'], controls: ['Spoil is kept back from the edge.'], responsible: 'Plant operator' }],
@@ -29,7 +29,7 @@ function server({ signedIn = true } = {}) {
 const kept = (input, extra = {}) => JSON.stringify({ at: Date.now() - 60 * 1000, stage: 'start', input, editing: null, ...extra });
 const INPUT = { state: 'qld', task: 'Dig a trench for the stormwater pipe.', fallRisk: 'no', workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', firstAider: 'Jo Smith', musterPoint: 'Front gate', facts: {}, site: {} };
 
-const page = (stored = {}, options = {}) => loadPage(['app.js', 'account.js'], server(options), { stored: { 'siteready.session': 'token', ...stored } });
+const page = (stored = {}, options = {}) => loadPage(['app.js', 'account.js'], server(options), { stored: { 'sitewrite.session': 'token', ...stored } });
 const stored = (p) => { const value = p.window.localStorage.getItem(KEY); return value ? JSON.parse(value) : null; };
 
 test('the task and site details typed before a reload come back', async () => {
@@ -71,7 +71,7 @@ test('broken or missing storage does not stop the page', async () => {
   // Storage that throws (private browsing on some phones).
   p.window.localStorage.setItem = () => { throw new Error('QuotaExceededError'); };
   p.document.getElementById('task').value = 'Dig a trench.';
-  assert.doesNotThrow(() => p.window.SiteReady.keepUnsaved());
+  assert.doesNotThrow(() => p.window.SiteWrite.keepUnsaved());
 });
 
 test('what is typed is kept, without the business details kept in the company profile', async () => {
@@ -79,11 +79,11 @@ test('what is typed is kept, without the business details kept in the company pr
   await settle();
   // As the page opens: the questions and the draft are not shown yet.
   ['facts', 'result'].forEach((id) => p.document.getElementById(id).classList.add('hidden'));
-  p.window.SiteReady.keepUnsaved();
+  p.window.SiteWrite.keepUnsaved();
   assert.equal(stored(p), null, 'nothing typed, nothing kept');
   p.document.getElementById('task').value = 'Dig a trench.';
   p.document.getElementById('principal').value = 'ABC Builders Pty Ltd';
-  p.window.SiteReady.keepUnsaved();
+  p.window.SiteWrite.keepUnsaved();
   const record = stored(p);
   assert.equal(record.stage, 'start');
   assert.equal(record.input.task, 'Dig a trench.');

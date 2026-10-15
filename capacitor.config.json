@@ -1,6 +1,6 @@
 {
   "appId": "com.siteready.app",
-  "appName": "SiteReady",
+  "appName": "SiteWrite",
   "webDir": "public",
   "server": {
     "androidScheme": "https",

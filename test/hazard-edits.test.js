@@ -1,5 +1,5 @@
 // The user's own hazards and Who (owner decision, 6 October 2026, item 8): hazards can be
-// reworded and added; SiteReady's own hazards cannot be deleted, only marked as not applying,
+// reworded and added; SiteWrite's own hazards cannot be deleted, only marked as not applying,
 // with an optional reason; the Who column can be changed. Word, PDF and the sign-on page print them.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -34,7 +34,7 @@ test('hazards are reworded, added and marked as not applying, never deleted, and
   assert.deepEqual(kinds, ['hazardChanged', 'hazardNotApplicable', 'hazardAdded', 'whoChanged']);
   const na = draft.controlEdits.applied.find((item) => item.kind === 'hazardNotApplicable');
   assert.deepEqual([na.from, na.reason, na.note], [SECOND, 'anotherWay', 'Trench shield used.']);
-  // The risk rating is worked out from SiteReady's hazards, so a reworded hazard does not lower it.
+  // The risk rating is worked out from SiteWrite's hazards, so a reworded hazard does not lower it.
   assert.deepEqual(step.risk, excavate.risk);
   // Other steps are as they were.
   assert.deepEqual(draft.jobSteps[0], plain.jobSteps[0]);
@@ -106,7 +106,7 @@ test('in the preview, a hazard is marked as not applying, a hazard added and Who
   await settle();
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(hazardEdits)')), { Excavate: { changed: [], added: ['Wasps.'], notApplicable: [] } });
   // A new SWMS starts without them.
-  p.window.SiteReady.newSwms();
+  p.window.SiteWrite.newSwms();
   assert.equal(p.run('hazardEdits'), null);
   assert.equal(p.run('whoEdits'), null);
 });

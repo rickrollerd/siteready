@@ -98,7 +98,7 @@ async function main() {
   for (const url of URLS) {
     try {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'SiteReady legislation cross-check (github.com/rickrollerd/siteready)' },
+        headers: { 'User-Agent': 'SiteWrite legislation cross-check (github.com/rickrollerd/siteready)' },
         signal: AbortSignal.timeout(30000),
       });
       let body;

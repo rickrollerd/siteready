@@ -132,7 +132,7 @@ test('a released change marks each affected SWMS and emails each administrator o
   const mail = mailbox.slice(sent);
   assert.deepEqual(mail.map((item) => item.to).sort(), ['admin-a@notice.example', 'admin-b@notice.example']);
   const toA = mail.find((item) => item.to === 'admin-a@notice.example');
-  assert.equal(toA.subject, 'SiteReady: 2 SWMS to review after a change');
+  assert.equal(toA.subject, 'SiteWrite: 2 SWMS to review after a change');
   assert.match(toA.text, new RegExp(reason.replace(/[.()]/g, '\\$&')));
   assert.match(toA.text, /- Back fence \(revision 1\): 1 change\n- Fence repairs \(revision 1\): 1 change/);
   assert.doesNotMatch(toA.text, /Side fence|Boundary fence/);

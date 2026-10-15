@@ -7,13 +7,13 @@ const path = require('path');
 const crypto = require('crypto');
 
 const [folder, from, to, subject, bodyFile] = process.argv.slice(2);
-const boundary = `siteready-${crypto.randomBytes(12).toString('hex')}`;
+const boundary = `sitewrite-${crypto.randomBytes(12).toString('hex')}`;
 const files = fs.readdirSync(folder).filter((name) => name.endsWith('.docx')).sort();
 const wrap = (text) => text.replace(/.{1,76}/g, '$&\r\n');
 const plain = (text) => String(text).replace(/[^\x20-\x7e]/g, '');
 
 const parts = [
-  `From: SiteReady <${from}>`,
+  `From: SiteWrite <${from}>`,
   `To: ${to}`,
   `Subject: ${plain(subject)}`,
   `Date: ${new Date().toUTCString()}`,

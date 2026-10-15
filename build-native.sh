@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Building SiteReady Native Apps"
+echo "🚀 Building SiteWrite Native Apps"
 echo "================================="
 echo "Current: $(date '+%H:%M %Z')"
 echo ""
@@ -39,7 +39,7 @@ echo "✅ Capacitor ready"
 # Build web assets
 echo ""
 echo "🌐 Building web assets..."
-# Note: SiteReady is a simple Express app, no complex build needed
+# Note: SiteWrite is a simple Express app, no complex build needed
 echo "✅ Web assets ready (static files)"
 
 # Sync with Capacitor
@@ -132,5 +132,5 @@ echo "4. Start beta testing program"
 echo "5. Prepare app store assets"
 
 echo ""
-echo "The native app calls the server named in <meta name=\"siteready-api\"> in public/index.html."
+echo "The native app calls the server named in <meta name=\"sitewrite-api\"> in public/index.html."
 echo "Set it to the deployed server address before a release build."

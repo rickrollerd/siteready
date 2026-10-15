@@ -1,10 +1,10 @@
-// The principal contractor's review page (goal 3): /review.html?ref=SR-ABCD-2345. The reviewer
+// The principal contractor's review page (goal 3): /review.html?ref=SW-ABCD-2345. The reviewer
 // signs in by email link (a reviewer, not an account), reads the saved revision, runs Builder check
 // on it and sends one of three responses. The reviewer's session is kept apart from an account's.
 (() => {
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
-  const KEY = 'siteready.reviewer';
+  const KEY = 'sitewrite.reviewer';
   const store = {
     get: (key) => { try { return localStorage.getItem(key) || ''; } catch { return ''; } },
     set: (key, value) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key); } catch { /* not kept */ } },
@@ -30,11 +30,12 @@
     $(id).innerHTML = html ? `<div class="${kind}">${html}</div>` : '';
   }
 
-  // A reference as typed or pasted: "sr abcd 2345" or "SRABCD2345" reads as SR-ABCD-2345.
+  // A reference as typed or pasted: "sw abcd 2345" or "SWABCD2345" reads as SW-ABCD-2345. An old SR-
+  // reference, from before the change of name (D295), reads the same way.
   function cleanRef(value) {
     const text = String(value || '').toUpperCase();
-    const found = /SR[\s-]*([2-9A-HJ-NP-Z]{4})[\s-]*([2-9A-HJ-NP-Z]{4})(?![A-Z0-9])/.exec(text);
-    return found ? `SR-${found[1]}-${found[2]}` : text.trim();
+    const found = /S([RW])[\s-]*([2-9A-HJ-NP-Z]{4})[\s-]*([2-9A-HJ-NP-Z]{4})(?![A-Z0-9])/.exec(text);
+    return found ? `S${found[1]}-${found[2]}-${found[3]}` : text.trim();
   }
 
   // ---- The SWMS, read only, as it prints ----
@@ -134,7 +135,7 @@
     status('summary', '');
     show('signin', false);
     show('review', false);
-    if (!ref) { status('summary', 'Enter the SiteReady reference from the footer of the SWMS, such as SR-ABCD-2345.', 'bad'); return; }
+    if (!ref) { status('summary', 'Enter the SiteWrite reference from the footer of the SWMS, such as SW-ABCD-2345.', 'bad'); return; }
     let found;
     let shape = false;
     try {
@@ -150,9 +151,9 @@
       return;
     }
     business = found.business || '';
-    const state = !found.revision ? 'This SWMS was not saved in SiteReady, so it cannot be reviewed here. Ask the business for a saved copy.'
+    const state = !found.revision ? 'This SWMS was not saved in SiteWrite, so it cannot be reviewed here. Ask the business for a saved copy.'
       : found.current ? 'This is the current revision.' : 'This revision is no longer current. Ask the business for the current revision and its reference.';
-    status('summary', `<strong>Genuine SiteReady reference.</strong><dl><dt>Prepared for</dt><dd>${esc(found.business)}</dd><dt>Title</dt><dd>${esc(found.title)}</dd>
+    status('summary', `<strong>Genuine SiteWrite reference.</strong><dl><dt>Prepared for</dt><dd>${esc(found.business)}</dd><dt>Title</dt><dd>${esc(found.title)}</dd>
       ${found.revision ? `<dt>Revision</dt><dd>${esc(found.revision)}</dd>` : ''}<dt>Reference</dt><dd>${esc(found.ref)}</dd></dl><p><strong>${esc(state)}</strong></p>`, found.reviewable ? 'ok' : 'bad');
     if (!found.revision) return;
     if (!token) { show('signin', true); return; }
@@ -160,7 +161,7 @@
   }
 
   // Unsent words are kept on this device for each reference, so Back or a reload loses nothing.
-  const draftKey = () => `siteready.review.${ref}`;
+  const draftKey = () => `sitewrite.review.${ref}`;
   function keepDraft() {
     store.set(draftKey(), JSON.stringify({ response: chosen(), text: $('text').value, name: $('name').value, company: $('company').value }));
   }
@@ -191,7 +192,7 @@
     $('sheet-title').textContent = `1. Read the SWMS: ${data.title}, revision ${data.revision}`;
     const html = sheet(data.draft, data.tables || {}, Array.isArray(data.checked) ? data.checked : []);
     // Each load rating shows its mass, as the printed SWMS does (D263).
-    $('sheet').innerHTML = window.SiteReadyMass ? window.SiteReadyMass.withMassHtml(html) : html;
+    $('sheet').innerHTML = window.SiteWriteMass ? window.SiteWriteMass.withMassHtml(html) : html;
     $('sheet-box').open = window.matchMedia('(min-width: 900px)').matches;
     $('respond-closed').innerHTML = data.current ? '' : `<strong>This revision is no longer current.</strong><p>This is revision ${esc(data.revision)}. The business has saved revision ${esc(data.latestRevision)} since, so only that revision can be given a response. Ask the business for its reference.</p>`;
     show('respond-closed', !data.current);
@@ -277,7 +278,7 @@
   });
 
   function sentBlock(review) {
-    return `<div class="ok"><strong>Sent: ${esc(review.label)}.</strong><p>Recorded against revision ${esc(review.revision)} on ${esc(review.date)}. ${esc(business || 'The business')} can see it in SiteReady and has been emailed that its review is back.</p></div>
+    return `<div class="ok"><strong>Sent: ${esc(review.label)}.</strong><p>Recorded against revision ${esc(review.revision)} on ${esc(review.date)}. ${esc(business || 'The business')} can see it in SiteWrite and has been emailed that its review is back.</p></div>
       <button type="button" class="light" id="change-response">Send a different response</button>`;
   }
 

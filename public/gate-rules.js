@@ -298,5 +298,5 @@
 
   const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyGate = api;
+  else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

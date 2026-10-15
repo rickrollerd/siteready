@@ -39,7 +39,7 @@ function controlEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
-// The user's own hazards by job step name: hazards reworded, added, and SiteReady's hazards marked
+// The user's own hazards by job step name: hazards reworded, added, and SiteWrite's hazards marked
 // as not applying (they cannot be deleted), with an optional reason; and who is responsible for
 // each step's controls (the Who column).
 function hazardEdits(value) {
@@ -80,7 +80,7 @@ function whoEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
-// Job steps the user writes for work SiteReady has no job steps for (owner, 11 October 2026): the
+// Job steps the user writes for work SiteWrite has no job steps for (owner, 11 October 2026): the
 // part of the task each is written for, as the warning above the draft named it, the step's name,
 // its hazards and controls (one a line) and who is responsible. A step's name is used once.
 function ownSteps(value) {
@@ -103,7 +103,7 @@ function ownSteps(value) {
 }
 
 // The designs the SWMS relies on (designs.js), as the user answered them: which design (by id: one
-// SiteReady found in the steps, or "added-1" and so on for one the user added), what it is, who
+// SiteWrite found in the steps, or "added-1" and so on for one the user added), what it is, who
 // prepared it, its document or drawing number, revision and date, whether it is issued, not issued
 // yet or not needed, and the file attached, by the id it was stored under (design-files.js). A
 // written method or sequence of works the work follows is kept the same way, as "method-1" and so on.
@@ -183,7 +183,7 @@ function substances(value) {
 
 // The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
 // Where the user put each PPE item (D247): an item id to 'all' (moved to all work) or to the names
-// of the steps it is worn in. Items not listed follow SiteReady's suggestion.
+// of the steps it is worn in. Items not listed follow SiteWrite's suggestion.
 // The SWMS named for each part with no job steps that another SWMS covers ({ part: SWMS name }).
 function elsewhere(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
@@ -211,7 +211,7 @@ function fills(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
-// The plant the user confirmed (goal 2): the names of the plant SiteReady listed that the crew
+// The plant the user confirmed (goal 2): the names of the plant SiteWrite listed that the crew
 // uses and does not use, and the user's own items with the licence or ticket to operate each.
 function plantChoice(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
@@ -266,7 +266,7 @@ function draftBody(body) {
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     // The rows of a scope reading that the reader matched to no job steps (owner decision D184).
     unmatched: Array.isArray(body.unmatched) ? body.unmatched.filter((row) => typeof row === 'string').slice(0, 60).map((row) => textField(row, 400)).filter(Boolean) : undefined,
-    // The parts of a task picked from the pick list that SiteReady has no job steps for (goal 1).
+    // The parts of a task picked from the pick list that SiteWrite has no job steps for (goal 1).
     pickGaps: Array.isArray(body.pickGaps) ? body.pickGaps.filter((part) => typeof part === 'string').slice(0, 10).map((part) => textField(part, 300)).filter(Boolean) : undefined,
     // The parts with no job steps the user ticked as dealt with, above the draft (D184).
     notCoveredConfirmed: Array.isArray(body.notCoveredConfirmed) ? body.notCoveredConfirmed.filter((part) => typeof part === 'string').slice(0, 60).map((part) => textField(part, 5000)) : undefined,
@@ -290,7 +290,7 @@ function draftBody(body) {
     emergency: emergencyAnswers(body.emergency),
     designs: designs(body.designs),
     substances: substances(body.substances),
-    // The types of substance SiteReady suggests that the user ticked "Not required" (D277).
+    // The types of substance SiteWrite suggests that the user ticked "Not required" (D277).
     substancesNotUsed: Array.isArray(body.substancesNotUsed) ? (() => { const { TYPES } = require('./public/substance-rules'); const out = [...new Set(body.substancesNotUsed.filter((type) => TYPES.includes(type)))]; return out.length ? out : undefined; })() : undefined,
     // The short reason given for a type ticked "Not required" that the user's own words name (D292).
     substancesNotUsedWhy: body.substancesNotUsedWhy && typeof body.substancesNotUsedWhy === 'object' && !Array.isArray(body.substancesNotUsedWhy) ? (() => { const { TYPES } = require('./public/substance-rules'); const out = Object.entries(body.substancesNotUsedWhy).filter(([type, why]) => TYPES.includes(type) && typeof why === 'string' && why.trim()).map(([type, why]) => [type, textField(why, 200)]); return out.length ? Object.fromEntries(out) : undefined; })() : undefined,

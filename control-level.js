@@ -1,6 +1,6 @@
 // Where a control sits in the hierarchy of control (WHS Regulations s 36), read from its wording.
-// One ranking for the builder check (W2, W10) and for the order SiteReady prints each step's
-// controls in, so a SiteReady draft is checked by the same rule it was written to.
+// One ranking for the builder check (W2, W10) and for the order SiteWrite prints each step's
+// controls in, so a SiteWrite draft is checked by the same rule it was written to.
 const { HIERARCHY } = require('./legislation');
 
 // A printed code or law citation, such as "(Scaffolding Code of Practice 2021 (Qld) s 4.1)" or a

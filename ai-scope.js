@@ -350,7 +350,7 @@ function oneForTheProject(reading) {
       && siteRows(reading, item.package).some((row) => suggestedKinds(packageTask([row]), {}, { allWords: true }).includes(main))).map((item) => ({ item }));
     const members = [...located, ...joining, ...ungrouped];
     if (members.length < 2) continue;
-    // Named for the work where SiteReady has a name for it ("Formwork and falsework"), as the quick read does.
+    // Named for the work where SiteWrite has a name for it ("Formwork and falsework"), as the quick read does.
     let name = `${TITLES[main] || 'Trade installation'}: whole project`;
     if (names.has(name)) name = `Trade installation: ${located.map((entry) => entry.item.package.replace(TRADE_INSTALLATION, '')).join(', ')}`;
     names.add(name);
@@ -572,7 +572,7 @@ function finishingWithThePour(reading) {
   return moveActivities(reading, moving, pour.package, []);
 }
 
-// A package is named for its work where SiteReady has a name for it, so the same work has the same
+// A package is named for its work where SiteWrite has a name for it, so the same work has the same
 // name and the same pick list trade: "Trade installation: suspended slabs and stairs" that is only
 // reinforcement work is "Reinforcement". Only a package whose every activity names that work, and one
 // the AI named itself (not from the brief's list, and not one made for the whole project), is renamed;

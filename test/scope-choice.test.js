@@ -213,7 +213,7 @@ function server(read) {
 async function readPage() {
   const settled = settlePackages(reading());
   const read = { id: 'r1', status: 'done', state: 'nsw', reading: { ...settled, highRisk: await packageHighRisk(settled, 'nsw') }, checks: { passed: true } };
-  const p = loadPage(['app.js', 'account.js', 'scope-task.js', 'scope-hrcw.js', 'scope-choice.js', 'scope.js'], server(read), { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['app.js', 'account.js', 'scope-task.js', 'scope-hrcw.js', 'scope-choice.js', 'scope.js'], server(read), { stored: { 'sitewrite.session': 'token' } });
   await settle(40);
   p.document.getElementById('scope-file').files = [];
   p.document.getElementById('scope-text').value = 'Scope text.';
@@ -229,7 +229,7 @@ function fire(p, type, target, on = 'scope-results') {
 }
 const input = (p, props) => Object.assign(p.document.createElement('input'), { dataset: {}, ...props });
 const cranageNote = (crane) => require('../public/scope-choice').cranageOffer(crane, null).note;
-const projectOf = (p) => JSON.parse(p.window.localStorage.getItem('siteready.project'));
+const projectOf = (p) => JSON.parse(p.window.localStorage.getItem('sitewrite.project'));
 
 test('the work packages are chosen once and go straight to the SWMS to prepare, and the choice can be changed', async () => {
   const p = await readPage();
@@ -287,7 +287,7 @@ test('with a crane company and no cranage clause, cranage is not chosen but can 
   plain.activities = plain.activities.map((item) => ({ ...item, quotes: [] }));
   const settled = settlePackages(plain);
   const read = { id: 'r1', status: 'done', state: 'nsw', reading: { ...settled, highRisk: await packageHighRisk(settled, 'nsw') }, checks: { passed: true } };
-  const p = loadPage(['app.js', 'account.js', 'scope-task.js', 'scope-hrcw.js', 'scope-choice.js', 'scope.js'], server(read), { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['app.js', 'account.js', 'scope-task.js', 'scope-hrcw.js', 'scope-choice.js', 'scope.js'], server(read), { stored: { 'sitewrite.session': 'token' } });
   await settle(40);
   p.document.getElementById('scope-text').value = 'Scope text.';
   p.document.getElementById('scope-file').files = [];

@@ -223,5 +223,5 @@ process.on('unhandledRejection', (reason) => {
 
 const PORT = process.env.PORT || 3849;
 app.listen(PORT, () => {
-  console.log(`SiteReady server running on http://localhost:${PORT}`);
+  console.log(`SiteWrite server running on http://localhost:${PORT}`);
 });

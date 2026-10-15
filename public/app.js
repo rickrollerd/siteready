@@ -1,11 +1,11 @@
 // The web page calls the server it was loaded from. The native app sets
-// <meta name="siteready-api"> to the server address.
-const API_BASE = (document.querySelector('meta[name="siteready-api"]')?.content || '').replace(/\/+$/, '');
+// <meta name="sitewrite-api"> to the server address.
+const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
 const api = (route) => `${API_BASE}${route}`;
 
-// A reply that is not SiteReady's own (a 502 from the host, a page of HTML) or no reply at all says so
+// A reply that is not SiteWrite's own (a 502 from the host, a page of HTML) or no reply at all says so
 // plainly, never as raw JSON text (messy round 3: "Unexpected token 'u', "upstream r"... is not valid JSON").
-const SERVER_DOWN = 'SiteReady could not reach the server. Try again.';
+const SERVER_DOWN = 'SiteWrite could not reach the server. Try again.';
 async function readJson(response) {
   const type = (response.headers && response.headers.get && response.headers.get('content-type')) || '';
   try {
@@ -16,7 +16,7 @@ async function readJson(response) {
   }
 }
 // Asking for the questions or a draft changes nothing on the server, so a host's error (502, 503, 504)
-// or a reply that is not SiteReady's is asked again twice before the page says so (messy round 4,
+// or a reply that is not SiteWrite's is asked again twice before the page says so (messy round 4,
 // A fault 5: a 502 on the questions sent a prepared SWMS back to its task form).
 const RETRIED = new Set(['/api/draft/questions', '/api/draft']);
 const pause = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
@@ -47,7 +47,7 @@ let questions = null;
 
 // The company profile is kept in this browser only. It is not sent anywhere
 // until a statement is prepared, and the server does not keep it.
-const PROFILE_KEY = 'siteready.profile';
+const PROFILE_KEY = 'sitewrite.profile';
 const PROFILE_FIELDS = { name: 'profile-company', abn: 'profile-abn', address: 'profile-address', phone: 'profile-phone', email: 'profile-email' };
 let profile = loadProfile();
 let pendingLogo = profile.logo || '';
@@ -79,7 +79,7 @@ function showProfile() {
 }
 
 // What is typed in the profile, kept on this device until it is saved, so a reload does not lose it.
-const PROFILE_TYPING_KEY = 'siteready.profileTyping';
+const PROFILE_TYPING_KEY = 'sitewrite.profileTyping';
 const profileTyped = () => Object.fromEntries(Object.entries(PROFILE_FIELDS).map(([key, id]) => [key, document.getElementById(id).value.trim()]));
 const profileDiffers = (typed) => Object.keys(PROFILE_FIELDS).some((key) => String(typed[key] || '').trim() !== String(profile[key] || '').trim());
 function keptProfileTyping() {
@@ -182,10 +182,10 @@ async function saveProfile({ auto = false } = {}) {
   Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { next[key] = document.getElementById(id).value.trim(); });
   if (pendingLogo) next.logo = pendingLogo;
   // Signed in, the profile is the company's and is kept on the server for the whole team.
-  if (window.SiteReady && window.SiteReady.saveCompany && window.SiteReady.signedIn()) {
+  if (window.SiteWrite && window.SiteWrite.saveCompany && window.SiteWrite.signedIn()) {
     try {
-      window.SiteReady.lastCompanyNotice = '';
-      const saved = await window.SiteReady.saveCompany(next);
+      window.SiteWrite.lastCompanyNotice = '';
+      const saved = await window.SiteWrite.saveCompany(next);
       forgetProfileTyping();
       // Saved as it is filled in, the profile stays open where the user is typing, and what was typed
       // while it saved stays in its box, to be saved in turn.
@@ -197,7 +197,7 @@ async function saveProfile({ auto = false } = {}) {
         Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typedSince[key] !== String(next[key] || '')) document.getElementById(id).value = typedSince[key]; });
         keepProfileTyping();
       }
-      profileStatus(window.SiteReady.lastCompanyNotice || (auto ? 'Saved for your company as you filled it in.' : 'Saved for your company.'));
+      profileStatus(window.SiteWrite.lastCompanyNotice || (auto ? 'Saved for your company as you filled it in.' : 'Saved for your company.'));
     } catch (error) {
       profileStatus(auto ? `Not saved yet: ${error.message} Fix it, then press Save profile.` : error.message);
     }
@@ -320,7 +320,7 @@ if (!reviewDateEl.value) reviewDateEl.value = isoReviewDate();
 }));
 
 // Prepared by is remembered on this device. Signed in, the account name fills it.
-const PREPARED_KEY = 'siteready.preparedBy';
+const PREPARED_KEY = 'sitewrite.preparedBy';
 const preparedEl = document.getElementById('prepared-by');
 try { preparedEl.value = localStorage.getItem(PREPARED_KEY) || ''; } catch { /* not kept */ }
 preparedEl.addEventListener('change', () => {
@@ -338,7 +338,7 @@ const BUILDERS = [
 
 // Principal contractors used before, and those on saved sites, are suggested as you type,
 // ahead of the builders list.
-const PRINCIPALS_KEY = 'siteready.principals';
+const PRINCIPALS_KEY = 'sitewrite.principals';
 let principals = [];
 try { principals = JSON.parse(localStorage.getItem(PRINCIPALS_KEY) || '[]'); } catch { principals = []; }
 if (!Array.isArray(principals)) principals = [];
@@ -403,7 +403,7 @@ function payload() {
     // The PPE ticked for all work and for particular steps, and where the user put items (D247).
     ppe: document.querySelector('[data-ppe]') ? ppeTicked() : undefined,
     ppeSteps: Object.keys(ppePlaced).length ? ppePlaced : undefined,
-    // The job steps picked, or none to use the ones SiteReady finds in the task.
+    // The job steps picked, or none to use the ones SiteWrite finds in the task.
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
@@ -411,7 +411,7 @@ function payload() {
     // and the parts with no job steps the user ticked as dealt with (owner decision D184).
     unmatched: scopeUnmatched || undefined,
     scopeTask: scopeWordsNow || undefined,
-    // The parts of a task picked from the pick list that SiteReady has no job steps for (goal 1).
+    // The parts of a task picked from the pick list that SiteWrite has no job steps for (goal 1).
     pickGaps: pickGaps || undefined,
     notCoveredConfirmed: coverTicked ? JSON.parse(coverTicked) : undefined,
     // The SWMS the user named for each part another SWMS covers, kept with the record.
@@ -419,7 +419,7 @@ function payload() {
     // Of those, the work moved into another SWMS of the project: it comes off this Task line (D291).
     movedOut: coverMovedSent(),
     // Work another SWMS of the project named this one as covering (D289, scope.js).
-    movedIn: (window.SiteReady && window.SiteReady.projectMovedIn && window.SiteReady.projectMovedIn()) || undefined,
+    movedIn: (window.SiteWrite && window.SiteWrite.projectMovedIn && window.SiteWrite.projectMovedIn()) || undefined,
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
@@ -429,9 +429,9 @@ function payload() {
     emergency: emergencyAnswers || undefined,
     designs: designsPayload(),
     // Each hazardous product the user listed, from its safety data sheet (substances.js, D256).
-    substances: window.SiteReadySubstances ? window.SiteReadySubstances.payload() : undefined,
-    substancesNotUsed: window.SiteReadySubstances ? window.SiteReadySubstances.notUsedPayload() : undefined,
-    substancesNotUsedWhy: window.SiteReadySubstances && window.SiteReadySubstances.notUsedWhyPayload ? window.SiteReadySubstances.notUsedWhyPayload() : undefined,
+    substances: window.SiteWriteSubstances ? window.SiteWriteSubstances.payload() : undefined,
+    substancesNotUsed: window.SiteWriteSubstances ? window.SiteWriteSubstances.notUsedPayload() : undefined,
+    substancesNotUsedWhy: window.SiteWriteSubstances && window.SiteWriteSubstances.notUsedWhyPayload ? window.SiteWriteSubstances.notUsedWhyPayload() : undefined,
     facts,
     site,
   };
@@ -477,7 +477,7 @@ function stateName(id) {
 let addressStateBefore = '';
 const STATE_LAW = { act: 'ACT law', nsw: 'New South Wales law', vic: 'Victorian law', qld: 'Queensland law', sa: 'South Australian law', wa: 'Western Australian law', tas: 'Tasmanian law', nt: 'Northern Territory law' };
 function expectedState() {
-  const A = window.SiteReadyAddress;
+  const A = window.SiteWriteAddress;
   if (!A) return '';
   return addressStateBefore || A.stateFromAddress(profile.address || '').state || A.stateFromAddress(((readMemory().workplace || [])[0]) || '').state || '';
 }
@@ -495,10 +495,10 @@ const STATE_ASK = 'Which state or territory is this job in? Pick the job address
 function stateChosen() {
   const note = document.getElementById('state-ask');
   if (note && stateNow()) { note.textContent = ''; note.classList.add('hidden'); }
-  if (stateNow() && !window.SiteReadyAddress?.stateFromAddress(workplaceEl.value).state && workplaceEl.value.trim()) applyAddressState();
+  if (stateNow() && !window.SiteWriteAddress?.stateFromAddress(workplaceEl.value).state && workplaceEl.value.trim()) applyAddressState();
 }
 function applyAddressState() {
-  const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
+  const found = window.SiteWriteAddress ? window.SiteWriteAddress.stateFromAddress(workplaceEl.value) : { state: '' };
   workplaceState.classList.remove('state-warning', 'state-said');
   if (!found.state) {
     // Typed with no state and not picked from the list: the state is asked plainly, or the one ticked
@@ -548,7 +548,7 @@ workplaceState.addEventListener('click', (event) => {
     return;
   }
   if (event.target.closest('[data-state-keep]')) {
-    const found = window.SiteReadyAddress.stateFromAddress(workplaceEl.value);
+    const found = window.SiteWriteAddress.stateFromAddress(workplaceEl.value);
     stateKept = `${found.state}|${workplaceEl.value.trim()}`;
     addressStateBefore = found.state;
     applyAddressState();
@@ -557,7 +557,7 @@ workplaceState.addEventListener('click', (event) => {
 workplaceEl.addEventListener('input', () => workplaceEl.classList.remove('address-change'));
 
 function checkStateMatchesAddress() {
-  const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
+  const found = window.SiteWriteAddress ? window.SiteWriteAddress.stateFromAddress(workplaceEl.value) : { state: '' };
   const chosen = document.querySelector('input[name="state"]:checked');
   if (found.state && chosen && chosen.value !== found.state) {
     workplaceState.textContent = `The job address is in ${stateName(found.state)}, but ${stateName(chosen.value)} is picked. The SWMS must use the law of the state where the work is done.`;
@@ -722,7 +722,7 @@ function craneAnswered() {
 const scopeWaiting = () => {
   const file = document.getElementById('scope-file');
   const text = document.getElementById('scope-text');
-  return Boolean((file && file.files && file.files.length) || (text && text.value.trim()) || (window.SiteReady && window.SiteReady.scopeDropped && window.SiteReady.scopeDropped()));
+  return Boolean((file && file.files && file.files.length) || (text && text.value.trim()) || (window.SiteWrite && window.SiteWrite.scopeDropped && window.SiteWrite.scopeDropped()));
 };
 document.getElementById('continue').addEventListener('click', (event) => {
   if (document.getElementById('task').value.trim() || !scopeWaiting()) return;
@@ -770,14 +770,14 @@ document.getElementById('start').addEventListener('submit', (event) => {
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
   // The steps picked or left out for this same task are kept, so Continue on a reopened SWMS
   // does not undo them.
-  const scope = window.siteReadyScopeTask;
+  const scope = window.siteWriteScopeTask;
   const task = document.getElementById('task').value.trim();
   if (task !== choicesTask) {
     stepPicks = scope && scope.task === task && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
     leaveOut = scope && scope.task === task && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
     scopeUnmatched = scope && scope.task === task && Array.isArray(scope.unmatched) ? [...scope.unmatched] : null;
     // A task picked from the pick list, still as picked, starts from its own job steps and names
-    // the parts SiteReady has no job steps for. Changed words start from the steps found in them.
+    // the parts SiteWrite has no job steps for. Changed words start from the steps found in them.
     const picked = !(scope && scope.task === task) && pickedTask && pickedTask.task === task ? pickedTask : null;
     if (picked) {
       stepPicks = [...picked.kinds];
@@ -801,7 +801,7 @@ document.addEventListener('click', (event) => {
   document.getElementById('start').requestSubmit(document.getElementById('continue'));
 });
 
-// Job steps: null follows the steps SiteReady finds in the task; a list is the user's own picks.
+// Job steps: null follows the steps SiteWrite finds in the task; a list is the user's own picks.
 let stepPicks = null;
 // Steps for work the scope gives to others, which the user chose to leave out.
 let leaveOut = null;
@@ -822,7 +822,7 @@ let controlEdits = null;
 // responsible for each step's controls (the Who column), by job step name.
 let hazardEdits = null;
 let whoEdits = null;
-// The job steps the user wrote for work SiteReady has no job steps for: [{ part, name, hazards,
+// The job steps the user wrote for work SiteWrite has no job steps for: [{ part, name, hazards,
 // controls, who }], hazards and controls one a line.
 let ownSteps = null;
 // The user's answers for the blanks (____) in control lines, by line: { line: [answer, ...] }.
@@ -835,7 +835,7 @@ let plantPending = null;
 let emergencyAnswers = null;
 // The designs the job steps rely on (designs.js), as the user answered them, in the order shown:
 // [{ id, what, status: 'given' | 'notIssued' | 'notNeeded' | '', by, number, revision, date, file }].
-// The designs SiteReady found, as the server last said, with the steps that rely on each.
+// The designs SiteWrite found, as the server last said, with the steps that rely on each.
 let designAnswers = null;
 let designsFound = [];
 // Each design's answer by id, kept while the server does not list that design, so it comes back
@@ -845,7 +845,7 @@ let designsKept = new Map();
 // The task the step picks and steps left out were made for.
 let choicesTask = null;
 
-// A new SWMS starts from SiteReady's steps, order, controls and PPE, and is saved as a new SWMS.
+// A new SWMS starts from SiteWrite's steps, order, controls and PPE, and is saved as a new SWMS.
 // Typing in the task box keeps the user's changes: those that no longer match are reported.
 function newSwms() {
   stepPicks = null;
@@ -869,8 +869,8 @@ function newSwms() {
   designAnswers = null;
   designsFound = [];
   designsKept = new Map();
-  if (window.SiteReadyMethodRead) window.SiteReadyMethodRead.clear();
-  if (window.SiteReadySubstances) window.SiteReadySubstances.clear();
+  if (window.SiteWriteMethodRead) window.SiteWriteMethodRead.clear();
+  if (window.SiteWriteSubstances) window.SiteWriteSubstances.clear();
   drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
@@ -879,7 +879,7 @@ function newSwms() {
   missingNotes = new Map();
   // Its questions start blank.
   freshFacts = true;
-  if (window.SiteReady) window.SiteReady.editing = null;
+  if (window.SiteWrite) window.SiteWrite.editing = null;
 }
 let stepLibrary = { groups: [] };
 const stepById = new Map();
@@ -941,7 +941,7 @@ function searchStepsLater() {
   }, 200);
 }
 
-// Steps for where the work is done, for a task SiteReady has no job steps for: shown, not ticked.
+// Steps for where the work is done, for a task SiteWrite has no job steps for: shown, not ticked.
 let stepsAround = [];
 
 function renderSteps(steps) {
@@ -1169,7 +1169,7 @@ function factHtml(item) {
 
 // ---- Designs given at their question, and blanks made plain (design-fill.js, D243, D241, D245) ----
 
-const fillRules = () => window.SiteReadyDesignFill || null;
+const fillRules = () => window.SiteWriteDesignFill || null;
 // The design a question's answer refers to: { id, label }, or null.
 const questionDesign = (questionId) => { const rules = fillRules(); return (rules && rules.QUESTION_DESIGNS[questionId]) || null; };
 // The questions on the page with a design, by the design's id.
@@ -1295,7 +1295,7 @@ function drawBlankForm(box) {
     const value = values[Number(input.dataset.blankN)] || '';
     if (document.activeElement !== input && input.value !== value) input.value = value;
     input.classList.toggle('empty', !input.value.trim());
-    const why = input.value.trim() && window.SiteReadyGate ? window.SiteReadyGate.notAnswer(input.value) : '';
+    const why = input.value.trim() && window.SiteWriteGate ? window.SiteWriteGate.notAnswer(input.value) : '';
     input.classList.toggle('bad', Boolean(why));
     if (why) said.push(`${input.getAttribute('aria-label') || 'This blank'}: ${why}`);
   });
@@ -1356,7 +1356,7 @@ function drawRequired(required) {
     lede = document.createElement('p');
     lede.className = 'lede required-lede';
     lede.style.marginBottom = '12px';
-    lede.textContent = 'Answer each question for this job. SiteReady says under a box if an answer is too thin to print, and what would do.';
+    lede.textContent = 'Answer each question for this job. SiteWrite says under a box if an answer is too thin to print, and what would do.';
     block.appendChild(lede);
   }
   const shown = new Map([...block.querySelectorAll('[data-q]')].map((el) => [el.dataset.q, el]));
@@ -1495,7 +1495,7 @@ async function loadQuestions(options = {}) {
   // The answers on the page stay, unless this is a new SWMS.
   const fresh = freshFacts;
   const sent = payload();
-  // A new SWMS is asked with the PPE SiteReady suggests for it, not the last task's.
+  // A new SWMS is asked with the PPE SiteWrite suggests for it, not the last task's.
   if (fresh) delete sent.ppe;
   // An ask already on its way is out of date once this one is sent.
   askSeq += 1;
@@ -1506,7 +1506,7 @@ async function loadQuestions(options = {}) {
   }
   questions = data;
   freshFacts = false;
-  // Spelling SiteReady fixed in the task, shown so the user can check it.
+  // Spelling SiteWrite fixed in the task, shown so the user can check it.
   const note = document.getElementById('spelling-note');
   const fixes = data.spellingFixes || [];
   note.textContent = fixes.length ? `Spelling fixed in the SWMS: ${fixes.map((fix) => `${fix.from} to ${fix.to}`).join(', ')}.` : '';
@@ -1514,7 +1514,7 @@ async function loadQuestions(options = {}) {
   const warning = document.getElementById('fall-warning');
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
-  // Work SiteReady has no job steps for is stood down: the user hears it here, not only at the draft.
+  // Work SiteWrite has no job steps for is stood down: the user hears it here, not only at the draft.
   showStandDown(data);
   weakNotes = weakMap(data.weak);
   if (fresh) {
@@ -1618,7 +1618,7 @@ function fillStart(input) {
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
   ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
-  if (window.SiteReadySubstances) window.SiteReadySubstances.load(input.substances, input.substancesNotUsed, input.substancesNotUsedWhy);
+  if (window.SiteWriteSubstances) window.SiteWriteSubstances.load(input.substances, input.substancesNotUsed, input.substancesNotUsedWhy);
   designsFound = [];
   designsKept = new Map();
   // This SWMS's own answers are drawn fresh, even for the same designs as the last one shown.
@@ -1701,7 +1701,7 @@ document.getElementById('required-block').addEventListener('click', (event) => {
   // A refused or thin answer is replaced, not added to (messy round 3: "harnes Work is done from a
   // scaffold..."); a full answer is kept and the standard answer added after it.
   const now = box.value.trim();
-  const thin = !now || (window.SiteReadyGate && window.SiteReadyGate.notAnswer(now)) || now.split(/\s+/).length < 3 || weakNotes.has(item.id) || missingNotes.has(item.id);
+  const thin = !now || (window.SiteWriteGate && window.SiteWriteGate.notAnswer(now)) || now.split(/\s+/).length < 3 || weakNotes.has(item.id) || missingNotes.has(item.id);
   box.value = thin ? pick.text : `${now} ${pick.text}`;
   // A standard answer chosen after "Write your own" shows as its sentence again (D261).
   if ((blankForms.get(box.id) || {}).own) blankForms.delete(box.id);
@@ -1760,12 +1760,12 @@ async function loadPresets() {
   }
 }
 
-// What SiteReady cannot draft for a picked task, said before Continue, so it is no surprise.
+// What SiteWrite cannot draft for a picked task, said before Continue, so it is no surprise.
 function showPresetNote(item) {
   const gaps = (item && item.gaps) || [];
   let text = '';
-  if (item && item.coverage === 'none' && !(item.kinds || []).length) text = 'SiteReady has no job steps for this task yet. Pick the job steps that cover it under Job steps, or write your own step for it with "Write a step for this" after Continue.';
-  else if (gaps.length) text = `SiteReady has no job steps yet for: ${gaps.join('; ')}. You will be asked to add your own steps for this, or cover it in a separate SWMS.`;
+  if (item && item.coverage === 'none' && !(item.kinds || []).length) text = 'SiteWrite has no job steps for this task yet. Pick the job steps that cover it under Job steps, or write your own step for it with "Write a step for this" after Continue.';
+  else if (gaps.length) text = `SiteWrite has no job steps yet for: ${gaps.join('; ')}. You will be asked to add your own steps for this, or cover it in a separate SWMS.`;
   presetNote.textContent = text;
   presetNote.classList.toggle('hidden', !text);
 }
@@ -1891,12 +1891,12 @@ function markGaps(gaps) {
 // Items it judges alone (the plant, anything else left open) wait for the draft to be prepared again.
 let shownChecks = [];
 function liveNeed(check) {
-  const rules = window.SiteReadyGate;
+  const rules = window.SiteWriteGate;
   // A design is judged from its card as it is now.
   if (check.kind === 'design' && rules && rules.designNeed) return designShown(check.design) ? rules.designNeed(designRow(check.design)) : check.need;
   // A hazardous product is judged from its card as it is now (substances.js).
-  if (check.kind === 'substance' && window.SiteReadySubstances) { const need = window.SiteReadySubstances.need(check.substance); return need === null ? check.need : need; }
-  if (check.kind === 'substanceType' && window.SiteReadySubstances) return window.SiteReadySubstances.typeNeed(check.substanceType);
+  if (check.kind === 'substance' && window.SiteWriteSubstances) { const need = window.SiteWriteSubstances.need(check.substance); return need === null ? check.need : need; }
+  if (check.kind === 'substanceType' && window.SiteWriteSubstances) return window.SiteWriteSubstances.typeNeed(check.substanceType);
   if (!check.rule || !rules) return check.need;
   if (check.kind === 'line') return rules.answerNeed(check.rule, (fills || {})[check.key] || []);
   const el = check.field ? document.getElementById(check.field) : null;
@@ -1905,7 +1905,7 @@ function liveNeed(check) {
 
 // The answers the SWMS prints as given (gate-rules.js AS_GIVEN): these go with a download as they
 // are now. A change to anything else since the draft was prepared needs the draft prepared again.
-const asGiven = () => (window.SiteReadyGate ? window.SiteReadyGate.AS_GIVEN : []);
+const asGiven = () => (window.SiteWriteGate ? window.SiteWriteGate.AS_GIVEN : []);
 // What the user changes in their own flows, which prepare the draft again or update what is saved,
 // and the business details, which a download takes from the account's company profile.
 const OWN_FLOWS = ['controlEdits', 'hazardEdits', 'whoEdits', 'ownSteps', 'notCoveredConfirmed', 'notCoveredElsewhere', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
@@ -1921,13 +1921,13 @@ function currentAnswers() {
 const draftStale = () => Boolean(shownSent && shownDraft && shownDraft.kind === 'draft' && redrawKey(payload()) !== redrawKey(shownSent));
 
 // Everything still outstanding before download, in one list: the site questions and blanks the
-// server found (goal 2), judged again as the user answers, and the tick for work SiteReady has no
+// server found (goal 2), judged again as the user answers, and the tick for work SiteWrite has no
 // job steps for (D184), counted from the box above the draft as the user ticks it.
 // Signed in, every download prints the company's own name and ABN from the saved Company profile, so
 // they are on the list before download, with a button that opens the profile at the empty box
 // (messy-user testing, 13 October 2026: they were checked only at the final press, far from the profile).
 function companyGap() {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   if (!S.signedIn || !S.signedIn()) return null;
   const name = String(profile.name || '').trim();
   const abn = String(profile.abn || '').replace(/\D/g, '');
@@ -1962,10 +1962,10 @@ function outstanding(data) {
   // A part the user wrote a step for needs no tick. Work that is all the task's work (D211) needs the
   // user's own step: a tick does not cover it.
   const unwritten = coverUnwritten(data);
-  if (unwritten.length) gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Your own step for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.` });
+  if (unwritten.length) gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Your own step for work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.` });
   const parts = coverLeft(data);
   if (parts.length && !coverDone(parts)) {
-    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Above the draft, write a step for it, or say which SWMS covers it.` });
+    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${parts.join('; ')}. Above the draft, write a step for it, or say which SWMS covers it.` });
   }
   return gaps;
 }
@@ -1976,7 +1976,7 @@ function gateBlock(gaps) {
   const answers = gaps.some((gap) => gap.kind !== 'cover');
   return `<div class="panel gate" id="gate-panel" role="region" aria-labelledby="gate-title">
     <h3 id="gate-title">Before you can download this SWMS</h3>
-    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given,${gaps.some((gap) => gap.kind === 'design') ? ' the designs it relies on are named,' : ''}${gaps.some((gap) => gap.kind === 'substance' || gap.kind === 'substanceType') ? ' each hazardous product is listed and checked against its safety data sheet,' : ''} no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
+    <p>SiteWrite does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given,${gaps.some((gap) => gap.kind === 'design') ? ' the designs it relies on are named,' : ''}${gaps.some((gap) => gap.kind === 'substance' || gap.kind === 'substanceType') ? ' each hazardous product is listed and checked against its safety data sheet,' : ''} no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
     <ul class="gate-list">${gaps.map((gap, i) => `<li><button type="button" class="link" ${gap.kind === 'cover' ? 'data-cover-jump' : `data-gate-go="${i}"`}>${esc(gap.label)}</button><span class="meta">${esc(gap.need)}</span></li>`).join('')}</ul>
     ${answers ? '<div class="actions"><button type="button" id="gate-update">Update the draft</button></div>' : ''}
   </div>`;
@@ -1992,7 +1992,7 @@ function showGate() {
   shownGaps = outstanding(shownDraft);
   // The EWP's emergency questions are put away while the EWP is unticked.
   document.querySelectorAll('[data-emergency^="ewp"]').forEach((el) => { const field = el.closest('.field'); if (field) field.classList.toggle('hidden', plantUnticked({ id: `emergency.${el.dataset.emergency}` })); });
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   const drawn = JSON.stringify(shownGaps.map((gap) => [gap.label, gap.need]));
   if (drawn !== gateDrawn) {
     gateDrawn = drawn;
@@ -2069,7 +2069,7 @@ resultEl.addEventListener('click', (event) => {
 const designRow = (id) => (designAnswers || []).find((row) => row.id === id) || null;
 const designShown = (id) => Boolean(document.getElementById(`design-${id}`));
 // A written method or sequence of works the work follows (owner, D224): optional, on every draft,
-// kept with the designs as "method-1" and so on. SiteReady can read a typed one and suggest job steps
+// kept with the designs as "method-1" and so on. SiteWrite can read a typed one and suggest job steps
 // for the user to accept (method-read.js, D230).
 const isMethodRow = (row) => Boolean(row && /^method-\d+$/.test(row.id || ''));
 const ownRow = (row) => Boolean(row && /^(?:added|method)-\d+$/.test(row.id || ''));
@@ -2133,17 +2133,17 @@ function designFileBox(row, what) {
     ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-design-open="${id}">Open</button> <button type="button" class="link" data-design-unfile="${id}">Remove the file</button></p>`
     : `<label class="secondary small design-attach" for="design-${id}-file">Attach the file</label><input id="design-${id}-file" class="visually-hidden" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" data-design-file="${id}">`;
   return `<div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
-        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.${what === 'drawing' ? ' SiteReady reads the typed words of a PDF\'s title block to fill in the details above for you to check. It does not read the drawing itself, a scan or a photo.' : ''}</p>
+        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteWrite, for you and your reviewer to open. It does not print.${what === 'drawing' ? ' SiteWrite reads the typed words of a PDF\'s title block to fill in the details above for you to check. It does not read the drawing itself, a scan or a photo.' : ''}</p>
         ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>`;
 }
 // A written method's card: the same details and file as a design, with no status to choose (the
-// user adds one only when they have it), and plainly said: SiteReady reads typed words only, and the
+// user adds one only when they have it), and plainly said: SiteWrite reads typed words only, and the
 // user makes the job steps match it. The reading and its suggestions are drawn by method-read.js.
-const METHOD_CAUTION = 'SiteReady reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with "Change this step", or write your own with "Write a step for this" or "Write a step of your own".';
+const METHOD_CAUTION = 'SiteWrite reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with "Change this step", or write your own with "Write a step for this" or "Write a step of your own".';
 function methodCard(row) {
   const id = esc(row.id);
   const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
-  const rules = window.SiteReadyGate;
+  const rules = window.SiteWriteGate;
   const need = rules && rules.methodNeed ? rules.methodNeed(row) : '';
   return `<fieldset class="field design-card method-card" id="design-${id}" data-design="${id}" data-status="given" tabindex="-1">
     <legend>${esc(String(row.what || '').trim() || 'Written methodology or sequence of works')}</legend>
@@ -2158,14 +2158,14 @@ function methodCard(row) {
       ${designFileBox(row, 'document')}
     </div>
     <p class="method-need" id="design-${id}-need" role="status"${need ? '' : ' hidden'}>${esc(need)}</p>
-    ${window.SiteReadyMethodRead ? window.SiteReadyMethodRead.boxHtml(row) : ''}
+    ${window.SiteWriteMethodRead ? window.SiteWriteMethodRead.boxHtml(row) : ''}
     <p><button type="button" class="link" data-design-remove="${id}">Remove this methodology</button></p>
   </fieldset>`;
 }
 // What a method still needs before it prints, said on its card as the user types.
 function showMethodNeed(row) {
   const note = document.getElementById(`design-${row.id}-need`);
-  const rules = window.SiteReadyGate;
+  const rules = window.SiteWriteGate;
   if (!note || !rules || !rules.methodNeed) return;
   const text = rules.methodNeed(row);
   if (note.textContent !== text) note.textContent = text;
@@ -2211,7 +2211,7 @@ function drawDesigns(list) {
 // card, as the user types. Advice only: one drawing can cover two designs, so the download and the
 // printed SWMS do not change (gate-rules.js sameDesignNumbers).
 function showSameNumbers() {
-  const rules = window.SiteReadyGate;
+  const rules = window.SiteWriteGate;
   const groups = rules && rules.sameDesignNumbers ? rules.sameDesignNumbers(designAnswers || []) : [];
   const said = new Map();
   for (const group of groups) for (const id of group.ids) said.set(id, [...(said.get(id) || []), group.text]);
@@ -2291,7 +2291,7 @@ designBlocks.forEach((block) => block.addEventListener('click', async (event) =>
   const open = event.target.closest('[data-design-open]');
   if (open) {
     const row = designRow(open.dataset.designOpen);
-    const S = window.SiteReady || {};
+    const S = window.SiteWrite || {};
     if (row && row.file && S.openFile) S.openFile(`/api/designs/files/${encodeURIComponent(row.file.id)}`, row.file.name).catch((error) => { const msg = block.querySelector(`[data-design-msg="${row.id}"]`); if (msg) msg.textContent = error.message; });
   }
 }));
@@ -2304,7 +2304,7 @@ designBlocks.forEach((block) => block.addEventListener('change', async (event) =
   const msg = block.querySelector(`[data-design-msg="${id}"]`);
   const say = (text) => { if (msg) msg.textContent = text; };
   const config = await designFilesOn();
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   if (!S.isSignedIn || !S.isSignedIn()) { say('Sign in to attach the file. You can give the reference now and attach the file later.'); input.value = ''; return; }
   if (!/\.(pdf|png|jpe?g)$/i.test(file.name) && !/^(application\/pdf|image\/png|image\/jpeg)$/.test(file.type)) { say('Attach a PDF, PNG or JPEG.'); input.value = ''; return; }
   if (file.size > config.maxMb * 1024 * 1024) { say(`The file is larger than ${config.maxMb} MB. Attach a smaller copy${isMethodRow(designRow(id)) ? '' : ', such as the drawing sheets only'}.`); input.value = ''; return; }
@@ -2326,7 +2326,7 @@ designBlocks.forEach((block) => block.addEventListener('change', async (event) =
 // The drawing just attached is read for its title block (D249): its typed words only. What is found
 // fills the card, marked as read until the user ticks that it matches; a scan or a photo is typed.
 async function readDrawing(id) {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   const row = designRow(id);
   if (!row || !row.file || !S.call) return;
   const fileId = row.file.id;
@@ -2341,7 +2341,7 @@ async function readDrawing(id) {
   }
   const now = designRow(id);
   if (!now || !now.file || now.file.id !== fileId) return;
-  // What it is is filled only when empty: a design SiteReady named keeps its name.
+  // What it is is filled only when empty: a design SiteWrite named keeps its name.
   const fields = (data.read || []).filter((key) => key !== 'what' || !String(now.what || '').trim());
   for (const key of fields) now[key] = data.details[key];
   if (fields.length) {
@@ -2354,7 +2354,7 @@ async function readDrawing(id) {
   keepUnsaved();
   if (typeof showGate === 'function' && shownDraft) showGate();
   const msg = document.querySelector(`[data-design-msg="${id}"]`);
-  if (msg) msg.textContent = fields.length ? '' : 'SiteReady found none of the details in the drawing\'s typed words. Type them.';
+  if (msg) msg.textContent = fields.length ? '' : 'SiteWrite found none of the details in the drawing\'s typed words. Type them.';
 }
 // Ticking that the details read match the drawing; untick to check again.
 designBlocks.forEach((block) => block.addEventListener('change', (event) => {
@@ -2372,8 +2372,8 @@ designBlocks.forEach((block) => block.addEventListener('change', (event) => {
 
 // ---- The plant and the emergency response, asked in the draft (goal 2) ----
 
-// The plant SiteReady lists, as a tick list the user confirms before download: what the crew uses
-// is ticked, plant SiteReady is not sure of starts unticked, and the user adds their own with the
+// The plant SiteWrite lists, as a tick list the user confirms before download: what the crew uses
+// is ticked, plant SiteWrite is not sure of starts unticked, and the user adds their own with the
 // licence or ticket to operate it. Only the plant confirmed prints.
 function plantTicked(item) {
   if (plantPending && plantPending.ticks && item.item in plantPending.ticks) return plantPending.ticks[item.item];
@@ -2391,14 +2391,14 @@ function plantBlock(draft) {
     : !plantChoice ? 'Not confirmed yet. The download waits for it.'
       : gap ? gap.need : 'Confirmed. Only the plant ticked here prints on the SWMS.';
   const ticks = listed.length
-    ? listed.map((item) => `<label class="check"><input type="checkbox" data-plant-item="${esc(item.item)}"${plantTicked(item) ? ' checked' : ''}><span>${esc(item.item)}${item.maybe ? ' <span class="meta">SiteReady is not sure this is used. Tick it only if it is.</span>' : ''}</span></label>`).join('')
-    : '<p class="meta">SiteReady found no plant in this task. Add the plant and equipment your crew uses, if any.</p>';
+    ? listed.map((item) => `<label class="check"><input type="checkbox" data-plant-item="${esc(item.item)}"${plantTicked(item) ? ' checked' : ''}><span>${esc(item.item)}${item.maybe ? ' <span class="meta">SiteWrite is not sure this is used. Tick it only if it is.</span>' : ''}</span></label>`).join('')
+    : '<p class="meta">SiteWrite found no plant in this task. Add the plant and equipment your crew uses, if any.</p>';
   const own = plantOwn().map((item, i) => (item.licence
     ? `<p class="plant-own"><strong>${esc(item.item)}</strong>: ${esc(item.licence)} <button type="button" class="link" data-plant-remove="${i}">Remove</button></p>`
     : `<div class="plant-own"><label for="plant-own-licence-${i}"><strong>${esc(item.item)}</strong>: licence or ticket to operate it <span class="hint">Write No if none is needed.</span></label><input id="plant-own-licence-${i}" type="text" maxlength="300" data-plant-own-licence="${i}"> <button type="button" class="link" data-plant-remove="${i}">Remove</button></div>`)).join('');
   return `<div class="panel answer-panel${done ? ' done' : ''}" id="plant-panel">
     <fieldset class="field" id="plant-ticks" tabindex="-1"><legend>Confirm the plant and equipment for this job</legend>
-      <p class="meta">SiteReady listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. The job steps stay as they are: change them under Job steps if the method changes.</p>
+      <p class="meta">SiteWrite listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. The job steps stay as they are: change them under Job steps if the method changes.</p>
       ${ticks}${own}
     </fieldset>
     <div class="field"><label for="plant-own-item">Add your own plant or equipment</label><input id="plant-own-item" type="text" maxlength="200" placeholder="For example: 1.7 t mini excavator"></div>
@@ -2416,7 +2416,7 @@ function emergencyBlock(draft) {
   const answer = (item) => (emergencyAnswers && typeof emergencyAnswers[item.id] === 'string' ? emergencyAnswers[item.id] : item.answer || '');
   return `<div class="panel answer-panel" id="emergency-panel">
     <p><strong>Emergency response for this work</strong></p>
-    <p class="meta">A reviewer looks for how your crew responds to an emergency in this work, not only the heading. Answer each question for this site. The answers print in the emergency arrangements above. Not applicable is not an answer here: SiteReady asks only about work this SWMS involves.</p>
+    <p class="meta">A reviewer looks for how your crew responds to an emergency in this work, not only the heading. Answer each question for this site. The answers print in the emergency arrangements above. Not applicable is not an answer here: SiteWrite asks only about work this SWMS involves.</p>
     ${asked.map((item) => `<div class="field"><label for="emg-${esc(item.id)}">${esc(item.ask)}<span class="hint">${esc(item.hint)}</span></label>${emergencyPicks(item, answer(item))}<textarea id="emg-${esc(item.id)}" data-emergency="${esc(item.id)}" maxlength="600">${esc(answer(item))}</textarea></div>`).join('')}
     <div class="actions"><button type="button" id="emergency-update">Update the draft</button></div>
     <p class="done-note" id="emergency-done" role="status"${emergencyDone ? '' : ' hidden'}>Draft updated. Your answers are in the Emergency arrangements table above. <button type="button" class="link" data-emergency-show>Show me</button></p>
@@ -2473,7 +2473,7 @@ function designDate(value) {
 // Word file and the PDF print it.
 function render(draft, options = {}) {
   const html = renderSheet(draft, options);
-  const mass = window.SiteReadyMass;
+  const mass = window.SiteWriteMass;
   return mass ? mass.withMassHtml(html) : html;
 }
 function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
@@ -2511,7 +2511,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     const items = draft.missingHelp;
     return `<div class="panel gate not-finished" id="not-finished" role="region" aria-labelledby="not-finished-title">
       <h3 id="not-finished-title">This SWMS is not finished</h3>
-      <p>SiteReady cannot prepare it until ${items.length === 1 ? 'this answer says' : `these ${items.length} answers say`} enough to print. Fix ${items.length === 1 ? 'it' : 'each one'} in the questions above, then press Prepare the statement again.</p>
+      <p>SiteWrite cannot prepare it until ${items.length === 1 ? 'this answer says' : `these ${items.length} answers say`} enough to print. Fix ${items.length === 1 ? 'it' : 'each one'} in the questions above, then press Prepare the statement again.</p>
       <ul class="gate-list">${items.map((item) => `<li><button type="button" class="link" data-answer-go="${esc(item.id)}">${esc(item.label)}</button><span class="meta">${esc(item.state === 'vague' ? weakText(item) : `Not answered yet. ${item.help}`)}</span></li>`).join('')}</ul>
       <div class="actions"><button type="button" data-answer-go="first">Go to the first answer</button></div>
     </div>
@@ -2539,7 +2539,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   // In the preview each control can be changed or removed, and the user can add their own.
-  // Lines that are a legal requirement, or that SiteReady recommends keeping, say why before the
+  // Lines that are a legal requirement, or that SiteWrite recommends keeping, say why before the
   // user goes ahead. A removed or weakened line asks why, which the user can leave blank.
   const report = draft.controlEdits || {};
   const shared = (step) => sharedNote(step, draft.jobSteps || []);
@@ -2549,7 +2549,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     const warn = (draft.controlWarn || [])[index] || [];
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
     const warned = (report.warned || []).filter((item) => item.step === step.step);
-    // A changed line SiteReady warned about asks why, under the line itself; a removed line was asked
+    // A changed line SiteWrite warned about asks why, under the line itself; a removed line was asked
     // why when it was removed (D253).
     const asks = (report.applied || []).filter((item) => item.step === step.step && item.kind === 'changed' && warned.some((other) => other.text === item.from));
     const askFor = (line) => asks.filter((item) => `${item.to}${OWN_MARK}` === line).map((item) => whyBox(index, item)).join('');
@@ -2574,8 +2574,8 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
       <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
   };
-  // Hazards can be reworded and added; SiteReady's own are marked "does not apply", never deleted.
-  // Hazard and control lines both have Change and Remove (D253). SiteReady's own hazard, removed,
+  // Hazards can be reworded and added; SiteWrite's own are marked "does not apply", never deleted.
+  // Hazard and control lines both have Change and Remove (D253). SiteWrite's own hazard, removed,
   // stays on the SWMS marked "Does not apply to this job", so a reviewer sees it was considered.
   const hazardCell = (step, index) => {
     if (!movable) return list(step.hazards);
@@ -2618,7 +2618,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
   const registers = `${plantTable || movable ? `<h4>Plant and equipment</h4>${movable ? plantBlock(draft) : ''}${plantTable || '<p class="meta">No plant prints on this SWMS.</p>'}` : ''}
-    ${window.SiteReadySubstances ? window.SiteReadySubstances.section(draft, { movable }) : ''}
+    ${window.SiteWriteSubstances ? window.SiteWriteSubstances.section(draft, { movable }) : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
     ${(draft.emergency || []).length ? `<h4 id="emergency-table" tabindex="-1">Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
     ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
@@ -2638,8 +2638,8 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     <h4>High risk construction work</h4>${risks}
     ${designsTable(draft, swmsId)}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change or remove it. Lines you write or change are marked as your own. A hazard of SiteReady&#39;s that you remove still prints, marked &quot;Does not apply to this job&quot;. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why. A hazard you add needs at least one control.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
-    ${movable ? '<p class="own-new"><button type="button" class="secondary small" data-own-new>Write a step of your own</button> <span class="meta">For work SiteReady has no job step for. It prints marked as your own.</span></p>' : ''}
+    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change or remove it. Lines you write or change are marked as your own. A hazard of SiteWrite&#39;s that you remove still prints, marked &quot;Does not apply to this job&quot;. SiteWrite warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why. A hazard you add needs at least one control.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
+    ${movable ? '<p class="own-new"><button type="button" class="secondary small" data-own-new>Write a step of your own</button> <span class="meta">For work SiteWrite has no job step for. It prints marked as your own.</span></p>' : ''}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
@@ -2694,7 +2694,7 @@ document.getElementById('hospital-list').addEventListener('click', (event) => {
 
 // Each box remembers what was typed in the last few SWMS on this device, and offers it
 // again. Nothing leaves the device. Storage can be off (private browsing): then nothing is kept.
-const MEMORY_KEY = 'siteready.fieldMemory';
+const MEMORY_KEY = 'sitewrite.fieldMemory';
 const REMEMBERED = ['site-manager', 'works-manager', 'works-manager-phone', 'compliance-responsible', 'reviewer', 'scaffold-supervisor', 'hospital', 'first-aider', 'muster-point', 'prepared-by'];
 function readMemory() {
   try { return JSON.parse(localStorage.getItem(MEMORY_KEY) || '{}') || {}; } catch { return {}; }
@@ -2771,7 +2771,7 @@ function coverDone(parts) {
 }
 const sameWords = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
 const ownFor = (part) => (ownSteps || []).find((item) => sameWords(item.part) === sameWords(part));
-// Each part SiteReady has no job steps for is dealt with on its own line (messy-user testing, 13 October
+// Each part SiteWrite has no job steps for is dealt with on its own line (messy-user testing, 13 October
 // 2026: one tick "or it is covered in a separate SWMS" was the easy way out). Saving your own step for a
 // part clears it by itself. Otherwise the user says which SWMS covers it: one of the project's other
 // SWMS, or one they name. Work that is all the task's work (D211) needs the user's own step.
@@ -2782,7 +2782,7 @@ const namedElsewhere = (part) => String((coverElsewhere || {})[part] || '').repl
 const coverNamed = (part) => namedElsewhere(part).length >= 3;
 // The other SWMS in the project, by title, to choose from (scope.js).
 const otherSwms = () => {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   return S.projectOthers ? S.projectOthers().filter(Boolean) : [];
 };
 // The parts named as covered elsewhere count as dealt with, as the tick did (notCoveredConfirmed).
@@ -2790,7 +2790,7 @@ function syncCoverTicked() {
   const named = Object.keys(coverElsewhere || {}).filter(coverNamed);
   coverTicked = named.length ? JSON.stringify(named) : null;
   const confirmed = coverTicked ? JSON.parse(coverTicked) : undefined;
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   if (S.actionInput) S.actionInput = { ...S.actionInput, notCoveredConfirmed: confirmed, notCoveredElsewhere: coverElsewhereSent() };
   if (S.onCoverTick) S.onCoverTick(confirmed, coverElsewhereSent());
 }
@@ -2821,7 +2821,7 @@ function coverWhere(part, index) {
 }
 // The work moved into this SWMS from another of the project (D289), by part.
 const movedHere = () => {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   return new Map(((S.projectMovedIn && S.projectMovedIn()) || []).map((item) => [sameWords(item.part), item.from]));
 };
 function notCoveredBlock(data) {
@@ -2853,11 +2853,11 @@ function notCoveredBlock(data) {
   const movedWork = unwritten.filter((part) => moved.has(sameWords(part)));
   const ownWork = unwritten.filter((part) => !moved.has(sameWords(part)));
   if (!left.length) {
-    return `<div class="note not-covered"><p>Each piece of work SiteReady has no job steps for is dealt with.</p><ul class="cover-parts">${rows}</ul></div>`;
+    return `<div class="note not-covered"><p>Each piece of work SiteWrite has no job steps for is dealt with.</p><ul class="cover-parts">${rows}</ul></div>`;
   }
   const mainOnly = left.every((part) => main.has(part));
-  return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(left.join('; '))}. ${mainOnly ? (one ? 'Add your own step and controls for it.' : 'Add your own steps and controls for each.') : one ? 'Write your own step for it, or say which SWMS covers it.' : 'For each one, write your own step, or say which SWMS covers it.'}</p>
-    <p>You must enter the specific steps for this work yourself: SiteReady cannot write them for you. Saving your step deals with it.</p>
+  return `<div class="warning not-covered"><p>SiteWrite has no job steps for: ${esc(left.join('; '))}. ${mainOnly ? (one ? 'Add your own step and controls for it.' : 'Add your own steps and controls for each.') : one ? 'Write your own step for it, or say which SWMS covers it.' : 'For each one, write your own step, or say which SWMS covers it.'}</p>
+    <p>You must enter the specific steps for this work yourself: SiteWrite cannot write them for you. Saving your step deals with it.</p>
     ${ownWork.length ? `<p>${esc(ownWork.length === 1 ? `"${ownWork[0]}" is` : `${ownWork.map((part) => `"${part}"`).join(' and ')} are`)} the work of this task, so the SWMS needs your own step for ${ownWork.length === 1 ? 'it' : 'each'} before you save or download. Another SWMS does not cover it.</p>` : ''}
     ${movedWork.length ? `<p>${esc(movedWork.length === 1 ? `"${movedWork[0]}" was` : `${movedWork.map((part) => `"${part}"`).join(' and ')} were`)} moved here from another SWMS of this project, which you said this one covers. Write its steps here before you save or download.</p>` : ''}
     <ul class="cover-parts">${rows}</ul></div>`;
@@ -2877,7 +2877,7 @@ document.addEventListener('click', async (event) => {
   if ((!back && !ret) || !shownDraft) return;
   const part = coverParts(shownDraft)[Number((back || ret).dataset.coverBack || (back || ret).dataset.coverReturn)];
   if (!part) return;
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   if (back) {
     const was = namedElsewhere(part);
     coverElsewhere = { ...(coverElsewhere || {}) };
@@ -2907,7 +2907,7 @@ document.addEventListener('click', (event) => {
 // A step written here for work then moved to another SWMS of the project goes with it, and comes back
 // with it, so one piece of work is never written twice (messy round 4, A fault 4).
 function carryOwnStep(part, from, to) {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   if (from && otherSwms().includes(from) && !ownFor(part) && S.projectTakeStep) {
     const back = S.projectTakeStep(from, part);
     if (back) ownSteps = [...(ownSteps || []), back];
@@ -2976,7 +2976,7 @@ function backToSpot(spot) {
 // The principal contractor's conditions or changes, above the draft while it is fixed (messy round 4,
 // A fault 11: they were not on screen while fixing), each numbered one on its own line.
 function fixingHtml() {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   const review = S.editing && S.editing.review;
   if (!review || !review.text) return '';
   const text = S.conditionLines ? S.conditionLines(review.text) : review.text;
@@ -3022,17 +3022,17 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     // needs said under its box.
     missingNotes = new Map(data.kind === 'stand-down' ? (data.missingHelp || []).map((item) => [item.id, item.state === 'vague' ? weakText(item) : `Still needed. ${item.help}`]) : []);
     if (data.kind === 'stand-down') askAgain(); else showAnswerNotes();
-    // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
+    // What is saved: the input sent, with changes moved onto any line SiteWrite has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     shownSent = sent;
     showGate();
     // Downloading and saving need an account; the account script adds those buttons.
-    window.SiteReady.showActions(data, sent);
+    window.SiteWrite.showActions(data, sent);
     backToSpot(spot);
     // The translation box above the draft can arrive a moment later: the part kept stays where it was.
     if (data.kind === 'draft') Promise.resolve(showTranslate(sent)).then(() => backToSpot(spot), () => {});
     // A SWMS in a project is recorded against its task.
-    if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, sent);
+    if (window.SiteWrite.onDraft) window.SiteWrite.onDraft(data, sent);
     keepUnsaved();
     backToSpot(spot);
     if (scroll && !spot) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3272,7 +3272,7 @@ resultEl.addEventListener('dragend', () => {
 // ---- Changing, removing and adding controls (task #102) ----
 
 // Why a line was removed or weakened (owner decision, 6 October 2026): a short pick list and a
-// note, both optional. Kept with the change, so the saved record and SiteReady's learning have it.
+// note, both optional. Kept with the change, so the saved record and SiteWrite's learning have it.
 const WHY = [['notNeeded', 'Not needed for this job'], ['anotherWay', 'Done another way on this job'], ['othersCover', 'Another contractor or the site covers it'], ['wording', 'The wording does not fit the job'], ['other', 'Other']];
 function whyBox(index, item, about = 'control') {
   const store = about === 'hazard' ? hazardEdits : controlEdits;
@@ -3313,8 +3313,8 @@ function tidyHazards() {
   }
   if (!Object.keys(hazardEdits).length) hazardEdits = null;
 }
-// A hazard line as shown: SiteReady's, one the user reworded or added, or one marked as not applying.
-// why: the reason picked and the note, for a hazard of SiteReady's the user removed (kept as before
+// A hazard line as shown: SiteWrite's, one the user reworded or added, or one marked as not applying.
+// why: the reason picked and the note, for a hazard of SiteWrite's the user removed (kept as before
 // for "Does not apply"). keep: the part of the draft kept where it is on the screen.
 function applyHazardEdit(step, line, action, next = '', { why = null, keep = '' } = {}) {
   const edit = hazardEditFor(step.step);
@@ -3322,7 +3322,7 @@ function applyHazardEdit(step, line, action, next = '', { why = null, keep = '' 
   if (action === 'na') edit.notApplicable.push(line);
   if (action === 'applies') edit.notApplicable = edit.notApplicable.filter((item) => item !== text);
   if (line.endsWith(HAZARD_MARK)) {
-    // The user's own: an added one, or one of SiteReady's they reworded.
+    // The user's own: an added one, or one of SiteWrite's they reworded.
     const added = edit.added.indexOf(text);
     const change = edit.changed.find((item) => item.to === text);
     if (added >= 0) {
@@ -3379,7 +3379,7 @@ resultEl.addEventListener('click', (event) => {
   }
   const line = step.hazards[Number(holder.dataset.hzLine)];
   if (action === 'change') { lineEditor(holder, hazardText(line), (text) => applyHazardEdit(step, line, 'change', text, { keep }), 'Hazard'); return; }
-  // Remove asks once, under the line (D253). SiteReady's own hazard asks why, as "Does not apply" did.
+  // Remove asks once, under the line (D253). SiteWrite's own hazard asks why, as "Does not apply" did.
   if (action === 'remove') {
     const own = line.endsWith(HAZARD_MARK);
     confirmLine(holder, { reasons: !own }, (why) => applyHazardEdit(step, line, own ? 'remove' : 'na', '', { why, keep }));
@@ -3389,8 +3389,8 @@ resultEl.addEventListener('click', (event) => {
 });
 
 // "Remove this line?" with Remove and Keep, under the line itself (D253, owner feedback items 18 and
-// 19): nothing moves on the page. A line SiteReady recommends keeping says why first, and a line of
-// SiteReady's asks why it goes, as before; both are optional.
+// 19): nothing moves on the page. A line SiteWrite recommends keeping says why first, and a line of
+// SiteWrite's asks why it goes, as before; both are optional.
 let pendingConfirm = null;
 function confirmLine(holder, { reasons = false, warning = '', title = 'Remove this line?', yes = 'Remove' } = {}, onYes) {
   resultEl.querySelectorAll('.line-confirm').forEach((box) => box.remove());
@@ -3447,7 +3447,7 @@ function ownHazardRow(item, n) {
   return `<tr class="own-hazard-row"><td colspan="5" data-label="Your own hazard"><div class="own-hazard" id="${id}" tabindex="-1" data-oh="${n}">
     <p><strong>Your hazard:</strong> ${esc(item.hazard)}</p>
     <p class="oh-head"><strong>Controls for it</strong> <span class="meta">At least one is needed before download.</span></p>
-    ${offers ? `<p class="meta">Lines from SiteReady's library that may fit. Tick only those that do.</p><div class="oh-offers">${offers}</div>` : '<p class="meta">SiteReady has no line that fits this hazard. Write your own below.</p>'}
+    ${offers ? `<p class="meta">Lines from SiteWrite's library that may fit. Tick only those that do.</p><div class="oh-offers">${offers}</div>` : '<p class="meta">SiteWrite has no line that fits this hazard. Write your own below.</p>'}
     ${written ? `<ul class="oh-written">${written}</ul>` : ''}
     <div class="oh-write"><label for="${id}-write">Write your own control</label><div class="oh-write-row"><input type="text" id="${id}-write" maxlength="600" data-oh-write="${n}" placeholder="For example: walkways of duckboards over the wet areas"><button type="button" class="secondary small" data-oh-add="${n}">Add</button></div></div>
     <p class="oh-head"><strong>Risk rating for this hazard</strong> <span class="meta">${item.rated ? 'As you chose it.' : 'Suggested. Change it to suit the site.'} The step shows the higher of its rating and this one.</span></p>
@@ -3527,7 +3527,7 @@ resultEl.addEventListener('keydown', (event) => {
   if (button) button.click();
 });
 
-// ---- Steps the user writes for work SiteReady does not cover (owner, 11 October 2026) ----
+// ---- Steps the user writes for work SiteWrite does not cover (owner, 11 October 2026) ----
 
 // A short form: the step's name (the part of the task, to start), its hazards and controls, one on
 // each line, with the hierarchy of control to write them in, and who is responsible. Saved, it goes
@@ -3575,10 +3575,10 @@ function ownStepForm(holder, item, part) {
 function ownStepProblem(next, list, was) {
   // A line of a word or two ("Gloves") does not tell the crew what to do, and "TBC" or "dont know" is
   // not an answer (messy round 3), said as the download check says it for answers.
-  const thin = (lines, least) => lines.find((line) => line.split(/\s+/).length < least || (window.SiteReadyGate && window.SiteReadyGate.notAnswer(line)));
+  const thin = (lines, least) => lines.find((line) => line.split(/\s+/).length < least || (window.SiteWriteGate && window.SiteWriteGate.notAnswer(line)));
   const thinHazard = thin(next.hazards, 2);
   const thinControl = thin(next.controls, 3);
-  const why = (line, what) => ((window.SiteReadyGate && window.SiteReadyGate.notAnswer(line)) || `"${line.slice(0, 60)}" is too short to act on.`) + ` ${what}`;
+  const why = (line, what) => ((window.SiteWriteGate && window.SiteWriteGate.notAnswer(line)) || `"${line.slice(0, 60)}" is too short to act on.`) + ` ${what}`;
   return !next.name ? ['own-name', 'Give the job step a name.']
     : !next.hazards.length ? ['own-hazards', 'Write at least one hazard. A step needs a hazard and a control to print.']
       : !next.controls.length ? ['own-controls', 'Write at least one control. A step needs a hazard and a control to print.']
@@ -3668,7 +3668,7 @@ resultEl.addEventListener('click', (event) => {
 
 // ---- Steps the user writes before the SWMS is prepared (messy round 4, B fault 1) ----
 
-// Work SiteReady has no job steps for stood the SWMS down, and the user's own steps were offered only
+// Work SiteWrite has no job steps for stood the SWMS down, and the user's own steps were offered only
 // once a SWMS was prepared, so a SWMS of the user's own steps could never be prepared. Where the
 // questions say the SWMS would be stood down for want of job steps, or the user has written steps,
 // the questions page lists them and offers "Write a step for this": the steps go with the draft.
@@ -3686,14 +3686,14 @@ function drawOwnEarly(data) {
   const stood = Boolean(data && data.standDown);
   const mine = ownSteps || [];
   if (!stood && !mine.length) { if (box.innerHTML) box.innerHTML = ''; return; }
-  // The work to write a step for: what SiteReady has no job steps for, else the work as a whole.
+  // The work to write a step for: what SiteWrite has no job steps for, else the work as a whole.
   const parts = ((data && data.notCoveredLeft) || []).filter((part) => !ownFor(part));
   const writes = parts.length
     ? parts.map((part, n) => `<li><strong>${esc(part)}</strong> <button type="button" class="small" data-own-early="${n}">Write a step for this</button></li>`).join('')
     : `<li><button type="button" class="small" data-own-early="">Write a step for this</button><span class="meta"> Write what is done, what could go wrong and how it is controlled.</span></li>`;
   const html = `<div class="note own-early"><p><strong>Your own steps</strong></p>
     ${mine.length ? `<ul class="own-early-list">${mine.map((item) => `<li>${esc(item.name)}${item.part ? ` <span class="meta">(for: ${esc(item.part)})</span>` : ''} <button type="button" class="link" data-own-early-change="${esc(item.name)}">Change</button> <button type="button" class="link" data-own-early-remove="${esc(item.name)}">Remove</button></li>`).join('')}</ul>` : ''}
-    ${stood ? `<p class="meta">${mine.length ? 'SiteReady still has no job steps for this work.' : 'You can write the steps for this work yourself: a SWMS of your own steps is prepared like any other.'} Each step needs a hazard and a control. A step of a word or two is not enough.</p><ul class="own-early-writes">${writes}</ul>` : `<p class="meta">They go into the SWMS when you press Prepare the statement. <button type="button" class="link" data-own-early="">Write another step</button></p>`}
+    ${stood ? `<p class="meta">${mine.length ? 'SiteWrite still has no job steps for this work.' : 'You can write the steps for this work yourself: a SWMS of your own steps is prepared like any other.'} Each step needs a hazard and a control. A step of a word or two is not enough.</p><ul class="own-early-writes">${writes}</ul>` : `<p class="meta">They go into the SWMS when you press Prepare the statement. <button type="button" class="link" data-own-early="">Write another step</button></p>`}
     <p class="meta own-early-status" role="status">${esc(ownEarlyNote)}</p></div>`;
   box.dataset.parts = JSON.stringify(parts);
   if (box.innerHTML !== html) box.innerHTML = html;
@@ -3743,7 +3743,7 @@ document.addEventListener('click', (event) => {
   if (first) { first.scrollIntoView({ behavior: 'smooth', block: 'center' }); first.focus({ preventScroll: true }); first.click(); }
 });
 
-// What the server did with the user's changes: those refused, those made on a line SiteReady has
+// What the server did with the user's changes: those refused, those made on a line SiteWrite has
 // since reworded (now applied to the new wording), and those that no longer match a line in the
 // SWMS (kept, not applied, until the user makes them again or discards them).
 let shownReport = {};
@@ -3759,7 +3759,7 @@ function describeEdit(item) {
 function editNotes(report, { discard = false } = {}) {
   const out = (report.refused || []).map((item) => `<p class="warning">${esc(`${item.step}: ${item.reason}`)}</p>`);
   if ((report.remapped || []).some((item) => item.kind !== 'step')) {
-    out.push(`<div class="note"><p>SiteReady has reworded lines you changed since you made the changes. Your changes now apply to the new wording. Check them in the job steps below.</p><ul>${report.remapped.filter((item) => item.kind !== 'step').map((item) => `<li>${esc(item.step)}: "${esc(item.from)}" now reads "${esc(item.line)}"</li>`).join('')}</ul></div>`);
+    out.push(`<div class="note"><p>SiteWrite has reworded lines you changed since you made the changes. Your changes now apply to the new wording. Check them in the job steps below.</p><ul>${report.remapped.filter((item) => item.kind !== 'step').map((item) => `<li>${esc(item.step)}: "${esc(item.from)}" now reads "${esc(item.line)}"</li>`).join('')}</ul></div>`);
   }
   // In the saved view, the warnings given when the SWMS was saved, with the reasons.
   if (!discard) {
@@ -3767,11 +3767,11 @@ function editNotes(report, { discard = false } = {}) {
   }
   (report.unmatched || []).forEach((item, index) => {
     const why = item.reason === 'step' ? 'That job step is no longer in this SWMS' : 'That line is no longer in this step';
-    out.push(`<p class="warning">${esc(`${item.step}: ${describeEdit(item)}. ${why}, as SiteReady's wording, the steps or your answers have changed, so the change is not applied. Make the change again on the line as it now reads, or discard it.`)}${discard ? ` <button type="button" class="link" data-ctl-discard="${index}">Discard this change</button>` : ''}</p>`);
+    out.push(`<p class="warning">${esc(`${item.step}: ${describeEdit(item)}. ${why}, as SiteWrite's wording, the steps or your answers have changed, so the change is not applied. Make the change again on the line as it now reads, or discard it.`)}${discard ? ` <button type="button" class="link" data-ctl-discard="${index}">Discard this change</button>` : ''}</p>`);
   });
   return out.join('');
 }
-// A change made on a line SiteReady has since reworded is kept against the new wording.
+// A change made on a line SiteWrite has since reworded is kept against the new wording.
 function followRewords(remapped) {
   for (const item of remapped || []) {
     if (!/^hazard/.test(item.kind)) continue;
@@ -3918,7 +3918,7 @@ resultEl.addEventListener('click', (event) => {
   }
   const line = step.controls[Number(holder.dataset.ctlLine)];
   // Remove asks once, under the line (D253): "Remove this line?" with Remove and Keep. A line that is a
-  // legal requirement, or that SiteReady recommends keeping, says why in the same box, and SiteReady's
+  // legal requirement, or that SiteWrite recommends keeping, says why in the same box, and SiteWrite's
   // own line asks why it goes (both optional, owner decision, 6 October 2026).
   const warning = holder.dataset.warn && !isOwn(line) ? holder.dataset.warn : '';
   if (action === 'remove') {
@@ -3938,17 +3938,17 @@ resultEl.addEventListener('change', (event) => {
   if (!step) return;
   setReason(step.step, field.dataset.ctlFrom, field.matches('[data-ctl-reason]') ? { reason: field.value } : { note: field.value.trim() }, field.dataset.ctlAbout);
   // The buttons below the SWMS save what is now chosen.
-  if (window.SiteReady.actionInput) window.SiteReady.actionInput = { ...window.SiteReady.actionInput, controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
+  if (window.SiteWrite.actionInput) window.SiteWrite.actionInput = { ...window.SiteWrite.actionInput, controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
 });
 
 // ---- Reading the draft in another language (task #94) ----
 
 // Signed-in users can read the draft translated, with the English under each line. The SWMS,
 // its Word and PDF files, and what the builder sees stay in English.
-const LANGUAGE_KEY = 'siteready.readLanguage';
+const LANGUAGE_KEY = 'sitewrite.readLanguage';
 let translateConfig = null;
 async function showTranslate(input) {
-  const S = window.SiteReady;
+  const S = window.SiteWrite;
   const box = document.getElementById('result-translate');
   if (!box || !S.call || !S.isSignedIn || !S.isSignedIn()) return;
   if (!translateConfig) translateConfig = await fetch(api('/api/draft/translation')).then((response) => response.json()).catch(() => null);
@@ -4006,7 +4006,7 @@ function renderTranslation(tr) {
 // changes to the draft) is kept in this browser, so a reload or a lost signal does not lose it. It
 // is cleared when the SWMS is saved, on Start again, on sign out, and after 14 days. Nothing about
 // workers is on this page, so none is kept. Storage can be off (private browsing): then nothing is.
-const UNSAVED_KEY = 'siteready.unsaved';
+const UNSAVED_KEY = 'sitewrite.unsaved';
 const UNSAVED_DAYS = 14;
 // The business details come from the company profile, which is kept on its own.
 const PROFILE_PARTS = ['companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
@@ -4026,7 +4026,7 @@ function keepUnsaved() {
   const input = payload();
   PROFILE_PARTS.forEach((key) => { delete input[key]; });
   if (!input.task && !input.workplace && !input.principalContractor) return;
-  const editing = window.SiteReady && window.SiteReady.editing;
+  const editing = window.SiteWrite && window.SiteWrite.editing;
   try {
     localStorage.setItem(UNSAVED_KEY, JSON.stringify({ at: Date.now(), stage: unsavedStage(), input, editing: editing || null }));
   } catch { /* not kept */ }
@@ -4068,7 +4068,7 @@ async function restoreUnsaved() {
   const sameTask = () => { const now = document.getElementById('task').value.trim(); return !now || now === String(kept.input.task || '').trim(); };
   if (!sameTask()) return false;
   // The download and save buttons depend on whether the user is signed in.
-  if (window.SiteReady && window.SiteReady.accountReady) await window.SiteReady.accountReady;
+  if (window.SiteWrite && window.SiteWrite.accountReady) await window.SiteWrite.accountReady;
   if (typedHere || !sameTask()) return false;
   const input = { ...kept.input };
   // Signed in, the company is the account's own.
@@ -4077,7 +4077,7 @@ async function restoreUnsaved() {
   try {
     if (kept.stage === 'start') fillStart(input);
     else if (await fillForm(input, { stay: true }).catch(() => false)) {
-      if (kept.editing && window.SiteReady) window.SiteReady.editing = kept.editing;
+      if (kept.editing && window.SiteWrite) window.SiteWrite.editing = kept.editing;
       if (kept.stage === 'draft') await prepareDraft({ scroll: false });
     } else fillStart(input);
   } finally {
@@ -4096,24 +4096,24 @@ async function restoreUnsaved() {
   stage.before(note);
   note.scrollIntoView({ block: 'start' });
   // The project list follows the details brought back.
-  if (window.SiteReady && window.SiteReady.renderProject) window.SiteReady.renderProject();
+  if (window.SiteWrite && window.SiteWrite.renderProject) window.SiteWrite.renderProject();
   return true;
 }
 
 // ---- The phone's Back button (messy-user testing, 13 October 2026) ----
 
 // Moving on to the questions or the draft is a step in the browser's history, so Back goes to the
-// last step on this page, with everything as it was, instead of leaving SiteReady. Should Back leave
+// last step on this page, with everything as it was, instead of leaving SiteWrite. Should Back leave
 // the page anyway, the work kept on this device comes back when it is opened again (restoreUnsaved).
 const STAGE_HASH = { start: '', questions: '#questions', draft: '#draft', review: '#review' };
 function markStage(stage) {
   if (restoring || typeof history === 'undefined' || !history.pushState || !window.location) return;
   const hash = STAGE_HASH[stage] || '';
   if ((window.location.hash || '') === hash) return;
-  try { history.pushState({ siteready: stage }, '', hash || `${window.location.pathname}${window.location.search}`); } catch { /* not kept */ }
+  try { history.pushState({ sitewrite: stage }, '', hash || `${window.location.pathname}${window.location.search}`); } catch { /* not kept */ }
 }
 function showStage(stage) {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   if (stage === 'review' && S.projectReview) { S.projectReview(); return; }
   const target = stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl
     : (stage === 'questions' || stage === 'draft') && !factsForm.classList.contains('hidden') ? factsForm
@@ -4123,11 +4123,11 @@ function showStage(stage) {
 }
 if (typeof window.addEventListener === 'function') {
   window.addEventListener('popstate', (event) => {
-    const stage = (event.state && event.state.siteready) || Object.keys(STAGE_HASH).find((key) => STAGE_HASH[key] && STAGE_HASH[key] === (window.location.hash || '')) || 'start';
+    const stage = (event.state && event.state.sitewrite) || Object.keys(STAGE_HASH).find((key) => STAGE_HASH[key] && STAGE_HASH[key] === (window.location.hash || '')) || 'start';
     showStage(stage);
   });
 }
-window.SiteReady = Object.assign(window.SiteReady || {}, { markStage });
+window.SiteWrite = Object.assign(window.SiteWrite || {}, { markStage });
 
 document.addEventListener('click', (event) => {
   if (!event.target.closest('#unsaved-clear')) return;
@@ -4140,7 +4140,7 @@ document.addEventListener('click', (event) => {
 function redrawActions() {
   const box = document.getElementById('result-actions');
   if (!box || !shownDraft || !shownSent || !box.querySelector('[data-open="signin"]')) return;
-  window.SiteReady.showActions(shownDraft, shownSent);
+  window.SiteWrite.showActions(shownDraft, shownSent);
   if (shownDraft.kind === 'draft') showTranslate(shownSent);
 }
 
@@ -4168,7 +4168,7 @@ function goToFirstNeed() {
   return true;
 }
 
-window.SiteReady = Object.assign(window.SiteReady || {}, {
+window.SiteWrite = Object.assign(window.SiteWrite || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
@@ -4183,7 +4183,7 @@ document.getElementById('principal').addEventListener('change', (event) => addPr
 // One name in every person's box is said under them, as a warning (messy round 4, run 2).
 function showSameName() {
   const note = document.getElementById('people-same');
-  const rules = window.SiteReadyGate;
+  const rules = window.SiteWriteGate;
   if (!note || !rules || !rules.sameNameWarning) return;
   const now = payload();
   const text = rules.sameNameWarning(now);

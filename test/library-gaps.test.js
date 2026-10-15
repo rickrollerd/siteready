@@ -1,5 +1,5 @@
 // Library gaps the builder check's minimum controls (W13) and hazardous chemicals (W14) items
-// found in SiteReady's own drafts, filled from lines already evidenced in the library or cited to
+// found in SiteWrite's own drafts, filled from lines already evidenced in the library or cited to
 // code and regulation sections read (6 October 2026), and two causes of over-listing removed.
 const test = require('node:test');
 const assert = require('node:assert/strict');

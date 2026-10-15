@@ -1,6 +1,6 @@
 // Worker sign-on pages taken out of an uploaded SWMS before it is sent to the AI for the builder
 // check (owner decision, 6 October 2026). Workers' names with their employer, signatures,
-// sign-on times, reading records and "I have read and understood" tables never leave SiteReady.
+// sign-on times, reading records and "I have read and understood" tables never leave SiteWrite.
 // The document is read page by page (PDF, or pasted text with page breaks) or section by
 // section (Word: page breaks and headings), and each part is kept, cut at its sign-on heading,
 // or removed whole. Pasted text with no page breaks is one part: its sign-on is found by its
@@ -39,7 +39,7 @@ const TABLE_HEADER = (line) => !AUTHOR.test(line) && /\bnames?\b/i.test(line) &&
   && /\b(?:company|companies|employer|business|firm|contractor|date|time|trade|position|role|occupation|licen[cs]e|card|ticket)\b/i.test(line) && line.length <= 160 && !/\.$/.test(line);
 // A worker's own declaration: "I have read and understood", "By signing, I confirm" and the like.
 const DECLARATION = /\b(?:I|We)\s+(?:have|confirm|acknowledge|understand|agree|declare|was|were)\b[^.]{0,80}\b(?:read|understood|understand|explained|consulted|briefed|inducted|follow)\b|^\s*by signing\b/i;
-// The reading record SiteReady itself once printed under a worker's name, and "explained by".
+// The reading record SiteWrite itself once printed under a worker's name, and "explained by".
 const READING = /\bRead in [A-Z][a-z]+|\bsections? viewed\b|\bcheck questions? passed\b|\bExplained by [^()]{1,80}\(supervisor\)/;
 
 const isTitle = (line) => line.length <= 70 && !/[.;]$/.test(line) && !BULLET.test(line) && SIGN_ON_TITLE.test(line) && !AUTHOR.test(line) && lowerWords(line) <= 4;

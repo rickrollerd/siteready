@@ -379,7 +379,7 @@ test('part 3: casing and support fluid, the robot\'s floor, the jump lift method
   // The check against the maker's instructions is a note above the draft (as the D219 jack and skid
   // note): shown, not a part with no job steps, and the download is not held for it.
   assert.deepEqual(jacks.draft.notCovered, []);
-  assert.ok(jacks.draft.warnings.includes("SiteReady's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit."));
+  assert.ok(jacks.draft.warnings.includes("SiteWrite's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit."));
   const jackItem = item('shared-access-and-handling/pallet-jacks');
   assert.deepEqual(jackItem.gaps, []);
   assert.equal(jackItem.coverage, 'full');
@@ -387,7 +387,7 @@ test('part 3: casing and support fluid, the robot\'s floor, the jump lift method
   assert.deepEqual(downloadGaps({ state: 'qld', task: jackItem.task, kinds: jackItem.kinds }, jacks.draft).filter((gap) => gap.kind === 'cover'), []);
 });
 
-// Every part a picked task names as having no job steps reads as work after "SiteReady has no job
+// Every part a picked task names as having no job steps reads as work after "SiteWrite has no job
 // steps for:"; an instruction or a check is a note above the draft instead.
 test('pick list parts with no job steps are work, not instructions or checks', () => {
   for (const trade of TRADES) {

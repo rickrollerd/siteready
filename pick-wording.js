@@ -1,9 +1,9 @@
 // The wording each pick list task puts in the Task box (goal 1). The trades, tasks and their
 // generic labels come from the owner's trade catalogue (scripts/build-presets.js reads it and
-// writes pick-lists.json); this file holds only what SiteReady adds to each task:
+// writes pick-lists.json); this file holds only what SiteWrite adds to each task:
 //   task: the words put in the Task box. They are chosen so the job steps the catalogue maps to
 //     the task are the ones ticked (the catalogue's siteReady.kinds), and no others.
-//   gaps: for a task the catalogue marks as partly covered or not covered, the parts SiteReady
+//   gaps: for a task the catalogue marks as partly covered or not covered, the parts SiteWrite
 //     has no job steps for, in plain words. They are shown above the draft as work with no job
 //     steps (owner decision D184) while the task is as picked. Never a forced near-miss step.
 //   add, drop: job step kinds added to or taken off the catalogue's kinds for the task, where

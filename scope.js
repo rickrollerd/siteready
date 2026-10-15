@@ -488,7 +488,7 @@ function tasksFromScope(text, stateId = 'qld') {
   const { lines, owned, listed, sections } = readLines(text);
   // A drawing or a scanned page gives almost no text to read.
   if (!lines.length && words(String(text || '')) < 40) {
-    return { tasks: [], lines: 0, note: 'This file has almost no text SiteReady can read. It looks like a drawing or a scanned page. Attach the written scope of works or quote, or paste its text.' };
+    return { tasks: [], lines: 0, note: 'This file has almost no text SiteWrite can read. It looks like a drawing or a scanned page. Attach the written scope of works or quote, or paste its text.' };
   }
   if (!lines.length) {
     return { tasks: [], lines: 0, note: 'No site work was found in this text. If it is a contract or a cover letter, attach the scope of works or quote on its own.' };
@@ -632,7 +632,7 @@ function tasksFromScope(text, stateId = 'qld') {
     trades: ours.map((trade) => trade.id),
     tasks: merged,
     lines: lines.length,
-    note: merged.length ? '' : 'Site work was found, but none matched a kind of work SiteReady drafts. Write the task in the form instead.',
+    note: merged.length ? '' : 'Site work was found, but none matched a kind of work SiteWrite drafts. Write the task in the form instead.',
   };
 }
 

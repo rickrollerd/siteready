@@ -1,4 +1,4 @@
-// The trades SiteReady knows, and the kinds of work (activities.js) each one does.
+// The trades SiteWrite knows, and the kinds of work (activities.js) each one does.
 // A scope is for one or two trades; its tasks are that trade's kinds, plus work any
 // trade can strike when the scope names it.
 // When a task's trade is known, its job steps come only from that trade's kinds,

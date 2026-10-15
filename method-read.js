@@ -1,5 +1,5 @@
 // Reading a written methodology or sequence of works with the AI, and suggesting job steps from it
-// (owner, D224 and D230, 12 October 2026). SiteReady reads typed words only: a drawing, a photo or a
+// (owner, D224 and D230, 12 October 2026). SiteWrite reads typed words only: a drawing, a photo or a
 // scanned page is never guessed from, and the user is told it was not read. The reading takes the
 // same path as reading a scope (ai-scope.js): the same model and call, every word sent and never cut
 // short, kept against the company and the document's fingerprint so the same document costs nothing
@@ -36,8 +36,8 @@ const fail = (status, message) => Object.assign(new Error(message), { status, pu
 
 // What the user is told when a file has no typed words to read (owner, D224: "You cannot read
 // drawings, only words").
-const NOT_TYPED_ATTACHED = 'SiteReady can only read typed methodologies. This file looks like a drawing or a scan, so it is attached but not read.';
-const NOT_TYPED = 'SiteReady can only read typed methodologies. This file looks like a drawing or a scan, so it was not read.';
+const NOT_TYPED_ATTACHED = 'SiteWrite can only read typed methodologies. This file looks like a drawing or a scan, so it is attached but not read.';
+const NOT_TYPED = 'SiteWrite can only read typed methodologies. This file looks like a drawing or a scan, so it was not read.';
 const OFF = 'Reading a methodology is not switched on here. The methodology can still be attached. Make the job steps match it yourself.';
 
 // ---- The typed words of the methodology ----
@@ -280,7 +280,7 @@ async function markStale() {
 // after the request returns; the page asks for it by its id.
 async function startReading(company, { text, pagesNotRead = [] }) {
   if (!aiScope.enabled()) throw fail(503, OFF);
-  if (!company) throw fail(401, 'Sign in to have SiteReady read a methodology.');
+  if (!company) throw fail(401, 'Sign in to have SiteWrite read a methodology.');
   const content = String(text || '');
   if (!content.trim()) throw fail(400, 'There is no text in this file to read.');
   if (content.length > MAX_CHARACTERS) throw fail(413, 'This methodology is too long for one reading. Split it into parts and read each one.');

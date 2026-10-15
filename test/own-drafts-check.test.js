@@ -1,4 +1,4 @@
-// SiteReady's own drafts pass SiteReady's own builder check (owner approved, 5 October 2026):
+// SiteWrite's own drafts pass SiteWrite's own builder check (owner approved, 5 October 2026):
 // 90 or more and no hard fails, with controls in hierarchy order, a responsible position for
 // each step, and the permits that digging and work near electric lines need.
 const test = require('node:test');
@@ -50,7 +50,7 @@ function scenario(index) {
   return { task, fallRisk, facts, residential, crane };
 }
 
-test('SiteReady drafts across trades and states score 90 or more with no hard fails', () => {
+test('SiteWrite drafts across trades and states score 90 or more with no hard fails', () => {
   const samples = [
     ...STATES.flatMap((state) => scenarios.map((item, index) => [state, scenario(index)])),
     ...TYPED.map((item) => ['qld', item]),
@@ -120,7 +120,7 @@ test('each step names a responsible position, printed in the Who column', async 
   assert.match(xml, />Licensed plumber</);
 });
 
-// Wide sample of SiteReady's own drafts (415 SWMS from the saved scope readings, Qld): the high
+// Wide sample of SiteWrite's own drafts (415 SWMS from the saved scope readings, Qld): the high
 // risk work a step brings, three false matches, and hot work, isolation and confined space permits.
 const { highRiskMatches } = require('../draft');
 const ENERGISED = /energised electrical installations/i;

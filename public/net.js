@@ -5,7 +5,7 @@
 // wait: they fail quietly, as they do now.
 (() => {
   const native = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
-  if (!native || window.siteReadyNet) return;
+  if (!native || window.siteWriteNet) return;
   const script = document.currentScript;
   const MESSAGE = (script && script.dataset.message) || 'No signal. Your work is kept on this phone; try again when you have signal.';
   const QUIET = /\/api\/(address|steps\/search|abn)(\?|$)/;
@@ -80,7 +80,7 @@
 
   // A worker's sign-on details kept on this phone (sign-keep.js) are removed 24 hours after they
   // were first kept, when any page with this script opens.
-  const SIGNON_PREFIX = 'siteready.signon.';
+  const SIGNON_PREFIX = 'sitewrite.signon.';
   const SIGNON_HOURS = 24;
   function purgeSignOns(now = Date.now()) {
     let store = null;
@@ -97,7 +97,7 @@
     } catch { /* storage not readable */ }
   }
 
-  // The offline page (sw.js): a page opened or reloaded with no signal shows SiteReady's own
+  // The offline page (sw.js): a page opened or reloaded with no signal shows SiteWrite's own
   // "No signal" page instead of the browser's error. Not in the phone app shells.
   function registerOffline() {
     try {
@@ -111,5 +111,5 @@
   purgeSignOns();
   if (document.readyState === 'complete') registerOffline();
   else window.addEventListener('load', registerOffline);
-  window.siteReadyNet = { MESSAGE, noSignal, waiting: () => waiting.length, retry, giveUp, purgeSignOns };
+  window.siteWriteNet = { MESSAGE, noSignal, waiting: () => waiting.length, retry, giveUp, purgeSignOns };
 })();

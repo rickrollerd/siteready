@@ -1,6 +1,6 @@
 {
-  "name": "SiteReady",
-  "short_name": "SiteReady",
+  "name": "SiteWrite",
+  "short_name": "SiteWrite",
   "description": "A writing aid for one task. The subcontractor finishes the statement.",
   "start_url": "/",
   "display": "standalone",

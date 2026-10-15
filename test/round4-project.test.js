@@ -35,7 +35,7 @@ function page({ people = {}, answer = () => ({}), state = 'qld' } = {}) {
     signedIn: () => true,
     getProfile: () => ({ name: 'Co', abn: '33102417000' }),
   };
-  const window = { SiteReady: S };
+  const window = { SiteWrite: S };
   const fetch = async (route, options) => {
     const body = options && options.body ? JSON.parse(options.body) : null;
     calls.push({ route, body });
@@ -45,7 +45,7 @@ function page({ people = {}, answer = () => ({}), state = 'qld' } = {}) {
   const context = vm.createContext({ window, document, fetch, setTimeout, clearTimeout, requestAnimationFrame: (fn) => setTimeout(fn, 0), console, globalThis: null });
   context.globalThis = context;
   for (const name of ['design-fill.js', 'substance-rules.js', 'gate-rules.js', 'scope-task.js']) vm.runInContext(read(name), context);
-  window.SiteReadyDesignFill = context.SiteReadyDesignFill;
+  window.SiteWriteDesignFill = context.SiteWriteDesignFill;
   vm.runInContext(read('project-go.js'), context);
   const hooks = { save() {}, render() {}, statusOf: (item) => (item.kind !== 'draft' || (item.needs || []).length ? 'needs' : 'ready') };
   const fire = (type, target) => {
@@ -53,12 +53,12 @@ function page({ people = {}, answer = () => ({}), state = 'qld' } = {}) {
     node.closest = (selector) => (selector === '#project-panel' ? {} : String(selector).split(',').some((part) => { const m = /\[data-([a-z-]+)\]|#([\w-]+)/.exec(part.trim()); return m && (m[2] ? node.id === m[2] : node.attrs && node.attrs.includes(m[1])); }) ? node : null);
     for (const fn of listeners[type] || []) fn({ target: node });
   };
-  return { window, document, els, element, calls, hooks, fire, checked, go: window.SiteReadyProjectGo };
+  return { window, document, els, element, calls, hooks, fire, checked, go: window.SiteWriteProjectGo };
 }
 
 const PEOPLE = { workplace: '45 Grenfell St, Adelaide SA', principal: 'B Builders Pty Ltd', 'compliance-responsible': 'Dean Russo', reviewer: 'Dean Russo', 'works-manager': 'Dean Russo', 'works-manager-phone': '0412 345 678', 'first-aider': 'Jo Smith', 'muster-point': 'Front gate on Grenfell Street', hospital: 'Royal Adelaide Hospital' };
-const STOOD = 'SiteReady has no job steps for this work yet, so it will not draft this SWMS. To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".';
-const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".';
+const STOOD = 'SiteWrite has no job steps for this work yet, so it will not draft this SWMS. To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".';
+const NO_STEPS = 'Job steps for this work: SiteWrite does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".';
 const storage = () => ({ stage: 'questions', shared: { crane: 'none', emergency: {}, designs: {} }, items: [{ title: 'Painting', task: 'Paint the walls.', fallRisk: 'no', status: 'todo', body: null }, { title: 'Paint storage', task: 'Handle and store paint materials on site.', fallRisk: 'no', status: 'todo', body: null }] });
 
 test('work with no job steps gets "Write a step for this" on the project page, and the step goes with Prepare all', async () => {
@@ -72,7 +72,7 @@ test('work with no job steps gets "Write a step for this" on the project page, a
   p.go.render(panel, project, p.hooks);
   await settle();
   const body = p.element('go-body-1').innerHTML;
-  assert.match(body, /<p class="warning">SiteReady has no job steps for this work yet/);
+  assert.match(body, /<p class="warning">SiteWrite has no job steps for this work yet/);
   assert.match(body, /data-go-own-write="1" data-part="">Write a step for this<\/button>/);
   // Prepare all without the step: the message counts what is prepared, with no doubled full stop.
   p.fire('click', { id: 'go-prepare', attrs: [] });

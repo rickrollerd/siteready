@@ -193,7 +193,7 @@ test('review reminders go out once per review period, and a review restarts the 
   const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   await db.query('UPDATE swms SET review_due_at = $1 WHERE id = $2', [new Date(Date.now() + 2 * 86400000), swms.id]);
   const before = mailbox.length;
-  process.env.APP_URL = 'https://siteready.example/';
+  process.env.APP_URL = 'https://sitewrite.example/';
   try {
     await sendReviewReminders();
   } finally {
@@ -201,10 +201,10 @@ test('review reminders go out once per review period, and a review restarts the 
   }
   const sent = mailbox.slice(before).filter((item) => item.to === 'remind@me.example');
   assert.equal(sent.length, 1);
-  assert.equal(sent[0].subject, 'SiteReady: 1 SWMS due for checking');
+  assert.equal(sent[0].subject, 'SiteWrite: 1 SWMS due for checking');
   assert.match(sent[0].text, /due for their 3 monthly check:\n\n- .*: check due /);
   assert.match(sent[0].text, /mark it as checked\.$/);
-  assert.match(sent[0].text, /Open My SWMS: https:\/\/siteready\.example\/#my-swms/, 'the email links to My SWMS at the app\'s own address');
+  assert.match(sent[0].text, /Open My SWMS: https:\/\/sitewrite\.example\/#my-swms/, 'the email links to My SWMS at the app\'s own address');
   await sendReviewReminders();
   assert.equal(mailbox.slice(before).filter((item) => item.to === 'remind@me.example').length, 1, 'not sent twice');
 
@@ -270,7 +270,7 @@ test('a business can export all its saved SWMS in one zip: every revision, its s
   assert.equal((await sign('Rev One Worker')).status, 201);
   assert.equal((await call('PUT', `/api/swms/${first.id}`, { token, body: checked({ input: { ...INPUT, musterPoint: 'Rear gate' }, ...CONFIRM, reason: 'Muster point moved' }) })).status, 200);
   assert.equal((await sign('Rev Two Worker')).status, 201);
-  // A sign-on to a revision SiteReady did not keep (saved before each revision was kept).
+  // A sign-on to a revision SiteWrite did not keep (saved before each revision was kept).
   await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, revision) VALUES ($1, $2, $3, $4, $5, $6, $7)', ['s-unkept', first.id, 'Old Rev Worker', 'Crew Co', signature, new Date(), 7]);
 
   const response = await call('GET', '/api/swms/export.zip', { token });

@@ -97,10 +97,10 @@
 <body>
   <div class="wrap">
     <h1>Review a SWMS</h1>
-    <p class="meta short">For the principal contractor's reviewer. Open a SWMS made in SiteReady by the reference in its footer, read it, run Builder check, and send your response to the business through SiteReady. You need no SiteReady account and you pay nothing: you sign in with your work email.</p>
+    <p class="meta short">For the principal contractor's reviewer. Open a SWMS made in SiteWrite by the reference in its footer, read it, run Builder check, and send your response to the business through SiteWrite. You need no SiteWrite account and you pay nothing: you sign in with your work email.</p>
     <form class="panel short" id="find" novalidate>
-      <label for="ref" style="margin-top:0">SiteReady reference</label>
-      <input id="ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SR-ABCD-2345">
+      <label for="ref" style="margin-top:0">SiteWrite reference</label>
+      <input id="ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SW-ABCD-2345">
       <button type="submit">Open the SWMS</button>
     </form>
     <div id="summary" class="short" aria-live="polite"></div>
@@ -155,13 +155,14 @@
             <div><label for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="120"><p class="field-error hidden" id="name-error"></p></div>
             <div><label for="company">Your company</label><input id="company" type="text" autocomplete="organization" maxlength="200"><p class="field-error hidden" id="company-error"></p></div>
           </div>
-          <p class="meta">Recorded against this revision with today's date. The business sees your response in SiteReady and is emailed that its review is back. A later revision starts unreviewed.</p>
+          <p class="meta">Recorded against this revision with today's date. The business sees your response in SiteWrite and is emailed that its review is back. A later revision starts unreviewed.</p>
           <button type="submit" id="send">Send the response</button>
         </div>
         <div id="respond-status" aria-live="polite"></div>
       </form>
     </div>
   </div>
+  <script src="/old-keys.js"></script>
   <script src="/net.js" data-message="No signal. What you have typed stays on this page. Try again when you have signal."></script>
   <script src="/mass.js"></script>
   <script src="/review.js"></script>

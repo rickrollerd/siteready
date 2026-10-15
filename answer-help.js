@@ -1,5 +1,5 @@
 // What an answer that is too thin to print still needs, in plain words, with an example of an
-// answer SiteReady accepts (messy-user testing, 13 October 2026: a foreman typed "as per eng" for the
+// answer SiteWrite accepts (messy-user testing, 13 October 2026: a foreman typed "as per eng" for the
 // load limits and the SWMS was stood down with no word on what would do). Said on the page under the
 // box as the user types, and on a stood-down draft next to each answer it still needs.
 //

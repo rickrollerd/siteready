@@ -1,5 +1,5 @@
 // Goal 2 (owner, 7 October 2026): every SWMS names the plant to be used and the activity-specific
-// emergency response. The plant SiteReady lists is a tick list the user confirms before download,
+// emergency response. The plant SiteWrite lists is a tick list the user confirms before download,
 // and only the plant confirmed prints (register.js). For each high risk category the SWMS involves,
 // the one or two facts a reviewer looks for are asked and printed in the emergency arrangements
 // (emergency.js). Both are in the download gate (download-gate.js). The draft on screen shows the
@@ -34,10 +34,10 @@ const build = (input) => {
 const ids = (input) => build(input).gaps.map((gap) => gap.id);
 const names = (draft) => draft.plant.map((row) => row.item);
 
-test('the plant SiteReady lists is asked about, not guessed: unconfirmed plant is one more item before download', () => {
+test('the plant SiteWrite lists is asked about, not guessed: unconfirmed plant is one more item before download', () => {
   const { draft, gaps } = build({ ...EWP, emergency: EWP_ANSWERS });
   assert.deepEqual(draft.plantInferred, [{ item: 'Scissor lift', maybe: false }, { item: 'Cable winch or puller', maybe: false }, { item: 'Ladders', maybe: false }, { item: 'Forklift', maybe: true }]);
-  // The preview still shows what SiteReady found, the forklift hedged.
+  // The preview still shows what SiteWrite found, the forklift hedged.
   assert.deepEqual(names(draft), ['Scissor lift', 'Cable winch or puller', 'Ladders', 'Forklift']);
   assert.match(draft.plant.find((row) => row.item === 'Forklift').licence, /where one is used/);
   assert.deepEqual(gaps.map((gap) => gap.id), ['plant']);
@@ -55,7 +55,7 @@ test('only the plant confirmed prints: unticked rows drop, ticked "where one is 
   assert.ok(!draft.plant.some((row) => /where one is used/.test(row.licence)));
   // The forklift's licence is needed, as it is used.
   assert.ok(draft.qualifications.includes('High risk work licence: forklift (LF)'), draft.qualifications.join('; '));
-  // An item of the user's own that SiteReady knows takes its notes; another takes the pre-start check and the licence given.
+  // An item of the user's own that SiteWrite knows takes its notes; another takes the pre-start check and the licence given.
   const own = draft.plant.find((row) => row.item === 'Battery cable drum trailer');
   assert.equal(own.inspection, "Pre-start check each shift. Serviced to the manufacturer's instructions. Drum shaft, brakes and hitch checked.");
   assert.equal(own.licence, 'No. Operator trained in its use');
@@ -72,7 +72,7 @@ test('plant listed after the user confirmed is asked about, and an unknown item 
   const choice = { used: ['Scissor lift'], notUsed: [], added: [] };
   const { gaps } = build({ ...EWP, emergency: EWP_ANSWERS, plantChoice: choice });
   assert.deepEqual(gaps.map((gap) => gap.id), ['plant']);
-  assert.match(gaps[0].need, /^SiteReady now also lists Cable winch or puller, Ladders, Forklift\. Tick each one if your crew uses it/);
+  assert.match(gaps[0].need, /^SiteWrite now also lists Cable winch or puller, Ladders, Forklift\. Tick each one if your crew uses it/);
   const own = build({ ...EWP, emergency: EWP_ANSWERS, plantChoice: { used: ['Scissor lift'], notUsed: ['Cable winch or puller', 'Ladders', 'Forklift'], added: [{ item: 'Cable drum jacks', licence: '' }] } });
   assert.deepEqual(own.gaps.map((gap) => gap.id), ['plant']);
   assert.match(own.gaps[0].need, /Give the licence or ticket to operate Cable drum jacks, or write No/);
@@ -141,7 +141,7 @@ test('the draft on screen shows the response line of a step still High and the n
   const lift = reo.jobSteps.find((step) => step.step === 'Lift reo onto the deck');
   assert.ok(lift.risk.response);
   for (const movable of [true, false]) {
-    const html = p.window.SiteReady.render(reo, { movable });
+    const html = p.window.SiteWrite.render(reo, { movable });
     assert.ok(html.includes(`<span class="risk-response">${lift.risk.response}</span>`), `response shown, movable ${movable}`);
   }
   const cabling = prepareDraft({ state: 'qld', fallRisk: 'no', residential: 'no', task: 'Install reticulation, cabling and cable management systems with supports. Provide task lighting.', kinds: ['containment', 'tempPower'], facts: { constructionTesting: 'Construction wiring is inspected and tested by our licensed electrician before first use and as AS/NZS 3012 sets.' }, ...site });
@@ -149,7 +149,7 @@ test('the draft on screen shows the response line of a step still High and the n
   const [note] = sharedNote(step, cabling.jobSteps);
   assert.match(note, /^The controls in step \d \(Install cable tray and containment\) also apply here\.$/);
   for (const movable of [true, false]) {
-    const html = p.window.SiteReady.render(cabling, { movable });
+    const html = p.window.SiteWrite.render(cabling, { movable });
     assert.equal(html.split(`<p class="ctl-shared">${note}</p>`).length - 1, 1, `note shown once, movable ${movable}`);
   }
 });
@@ -160,15 +160,15 @@ test('the draft on screen asks for the plant and the emergency facts where the g
   const input = draftBody(EWP);
   const draft = { ...prepareDraft(input) };
   draft.gate = downloadGaps(input, draft);
-  const html = p.window.SiteReady.render(draft, { movable: true });
+  const html = p.window.SiteWrite.render(draft, { movable: true });
   // Each item in the gate has its place on the page.
   for (const gap of draft.gate) assert.ok(html.includes(`id="${gap.field}"`), gap.field);
   assert.match(html, /<input type="checkbox" data-plant-item="Scissor lift" checked>/);
-  assert.match(html, /<input type="checkbox" data-plant-item="Forklift"><span>Forklift <span class="meta">SiteReady is not sure this is used/);
+  assert.match(html, /<input type="checkbox" data-plant-item="Forklift"><span>Forklift <span class="meta">SiteWrite is not sure this is used/);
   assert.match(html, /<button type="button" id="plant-confirm">Confirm the plant<\/button>/);
   assert.match(html, /Not confirmed yet\. The download waits for it\./);
   assert.match(html, /<label for="emg-ewpLower">Who on the ground lowers the platform in an emergency\?/);
-  const shown = p.window.SiteReady.render(draft);
+  const shown = p.window.SiteWrite.render(draft);
   assert.doesNotMatch(shown, /plant-ticks|data-emergency|plant-confirm/);
 });
 
@@ -216,7 +216,7 @@ test('Word and PDF wait for the plant and the emergency facts, then print them, 
   for (const item of ['Scissor lift', 'Cable winch or puller', 'Battery cable drum trailer']) assert.ok(register.includes(item), item);
   for (const item of ['Ladders', 'Forklift', 'where one is used']) assert.ok(!register.includes(item), item);
   for (const answer of ['Lowered in an emergency by: Larry Leadinghand, leading hand, trained on the ground controls', 'Ground controls and key: Ground control panel at the rear of the base', 'Stopped by: The operator presses the red emergency stop']) assert.ok(text.includes(answer), answer);
-  const id = docx.headers.get('x-siteready-swms');
+  const id = docx.headers.get('x-sitewrite-swms');
   const saved = await (await call('GET', `/api/swms/${id}`, { token })).json();
   assert.deepEqual(saved.input.plantChoice.notUsed, ['Ladders', 'Forklift']);
   assert.equal(saved.input.emergency.ewpLower, EWP_ANSWERS.ewpLower);

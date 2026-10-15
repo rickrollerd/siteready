@@ -1,6 +1,6 @@
 name: Fetch piling sources
 
-# Reads the piling industry standard and the mobile plant support guide behind SiteReady's piling job steps, one job per source and chunk so each log can be read back.
+# Reads the piling industry standard and the mobile plant support guide behind SiteWrite's piling job steps, one job per source and chunk so each log can be read back.
 on:
   workflow_dispatch:
   push:

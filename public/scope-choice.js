@@ -3,7 +3,7 @@
 // one SWMS in the project, with its scope review answers, who runs the crane, and the trade and
 // task from the pick lists that match it. Used by the browser (scope.js) and the tests.
 (function (root) {
-  const scopeTask = typeof module === 'object' && module.exports ? require('./scope-task') : root.SiteReadyScopeTask;
+  const scopeTask = typeof module === 'object' && module.exports ? require('./scope-task') : root.SiteWriteScopeTask;
 
   // The work packages with site work, each with only its site work, and the duties (supervision,
   // records, tickets) in a list of their own: a duty never sits in a package's activities.
@@ -135,7 +135,7 @@
       }
       return {
         title: pack.name,
-        // The task prints as a plain list of the work (D251). SiteReady reads the work from the scope's
+        // The task prints as a plain list of the work (D251). SiteWrite reads the work from the scope's
         // full words, with its places, conditions and plant, so "near roads" or "energised switchboards"
         // still reach the high risk check; the conditions go to the matching site questions and the
         // plant to the plant list, for the user to check (D252).
@@ -160,5 +160,5 @@
 
   const api = { packagesOf, isCranage, craneClause, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyScopeChoice = api;
+  else root.SiteWriteScopeChoice = api;
 })(typeof window !== 'undefined' ? window : globalThis);

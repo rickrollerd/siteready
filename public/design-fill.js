@@ -5,7 +5,7 @@
 // sentence is populated." At each question whose standard answer refers to an engineer's design or
 // drawing, the page shows that design's card (the same design row the designs table and the step lines
 // use, designs.js: entered once). Its number and revision, typed once, fill the design blanks in the
-// answer, and follow the design when it changes. SiteReady never reads the drawing. "Not issued yet"
+// answer, and follow the design when it changes. SiteWrite never reads the drawing. "Not issued yet"
 // says so in the answer, as the hold point does in the steps. The blanks for people are left to fill.
 //
 // D241 and D245: "Needs to be in Bold RED ... the blank section with a warning so the user can see it
@@ -187,5 +187,5 @@
 
   const api = { QUESTION_DESIGNS, designIds, fillDesign, filledFrom, blankNames, blankLabels, blankWarning, NOT_ISSUED };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyDesignFill = api;
+  else root.SiteWriteDesignFill = api;
 })(typeof window !== 'undefined' ? window : globalThis);

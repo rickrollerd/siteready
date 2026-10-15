@@ -112,7 +112,7 @@ const SCHEMA = object({
   },
 });
 
-// The second, smaller call: the job step groups in SiteReady's library that cover each work package,
+// The second, smaller call: the job step groups in SiteWrite's library that cover each work package,
 // chosen by meaning. The rule engine still decides high risk work and every legal line.
 const STEPS_BRIEF = `You are matching construction work packages to the job step groups in a safe work method statement library. Each group has an id and the job steps it contains.
 

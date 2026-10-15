@@ -68,9 +68,9 @@ jobs:
             exit 0
           fi
           {
-            echo "From: SiteReady <$SMTP_USERNAME>"
+            echo "From: SiteWrite <$SMTP_USERNAME>"
             echo "To: $ALERT_EMAIL"
-            echo "Subject: SiteReady legislation, codes and news check: action needed"
+            echo "Subject: SiteWrite legislation, codes and news check: action needed"
             echo "Content-Type: text/plain; charset=UTF-8"
             echo
             # The issue keeps the Markdown. The email drops headings, bold and code marks.

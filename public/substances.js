@@ -1,14 +1,14 @@
 // Hazardous substances product by product, on the draft (owner, 13 October 2026, feedback item 22;
-// D256, D257). SiteReady names the types of substance the work usually uses as a prompt; the user adds
-// each product used. For each, they attach its safety data sheet (SDS) as a PDF, which SiteReady reads
+// D256, D257). SiteWrite names the types of substance the work usually uses as a prompt; the user adds
+// each product used. For each, they attach its safety data sheet (SDS) as a PDF, which SiteWrite reads
 // for its typed words (sds-read.js), or type its details from it, then tick "These match the SDS".
 // Only products print: in the substances table with their Controls, and as one line in the step that
 // uses each (substances.js). The download waits for each product listed to be complete and ticked.
 // The rules shared with the server are in substance-rules.js. app.js draws the section where the
 // registers print (render) and sends the products with the draft (payload).
 (() => {
-  const S = window.SiteReady || {};
-  const R = window.SiteReadySubstanceRules;
+  const S = window.SiteWrite || {};
+  const R = window.SiteWriteSubstanceRules;
   if (!R) return;
   const esc = (value) => (S.esc ? S.esc(value) : String(value || '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`));
   const LISTS = ['hazards', 'controls', 'firstAid', 'storage'];
@@ -20,7 +20,7 @@
   // name (D292 item 3).
   let notUsed = new Set();
   let notUsedWhy = {};
-  // The draft last drawn, for its job steps and SiteReady's suggested types, and what the server said
+  // The draft last drawn, for its job steps and SiteWrite's suggested types, and what the server said
   // of each product (the step it matched, what it still needs).
   let shown = null;
   // The product whose Remove was pressed, waiting for "Remove" or "Keep".
@@ -51,7 +51,7 @@
   const notUsedPayload = () => (notUsed.size ? [...notUsed] : undefined);
   const notUsedWhyPayload = () => { const kept = Object.entries(notUsedWhy).filter(([type, text]) => notUsed.has(type) && String(text || '').trim()); return kept.length ? Object.fromEntries(kept) : undefined; };
 
-  // The step a product goes in now, as the page has it: the step chosen, else SiteReady's match.
+  // The step a product goes in now, as the page has it: the step chosen, else SiteWrite's match.
   const stepNow = (row) => R.stepOf(row, steps());
   // What a product still needs before download, judged as the user types (the server checks again).
   function need(id) {
@@ -76,9 +76,9 @@
     const id = `sub-${esc(row.id)}-step`;
     const matched = R.matchStep(row.type, steps());
     const chosen = row.step && steps().some((step) => step.step === row.step) ? row.step : '';
-    const first = matched ? `SiteReady's match: ${matched}` : 'Choose the step';
+    const first = matched ? `SiteWrite's match: ${matched}` : 'Choose the step';
     const options = [`<option value=""${chosen ? '' : ' selected'}>${esc(first)}</option>`, ...steps().map((step) => `<option value="${esc(step.step)}"${chosen === step.step ? ' selected' : ''}>${esc(step.step)}</option>`)].join('');
-    return `<div class="field"><label for="${id}">Job step that uses it<span class="hint">The step gets one line naming the product and its controls.${matched ? '' : ' SiteReady could not tell which step uses it: choose one.'}</span></label><select id="${id}" class="plain" data-sub-field="step">${options}</select></div>`;
+    return `<div class="field"><label for="${id}">Job step that uses it<span class="hint">The step gets one line naming the product and its controls.${matched ? '' : ' SiteWrite could not tell which step uses it: choose one.'}</span></label><select id="${id}" class="plain" data-sub-field="step">${options}</select></div>`;
   }
   function fileBox(row) {
     const id = esc(row.id);
@@ -86,7 +86,7 @@
       ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-sub-open="${id}">Open</button> <button type="button" class="link" data-sub-unfile="${id}">Remove the file</button></p>`
       : `<label class="secondary small design-attach" for="sub-${id}-file">Attach its safety data sheet (PDF)</label><input id="sub-${id}-file" class="visually-hidden" type="file" accept=".pdf,application/pdf" data-sub-file="${id}">`;
     return `<div class="field design-file-box"><p class="design-file-label">Its safety data sheet</p>
-      <p class="meta">Attach the SDS as a PDF and SiteReady reads its typed words to fill in the details below for you to check. It does not read a scanned SDS or a photo: type the details from it instead. The file stays with this SWMS in SiteReady. It does not print.</p>
+      <p class="meta">Attach the SDS as a PDF and SiteWrite reads its typed words to fill in the details below for you to check. It does not read a scanned SDS or a photo: type the details from it instead. The file stays with this SWMS in SiteWrite. It does not print.</p>
       ${file}<p class="meta sub-msg" data-sub-msg="${id}" role="status">${esc(messages[row.id] || '')}</p></div>`;
   }
   function card(row) {
@@ -135,14 +135,14 @@
     const cells = (row) => [
       [row.product, row.type, row.supplier ? `Supplier: ${row.supplier}` : '', row.quantity ? `Quantity: ${row.quantity}` : ''].filter(Boolean).join('\n'),
       or(row.hazards, 'section 2'), or(row.controls, 'section 8'), or(row.firstAid, 'section 4'), or(row.storage, 'sections 6 and 7'),
-      [dated(row.sdsDate), row.file ? `A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : ''].filter(Boolean).join('\n'),
+      [dated(row.sdsDate), row.file ? `A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''].filter(Boolean).join('\n'),
     ];
     const cell = (value, i) => `<td data-label="${esc(head[i])}">${esc(value).replace(/\n/g, '<br>')}</td>`;
     return `<p class="meta">Each product used, with the controls from its own safety data sheet (SDS). Keep each product's current SDS at the work area, and label every container, including anything decanted.</p>
       <table class="stack sub-table"><thead><tr>${head.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${cells(row).map(cell).join('')}</tr>`).join('')}</tbody></table>`;
   }
 
-  // The types SiteReady suggests for the work, and whether a product of each is added (D277: each needs
+  // The types SiteWrite suggests for the work, and whether a product of each is added (D277: each needs
   // a product or the tick "Not required").
   const suggestedTypes = () => ((shown && shown.substances && shown.substances.items) || []).map((item) => item.product).filter((label) => R.TYPES.includes(label));
   const productsOf = (type) => products.filter((row) => row.type === type && typed(row));
@@ -171,7 +171,7 @@
     const names = types.map(R.promptName);
     const lead = types.length
       ? `This work usually uses ${names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]}. For each, add the product you use, with its safety data sheet, or tick "Not required".`
-      : 'SiteReady found no hazardous substances in this work. If your crew uses a product with a safety data sheet (a sealant, a fuel, a cleaner), add it here.';
+      : 'SiteWrite found no hazardous substances in this work. If your crew uses a product with a safety data sheet (a sealant, a fuel, a cleaner), add it here.';
     const done = (types.length || products.length) && types.every((type) => !typeNeed(type)) && products.every((row) => !typed(row) || (fromServer(row.id) && !need(row.id)));
     return `<div class="panel answer-panel sub-panel${done ? ' done' : ''}" id="substances-panel">
       <p><strong>Hazardous products used in this work</strong></p>
@@ -286,7 +286,7 @@
       const used = new Set(products.map((row) => row.id));
       let n = 1;
       while (used.has(`sub-${n}`)) n += 1;
-      // The product as given there, for this SWMS's own step: SiteReady matches the step again.
+      // The product as given there, for this SWMS's own step: SiteWrite matches the step again.
       products.push({ ...R.rowOf(found.row), id: `sub-${n}`, type: found.row.type || '', step: '', ...(found.row.file ? { file: { ...found.row.file } } : {}) });
       notUsed.delete(found.row.type);
       panelStatus = '';
@@ -376,8 +376,8 @@
     for (const key of filled) row[key] = LISTS.includes(key) ? [...data.details[key]] : data.details[key];
     if (filled.length) { row.read = { fields: filled }; row.confirmed = false; }
     messages[id] = filled.length
-      ? `Filled from the safety data sheet: check each line against it.${data.dropped ? ' Lines SiteReady could not find word for word in the SDS were left out.' : ''}${filled.includes('controls') ? '' : ' Type its PPE and controls from sections 7 and 8.'}`
-      : 'SiteReady found none of the details in the SDS\'s typed words. Type them from it.';
+      ? `Filled from the safety data sheet: check each line against it.${data.dropped ? ' Lines SiteWrite could not find word for word in the SDS were left out.' : ''}${filled.includes('controls') ? '' : ' Type its PPE and controls from sections 7 and 8.'}`
+      : 'SiteWrite found none of the details in the SDS\'s typed words. Type them from it.';
     redraw();
     if (S.keepUnsaved) S.keepUnsaved();
   }
@@ -404,5 +404,5 @@
   }
   if (document.head) addStyle();
 
-  window.SiteReadySubstances = { section, payload, notUsedPayload, notUsedWhyPayload, load, clear, need, typeNeed, printedTable };
+  window.SiteWriteSubstances = { section, payload, notUsedPayload, notUsedWhyPayload, load, clear, need, typeNeed, printedTable };
 })();

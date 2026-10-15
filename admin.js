@@ -469,7 +469,7 @@ router.get('/admin/control-learning/report.md', auth.requireUser, route(async (r
   const { monthlyReport, reportMarkdown } = require('./control-learning');
   const report = await monthlyReport({ month: reportMonth(req) });
   res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="siteready-learning-${report.month}.md"`);
+  res.setHeader('Content-Disposition', `attachment; filename="sitewrite-learning-${report.month}.md"`);
   res.send(reportMarkdown(report));
 }));
 

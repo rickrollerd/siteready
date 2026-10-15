@@ -1,11 +1,11 @@
 // The builder SWMS check page (task #106). Not linked from anywhere yet (#78 comes after launch).
-// A SWMS is uploaded or pasted, or a SiteReady draft is checked, and the page shows the score,
+// A SWMS is uploaded or pasted, or a SiteWrite draft is checked, and the page shows the score,
 // the findings and the email to copy. Signed-in users only; the session is the main page's.
 (() => {
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   let session = '';
-  try { session = localStorage.getItem('siteready.session') || ''; } catch { /* not kept */ }
+  try { session = localStorage.getItem('sitewrite.session') || ''; } catch { /* not kept */ }
   if (!session) $('signedOut').classList.remove('hidden');
   let mode = 'upload';
 
@@ -25,7 +25,7 @@
     $('state').innerHTML = `<option value="">As stated in the SWMS</option>${data.states.filter((state) => state.loaded).map((state) => `<option value="${esc(state.id)}">${esc(state.name)}</option>`).join('')}`;
   }).catch(() => {});
 
-  // While SiteReady keeps checked SWMS (KEEP_CHECKED_SWMS), the user is told at upload and can choose
+  // While SiteWrite keeps checked SWMS (KEEP_CHECKED_SWMS), the user is told at upload and can choose
   // not to have this one kept. Otherwise the page says the file is not kept, as before.
   let keeping = false;
   fetch('/api/check/keeping').then((response) => response.json()).then((data) => {

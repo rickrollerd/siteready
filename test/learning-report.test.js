@@ -171,7 +171,7 @@ test('changes undone in the next revision are listed by different SWMS', async (
   assert.deepEqual(report.candidates.reverted.shown.map((item) => [item.kind, item.line, item.newLine, item.swms]), [['changed', 'Spoil is heaped at least 1 m back.', 'Spoil kept back.', 5]]);
   assert.equal(report.candidates.reverted.below, 1);
   const text = reportMarkdown(report);
-  assert.match(text, /### Changes undone in the next revision\n\n\| Step \| Change \| SiteReady line \| User line \| SWMS \| This month \| Goal 5 check needed \|/);
+  assert.match(text, /### Changes undone in the next revision\n\n\| Step \| Change \| SiteWrite line \| User line \| SWMS \| This month \| Goal 5 check needed \|/);
   assert.match(text, /\| Excavate \| changed \| Spoil is heaped at least 1 m back\. \| Spoil kept back\. \| 5 \| 5 \| Yes \|/);
 });
 
@@ -256,9 +256,9 @@ test('the report and its text are for the owner only', async () => {
   const text = await call('/api/admin/control-learning/report.md?month=2026-09', owner);
   assert.equal(text.status, 200);
   assert.match(text.headers.get('content-type'), /^text\/markdown/);
-  assert.equal(text.headers.get('content-disposition'), 'attachment; filename="siteready-learning-2026-09.md"');
+  assert.equal(text.headers.get('content-disposition'), 'attachment; filename="sitewrite-learning-2026-09.md"');
   const body = await text.text();
-  assert.match(body, /^# SiteReady learning report: 2026-09\n/);
+  assert.match(body, /^# SiteWrite learning report: 2026-09\n/);
   assert.match(body, /\| Excavate \| Spoil is heaped at least 1 m back\. \| 5 \| 5 \| No \| Yes \|/);
   assert.match(body, /\n- First-time acceptance \(goal 3\) is not captured yet/);
 });

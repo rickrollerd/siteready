@@ -67,7 +67,7 @@ test('a method prints in the table once given in full; the steps, the gate and t
     status: 'given', by: 'Acme Lifts Pty Ltd', number: 'AL-MS-014', revision: 'B', date: '2026-09-30', file: FILE,
     id: 'method-1', what: 'Jump lift machine platform raising methodology', label: '', steps: [], needed: false, kind: 'method',
     reference: 'AL-MS-014 rev B (Acme Lifts Pty Ltd, 30 September 2026)',
-    statusText: 'The work follows this methodology. A copy is attached to this SWMS in SiteReady (AL-MS-014 rev B.pdf).',
+    statusText: 'The work follows this methodology. A copy is attached to this SWMS in SiteWrite (AL-MS-014 rev B.pdf).',
   }]);
   assert.ok(!JSON.stringify(withMethod.jobSteps).includes('AL-MS-014'), 'no line goes into the steps');
   // No gate item, and the builder check scores it the same.
@@ -90,7 +90,7 @@ test('a method prints in the table once given in full; the steps, the gate and t
   assert.deepEqual(draft(PLAIN, { designs: [{ ...METHOD, number: 'TBC' }] }), plain);
   assert.deepEqual(draft(PLAIN, { designs: [{ ...METHOD, revision: '' }] }).designs[0].reference, 'AL-MS-014 (Acme Lifts Pty Ltd, 30 September 2026)');
   assert.equal(draft(PLAIN, { designs: [METHOD] }).designs[0].statusText, 'The work follows this methodology.');
-  // In Word: its own title, column and note; nothing is printed of SiteReady checking it.
+  // In Word: its own title, column and note; nothing is printed of SiteWrite checking it.
   const text = await word(withMethod);
   assert.ok(text.includes('Written methodologies this SWMS relies on'), text.slice(0, 2000));
   assert.ok(text.includes('The work follows each methodology listed here. Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.'));
@@ -167,7 +167,7 @@ function type(p, id, field, value) {
   p.document.getElementById('methods-block').dispatchEvent(event);
 }
 
-test('the page: the option is on every draft, small and optional; its card says SiteReady reads typed words only', async () => {
+test('the page: the option is on every draft, small and optional; its card says SiteWrite reads typed words only', async () => {
   const p = loadPage(['gate-rules.js', 'app.js'], () => ({ body: {} }));
   await settle();
   // A draft with no design step: the designs section stays hidden, the option shows, nothing is sent.
@@ -181,7 +181,7 @@ test('the page: the option is on every draft, small and optional; its card says 
   p.document.getElementById('method-add').click();
   const html = p.document.getElementById('methods-block').innerHTML;
   assert.match(html, /<legend>Written methodology or sequence of works<\/legend>/);
-  assert.ok(html.includes('SiteReady reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with &quot;Change this step&quot;, or write your own with &quot;Write a step for this&quot; or &quot;Write a step of your own&quot;.'), html);
+  assert.ok(html.includes('SiteWrite reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with &quot;Change this step&quot;, or write your own with &quot;Write a step for this&quot; or &quot;Write a step of your own&quot;.'), html);
   assert.ok(html.includes('Prints in the table near the top of the SWMS. Nothing is added to the job steps unless you accept a suggested step.'));
   for (const label of ['What it is', 'Who prepared it', 'Document number', 'Revision', 'Date on the document', 'Attach the file', 'Remove this methodology']) assert.ok(html.includes(label), label);
   assert.match(html, /accept="\.pdf,\.png,\.jpg,\.jpeg,application\/pdf,image\/png,image\/jpeg"/);
@@ -211,14 +211,14 @@ test('the page: the option is on every draft, small and optional; its card says 
   p.document.getElementById('methods-block').dispatchEvent(remove);
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().designs)')).map((row) => row.id), ['method-1']);
   // In the draft: the table, with the file to open.
-  const sheet = p.window.SiteReady.render(draft(PLAIN, { designs: [{ ...METHOD, file: FILE }] }), { movable: true });
+  const sheet = p.window.SiteWrite.render(draft(PLAIN, { designs: [{ ...METHOD, file: FILE }] }), { movable: true });
   assert.match(sheet, /<h4>Written methodologies this SWMS relies on<\/h4><p class="meta">The work follows each methodology listed here\./);
   assert.match(sheet, /<th>Methodology<\/th>/);
   assert.match(sheet, /data-design-file-open="\/api\/designs\/files\/df_abcdefghijklmnopqrstu"/);
-  const both = p.window.SiteReady.render(draft(SHORING, { designs: [SHORING_DESIGN, METHOD] }), { movable: true });
+  const both = p.window.SiteWrite.render(draft(SHORING, { designs: [SHORING_DESIGN, METHOD] }), { movable: true });
   assert.match(both, /<h4>Designs and methodologies this SWMS relies on<\/h4><p class="meta">Each step that relies on a design names it\. The work follows each methodology listed here\./);
   assert.match(both, /<th>Design or methodology<\/th>/);
-  assert.match(p.window.SiteReady.render(draft(SHORING, { designs: [SHORING_DESIGN] }), { movable: true }), /<h4>Designs this SWMS relies on<\/h4>.*<th>Design<\/th>/s);
+  assert.match(p.window.SiteWrite.render(draft(SHORING, { designs: [SHORING_DESIGN] }), { movable: true }), /<h4>Designs this SWMS relies on<\/h4>.*<th>Design<\/th>/s);
   // A new SWMS starts with none.
   p.run('newSwms()');
   assert.equal(p.run('payload().designs'), undefined);
@@ -245,7 +245,7 @@ test('a saved SWMS opened again with Change keeps its method', async () => {
     if (route === '/api/draft') return { body: { ...prepareDraft(draftBody(sent)), controlLegal: [] } };
     return { body: {} };
   };
-  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond, { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond, { stored: { 'sitewrite.session': 'token' } });
   await settle();
   const open = new FakeEvent('click', { bubbles: true });
   open.target = { closest: (selector) => (selector === '[data-swms]' ? { dataset: { swms: 'saved-m' } } : null) };

@@ -1,4 +1,4 @@
-// Goal 12 stage 2 (D286, D290): every SWMS gets SiteReady's own check (the gate, then Builder check,
+// Goal 12 stage 2 (D286, D290): every SWMS gets SiteWrite's own check (the gate, then Builder check,
 // must-fix items blocking), then a named person ticks each part as checked, with their role, before
 // it downloads or saves. Each tick holds its part's fingerprint, so a change after ticking clears it
 // and the server refuses a stale tick. "Checked by" prints on the Word file, the PDF and the sign-on
@@ -106,9 +106,9 @@ test('the message says which parts to tick again', () => {
   assert.equal(parts.staleMessage(['hazards', 'site']), 'You changed the hazards and controls and the site details after ticking them. Tick them again.');
 });
 
-// ---- SiteReady's own check ----
+// ---- SiteWrite's own check ----
 
-test('SiteReady\'s check gives the score, the band, must-fix items and the other findings, with no AI', async () => {
+test('SiteWrite\'s check gives the score, the band, must-fix items and the other findings, with no AI', async () => {
   const response = await call('POST', '/api/draft/check', { body: FENCE });
   assert.equal(response.status, 200);
   const result = await response.json();
@@ -137,7 +137,7 @@ test('a must-fix item blocks the download and the save, with what to fix', async
     assert.equal(refused.status, 400);
     const data = await refused.json();
     assert.equal(data.field, 'mustFix');
-    assert.match(data.message, /^SiteReady's check found a must-fix item\. Fix it before downloading: Controls for high risk hazards leave the decision to the worker/);
+    assert.match(data.message, /^SiteWrite's check found a must-fix item\. Fix it before downloading: Controls for high risk hazards leave the decision to the worker/);
   }
   const save = await call('POST', '/api/swms', { token, body: checked({ input }) });
   assert.equal(save.status, 400);
@@ -181,7 +181,7 @@ test('the check is kept with the revision, the name stays on the SWMS for remind
   const body = checked({ ...FENCE, title: 'Fence' }, null, { name: 'Sam Lee', role: 'Site supervisor' });
   const docx = await call('POST', '/api/draft.docx', { token, body });
   assert.equal(docx.status, 200);
-  const id = docx.headers.get('x-siteready-swms');
+  const id = docx.headers.get('x-sitewrite-swms');
   const kept = await db.one('SELECT confirmation FROM swms_revisions WHERE swms_id = $1 AND revision = 1', [id]);
   const confirmation = typeof kept.confirmation === 'string' ? JSON.parse(kept.confirmation) : kept.confirmation;
   assert.deepEqual(Object.keys(confirmation).sort(), ['builderCheck', 'date', 'name', 'partHashes', 'parts', 'role']);
@@ -196,7 +196,7 @@ test('the check is kept with the revision, the name stays on the SWMS for remind
   const text = await word(await docx.arrayBuffer());
   const today = humanCheck.longDate(new Date());
   assert.match(text, /Prepared by .* Checked by Name Sam Lee Role Site supervisor Date [^]*?Parts checked Job steps; Hazards and controls; Plant; Emergency; Site details Principal contractor review/);
-  assert.ok(text.includes(`Checked by Sam Lee, Site supervisor, ${today}. Drafted with SiteReady.`));
+  assert.ok(text.includes(`Checked by Sam Lee, Site supervisor, ${today}. Drafted with SiteWrite.`));
   // PDF of the same revision: the same table and footer.
   const pdf = pdfText(await (await call('GET', `/api/swms/${id}/pdf`, { token })).arrayBuffer());
   assert.match(pdf, /Checked by\n/);
@@ -218,9 +218,9 @@ test('a revision saved before the check prints as it did', async () => {
   const draft = { ...draftOf(FENCE), revision: '1' };
   const old = { name: 'Alex Chen', date: '6 October 2026' };
   const text = await word(await draftToDocx(draft, { confirmation: old }));
-  assert.ok(text.includes('Drafted with SiteReady by Alex Chen on 6 October 2026.'));
+  assert.ok(text.includes('Drafted with SiteWrite by Alex Chen on 6 October 2026.'));
   assert.ok(!/Checked by/.test(text));
-  assert.equal(draftedNote(old), 'Drafted with SiteReady by Alex Chen on 6 October 2026. The business named in this SWMS reviews, approves and is responsible for it.');
+  assert.equal(draftedNote(old), 'Drafted with SiteWrite by Alex Chen on 6 October 2026. The business named in this SWMS reviews, approves and is responsible for it.');
   assert.ok(!/Checked by/.test(pdfText(await draftToPdf(draft, { confirmation: old, note: draftedNote(old) }))));
 });
 
@@ -229,7 +229,7 @@ test('the business\'s own check of a saved SWMS is made part by part and prints 
   const saved = await (await call('POST', '/api/swms', { token, body: checked({ input: FENCE }, null, { name: 'Sam Lee', role: 'Supervisor' }) })).json();
   const id = saved.swms.id;
   const opened = await (await call('GET', `/api/swms/${id}`, { token })).json();
-  assert.deepEqual(opened.selfCheck.partHashes, parts.partHashes(draftOf(FENCE)), 'the saved page gets SiteReady\'s check and the fingerprints');
+  assert.deepEqual(opened.selfCheck.partHashes, parts.partHashes(draftOf(FENCE)), 'the saved page gets SiteWrite\'s check and the fingerprints');
   assert.equal(typeof opened.selfCheck.builder.score, 'number');
   assert.deepEqual(opened.lastCheck, { name: 'Sam Lee', role: 'Supervisor', date: humanCheck.longDate(new Date()) });
   // No role: refused.
@@ -259,8 +259,8 @@ test('a page from before the check is accepted for one SWMS until the changeover
     const docx = await call('POST', '/api/draft.docx', { token, body: { ...FENCE, ...old } });
     assert.equal(docx.status, 200);
     const text = await word(await docx.arrayBuffer());
-    assert.match(text, /Drafted with SiteReady by Alex Chen on /, 'it prints as it did');
-    // SiteReady's check still blocks a must-fix item on an old page.
+    assert.match(text, /Drafted with SiteWrite by Alex Chen on /, 'it prints as it did');
+    // SiteWrite's check still blocks a must-fix item on an old page.
     const must = await call('POST', '/api/draft.docx', { token, body: { ...TRENCH, ownSteps: [VAGUE_STEP], ...old } });
     assert.equal(must.status, 400);
     // A project's one tick cannot stand for each SWMS: refresh.
@@ -327,7 +327,7 @@ test('the reviewed revision prints the principal contractor\'s response; an unre
   const date = (await sent.json()).review.date;
   // Downloaded again, Word and PDF carry the filled box.
   const text = await word(await (await call('GET', `/api/swms/${id}/docx`, { token })).arrayBuffer());
-  assert.ok(text.includes(`The principal contractor's reviewer returned this response in SiteReady on SiteReady reference ${swms.ref}, revision 1.`));
+  assert.ok(text.includes(`The principal contractor's reviewer returned this response in SiteWrite on SiteWrite reference ${swms.ref}, revision 1.`));
   assert.match(text, /Reviewed by \(name and company\) Riley Morgan, Tier One Builders/);
   // The outcome is a ticked Word box beside "Approved with conditions" only.
   const xml = await (await JSZip.loadAsync(Buffer.from(await (await call('GET', `/api/swms/${id}/docx`, { token })).arrayBuffer()))).file('word/document.xml').async('string');

@@ -140,7 +140,7 @@ test('weakening a control is warned about: a smaller number, softer words, a los
   assert.equal(added.controlEdits.warned[0].kind, 'added');
 });
 
-test('the lines SiteReady recommends keeping carry a warning, whatever they are cited to', () => {
+test('the lines SiteWrite recommends keeping carry a warning, whatever they are cited to', () => {
   const { keepWarning } = require('../draft');
   const cases = [
     ['No person enters a confined space until a confined space entry permit is issued. (Confined spaces Code of Practice 2021 (Qld) s 4.3)', /confined space/],
@@ -338,12 +338,12 @@ test('a business that opted out of industry data is left out, and rows are delet
   }
 });
 
-// ---- Changes made on a line SiteReady has since reworded (audit step 4, bugs B4 and B5) ----
+// ---- Changes made on a line SiteWrite has since reworded (audit step 4, bugs B4 and B5) ----
 
 const SPOIL = excavate.controls.find((line) => /^Spoil is heaped at least 1 m back/.test(line));
 const BARRICADE = excavate.controls.find((line) => /^Open trenches are barricaded/.test(line));
 
-test('a change made on a line SiteReady has since reworded or re-cited follows the line, and says so', () => {
+test('a change made on a line SiteWrite has since reworded or re-cited follows the line, and says so', () => {
   // The line as an older release worded it: another source, and one word different.
   const oldSpoil = SPOIL.replace(/\(Excavation work Code[^]*\)$/, '(Excavation work Code of Practice 2011 (Qld) s 4)');
   const oldBarricade = BARRICADE.replace('secure them', 'protect them').replace(/\s*\([^]*\)$/, '');
@@ -369,7 +369,7 @@ test('a change that no longer matches any line is reported with the old line, no
   ]);
 });
 
-test('a step SiteReady has renamed keeps its changes', () => {
+test('a step SiteWrite has renamed keeps its changes', () => {
   const draft = prepareDraft(draftBody({ ...INPUT, controlEdits: { 'Excavate the trench': { removed: [PLAIN_LINE], changed: [], added: [] } } }));
   assert.ok(!draft.jobSteps.find((step) => step.step === 'Excavate').controls.includes(PLAIN_LINE));
   assert.deepEqual(draft.controlEdits.remapped, [{ step: 'Excavate the trench', kind: 'step', from: 'Excavate the trench', line: 'Excavate' }]);

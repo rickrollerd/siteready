@@ -1,4 +1,4 @@
-// Reads the electrical safety sources for SiteReady's electrical job steps from
+// Reads the electrical safety sources for SiteWrite's electrical job steps from
 // GitHub's servers and prints their full text, so each control can be checked
 // against the source.
 //

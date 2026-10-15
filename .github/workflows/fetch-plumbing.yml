@@ -1,6 +1,6 @@
 name: Fetch plumbing sources
 
-# Reads the WHS regulation, plumbing law and model codes behind SiteReady's
+# Reads the WHS regulation, plumbing law and model codes behind SiteWrite's
 # plumbing job steps, one job per source and chunk so each log can be read back.
 on:
   workflow_dispatch:

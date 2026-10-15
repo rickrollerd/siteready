@@ -368,7 +368,7 @@ test('guessing from the task, or by the longest answer, does not pass', () => {
   assert.ok(byLength / asked < 0.35, `the longest answer: ${Math.round((100 * byLength) / asked)}%`);
 });
 
-// How a worker read is kept for SiteReady's own learning only (owner decision, 6 October 2026):
+// How a worker read is kept for SiteWrite's own learning only (owner decision, 6 October 2026):
 // none of it reaches the business, in the app, the Word or PDF files or the export.
 const READING_WORDS = /Read in |sections? viewed|check questions|attempts?\b|\d+ min \d+ s|"language"|read_seconds|sections_viewed|sections_total|section_seconds|check_attempts/i;
 const READING_PRINTED = /Read in |sections? viewed|check questions|attempt|Vietnamese|\d+ min \d+ s/;
@@ -567,7 +567,7 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
 
 const controlLearning = require('../control-learning');
 const missCount = async () => Number((await db.one('SELECT COUNT(*) AS n FROM check_question_misses')).n);
-// An address SiteReady's check reads as a real one ("Example Street" reads as a sample, a must-fix item, D286).
+// An address SiteWrite's check reads as a real one ("Example Street" reads as a sample, a must-fix item, D286).
 const MISS_INPUT = { ...INPUT, trade: 'fire', workplace: 'Ward block, 9 Stanley Street, Woolloongabba QLD 4102' };
 
 test('with CONTROL_LEARNING off, a wrong answer is not kept', async () => {

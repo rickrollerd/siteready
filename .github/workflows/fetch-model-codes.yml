@@ -1,6 +1,6 @@
 name: Fetch model codes of practice
 
-# Commits the text of the model codes SiteReady cites to the model-codes branch,
+# Commits the text of the model codes SiteWrite cites to the model-codes branch,
 # so their section numbers can be compared with the Queensland-approved codes.
 on:
   workflow_dispatch:

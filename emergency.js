@@ -1,6 +1,6 @@
 // The activity-specific emergency response (goal 2, owner, 7 October 2026): "every SWMS names ...
 // the activity-specific emergency response". For each high risk category the SWMS involves,
-// SiteReady asks the one or two facts a reviewer looks for, and prints the answers in the emergency
+// SiteWrite asks the one or two facts a reviewer looks for, and prints the answers in the emergency
 // arrangements beside the category's row, not only its heading. The answers are needed before
 // download (download-gate.js); "Not applicable" is not an answer, as a question is asked only where
 // its category applies.
@@ -107,7 +107,7 @@ const INVOLVES = { ewp: 'an elevating work platform', fall: 'a risk of a fall fr
 // - Electrical: the rescue and isolation questions are for electrical work (the switchboard, the riser),
 //   not for overhead lines near other work (draft.electricalWork, set by draft.js). A draft without the
 //   mark asks as before.
-// - Plant SiteReady is not sure is used (plantInferred maybe) counts only once the user confirms it.
+// - Plant SiteWrite is not sure is used (plantInferred maybe) counts only once the user confirms it.
 const MOBILE_PLANT = /^(Mobile crane|Crawler crane|Non-slewing mobile crane|Vehicle loading crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating|Dozer|Grader|Loader|Scraper|Articulated dump truck|Water cart|Road profiler|Stabiliser|Asphalt paver|Bitumen sprayer|Aggregate spreader|Truck mounted attenuator|Self-propelled modular transporter|Pile driving hammer|Ground improvement rig|Rolling impact compactor|Shotcrete rig|Roadheader|Low loader|Mulcher|Fuel truck|Road rail vehicle|Track laying machine|Track maintenance machine|Hydro demolition robot|Directional drilling rig|Drill rig|Post driver|Vacuum excavation unit|Truck and dog)/;
 function plantInUse(draft = {}) {
   const maybe = new Set((draft.plantInferred || []).filter((item) => item && item.maybe).map((item) => item.item));

@@ -1,6 +1,6 @@
 // Fetches the state and territory WHS regulations in full, with a real browser
 // where a site needs one, and writes each as text to state-sources/, so the
-// citations SiteReady prints for those states can be checked against them.
+// citations SiteWrite prints for those states can be checked against them.
 //
 //   node legislation-watch/fetch-state-regs.js   (on GitHub's servers)
 
@@ -78,7 +78,7 @@ async function nsw(browser) {
 async function pdfFromPage(browser, name, title, url, pick = /\.pdf|\/pdf\//i, direct = []) {
   for (const pdfUrl of direct) {
     try {
-      const response = await fetch(pdfUrl, { signal: AbortSignal.timeout(120000), headers: { 'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)' } });
+      const response = await fetch(pdfUrl, { signal: AbortSignal.timeout(120000), headers: { 'User-Agent': 'SiteWrite legislation check (github.com/rickrollerd/siteready)' } });
       const buffer = Buffer.from(await response.arrayBuffer());
       console.log(`${name} ${pdfUrl}: HTTP ${response.status}, ${buffer.length} bytes`);
       if (buffer.subarray(0, 4).toString() === '%PDF') return save(name, title, pdfUrl, pdfText(buffer));

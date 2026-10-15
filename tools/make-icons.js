@@ -1,11 +1,12 @@
-// Builds every SiteReady icon from one design: yellow SR on black, hazard stripe along the bottom.
+// Builds every SiteWrite icon from one design: yellow SW on black, hazard stripe along the bottom.
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 // Run from the project root: node tools/make-icons.js
-// The letters are outlines of "SR" in Liberation Sans Bold, so no font is needed.
+// The letters are outlines of "SW" in Liberation Sans Bold, so no font is needed. SW is wider than the
+// old SR, so it is drawn slightly smaller to keep the same margins.
 const ROOT = path.join(__dirname, '..');
-const SR = fs.readFileSync(path.join(__dirname, 'icon-letters.svg.txt'), 'utf8');
+const LETTERS = fs.readFileSync(path.join(__dirname, 'icon-letters.svg.txt'), 'utf8');
 const BLACK = '#1B1F27';
 const YELLOW = '#FFC21A';
 
@@ -19,7 +20,7 @@ function icon(shape) {
   const clip = shape === 'rounded' ? '<rect width="512" height="512" rx="112"/>' : shape === 'circle' ? '<circle cx="256" cy="256" r="256"/>' : '<rect width="512" height="512"/>';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><clipPath id="c-${shape}">${clip}</clipPath></defs>`
     + `<g clip-path="url(#c-${shape})"><rect width="512" height="512" fill="${BLACK}"/>${stripes(stripeTop, `h-${shape}`)}`
-    + `<g fill="${YELLOW}" transform="translate(256 256) scale(${scale}) translate(-256 -256)">${SR}</g></g></svg>`;
+    + `<g fill="${YELLOW}" transform="translate(256 256) scale(${scale}) translate(-256 -256)">${LETTERS}</g></g></svg>`;
 }
 
 (async () => {
@@ -51,7 +52,7 @@ function icon(shape) {
     await png(icon('circle'), size, size, path.join(res, `mipmap-${dpi}/ic_launcher_round.png`));
     await png(icon('foreground'), size * 2.25, size * 2.25, path.join(res, `mipmap-${dpi}/ic_launcher_foreground.png`));
   }
-  // Splash screens: SR centred on black, with the hazard stripe full width along the bottom.
+  // Splash screens: SW centred on black, with the hazard stripe full width along the bottom.
   async function splashPng(width, height, file) {
     const side = Math.min(width, height);
     const letters = side * 0.55;
@@ -59,7 +60,7 @@ function icon(shape) {
     const step = Math.max(Math.round(band * 0.9), 24);
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><defs><pattern id="s" width="${step}" height="${step}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="${step / 2}" height="${step}" fill="${YELLOW}"/><rect x="${step / 2}" width="${step / 2}" height="${step}" fill="${BLACK}"/></pattern></defs>`
       + `<rect width="${width}" height="${height}" fill="${BLACK}"/><rect y="${height - band}" width="${width}" height="${band}" fill="url(#s)"/>`
-      + `<g fill="${YELLOW}" transform="translate(${width / 2} ${height / 2}) scale(${letters / 512}) translate(-256 -236)">${SR}</g></svg>`;
+      + `<g fill="${YELLOW}" transform="translate(${width / 2} ${height / 2}) scale(${letters / 512}) translate(-256 -236)">${LETTERS}</g></svg>`;
     await page.setViewportSize({ width, height });
     await page.setContent(`<body style="margin:0">${svg}</body>`);
     await page.screenshot({ path: file });

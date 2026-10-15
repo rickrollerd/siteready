@@ -111,7 +111,7 @@ test('the server\'s answers are compressed and, unless a route says so, not kept
   assert.equal(steps.headers['cache-control'], 'public, max-age=3600');
   const library = JSON.parse(unpack(steps).toString('utf8'));
   assert.ok(Array.isArray(library.groups) && library.groups.length > 0);
-  // The states and pick lists change only when SiteReady is updated.
+  // The states and pick lists change only when SiteWrite is updated.
   for (const route of ['/api/states', '/api/presets']) {
     const response = await get(route, { 'Accept-Encoding': 'gzip' });
     assert.equal(response.headers['cache-control'], 'public, max-age=3600', route);

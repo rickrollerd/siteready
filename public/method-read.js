@@ -1,12 +1,12 @@
 // Reading a written methodology or sequence of works and suggesting job steps (owner, D230). Shown in
-// each written methodology's card. SiteReady reads typed words only (a Word file, a PDF with typed
+// each written methodology's card. SiteWrite reads typed words only (a Word file, a PDF with typed
 // text, or pasted text), never a drawing or a scan. Each suggested step is accepted, changed or
 // skipped by the user: nothing goes into the SWMS until it is accepted. An accepted library match
 // adds those job steps; an accepted "Your step" goes in as the user's own step, as "Write a step for
-// this" does. The page's job steps and own steps are changed only through window.SiteReady.methodSteps
+// this" does. The page's job steps and own steps are changed only through window.SiteWrite.methodSteps
 // (app.js).
 (() => {
-  const S = window.SiteReady || {};
+  const S = window.SiteWrite || {};
   const { api, esc } = S;
   // Each methodology card's reading, by its id: { stage, error, reading, items, pasting }. Each item
   // is a suggestion with the user's choice: state '' (open), 'accepted' or 'skipped', and what was added.
@@ -23,20 +23,20 @@
   }
 
   const CHECK = 'These are suggestions. Check each one against the methodology before you accept it. Nothing goes into the SWMS until you accept it.';
-  const ORDER = 'SiteReady keeps its usual order for the job steps. On the draft, move them to follow the methodology\'s order where it matters.';
+  const ORDER = 'SiteWrite keeps its usual order for the job steps. On the draft, move them to follow the methodology\'s order where it matters.';
 
-  const LEAD = 'SiteReady is reading every word of the methodology.';
+  const LEAD = 'SiteWrite is reading every word of the methodology.';
 
   const quoteList = (label, list) => (list.length ? `<p class="meta method-quote-label">${label}</p><ul class="method-quotes">${list.map((quote) => `<li>"${esc(quote)}"</li>`).join('')}</ul>` : '');
 
-  // One suggestion: what the methodology says, what SiteReady suggests, and Accept, Change and Skip.
+  // One suggestion: what the methodology says, what SiteWrite suggests, and Accept, Change and Skip.
   function itemHtml(id, item, index) {
     const own = item.kind === 'own';
     const library = item.groups.map((group) => `<strong>${esc(group.label)}</strong>${group.steps.length > 1 || group.steps[0] !== group.label ? ` <span class="meta">(${esc(group.steps.join('; '))})</span>` : ''}`).join('; ');
     const head = `<p class="method-step-name"><strong>${item.n}. ${esc(item.step)}</strong> <span class="method-kind">${own ? 'Your step' : 'Library job step'}</span></p>`;
     const what = own
-      ? '<p class="meta">Nothing in SiteReady\'s library fits this step, so it would go in as your own step, with only the hazards and controls the methodology states.</p>'
-      : `<p class="meta">Matched to SiteReady's job steps: ${library}. They bring their own sourced hazards and controls. Check they cover what the methodology says.</p>`;
+      ? '<p class="meta">Nothing in SiteWrite\'s library fits this step, so it would go in as your own step, with only the hazards and controls the methodology states.</p>'
+      : `<p class="meta">Matched to SiteWrite's job steps: ${library}. They bring their own sourced hazards and controls. Check they cover what the methodology says.</p>`;
     // A sentence that is both the step and its control is listed once, under the step's words.
     const same = (a, b) => a.replace(/\s+/g, ' ').trim().toLowerCase() === b.replace(/\s+/g, ' ').trim().toLowerCase();
     const alsoControl = (quote) => item.controls.some((line) => same(line, quote));
@@ -65,7 +65,7 @@
       const library = (steps() && steps().libraryGroups()) || [];
       const chosen = new Set(item.groups.map((group) => group.id));
       const options = library.map((group) => `<optgroup label="${esc(group.trade)}">${group.kinds.map((kind) => `<option value="${esc(kind.id)}"${chosen.has(kind.id) ? ' selected' : ''}>${esc(kind.label)}</option>`).join('')}</optgroup>`).join('');
-      return `<div class="method-change"><label for="mr-group-${index}">Job steps for this step<span class="hint">Choose the job steps from SiteReady's library that fit.</span></label>
+      return `<div class="method-change"><label for="mr-group-${index}">Job steps for this step<span class="hint">Choose the job steps from SiteWrite's library that fit.</span></label>
         <select id="mr-group-${index}" data-mr-group="${index}">${options}</select>
         <p><button type="button" class="link" data-mr-own="${index}">Write it as your own step instead</button></p></div>`;
     }
@@ -99,7 +99,7 @@
     const state = readings.get(id) || {};
     // Any file attached is offered: a photo or a scanned PDF is refused with the plain message.
     const file = row.file || null;
-    const intro = '<p class="meta">SiteReady can read a typed methodology and suggest job steps from it. It cannot read drawings, photos or scanned pages.</p>';
+    const intro = '<p class="meta">SiteWrite can read a typed methodology and suggest job steps from it. It cannot read drawings, photos or scanned pages.</p>';
     if (!state.stage) return `${intro}<button type="button" class="secondary small" data-mr-open="${esc(id)}">Read it and suggest steps</button>`;
     if (state.stage === 'choose') {
       return `${intro}
@@ -107,7 +107,7 @@
         <p><label class="secondary small design-attach" for="mr-pick-${esc(id)}">Choose a Word file (.docx) or PDF to read</label><input id="mr-pick-${esc(id)}" class="visually-hidden" type="file" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-mr-pick="${esc(id)}"></p>
         <div class="field"><label for="mr-paste-${esc(id)}">Or paste the methodology's text</label><textarea id="mr-paste-${esc(id)}" rows="4" data-mr-paste="${esc(id)}"></textarea></div>
         <p><button type="button" class="secondary small" data-mr-pasted="${esc(id)}">Read the pasted text</button> <button type="button" class="link" data-mr-close="${esc(id)}">Cancel</button></p>
-        <p class="meta">The methodology's text is sent to SiteReady's AI provider to be read, as a scope is.</p>
+        <p class="meta">The methodology's text is sent to SiteWrite's AI provider to be read, as a scope is.</p>
         ${state.stopped ? state.stopped.html() : ''}${state.error ? `<p class="error" role="alert">${esc(state.error)}</p>` : ''}`;
     }
     // The progress bar (read-progress.js), drawn again where it is if the card is redrawn.
@@ -149,7 +149,7 @@
 
   async function read(id, body) {
     const state = readings.get(id) || {};
-    if (!S.isSignedIn || !S.isSignedIn()) { readings.set(id, { ...state, stage: 'choose', error: 'Sign in to have SiteReady read the methodology.' }); redraw(id); return; }
+    if (!S.isSignedIn || !S.isSignedIn()) { readings.set(id, { ...state, stage: 'choose', error: 'Sign in to have SiteWrite read the methodology.' }); redraw(id); return; }
     if (!(await readingOn())) { readings.set(id, { ...state, stage: 'choose', error: 'Reading a methodology is not switched on here. The methodology can still be attached. Make the job steps match it yourself.' }); redraw(id); return; }
     readings.set(id, { stage: 'reading' });
     redraw(id);
@@ -157,8 +157,8 @@
     try {
       let reading = await S.call('POST', '/api/methodology/read', body);
       // Kept from before and already read: shown at once, with no bar and no message.
-      if (reading.status === 'reading' && window.SiteReadyProgress) {
-        tracker = window.SiteReadyProgress.track({ what: 'methodology', lead: LEAD, steps: ['reading every word of the methodology', 'matching each step to SiteReady\'s job steps'] });
+      if (reading.status === 'reading' && window.SiteWriteProgress) {
+        tracker = window.SiteWriteProgress.track({ what: 'methodology', lead: LEAD, steps: ['reading every word of the methodology', 'matching each step to SiteWrite\'s job steps'] });
         tracker.update(reading.progress);
         readings.set(id, { stage: 'reading', tracker });
         redraw(id);
@@ -188,9 +188,9 @@
   function announceRead(id) {
     const state = readings.get(id) || {};
     const any = (state.items || []).length > 0;
-    window.SiteReadyProgress.announce({
+    window.SiteWriteProgress.announce({
       heading: 'The methodology has been read',
-      text: any ? 'SiteReady has finished reading the methodology. The suggested job steps are ready to check.' : 'SiteReady has finished reading the methodology. It suggested no job steps.',
+      text: any ? 'SiteWrite has finished reading the methodology. The suggested job steps are ready to check.' : 'SiteWrite has finished reading the methodology. It suggested no job steps.',
       button: any ? 'Check the suggested steps' : 'Show the result',
       tab: 'methodology read',
       go: () => {
@@ -277,7 +277,7 @@
     if (data.mrOpen !== undefined) { readings.set(id, { stage: 'choose' }); redraw(id); return; }
     if (data.mrClose !== undefined) { readings.delete(id); redraw(id); return; }
     // The chime when the reading is finished may only play after a press on the page: set it up now.
-    if ((data.mrFile !== undefined || data.mrPasted !== undefined) && window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
+    if ((data.mrFile !== undefined || data.mrPasted !== undefined) && window.SiteWriteProgress) window.SiteWriteProgress.unlockAudio();
     if (data.mrFile !== undefined) {
       const row = steps().methodRow(id);
       if (row && row.file) await read(id, { fileId: row.file.id });
@@ -306,7 +306,7 @@
     if (!input || !input.files || !input.files[0]) return;
     const id = input.dataset.mrPick;
     const file = input.files[0];
-    if (window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
+    if (window.SiteWriteProgress) window.SiteWriteProgress.unlockAudio();
     if (!/\.(docx|pdf)$/i.test(file.name)) { readings.set(id, { stage: 'choose', error: 'Choose a Word file (.docx) or a PDF. A drawing or a photo cannot be read.' }); redraw(id); return; }
     if (file.size > 10 * 1024 * 1024) { readings.set(id, { stage: 'choose', error: 'The file is larger than 10 MB. Paste the methodology\'s text instead.' }); redraw(id); return; }
     try {
@@ -317,5 +317,5 @@
     }
   });
 
-  window.SiteReadyMethodRead = { boxHtml, droppedText, forget: (id) => readings.delete(id), clear: () => readings.clear() };
+  window.SiteWriteMethodRead = { boxHtml, droppedText, forget: (id) => readings.delete(id), clear: () => readings.clear() };
 })();

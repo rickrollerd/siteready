@@ -3,10 +3,10 @@
 // each section was on screen, where they were on the page, the answers, name, company, supervisor,
 // the ticks and the signature. A worker's details are kept no longer than needed: removed once
 // they have signed on, when the link is no longer valid, and 24 hours after they were first kept
-// (net.js removes old ones when any SiteReady page opens).
+// (net.js removes old ones when any SiteWrite page opens).
 (() => {
-  if (window.siteReadySignKeep) return;
-  const PREFIX = 'siteready.signon.';
+  if (window.siteWriteSignKeep) return;
+  const PREFIX = 'sitewrite.signon.';
   const HOURS = 24;
   const keyFor = (token) => PREFIX + String(token || '').slice(0, 128);
   const fresh = (state, now) => Boolean(state) && Number(state.kept) > 0 && now - Number(state.kept) < HOURS * 60 * 60 * 1000;
@@ -45,5 +45,5 @@
     }
   }
 
-  window.siteReadySignKeep = { PREFIX, HOURS, fresh, read, write, clear };
+  window.siteWriteSignKeep = { PREFIX, HOURS, fresh, read, write, clear };
 })();

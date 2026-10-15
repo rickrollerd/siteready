@@ -184,7 +184,7 @@ test('a saved SWMS opened again says so above the SWMS, and on the cards once Ch
     if (route === '/api/draft') return { body: { ...prepareDraft(draftBody(sent)), controlLegal: [] } };
     return { body: {} };
   };
-  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond, { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], respond, { stored: { 'sitewrite.session': 'token' } });
   await settle();
   const open = new FakeEvent('click', { bubbles: true });
   open.target = { closest: (selector) => (selector === '[data-swms]' ? { dataset: { swms: 'saved-3' } } : null) };

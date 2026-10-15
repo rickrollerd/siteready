@@ -137,8 +137,8 @@ test('other failures are left to the page as before', async () => {
   const error = await b.window.fetch('/api/draft').catch((e) => e);
   assert.equal(error.name, 'AbortError');
   assert.equal(b.bar(), undefined);
-  assert.equal(b.window.siteReadyNet.noSignal(new TypeError("Failed to execute 'fetch': Invalid name")), false);
+  assert.equal(b.window.siteWriteNet.noSignal(new TypeError("Failed to execute 'fetch': Invalid name")), false);
   // Safari and Firefox word a lost connection their own way.
-  assert.equal(b.window.siteReadyNet.noSignal(new TypeError('Load failed')), true);
-  assert.equal(b.window.siteReadyNet.noSignal(new TypeError('NetworkError when attempting to fetch resource.')), true);
+  assert.equal(b.window.siteWriteNet.noSignal(new TypeError('Load failed')), true);
+  assert.equal(b.window.siteWriteNet.noSignal(new TypeError('NetworkError when attempting to fetch resource.')), true);
 });

@@ -1,6 +1,6 @@
 name: Fetch mechanical sources
 
-# Reads the plant code and refrigerant law behind SiteReady's mechanical job steps, one job per source and chunk so each log can be read back.
+# Reads the plant code and refrigerant law behind SiteWrite's mechanical job steps, one job per source and chunk so each log can be read back.
 on:
   workflow_dispatch:
   push:

@@ -1,7 +1,7 @@
-SiteReady: SWMS for review
+SiteWrite: SWMS for review
 50 storey residential tower, Brisbane CBD: electrical (Queensland)
 
-This is the first human test of SiteReady. Six safe work method statements are attached as Word files, ready to review, change and sign:
+This is the first human test of SiteWrite. Six safe work method statements are attached as Word files, ready to review, change and sign:
 
 01 Construction power and temporary lighting
 02 Cast-in conduits on the deck
@@ -26,4 +26,4 @@ What to look for when reviewing:
 
 Please reply with your notes, or mark up the Word files and send them back.
 
-SiteReady
+SiteWrite

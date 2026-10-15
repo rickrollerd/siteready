@@ -58,7 +58,7 @@ async function signIn(email, name = 'History Co Pty Ltd') {
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
 const INPUT = ready({ ...ANSWERED, state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', date: '5 October 2026' });
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
-const REF = /SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/;
+const REF = /SW-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/;
 
 async function wordParts(response) {
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
@@ -85,29 +85,32 @@ test('downloading saves the SWMS, and the same SWMS downloaded again unchanged i
   const token = await signIn('download-saves@history.example');
   const first = await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, ...CONFIRM }) });
   assert.equal(first.status, 200);
-  const id = first.headers.get('x-siteready-swms');
+  const id = first.headers.get('x-sitewrite-swms');
   assert.ok(id, 'the download says which saved SWMS it is');
+  assert.equal(first.headers.get('x-sitewrite-revision'), '1');
+  // Also under the old names, for a page opened before the change of name and still open (D299).
+  assert.equal(first.headers.get('x-siteready-swms'), id);
   assert.equal(first.headers.get('x-siteready-revision'), '1');
   const list = (await (await call('GET', '/api/swms', { token })).json()).swms;
   assert.deepEqual(list.map((item) => item.id), [id], 'saved under My SWMS');
   const { footer } = await wordParts(first);
   const ref = (footer.match(REF) || [])[0];
   assert.ok(ref);
-  assert.match(footer, new RegExp(`Working copy\\. The signed record is SiteReady reference ${ref} revision 1\\. Changes made outside SiteReady are not part of the record\\.`));
+  assert.match(footer, new RegExp(`Working copy\\. The signed record is SiteWrite reference ${ref} revision 1\\. Changes made outside SiteWrite are not part of the record\\.`));
 
   // The same SWMS again, unchanged: no new SWMS and no new revision, and the same reference.
   const again = await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, ...CONFIRM, swmsId: id }) });
-  assert.equal(again.headers.get('x-siteready-swms'), id);
-  assert.equal(again.headers.get('x-siteready-revision'), '1');
+  assert.equal(again.headers.get('x-sitewrite-swms'), id);
+  assert.equal(again.headers.get('x-sitewrite-revision'), '1');
   assert.equal(((await wordParts(again)).footer.match(REF) || [])[0], ref);
   // Changed: the next revision, with its own reference.
   const changed = await call('POST', '/api/draft.pdf', { token, body: checked({ ...INPUT, task: 'Replace a 6m length of timber fence.', ...CONFIRM, swmsId: id }) });
   assert.equal(changed.status, 200);
-  assert.equal(changed.headers.get('x-siteready-revision'), '2');
+  assert.equal(changed.headers.get('x-sitewrite-revision'), '2');
   const pdf = pdfText(Buffer.from(await changed.arrayBuffer()));
   const ref2 = (pdf.match(REF) || [])[0];
   assert.ok(ref2 && ref2 !== ref, 'each revision has its own reference');
-  assert.match(pdf, new RegExp(`SiteReady reference ${ref2}, revision 2`));
+  assert.match(pdf, new RegExp(`SiteWrite reference ${ref2}, revision 2`));
   assert.equal((await (await call('GET', '/api/swms', { token })).json()).swms.length, 1);
 
   // Each reference is tied to its saved SWMS and revision.
@@ -148,7 +151,7 @@ test('an old revision prints as it was saved after the library changes, and upda
   }
   const first = await wordParts(await call('GET', `/api/swms/${swms.id}/docx?revision=1`, { token }));
   assert.match(first.body, /Old wording of the first control, revision 1\./);
-  assert.match(first.footer, /revision 1\. Changes made outside SiteReady/);
+  assert.match(first.footer, /revision 1\. Changes made outside SiteWrite/);
   const current = await wordParts(await call('GET', `/api/swms/${swms.id}/docx`, { token }));
   assert.match(current.body, /Old wording of the first control, revision 2\./);
   assert.match(pdfText(Buffer.from(await (await call('GET', `/api/swms/${swms.id}/pdf`, { token })).arrayBuffer())), /Old wording of the first control, revision 2\./);
@@ -254,7 +257,7 @@ test('after a new revision, the owner sees no one has signed it, and who signed 
 test('a reference can be checked: business, title, revision, whether it is current and the principal contractor\'s response, nothing else', async () => {
   const token = await signIn('verify@history.example', 'Verify History Pty Ltd');
   const first = await call('POST', '/api/draft.docx', { token, body: checked({ ...INPUT, ...CONFIRM }) });
-  const id = first.headers.get('x-siteready-swms');
+  const id = first.headers.get('x-sitewrite-swms');
   const ref = ((await wordParts(first)).footer.match(REF) || [])[0];
   const check = async () => (await call('GET', `/api/verify/${ref}`)).json();
   const now = await check();
@@ -280,19 +283,19 @@ test('a project download saves each SWMS, and saves a changed one as its next re
   const paint = ready({ ...ANSWERED, state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', date: '5 October 2026', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' }, swmsTitle: 'Painting' });
   const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, paint].map((item) => checked(item)) } });
   assert.equal(response.status, 200);
-  const saved = JSON.parse(decodeURIComponent(response.headers.get('x-siteready-saved')));
+  const saved = JSON.parse(decodeURIComponent(response.headers.get('x-sitewrite-saved')));
   assert.deepEqual(saved.map((item) => [item.index, item.revision]), [[0, 1], [1, 1]]);
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   const footer = await zip.file(Object.keys(zip.files).find((name) => name.endsWith('.docx'))).async('nodebuffer').then(JSZip.loadAsync)
     .then((inner) => Promise.all(Object.keys(inner.files).filter((name) => /footer/.test(name)).map((name) => inner.file(name).async('string'))))
     .then((parts) => parts.join(' ').replace(/<[^>]+>/g, ''));
-  assert.match(footer, /The signed record is SiteReady reference SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4} revision 1\./);
+  assert.match(footer, /The signed record is SiteWrite reference SW-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4} revision 1\./);
   const list = (await (await call('GET', '/api/swms', { token })).json()).swms;
   assert.deepEqual(list.map((item) => item.title).sort(), ['Fencing', 'Painting']);
 
   // Downloaded again with the fence changed: the fence is revision 2, the painting stays at 1.
   const next = await call('POST', '/api/project.zip', { token, body: { swms: [{ ...fence, swmsId: saved[0].id, task: 'Replace a 5m length of timber fence.' }, { ...paint, swmsId: saved[1].id }].map((item) => checked(item)) } });
-  const again = JSON.parse(decodeURIComponent(next.headers.get('x-siteready-saved')));
+  const again = JSON.parse(decodeURIComponent(next.headers.get('x-sitewrite-saved')));
   assert.deepEqual(again.map((item) => [item.id, item.revision]), [[saved[0].id, 2], [saved[1].id, 1]]);
   assert.equal((await (await call('GET', '/api/swms', { token })).json()).swms.length, 2);
 });

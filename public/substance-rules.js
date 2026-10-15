@@ -2,15 +2,15 @@
 // substances needs to be individualised and the controls for each in the swms"; D256, D257). Shared
 // by the page and the server, as gate-rules.js is.
 //
-// SiteReady lists the types of substance the work usually uses (cement, curing compounds and so on)
-// as prompts. The user adds each product used: they attach its safety data sheet (SiteReady reads its
+// SiteWrite lists the types of substance the work usually uses (cement, curing compounds and so on)
+// as prompts. The user adds each product used: they attach its safety data sheet (SiteWrite reads its
 // typed words, sds-read.js) or type its details, then tick that the row matches the SDS. Only products
 // print: never a type without a product. Each product's controls print in the Controls column of the
 // substances table, and the step that uses it gets one line naming it (substances.js). The step is the
 // one whose name or lines already name the product's type, or the one the user chooses.
 //
 // D181: what prints for a product comes from its SDS (the words read from it, each found word for
-// word in its text, or typed by the user from it). SiteReady writes no control of its own here.
+// word in its text, or typed by the user from it). SiteWrite writes no control of its own here.
 (function (root) {
   // The types of substance that commonly come with the work, found in the task, the hazards and the
   // step names (register.js substancesFor). short: the type in a step line ("Curing compound or
@@ -190,7 +190,7 @@
   }
 
   // The step a product goes in: the one the user chose, while it is still in the SWMS, else
-  // SiteReady's match for its type. '' while there is none.
+  // SiteWrite's match for its type. '' while there is none.
   function stepOf(row, steps) {
     const names = (Array.isArray(steps) ? steps : []).map((step) => step.step);
     const chosen = clean(row && row.step);
@@ -239,5 +239,5 @@
 
   const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadySubstanceRules = api;
+  else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

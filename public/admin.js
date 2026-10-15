@@ -4,7 +4,7 @@
 (async () => {
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   let token = '';
-  try { token = localStorage.getItem('siteready.session') || ''; } catch { /* none */ }
+  try { token = localStorage.getItem('sitewrite.session') || ''; } catch { /* none */ }
   const api = async (path, body) => {
     const headers = { ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) };
     const response = await fetch(path, body ? { method: 'POST', headers, body: JSON.stringify(body) } : { headers });
@@ -279,7 +279,7 @@
   // months, and candidate library changes for a person to check.
   const figure = (value, why) => (value === null || value === undefined ? `<span class="note">None (${esc(why || 'not computed')})</span>` : esc(value));
   const GROUPS = [
-    ['removed', 'SiteReady lines most often removed', 'Line'],
+    ['removed', 'SiteWrite lines most often removed', 'Line'],
     ['added', 'Lines users keep adding', 'Line added'],
     ['notApplicable', 'Hazards marked "does not apply"', 'Hazard'],
     ['reverted', 'Changes undone in the next revision', 'Change'],
@@ -289,7 +289,7 @@
   // by the library step each is most like, with how many organisations' documents each is in.
   const checkedSection = (section) => `<h3>Real SWMS checked</h3>
       <p class="learning-status${section.recording ? '' : ' off'}">${esc(section.recordingNote)}</p>
-      <p>Real SWMS checked this month: <strong>${esc(section.checkedThisMonth)}</strong> (from ${esc(section.organisationsThisMonth)} organisation${section.organisationsThisMonth === 1 ? '' : 's'}). Lines that SiteReady's library does not have: <strong>${esc(section.newLines)}</strong>, ${esc(section.twoOrganisationLines)} of them in two or more organisations' documents.</p>
+      <p>Real SWMS checked this month: <strong>${esc(section.checkedThisMonth)}</strong> (from ${esc(section.organisationsThisMonth)} organisation${section.organisationsThisMonth === 1 ? '' : 's'}). Lines that SiteWrite's library does not have: <strong>${esc(section.newLines)}</strong>, ${esc(section.twoOrganisationLines)} of them in two or more organisations' documents.</p>
       ${section.groups.map((group) => `<h3>${esc(group.step)} <span class="note">(${esc(group.total)})</span></h3>
         <table>${rows('<tr><th>Kind</th><th>Line</th><th class="n">Documents</th><th class="n">Organisations</th></tr>',
     group.lines.map((line) => `<tr><td>${esc(line.kind)}</td><td>${esc(line.line)}${line.twoOrganisations ? ' <span class="note">(two organisations)</span>' : ''}</td><td class="n">${esc(line.documents)}</td><td class="n">${esc(line.organisations)}</td></tr>`), 'None.')}</table>
@@ -327,9 +327,9 @@
         report.failedQuestions.items.map((item) => `<tr><td>${esc(item.kind)}</td><td>${esc(item.step)}</td><td>${esc(item.item)}</td><td class="n">${esc(item.wrong)}</td></tr>`), 'No wrong answers recorded this month.')}</table>
       <h3>The last three months</h3>
       <ul class="plain">${trend('Edit rate', report.trend.editRate)}${trend('Wrong answers per sign-on', report.trend.wrongRate)}<li>${esc(report.trend.acceptance.says)}</li></ul>
-      <h3>Steps users wrote for work SiteReady does not cover</h3>
+      <h3>Steps users wrote for work SiteWrite does not cover</h3>
       <p class="note">The library's gaps users fill themselves, by the different saved SWMS a step was written in, most first: ${esc(report.ownSteps.total)} piece${report.ownSteps.total === 1 ? '' : 's'} of work in all. A step becomes library steps only with a source we hold, the goal 5 evidence test and a person's sign-off.</p>
-      <table>${rows('<tr><th>Work SiteReady does not cover</th><th>Step users wrote</th><th class="n">SWMS</th><th class="n">This month</th><th class="n">Different steps</th><th>Before the library</th></tr>',
+      <table>${rows('<tr><th>Work SiteWrite does not cover</th><th>Step users wrote</th><th class="n">SWMS</th><th class="n">This month</th><th class="n">Different steps</th><th>Before the library</th></tr>',
         report.ownSteps.items.map((item) => `<tr><td>${esc(item.part)}</td><td>${esc(item.step)}</td><td class="n">${esc(item.swms)}</td><td class="n">${esc(item.swmsThisMonth)}</td><td class="n">${esc(item.versions)}</td><td>Goal 5 check needed</td></tr>`), 'No steps written by users recorded.')}</table>
       ${report.checkedSwms ? checkedSection(report.checkedSwms) : ''}
       <h3>Candidate library changes</h3>
@@ -346,7 +346,7 @@
     const month = $('learning-month').value.trim();
     const response = await fetch(`/api/admin/control-learning/report.md${month ? `?month=${encodeURIComponent(month)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
     if (!response.ok) { $('learning').insertAdjacentHTML('afterbegin', `<p class="error">${esc((await response.json().catch(() => ({}))).message || 'Not available.')}</p>`); return; }
-    const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'siteready-learning.md';
+    const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'sitewrite-learning.md';
     const link = document.createElement('a');
     link.href = URL.createObjectURL(await response.blob());
     link.download = name;

@@ -124,7 +124,7 @@ test('with it on, the notice shows and the document is kept once: original, text
   assert.equal(notice.keeping, true);
   assert.equal(notice.years, 3);
   assert.match(notice.notice, /keeps a copy of each SWMS you check/);
-  assert.match(notice.notice, /Names are not used outside SiteReady/);
+  assert.match(notice.notice, /Names are not used outside SiteWrite/);
   assert.equal(notice.choice, 'Do not keep this document');
   standIn();
   const file = asFile(swmsText());
@@ -379,7 +379,7 @@ test('with the bucket settings, the original goes to the bucket (a local stand-i
   bucket.listen(0);
   await new Promise((resolve) => bucket.once('listening', resolve));
   Object.assign(process.env, {
-    CHECKED_SWMS_BUCKET: 'siteready-checks-abc123', CHECKED_SWMS_BUCKET_KEY_ID: 'test-key-id', CHECKED_SWMS_BUCKET_SECRET: 'test-secret',
+    CHECKED_SWMS_BUCKET: 'sitewrite-checks-abc123', CHECKED_SWMS_BUCKET_KEY_ID: 'test-key-id', CHECKED_SWMS_BUCKET_SECRET: 'test-secret',
     CHECKED_SWMS_BUCKET_ENDPOINT: `http://127.0.0.1:${bucket.address().port}`, CHECKED_SWMS_BUCKET_PATH_STYLE: 'on',
   });
   try {
@@ -391,7 +391,7 @@ test('with the bucket settings, the original goes to the bucket (a local stand-i
     const row = await db.one('SELECT id, storage FROM checked_swms');
     assert.equal(row.storage, 'bucket');
     assert.equal(await count('checked_swms_files'), 0, 'nothing in the database');
-    assert.deepEqual(objects.get(`/siteready-checks-abc123/checked-swms/${row.id}`), Buffer.from(file.data, 'base64'));
+    assert.deepEqual(objects.get(`/sitewrite-checks-abc123/checked-swms/${row.id}`), Buffer.from(file.data, 'base64'));
     const original = await call('GET', `/api/admin/checked-swms/${row.id}/original`, { token: owner });
     assert.deepEqual(Buffer.from(await original.arrayBuffer()), Buffer.from(file.data, 'base64'));
     assert.equal((await json('POST', `/api/admin/checked-swms/${row.id}/delete`, { token: owner, body: {} })).status, 200);
@@ -433,7 +433,7 @@ test('the monthly report shows real SWMS checked this month and the lines the li
   const markdown = reportMarkdown(report);
   assert.match(markdown, /## Real SWMS checked/);
   assert.match(markdown, /Real SWMS checked this month: 3 \(from 2 organisations\)/);
-  assert.match(markdown, /Lines that SiteReady's library does not have: \d+/);
+  assert.match(markdown, /Lines that SiteWrite's library does not have: \d+/);
   // The owner's page gets it through the report route; a month before shows none checked.
   const shown = await json('GET', `/api/admin/control-learning/report?month=${month}`, { token: owner });
   assert.equal(shown.data.checkedSwms.checkedThisMonth, 3);

@@ -81,7 +81,7 @@ test('the design list covers the work the owner named: anchors, props and shorin
   assert.ok(ids('Stand and brace the precast concrete wall panels with the mobile crane, then grout the bases.').includes('precast'));
   assert.ok(ids('Erect the tower crane on its base, then climb it as the building goes up.').includes('craneBase'));
   assert.deepEqual(ids('Clean the facade glazing from a swing stage hung from the roof.'), ['suspended']);
-  // A mast climber has no job steps in the library yet (it is work SiteReady does not cover), so
+  // A mast climber has no job steps in the library yet (it is work SiteWrite does not cover), so
   // there is no step to name its design in: the user adds it with Add another design.
   assert.deepEqual(ids('Install the facade panels from a mast climbing work platform.'), []);
   assert.equal(designs.designsNeeded({ task: 'Work from the mast climber.', jobSteps: [{ step: 'Work from a swing stage', controls: ['Needles are fixed to an engineer-certified detail and positively restrained.'] }] })[0].label, 'Mast climber design');
@@ -96,7 +96,7 @@ test('the reference prints in each step that relies on the design and in the tab
   const d = draft(SHORING, { designs: [{ ...GIVEN, file: { id: 'df_abcdefghijklmnopqrstu', name: 'ABC-S-101.pdf', type: 'application/pdf', size: 2048 } }] });
   assert.deepEqual(stepsWith(d, LINE), d.designs[0].steps);
   assert.equal(d.designs[0].reference, 'ABC-S-101 rev C (Smith Engineering, 3 October 2026)');
-  assert.match(d.designs[0].statusText, /^Issued\. A copy is attached to this SWMS in SiteReady \(ABC-S-101\.pdf\)\.$/);
+  assert.match(d.designs[0].statusText, /^Issued\. A copy is attached to this SWMS in SiteWrite \(ABC-S-101\.pdf\)\.$/);
   // Only the reference is added: every other line is as it was, in the same order.
   const before = draft(SHORING);
   d.jobSteps.forEach((step, i) => assert.deepEqual(step.controls.filter((line) => line !== LINE), before.jobSteps[i].controls, step.step));
@@ -105,7 +105,7 @@ test('the reference prints in each step that relies on the design and in the tab
   assert.ok(word.includes('Designs this SWMS relies on'));
   assert.ok(word.includes(LINE));
   assert.ok(word.includes('Smith Engineering') && word.includes('ABC-S-101 rev C') && word.includes('3 October 2026'));
-  assert.ok(word.includes('A copy is attached to this SWMS in SiteReady'));
+  assert.ok(word.includes('A copy is attached to this SWMS in SiteWrite'));
   assert.ok(word.indexOf('Designs this SWMS relies on') < word.indexOf('Job steps'), 'the table is near the top, before the job steps');
   const pdf = await draftToPdf(d, {});
   assert.equal(pdf.subarray(0, 5).toString(), '%PDF-');
@@ -226,12 +226,12 @@ test('the page: a card for each design under the site questions, judged as typed
   // In the draft: the table with a button to open the file, and the lines from the designs without
   // tools to change them there.
   const d = draft(SHORING, { designs: [{ ...GIVEN, file: { id: 'df_abcdefghijklmnopqrstu', name: 'ABC-S-101.pdf', type: 'application/pdf', size: 2048 } }] });
-  const sheet = p.window.SiteReady.render(d, { movable: true });
+  const sheet = p.window.SiteWrite.render(d, { movable: true });
   assert.match(sheet, /<h4>Designs this SWMS relies on<\/h4>/);
   assert.match(sheet, /data-design-file-open="\/api\/designs\/files\/df_abcdefghijklmnopqrstu"/);
-  assert.match(p.window.SiteReady.render(d, { swmsId: 'swms-9' }), /data-design-file-open="\/api\/swms\/swms-9\/designs\/df_abcdefghijklmnopqrstu"/);
+  assert.match(p.window.SiteWrite.render(d, { swmsId: 'swms-9' }), /data-design-file-open="\/api\/swms\/swms-9\/designs\/df_abcdefghijklmnopqrstu"/);
   assert.match(sheet, /class="design-line">Work to the shoring design ABC-S-101 rev C \(Smith Engineering, 3 October 2026\)\.<span class="meta"> From the designs this work relies on\. Change it there\.<\/span><\/li>/);
-  assert.doesNotMatch(p.window.SiteReady.render(draft(PLAIN), { movable: true }), /Designs this SWMS relies on|design-line/);
+  assert.doesNotMatch(p.window.SiteWrite.render(draft(PLAIN), { movable: true }), /Designs this SWMS relies on|design-line/);
 });
 
 // ---- Files, accounts and storage ----
@@ -416,7 +416,7 @@ test('the gate refuses a download with a design unanswered, and the download pri
 });
 
 test('with the storage bucket set, files go to the bucket, signed, and come back and go from there', async () => {
-  const keys = { DESIGN_FILES_BUCKET: 'siteready-files', DESIGN_FILES_BUCKET_KEY_ID: 'test-key-id', DESIGN_FILES_BUCKET_SECRET: 'test-secret-value', DESIGN_FILES_BUCKET_ENDPOINT: 'https://storage.example.test', DESIGN_FILES_BUCKET_REGION: 'auto' };
+  const keys = { DESIGN_FILES_BUCKET: 'sitewrite-files', DESIGN_FILES_BUCKET_KEY_ID: 'test-key-id', DESIGN_FILES_BUCKET_SECRET: 'test-secret-value', DESIGN_FILES_BUCKET_ENDPOINT: 'https://storage.example.test', DESIGN_FILES_BUCKET_REGION: 'auto' };
   Object.assign(process.env, keys);
   const store = new Map();
   const seen = [];
@@ -434,7 +434,7 @@ test('with the storage bucket set, files go to the bucket, signed, and come back
     assert.equal((await db.one('SELECT storage FROM design_files WHERE id = $1', [file.id])).storage, 'bucket');
     assert.equal((await db.query('SELECT file_id FROM design_file_data WHERE file_id = $1', [file.id])).length, 0, 'not in the database');
     assert.equal(seen[0].method, 'PUT');
-    assert.equal(seen[0].url, `https://siteready-files.storage.example.test/design-files/${file.id}`);
+    assert.equal(seen[0].url, `https://sitewrite-files.storage.example.test/design-files/${file.id}`);
     assert.match(seen[0].auth, /^AWS4-HMAC-SHA256 Credential=test-key-id\/\d{8}\/auto\/s3\/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=[0-9a-f]{64}$/);
     const back = await call('GET', `/api/designs/files/${file.id}`, { token });
     assert.deepEqual(Buffer.from(await back.arrayBuffer()), pdf('/Title (bucket)'));

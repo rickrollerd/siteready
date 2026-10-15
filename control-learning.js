@@ -3,7 +3,7 @@
 //
 // Each change is recorded once for each saved revision of a SWMS, never again for a download or a
 // second save of the same revision. A row holds the job step, the kind of change, the line as
-// SiteReady wrote it, the user's own words (with names, phone numbers, email addresses, ABNs and
+// SiteWrite wrote it, the user's own words (with names, phone numbers, email addresses, ABNs and
 // street addresses taken out, and every name the account itself holds: its business, sites,
 // principal contractors and people), any warning given, the user's reason, the state, trade, kinds of
 // work and high risk work, and the month. Changes that were warned about, refused, or no longer
@@ -12,7 +12,7 @@
 // account, site, task wording or SWMS id is kept. A business that opted out of industry data is
 // left out. Rows are deleted after 3 years.
 //
-// Job steps users write for work SiteReady has no job steps for are kept here too, under the same
+// Job steps users write for work SiteWrite has no job steps for are kept here too, under the same
 // switch, once for each saved revision: the part of the task each was written for, its name,
 // hazards, controls and Who, with personal details and the account's names taken out as above, and
 // the state, trade and month. These are the library's gaps that users fill themselves. The part of
@@ -96,7 +96,7 @@ const AFTER_SITE = new RegExp(`\\[site\\](?:\\s+(?:${PLACES})\\b)+`, 'gi');
 const PLACE_JOINS = new Set(['and', 'of', '&']);
 const PLACE_KIND = new RegExp(`^(?:${PLACES})$`, 'i');
 
-// Words SiteReady's own library uses, so a capitalised word that is not one of them (such as a
+// Words SiteWrite's own library uses, so a capitalised word that is not one of them (such as a
 // person's or a business's name) can be taken out. libraryWords includes the public names;
 // plainWords does not, so "Brisbane Airport" still counts as the name of a place.
 let vocabulary = null;
@@ -247,7 +247,7 @@ function placeName(match, before, kind, known) {
   return `${tokens.slice(0, start).join('')}[site]`;
 }
 
-// The user's words with personal details taken out. Words in the line SiteReady wrote stay.
+// The user's words with personal details taken out. Words in the line SiteWrite wrote stay.
 // terms: the account's own names (accountTerms), when the account is known.
 function scrub(text, original = '', terms = null) {
   return takeOut(text, original, terms).slice(0, 600);
@@ -292,8 +292,8 @@ function changesOf(report) {
   return out;
 }
 
-// PPE the user moved, unticked or added (D247), measured against SiteReady's suggestion for the same
-// SWMS: the item's label is SiteReady's own words, the step its step ('' for all work). Kinds:
+// PPE the user moved, unticked or added (D247), measured against SiteWrite's suggestion for the same
+// SWMS: the item's label is SiteWrite's own words, the step its step ('' for all work). Kinds:
 // ppeStepRemoved, ppeStepAdded, ppeToAllWork, ppeAllRemoved and ppeAllAdded.
 function ppeEditsOf(draft, input) {
   if (!draft || !Array.isArray(draft.ppe) || !input) return [];
@@ -346,7 +346,7 @@ async function recordControlEdits(draft, input, { company, swmsId, revision = 1,
   return count;
 }
 
-// ---- Steps users write for work SiteReady does not cover (owner, 11 October 2026) ----
+// ---- Steps users write for work SiteWrite does not cover (owner, 11 October 2026) ----
 
 // "We need to gather this data for our own learning." The words of the part of the task a step was
 // written for (or of the step's name, for a step written for work the warning did not name), as a
@@ -406,7 +406,7 @@ async function recordOwnSteps(draft, input, { company, swmsId, revision = 1, now
 
 // ---- Answers with blanks (D261, D262, owner, 13 October 2026) ----
 
-// "This is also a very good learning section for siteready ... we need to keep the numbers as there is a
+// "This is also a very good learning section for sitewrite ... we need to keep the numbers as there is a
 // consistency across projects on deck, slab, ground conditions kpa rating." The wording and the ratings
 // are kept; names, businesses and document or drawing numbers are taken out.
 // A rating: a figure with its unit (kPa, kN, kg, tonnes, m, mm, %, degrees, months and the like).
@@ -477,7 +477,7 @@ async function recordAnswers(draft, input, { company, swmsId, revision = 1, now 
 
 // ---- Failed check questions at worker sign-on ----
 
-// The step or PPE item a question tested, and the option the worker chose, are SiteReady's own
+// The step or PPE item a question tested, and the option the worker chose, are SiteWrite's own
 // words: step names, short library controls and PPE labels. A step made from the task's own
 // words, or one the user wrote, is not kept by name, and a line the user wrote is not kept.
 const OWN_STEP = '(a step made from the task)';
@@ -602,12 +602,12 @@ const MONTH = /^\d{4}-(?:0[1-9]|1[0-2])$/;
 const QLD_OFFSET = 10 * 3600000;
 const MONTHS_SHOWN = 12;
 // Changes that went into the SWMS. A refused change is not in it, and an unmatched one was made on
-// a line SiteReady no longer prints, so neither is a pattern in the library as it is.
+// a line SiteWrite no longer prints, so neither is a pattern in the library as it is.
 const MADE = new Set(['applied', 'warned']);
 const CANDIDATE_GROUPS = ['removed', 'added', 'notApplicable', 'reverted', 'ppe'];
 // The pieces of work users wrote steps for most, listed in the report.
 const OWN_STEPS_SHOWN = 20;
-const OWN_STEPS_TITLE = 'Steps users wrote for work SiteReady does not cover';
+const OWN_STEPS_TITLE = 'Steps users wrote for work SiteWrite does not cover';
 const LEARNING_OFF = 'Control learning is off: nothing is being recorded. It records only when CONTROL_LEARNING=on and CONTROL_LEARNING_KEY is set, and is held off until the privacy policy covers it and account administrators have had 30 days\' notice.';
 const ACCEPTANCE_NOTE = 'First-time acceptance (goal 3) is not captured yet: no reviewer\'s decision is recorded, so it cannot be computed or trended.';
 
@@ -627,8 +627,8 @@ const rate = (top, bottom) => Math.round((top / bottom) * 100) / 100;
 // Same words in the same order, whatever the case, punctuation or spacing.
 const sameWording = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9[\]]+/g, ' ').trim();
 
-// What the report shows of a step or a line. Every step and line is SiteReady's, or the user's
-// words already scrubbed, but a SiteReady line can carry what the user typed for a site fact, and a
+// What the report shows of a step or a line. Every step and line is SiteWrite's, or the user's
+// words already scrubbed, but a SiteWrite line can carry what the user typed for a site fact, and a
 // step can be made from the task's own words. So each line is scrubbed again, and a step whose
 // words are not all library words is not shown by name.
 function stepShown(step) {
@@ -779,7 +779,7 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
     ppe: patternsOf(made.filter((row) => PPE_KINDS.has(row.kind)), (row) => `${at(row)}${row.kind}\n${row.original}`, chosen, threshold),
   };
 
-  // Steps users wrote for work SiteReady does not cover, from every saved revision up to the end of
+  // Steps users wrote for work SiteWrite does not cover, from every saved revision up to the end of
   // the month: each piece of work by the different saved SWMS a step was written for it in, most first.
   const gaps = new Map();
   for (const row of written) {
@@ -814,14 +814,14 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
       'Months are calendar months in Queensland time (no daylight saving), as the learning tables count them. Saves and sign-ons are counted from their recorded time on the same basis.',
       'The edit rate is the changes recorded on new SWMS (their first revision) divided by the SWMS saved events of the same month. SWMS saved is counted once when a new SWMS is saved, a copy included, and not when a revision is saved, so first revisions are its like for like.',
       'Changes per saved revision covers every revision: changes new in a revision (not in the revision before of the same SWMS) divided by the revisions saved that month (the revision history). A change kept from the revision before is recorded again on each revision, so all changes recorded would count it twice.',
-      'A change is any change the user made: a line removed, changed or added, a hazard changed, added or marked "does not apply", the Who column changed, or a PPE item unticked, moved to all work or added to a step (measured against SiteReady\'s suggestion for the same SWMS), whatever came of it (applied, warned, refused, or no longer matching a line).',
+      'A change is any change the user made: a line removed, changed or added, a hazard changed, added or marked "does not apply", the Who column changed, or a PPE item unticked, moved to all work or added to a step (measured against SiteWrite\'s suggestion for the same SWMS), whatever came of it (applied, warned, refused, or no longer matching a line).',
       'Wrong answers per sign-on is the wrong check answers recorded divided by the worker sign-on events. A worker who gives up still leaves wrong answers but no sign-on, and a sign-on where a supervisor explained the SWMS has no questions.',
       'Businesses that opted out of industry data are left out of every count, by their choice today. Learning rows from before an opt out stay until deleted; saves and sign-ons from them do not count.',
       'Months before the first recorded row show no rate. The report cannot tell when learning was switched off: a month while it was off reads as no changes.',
       'SWMS deleted from the archive take their revision history with them, so revisions saved in older months can fall.',
       `Candidate library changes count each pattern by the different saved SWMS it was seen in (by their fingerprint), not by rows, from every change up to the end of ${chosen}. The store holds no business, so one business with many SWMS counts once per SWMS. Only changes that went into the SWMS (applied or warned) count. Lines users add are grouped within a step by wording: the same words in the same order, whatever the case, punctuation or spacing.`,
-      'Steps not wholly in SiteReady\'s own words are shown as "(a step made from the task)", and every line is passed through the name scrubber again before it is shown.',
-      `Steps users wrote for work SiteReady does not cover are grouped by the words of the part of the task they were written for (small words and word endings dropped), and counted by the different saved SWMS a step was written for it in, from every revision up to the end of ${chosen}. They are not counted in the edit rate. The wording shown is the one most often used. A step becomes library steps only with a source we hold (D181), the goal 5 evidence test and a person's sign-off.`,
+      'Steps not wholly in SiteWrite\'s own words are shown as "(a step made from the task)", and every line is passed through the name scrubber again before it is shown.',
+      `Steps users wrote for work SiteWrite does not cover are grouped by the words of the part of the task they were written for (small words and word endings dropped), and counted by the different saved SWMS a step was written for it in, from every revision up to the end of ${chosen}. They are not counted in the edit rate. The wording shown is the one most often used. A step becomes library steps only with a source we hold (D181), the goal 5 evidence test and a person's sign-off.`,
     ],
     months,
     failedQuestions: { total: shown.wrongAnswers, byKind: shown.wrongByKind, items },
@@ -846,7 +846,7 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
 const cell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 const figure = (value, why) => (value === null ? `none (${why || 'not computed'})` : String(value));
 const GROUP_TITLES = {
-  removed: 'SiteReady lines most often removed',
+  removed: 'SiteWrite lines most often removed',
   added: 'Lines users keep adding',
   notApplicable: 'Hazards marked "does not apply"',
   reverted: 'Changes undone in the next revision',
@@ -863,7 +863,7 @@ function table(head, rows, empty) {
 
 function reportMarkdown(report) {
   const out = [];
-  out.push(`# SiteReady learning report: ${report.month}`, '');
+  out.push(`# SiteWrite learning report: ${report.month}`, '');
   out.push(`Goal 11. ${report.whole ? 'A whole month.' : 'This month so far: the month is not over.'} Counts only: no names, businesses or sites.`, '');
   out.push(`**${report.recordingNote}**`, '');
   out.push('## Edit rate by month', '');
@@ -881,7 +881,7 @@ function reportMarkdown(report) {
   out.push(`- ${report.trend.acceptance.says}`, '');
   out.push(`## ${OWN_STEPS_TITLE}`, '');
   out.push(`The library's gaps users fill themselves, by the different saved SWMS a step was written in, most first: ${report.ownSteps.total} piece${report.ownSteps.total === 1 ? '' : 's'} of work in all. A step becomes library steps only with a source we hold (D181), the goal 5 evidence test and a person's sign-off.`, '');
-  out.push(table(['Work SiteReady does not cover', 'Step users wrote', 'SWMS', 'This month', 'Different steps written', 'Goal 5 check needed'],
+  out.push(table(['Work SiteWrite does not cover', 'Step users wrote', 'SWMS', 'This month', 'Different steps written', 'Goal 5 check needed'],
     report.ownSteps.items.map((item) => [item.part, item.step, item.swms, item.swmsThisMonth, item.versions, 'Yes']), 'No steps written by users recorded.'));
   if (report.checkedSwms) out.push(require('./checked-swms').sectionMarkdown(report.checkedSwms));
   out.push('## Candidate library changes', '');
@@ -891,7 +891,7 @@ function reportMarkdown(report) {
     out.push(`### ${GROUP_TITLES[group]}`, '');
     const head = group === 'ppe' ? ['Step', 'Change', 'PPE item', 'SWMS', 'This month', 'Goal 5 check needed']
       : group === 'added' ? ['Step', 'Line added', 'SWMS', 'This month', 'Goal 5 check needed']
-      : group === 'reverted' ? ['Step', 'Change', 'SiteReady line', 'User line', 'SWMS', 'This month', 'Goal 5 check needed']
+      : group === 'reverted' ? ['Step', 'Change', 'SiteWrite line', 'User line', 'SWMS', 'This month', 'Goal 5 check needed']
         : ['Step', group === 'notApplicable' ? 'Hazard' : 'Line', 'SWMS', 'This month', 'Legal requirement', 'Goal 5 check needed'];
     const rows = shown.map((item) => {
       if (group === 'ppe') return [item.step || 'All work', KIND_WORDS[item.kind] || item.kind, item.line, item.swms, item.swmsThisMonth, 'Yes'];

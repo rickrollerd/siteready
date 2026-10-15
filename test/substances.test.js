@@ -124,7 +124,7 @@ test('an empty column says which section of the SDS to read; a file attached is 
     'Avoid skin contact with wet cement.',
     'See its safety data sheet, section 4.',
     'See its safety data sheet, sections 6 and 7.',
-    'Issued 1 May 2023.\nA copy is attached to this SWMS in SiteReady (GP Cement SDS.pdf).',
+    'Issued 1 May 2023.\nA copy is attached to this SWMS in SiteWrite (GP Cement SDS.pdf).',
   ]);
   // Its line goes in the step whose lines name wet concrete, after the step's lines of its level.
   assert.equal(d.substances.products[0].step, 'Place concrete');
@@ -133,7 +133,7 @@ test('an empty column says which section of the SDS to read; a file attached is 
   assert.deepEqual(substances.fileIds({ substances: [{ id: 'sub-2', file: { id: 'df_abcdefghijklmnopqrstu' } }] }), ['df_abcdefghijklmnopqrstu']);
 });
 
-test('the step: SiteReady matches it by the type the step already names; the user may choose another; with none matched the user chooses', () => {
+test('the step: SiteWrite matches it by the type the step already names; the user may choose another; with none matched the user chooses', () => {
   const steps = draft(POUR).jobSteps;
   assert.equal(R.matchStep('Curing compounds and form release agents', steps), 'Cure the concrete');
   assert.equal(R.matchStep('Cement, concrete, grout and mortar', steps), 'Place concrete');
@@ -176,7 +176,7 @@ test('confirm needed: the download waits until each product is complete and tick
   assert.deepEqual(downloadGaps(draftBody(base(POUR)), draft(POUR)).filter((gap) => gap.kind === 'substance'), []);
 });
 
-test('D277: each type SiteReady suggests needs a product or the tick "Not required" before download; a tick prints nothing', () => {
+test('D277: each type SiteWrite suggests needs a product or the tick "Not required" before download; a tick prints nothing', () => {
   const plain = draftBody(base(POUR));
   const d = prepareDraft(plain);
   const types = (input) => downloadGaps(input, prepareDraft(input)).filter((gap) => gap.kind === 'substanceType');
@@ -220,7 +220,7 @@ test('D277, D282: the "Safety data sheet" question is dropped once a product is 
   // The product is placed in the step the answer printed in: its own SDS controls replace the answer there.
   assert.deepEqual(lines(listed), []);
   assert.ok(listed.jobSteps.find((step) => step.step === 'Prepare to paint').controls.some((line) => /^Paint or coating \(Wallcoat 2\)/.test(line)));
-  // Left to SiteReady, paint goes in the step that paints, not the one that prepares for it (messy round 4).
+  // Left to SiteWrite, paint goes in the step that paints, not the one that prepares for it (messy round 4).
   const matched = draft(PAINT, { facts: { ...base(PAINT).facts, safetyDataSheet: answer }, substances: [paint] });
   assert.ok(matched.jobSteps.find((step) => step.step === 'Paint').controls.some((line) => /^Paint or coating \(Wallcoat 2\)/.test(line)));
   // Placed in another step, the answer stays where it was.
@@ -443,9 +443,9 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   const { loadPage, settle } = require('./fake-dom');
   const p = loadPage(['gate-rules.js', 'app.js', 'substance-rules.js', 'substances.js'], () => ({ body: {} }));
   await settle();
-  const S = p.window.SiteReadySubstances;
+  const S = p.window.SiteWriteSubstances;
   const plain = draft(POUR);
-  const sheet = p.window.SiteReady.render(plain, { movable: true });
+  const sheet = p.window.SiteWrite.render(plain, { movable: true });
   assert.match(sheet, /This work usually uses cement, concrete, grout and mortar, curing compounds and form release agents, respirable crystalline silica \(concrete, masonry, tile and stone dust\) and fuels \(diesel, petrol\)\. For each, add the product you use, with its safety data sheet, or tick &quot;Not required&quot;\./);
   assert.match(sheet, /data-sub-add="Curing compounds and form release agents">Add the product<\/button>/);
   assert.match(sheet, /<input type="checkbox" id="sub-type-10" data-sub-notused="Curing compounds and form release agents"><span>Not required<\/span>/);
@@ -456,18 +456,18 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   S.load([], ['Fuels (diesel, petrol)']);
   assert.equal(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), '');
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().substancesNotUsed)')), ['Fuels (diesel, petrol)']);
-  assert.match(p.window.SiteReady.render(plain, { movable: true }), /data-sub-notused="Fuels \(diesel, petrol\)" checked>/);
+  assert.match(p.window.SiteWrite.render(plain, { movable: true }), /data-sub-notused="Fuels \(diesel, petrol\)" checked>/);
   S.load([], []);
   // No product: no table, nothing sent.
   assert.doesNotMatch(sheet, /sub-table|Type of product|Yes \/ No/);
   assert.equal(p.run('payload().substances'), undefined);
   // A product loaded (a reopened SWMS): its card, sent with the draft.
   S.load([{ ...CURE, confirmed: false, read: { fields: ['product', 'controls'] } }]);
-  const withCard = p.window.SiteReady.render(plain, { movable: true });
+  const withCard = p.window.SiteWrite.render(plain, { movable: true });
   assert.match(withCard, /<legend>CureCoat 40<\/legend>/);
   assert.match(withCard, /Read from the safety data sheet: check each line matches it/);
   assert.match(withCard, /These match the SDS/);
-  assert.match(withCard, /SiteReady&#39;s match: Cure the concrete/);
+  assert.match(withCard, /SiteWrite&#39;s match: Cure the concrete/);
   assert.match(withCard, /accept="\.pdf,application\/pdf"/);
   assert.match(withCard, /It does not read a scanned SDS or a photo: type the details from it instead\./);
   const sent = JSON.parse(p.run('JSON.stringify(payload().substances)'));
@@ -480,12 +480,12 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   assert.equal(p.run(`liveNeed(${JSON.stringify(check)})`), '');
   // In the draft: the table, and the product's line without tools to change it there.
   const d = draft(POUR, { substances: [CURE] });
-  const shown = p.window.SiteReady.render(d, { movable: true });
+  const shown = p.window.SiteWrite.render(d, { movable: true });
   assert.match(shown, /<th>Controls<\/th>/);
   assert.match(shown, /Wear chemical resistant gloves \(nitrile\)\.<br>Wear safety glasses with side shields or goggles\./);
   assert.ok(shown.includes(`class="substance-line">${CURE_LINE.replace(/\(/g, '(')}<span class="meta"> From the product's safety data sheet. Change it under Hazardous substances.</span></li>`));
   // A saved SWMS shows the table only.
-  const saved = p.window.SiteReady.render(d, {});
+  const saved = p.window.SiteWrite.render(d, {});
   assert.match(saved, /<h4>Hazardous substances<\/h4>/);
   assert.doesNotMatch(saved, /substances-panel/);
   p.run('newSwms()');

@@ -44,7 +44,7 @@ function longDate(date) {
 }
 
 // The check a SWMS is saved, downloaded, copied or marked as checked with (human-check.js, D286):
-// SiteReady's own check, then each part ticked by a named person with their role. draft is the
+// SiteWrite's own check, then each part ticked by a named person with their role. draft is the
 // draft as it prints. The name goes on the SWMS row too, for the review reminders.
 function checkOf(body, draft, input, doing) {
   return humanCheck.confirm(body, draft, { state: input && input.state, doing });
@@ -183,7 +183,7 @@ router.post('/company/users', requireUser, requireAdmin, route(async (req, res) 
   const email = auth.cleanEmail(req.body && req.body.email);
   if (!email) throw fail(400, 'Enter a valid email address.');
   const existing = await db.one('SELECT company_id FROM users WHERE email = $1', [email]);
-  if (existing && existing.company_id !== req.company.id) throw fail(409, 'That email already belongs to another company on SiteReady.');
+  if (existing && existing.company_id !== req.company.id) throw fail(409, 'That email already belongs to another company on SiteWrite.');
   await auth.sendLoginLink(req, email, req.company.id, req.company.name || req.user.email);
   res.json({ ok: true, message: `An invitation has been sent to ${email}.` });
 }));
@@ -280,12 +280,12 @@ const SITE_LABELS = {
 };
 
 // The export's plain text file: the company profile, the business's own people (name, role and
-// email; never workers who signed on), its sites, and any sign-ons to a revision SiteReady did not
+// email; never workers who signed on), its sites, and any sign-ons to a revision SiteWrite did not
 // keep, which no Word file can print.
 function exportText(company, users, sites, unprinted, at) {
-  const lines = [`SiteReady export for ${company.name || 'your business'}, ${longDate(at)}`, '', 'Company profile'];
+  const lines = [`SiteWrite export for ${company.name || 'your business'}, ${longDate(at)}`, '', 'Company profile'];
   for (const [label, value] of [['Name', company.name], ['ABN', company.abn], ['Address', company.address], ['Phone', company.phone], ['Email', company.email]]) lines.push(`${label}: ${value || ''}`);
-  lines.push('', 'Team (people in your SiteReady account)');
+  lines.push('', 'Team (people in your SiteWrite account)');
   for (const user of users) lines.push(`${user.name || '(no name)'}, ${user.is_admin ? 'Administrator' : 'User'}, ${user.email}`);
   lines.push('', 'Sites');
   if (!sites.length) lines.push('No sites saved.');
@@ -294,7 +294,7 @@ function exportText(company, users, sites, unprinted, at) {
     for (const [key, label] of Object.entries(SITE_LABELS)) if (site.details && site.details[key]) lines.push(`  ${label}: ${site.details[key]}`);
   }
   if (unprinted.length) {
-    lines.push('', 'Sign-ons to revisions saved before SiteReady kept each revision (not in any Word file)');
+    lines.push('', 'Sign-ons to revisions saved before SiteWrite kept each revision (not in any Word file)');
     for (const item of unprinted) lines.push(`${item.title}: ${item.worker_name}${item.worker_company ? `, ${item.worker_company}` : ''}, signed ${longDate(item.signed_at)}${item.revision ? `, revision ${item.revision}` : ''}`);
   }
   return `${lines.join('\r\n')}\r\n`;
@@ -341,7 +341,7 @@ router.get('/swms/export.zip', requireUser, route(async (req, res) => {
   zip.file('Company, team and sites.txt', exportText(req.company, users, sites, unprinted, new Date()));
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   res.setHeader('Content-Type', 'application/zip');
-  res.setHeader('Content-Disposition', 'attachment; filename="SiteReady-saved-SWMS.zip"');
+  res.setHeader('Content-Disposition', 'attachment; filename="SiteWrite-saved-SWMS.zip"');
   res.send(out);
 }));
 
@@ -477,7 +477,7 @@ async function saveForDownload(req, body, options = {}) {
   if (draft.kind !== 'draft') return null;
   // The routes that call this have checked the D184 tick already.
   needsAnswers(withCompany(input, req.company), draft, '', { cover: false });
-  // The routes that call this have checked SiteReady's check and the person's ticks already (D286).
+  // The routes that call this have checked SiteWrite's check and the person's ticks already (D286).
   const confirmation = options.confirmation || checkOf(body, draft, input, 'downloading');
   const reason = textField(body.reason, 300);
   const existing = typeof body.swmsId === 'string' && body.swmsId
@@ -560,7 +560,7 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   // The principal contractor's responses on every revision, newest first, and the link to send
   // the reviewer for the current one (goal 3).
   const pcReviews = await reviews.reviewsFor(row.id, { withEmail: true });
-  // For the business's own check (D290, D286): SiteReady's check of the current revision as it
+  // For the business's own check (D290, D286): SiteWrite's check of the current revision as it
   // prints, each part's fingerprint, and the check it was last given.
   const selfCheck = kept ? humanCheck.selfCheck(kept.draft, kept.input && kept.input.state) : null;
   const lastCheck = kept && humanCheck.isPartCheck(kept.confirmation) ? (({ name, role, date }) => ({ name, role, date }))(kept.confirmation) : null;
@@ -676,7 +676,7 @@ async function documentParts(company, row, revision = row.revision || 1, base = 
   // and parts. One from before prints as it did: the current revision with the latest name and date.
   const checked = humanCheck.isPartCheck(kept.confirmation) ? kept.confirmation : null;
   const confirmation = checked || (current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation);
-  // With no reference number of the business's own, the SWMS prints its SiteReady reference (D289).
+  // With no reference number of the business's own, the SWMS prints its SiteWrite reference (D289).
   const draft = kept.draft && !String(kept.draft.swmsRef || '').trim() && kept.ref ? { ...kept.draft, swmsRef: kept.ref } : kept.draft;
   // The principal contractor's response on this revision fills its review box (D290); an unreviewed
   // revision keeps the blank box and the link to review it.
@@ -691,6 +691,11 @@ async function sendDocument(req, res, row, format, revision) {
   if (!parts) throw fail(404, 'That revision was not found.');
   // A SWMS saved before the gate, with site questions unanswered, is not printed until it is revised.
   needsAnswers(parts.input || {}, parts.draft, ' Open this SWMS, answer them and save it as a new revision, then download it.', { cover: false });
+  res.setHeader('X-SiteWrite-Swms', row.id);
+  res.setHeader('X-SiteWrite-Revision', String(parts.revision));
+  res.setHeader('X-SiteWrite-Title', encodeURIComponent(row.title));
+  // Also under the old names, for a page opened before the change of name (D299) and still open.
+  // Taken out after 28 October 2026, as the other allowances for old pages are.
   res.setHeader('X-SiteReady-Swms', row.id);
   res.setHeader('X-SiteReady-Revision', String(parts.revision));
   res.setHeader('X-SiteReady-Title', encodeURIComponent(row.title));
@@ -888,11 +893,11 @@ async function sendReviewReminders(now = new Date()) {
     // The link opens My SWMS (after signing in, if the device is not signed in).
     const base = auth.appUrl(null);
     // Worded as the business's own check, as the button in My SWMS is (D290).
-    const open = base ? `Open My SWMS: ${base}/#my-swms\n\nCheck each one against the site, and mark it as checked.` : 'Open SiteReady, check each one against the site, and mark it as checked.';
+    const open = base ? `Open My SWMS: ${base}/#my-swms\n\nCheck each one against the site, and mark it as checked.` : 'Open SiteWrite, check each one against the site, and mark it as checked.';
     for (const user of users) {
       await sendMail({
         to: user.email,
-        subject: `SiteReady: ${rows.length} SWMS due for checking`,
+        subject: `SiteWrite: ${rows.length} SWMS due for checking`,
         text: `These SWMS are due for their ${REVIEW_MONTHS} monthly check:\n\n${lines.join('\n')}\n\n${open}`,
       });
     }

@@ -1,7 +1,7 @@
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
 process.env.STRIPE_PRICE_ID = 'price_test_49';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
-process.env.ADMIN_EMAILS = 'owner@siteready.example';
+process.env.ADMIN_EMAILS = 'owner@sitewrite.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const Stripe = require('stripe');
@@ -125,7 +125,7 @@ test('Stripe webhooks set the plan, and a bad signature is refused', async () =>
 });
 
 test('the owner sees the numbers; others do not', async () => {
-  const owner = await signIn('owner@siteready.example');
+  const owner = await signIn('owner@sitewrite.example');
   const someone = await signIn('nosy@co.example');
   assert.equal((await call('GET', '/api/admin/stats', { token: someone })).status, 403);
   const stats = await (await call('GET', '/api/admin/stats', { token: owner })).json();
@@ -140,7 +140,7 @@ test('the health check reports the database', async () => {
 });
 
 test('a saved SWMS leaves one de-identified industry record, and an opted out business leaves none', async () => {
-  const owner = await signIn('owner@siteready.example');
+  const owner = await signIn('owner@sitewrite.example');
   const token = await signIn('industry@co.example');
   const abn = '83 914 571 673';
   assert.equal((await call('PUT', '/api/company', { token, body: { name: 'Secret Builders Pty Ltd', abn } })).status, 200);
@@ -201,7 +201,7 @@ test('an industry record keeps only known trade and kind ids, never text sent in
 });
 
 test('figures by place are released only where at least 10 businesses are counted', async () => {
-  const owner = await signIn('owner@siteready.example');
+  const owner = await signIn('owner@sitewrite.example');
   await db.query("DELETE FROM industry_records");
   const add = (n, postcode, state = 'qld') => db.query('INSERT INTO industry_records (id, month, state, postcode, postcode_area, trade, business, dedupe) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [`r${n}${postcode}`, '2026-10', state, postcode, postcode.slice(0, 2), 'Plumber', `b${n}${postcode}`, `d${n}${postcode}`]);
   for (let n = 0; n < 12; n += 1) await add(n, '4000');      // 12 businesses: released as a postcode

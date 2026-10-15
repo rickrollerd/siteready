@@ -1239,7 +1239,7 @@ function withHarness(list, facts, ppeIds = []) {
   return out;
 }
 
-// The PPE in use: the list the user chose, or the one SiteReady ticks for the task.
+// The PPE in use: the list the user chose, or the one SiteWrite ticks for the task.
 function ppeInUse(task, facts, state, chosen) {
   if (Array.isArray(chosen)) return chosen;
   return ppeList(task, facts, state).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
@@ -2338,7 +2338,7 @@ function weakAnswers(input) {
     });
 }
 
-// How SiteReady judges one answer on its own: 'supplied', 'vague' or 'missing' (for the tests of the
+// How SiteWrite judges one answer on its own: 'supplied', 'vague' or 'missing' (for the tests of the
 // examples answer-help.js gives).
 function answerState(id, text, stateId = 'qld') {
   return factState({ id }, '', { [id]: text }, stateFor({ state: stateId }));
@@ -2825,14 +2825,14 @@ function questionsForWords(input) {
 
 // The notice on the questions page for a task that will be stood down, in plain words.
 function standDownNotice(why, around, chosen) {
-  if (why.nothingPicked) return 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps, or write your own step for the work with "Write a step for this".';
+  if (why.nothingPicked) return 'No job steps are ticked, so SiteWrite will not draft this SWMS. Tick or add the job steps for the work under Job steps, or write your own step for the work with "Write a step for this".';
   const work = why.mainMissing && why.mainMissing !== 'the main work in this task' ? why.mainMissing : 'this work';
   const kinds = new Map(require('./steps').stepLibrary().groups.flatMap((group) => group.kinds).map((kind) => [kind.id, kind.label]));
   const names = (ids) => ids.map((id) => kinds.get(id)).filter(Boolean).join('; ');
   const found = names(around) ? ` The steps found for where the work is done (${names(around)}) are not the work itself, so they are not ticked.` : '';
   const support = chosen.filter((id) => SUPPORT_KINDS.has(id));
   const ticked = why.mainMissing && !why.fallback && names(support) ? ` The steps ticked (${names(support)}) cover only the access, lifting or other work around it.` : '';
-  return `SiteReady has no job steps for ${work} yet, so it will not draft this SWMS.${found}${ticked} To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".`;
+  return `SiteWrite has no job steps for ${work} yet, so it will not draft this SWMS.${found}${ticked} To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".`;
 }
 
 function askQuestions(input) {
@@ -2857,8 +2857,8 @@ function askQuestions(input) {
     // Victoria: regulations 319Y and 319ZB, with no notice to the regulator. Elsewhere written notice
     // is given before the work (s 529G; ACT s 418I).
     const message = state.id === 'vic'
-      ? 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under the Occupational Health and Safety Regulations 2017 (Vic) (regulation 319Y), so SiteReady does not prepare a SWMS for it. Removing, repairing, modifying or disposing of installed engineered stone is allowed with the engineered stone controls: describe that work instead, or use natural stone or another material.'
-      : 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under work health and safety law, so SiteReady does not prepare a SWMS for it. Removing, repairing, making minor modifications to or disposing of installed engineered stone is allowed if the processing is controlled, and the regulator must be given written notice before the work starts: describe that work instead, or use natural stone or another material.';
+      ? 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under the Occupational Health and Safety Regulations 2017 (Vic) (regulation 319Y), so SiteWrite does not prepare a SWMS for it. Removing, repairing, modifying or disposing of installed engineered stone is allowed with the engineered stone controls: describe that work instead, or use natural stone or another material.'
+      : 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under work health and safety law, so SiteWrite does not prepare a SWMS for it. Removing, repairing, making minor modifications to or disposing of installed engineered stone is allowed if the processing is controlled, and the regulator must be given written notice before the work starts: describe that work instead, or use natural stone or another material.';
     return { kind: 'refused', state: state.name, message };
   }
   if (state.residentialFallMetres && !residentialAnswer(input.residential)) {
@@ -2896,7 +2896,7 @@ const TO_COMPLETE = 'To be completed before submitting for approval';
 
 // The way on is said once, with the button that does it (messy round 4: "or write this SWMS yourself.."
 // left no way to finish it).
-const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".';
+const NO_STEPS = 'Job steps for this work: SiteWrite does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".';
 
 // Main work the library has no steps for yet. Where the task names it and no step
 // covers it, the draft is stood down rather than issued with only the access and
@@ -3163,10 +3163,10 @@ const HOUSE_MOVE = /\b(?:houses?|homes?|cottages?|queenslanders?|dwellings?|buil
 function jackAndSkid(text) {
   return String(text || '').split(/[.;\n]/).some((sentence) => JACKING.test(sentence) && JACK_SKID.test(sentence.replace(/\bskate ?(?:parks?|bowls?|boards?|ramps?|rinks?)\b/gi, ' ')) && !HOUSE_MOVE.test(sentence));
 }
-const JACK_SKID_NOTE = "SiteReady's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
+const JACK_SKID_NOTE = "SiteWrite's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
 // Notes above the draft for steps that are general and must be checked against the task (owner's
 // review, part 3): shown on the page, not printed, no tick, and the download is not held.
-const PALLET_JACK_NOTE = "SiteReady's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit.";
+const PALLET_JACK_NOTE = "SiteWrite's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit.";
 // It points to the written method the user can list with the SWMS (D224).
 const JUMP_LIFT_NOTE = "Raising a jump lift's machine platform follows the lift company's methodology. Get their methodology, write your step for this work from it, and add it under \"Add a written methodology or sequence of works\".";
 const WORKBOX_PERMIT_NOTE = "Lifting people in a crane workbox usually needs the principal contractor's permit. Check the site's permit system before the first lift.";
@@ -3251,7 +3251,7 @@ const SITE_WORK_ONLY = () => require('./scope').SITE_WORK;
 // test, an isolation). Conditions, places, standards, duties and paperwork are not work. A task
 // from a scope reading lists instead the rows the reader matched to no job steps (unmatched),
 // unless the row's words find a kind of work in the draft. A task picked from the pick list adds
-// the parts its catalogue entry says SiteReady has no job steps for (pickGaps), while its words are
+// the parts its catalogue entry says SiteWrite has no job steps for (pickGaps), while its words are
 // as picked: they are listed whatever the words find, so a near-miss step never hides them.
 function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched, pickGaps }) {
   const { SITE_WORK, notOwnWork } = require('./scope');
@@ -3325,14 +3325,14 @@ function withMovedIn(parts, input) {
 function notCoveredRefusal(draft, input) {
   // Work that is all the task's work (D211) needs the user's own step: a tick does not cover it.
   const unwritten = notCoveredUnwritten(draft);
-  if (unwritten.length) return `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it ("Write a step for this" above the draft) before saving or downloading.`;
+  if (unwritten.length) return `SiteWrite has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it ("Write a step for this" above the draft) before saving or downloading.`;
   const parts = notCoveredLeft(draft);
   const ticked = input && Array.isArray(input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
   if (parts.every((part) => ticked.includes(part))) return '';
-  return `SiteReady has no job steps for: ${parts.join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.`;
+  return `SiteWrite has no job steps for: ${parts.join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.`;
 }
 
-// A SWMS from a scope prints a plain list of the work (D251), but SiteReady reads the work from the
+// A SWMS from a scope prints a plain list of the work (D251), but SiteWrite reads the work from the
 // scope's full words, with where each activity is done, its conditions and its plant, so the high risk
 // work, hazards and plant are found as before (D252). input.scopeTask is { plain, full, notes }
 // (public/scope-task.js scopeWords): with the task as given, the full words are read; with the task
@@ -3747,7 +3747,7 @@ function buildDraft(input, screen) {
   // Other work named by the main work check ("lift installation") is stood down as before.
   const userMain = (fallback || mainMissing || nothingPicked) && (!mainMissing || mainMissing === 'the main work in this task') ? leftToUser(typed, draft.jobSteps || []) : [];
   // Steps the user wrote for the work (messy round 4, B fault 1): a SWMS made of the user's own steps,
-  // or of their own step for the main work with SiteReady's steps for the work around it ("Move
+  // or of their own step for the main work with SiteWrite's steps for the work around it ("Move
   // materials into place"), is drafted, not stood down for want of job steps. Their steps go in below.
   const ownCover = (fallback || mainMissing || nothingPicked) && ownStepsOf(input).length > 0;
   if (userMain.length || ownCover) draft.jobSteps = draft.jobSteps.filter((step) => !step.fallback);
@@ -3756,7 +3756,7 @@ function buildDraft(input, screen) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: [!nothingPicked && mainMissing && !fallback ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".` : NO_STEPS],
+      missing: [!nothingPicked && mainMissing && !fallback ? `Job steps for this work: SiteWrite does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, or write your own step for the work with "Write a step for this".` : NO_STEPS],
       statement: 'This task is stood down. It does not start.',
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
@@ -3867,15 +3867,15 @@ function buildDraft(input, screen) {
   const workboxNote = draft.jobSteps.some((step) => step.step === 'Lift people in the crane workbox') ? WORKBOX_PERMIT_NOTE : '';
   const warnings = [energisedWarning(riskTask, facts), jackSkidNote, palletJackNote, jumpLiftNote, workboxNote].filter(Boolean);
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
-  // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
+  // from SiteWrite's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
   const notCovered = withMovedIn(notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched, pickGaps: input.pickGaps }), input);
   // Where that work is all the task's work, a tick is not enough: the user writes the step for it. So
   // is work moved here from another SWMS of the project (D289).
   const mainParts = [...new Set([...(userMain.length ? notCovered.filter((part) => userMain.includes(part)) : []), ...movedInParts(input)])];
   if (mainParts.length) draft.notCoveredMain = mainParts;
-  // The steps the user wrote for work SiteReady does not cover go in once the registers and ratings
-  // are worked out from SiteReady's own steps.
+  // The steps the user wrote for work SiteWrite does not cover go in once the registers and ratings
+  // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
   const edited = applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input);
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
@@ -4140,7 +4140,7 @@ const permitOptions = (task, state, input = {}) => ({ stateId: state.id, domesti
 
 // Every line the user removed in their control edits, in any step. A permit or category line the
 // user removed stays out: the user has the final say (owner decisions, 5 and 6 October 2026),
-// with a warning where the line is a legal requirement or one SiteReady recommends keeping.
+// with a warning where the line is a legal requirement or one SiteWrite recommends keeping.
 function removedLines(edits) {
   if (!edits || typeof edits !== 'object') return new Set();
   return new Set(Object.values(edits).flatMap((mine) => (mine && Array.isArray(mine.removed) ? mine.removed : [])).map((line) => String(line || '').trim()));
@@ -4350,7 +4350,7 @@ function weakerWording(from, to) {
     const was = old.find((item) => item.unit === number.unit && item.value !== number.value);
     if (!was || old.some((item) => item.unit === number.unit && item.value === number.value)) continue;
     const weaker = larger && !smaller ? number.value < was.value : smaller && !larger ? number.value > was.value : true;
-    if (weaker) out.push(`A number has changed (${was.text} to ${number.text}). Check the new figure is as safe as SiteReady's, or safer.`);
+    if (weaker) out.push(`A number has changed (${was.text} to ${number.text}). Check the new figure is as safe as SiteWrite's, or safer.`);
   }
   for (const pattern of SOFTENERS) {
     const said = (String(to).match(pattern) || [])[0];
@@ -4364,9 +4364,9 @@ function weakerWording(from, to) {
   return out;
 }
 
-// ---- Choices made on a line SiteReady has since reworded ----
+// ---- Choices made on a line SiteWrite has since reworded ----
 
-// The user's choices are kept by the line's words. When SiteReady rewords a line in a later
+// The user's choices are kept by the line's words. When SiteWrite rewords a line in a later
 // release, or an answer fills a blank in it, the choice is matched to the line as it now reads:
 // the same words with other sources, or failing that the closest line in the step by its words.
 // A choice that matches no line is reported, not dropped, so the user can see it and discard it.
@@ -4405,7 +4405,7 @@ function findLine(controls, wanted, taken) {
   return best && score >= ALIKE && !tied ? { line: best, exact: false } : null;
 }
 
-// The step each step's choices belong to: the same name, or a step SiteReady has renamed whose
+// The step each step's choices belong to: the same name, or a step SiteWrite has renamed whose
 // name is close. Returns step index to the name the choices are kept under.
 function stepsForEdits(jobSteps, edits) {
   const names = Object.keys(edits);
@@ -4447,9 +4447,9 @@ function reportSuppressed(report, suppressed, edits) {
 }
 
 // Applies the user's choices to each step's controls: lines removed, lines reworded and lines
-// added. A choice made on a line SiteReady has since reworded is applied to the line as it now
+// added. A choice made on a line SiteWrite has since reworded is applied to the line as it now
 // reads, and reported (remapped); a choice that matches no line in the SWMS is reported
-// (unmatched) and left out. Removing or weakening a legal requirement or a line SiteReady
+// (unmatched) and left out. Removing or weakening a legal requirement or a line SiteWrite
 // recommends keeping, or writing a vague line, is done and warned about (warned), with the
 // user's reason where they gave one. Returns what was done, warned and refused, and why.
 function applyControlEdits(jobSteps, edits) {
@@ -4472,7 +4472,7 @@ function applyControlEdits(jobSteps, edits) {
     const mine = key === undefined ? null : edits[key];
     if (!mine) return step;
     if (key !== step.step) remapped.push({ step: key, kind: 'step', from: key, line: step.step });
-    // Each choice found on the line it was made on, or the line as SiteReady now words it.
+    // Each choice found on the line it was made on, or the line as SiteWrite now words it.
     const taken = new Set();
     const removed = new Set();
     const changed = new Map();
@@ -4540,7 +4540,7 @@ function applyControlEdits(jobSteps, edits) {
 // ---- The user's own hazards and Who (owner decision, 6 October 2026) ----
 
 // Users can add hazards and reword them, and change who is responsible for a step's controls.
-// SiteReady's own hazard lines cannot be deleted: a hazard that does not apply is marked so, with
+// SiteWrite's own hazard lines cannot be deleted: a hazard that does not apply is marked so, with
 // an optional reason, and stays on the SWMS for the reviewer to see.
 const HAZARD_MARK = '(Our own hazard)';
 const NOT_APPLICABLE = '(Does not apply to this job)';
@@ -4633,7 +4633,7 @@ function applyStepEdits(draft, input) {
 
 // A hazard the user added (D254, D255, own-hazards.js): the library lines they ticked (only sourced
 // library lines print, with their citation), the controls they wrote (marked as their own), and the
-// hazard's own rating before and after its controls, as chosen, or suggested as SiteReady rates any
+// hazard's own rating before and after its controls, as chosen, or suggested as SiteWrite rates any
 // step. The step's rating is the higher of its own and each such hazard's. The lines are marked
 // (hazardLines), so the page sends the user to the hazard to change them. own: the user's choices,
 // by the hazard's words: { controls: [library words], written: [lines], before, after }.
@@ -4674,13 +4674,13 @@ function withOwnHazardControls(step, index, added, own, draft, report, out) {
   return { ...step, controls, hazardLines, risk };
 }
 
-// ---- Steps the user writes for work SiteReady does not cover (owner, 11 October 2026) ----
+// ---- Steps the user writes for work SiteWrite does not cover (owner, 11 October 2026) ----
 
-// "Where SiteReady has no job steps for part of a task, warn the user that they must enter the
+// "Where SiteWrite has no job steps for part of a task, warn the user that they must enter the
 // specific steps themselves." From the warning above the draft (D184) the user writes a step for a
-// part SiteReady has no job steps for, or under the job steps for work the warning does not name:
+// part SiteWrite has no job steps for, or under the job steps for work the warning does not name:
 // its name, its hazards and controls, one a line, and who is responsible. It prints in the job
-// steps before the closing step, its name marked as the user's own, and moves like any step. Its lines are the user's words as written: SiteReady adds no permit
+// steps before the closing step, its name marked as the user's own, and moves like any step. Its lines are the user's words as written: SiteWrite adds no permit
 // or category line to them, and works out no plant, licence or emergency row from them. Its risk is
 // rated like any step's. A step needs at least one hazard and one control to print; once one prints
 // for a part, that part needs no tick before download. The download gate and the builder check
@@ -7716,7 +7716,7 @@ function stripLiftBleedText(text) {
   return kept.join('\n');
 }
 
-// The PPE SiteReady would suggest for a SWMS, before any change of the user's: what the user's PPE
+// The PPE SiteWrite would suggest for a SWMS, before any change of the user's: what the user's PPE
 // changes are measured against for the learning store (D212).
 function suggestedPpe(input) {
   const out = buildDraft({ ...input, ppe: undefined, ppeSteps: undefined }, 'ppe');

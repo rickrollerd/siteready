@@ -300,7 +300,7 @@ test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
   assert.ok(ticked.includes('gloveChemical'));
 });
 
-test('work SiteReady has no job steps for is stood down, not issued with generic text', () => {
+test('work SiteWrite has no job steps for is stood down, not issued with generic text', () => {
   const done = draft('Reupholster the foyer lounge chairs.');
   assert.equal(done.kind, 'stand-down');
   assert.match(done.missing[0], /^Job steps for this work/);

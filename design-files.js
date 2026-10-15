@@ -66,12 +66,12 @@ function checkFile(data) {
   if (!Buffer.isBuffer(data) || !data.length) throw fail(400, 'The file is empty. Choose the design file again.');
   if (data.length > MAX_BYTES) throw fail(413, `The file is larger than ${MAX_MB} MB. Attach a smaller copy (for example the drawing sheets only), or give the reference without the file.`);
   if (pdfReads(data)) {
-    if (PDF_ACTIVE.test(data.toString('latin1'))) throw fail(415, 'This PDF has scripts, actions or embedded files in it, so SiteReady does not keep it. Save it again as a plain PDF (print to PDF), or give the reference without the file.');
+    if (PDF_ACTIVE.test(data.toString('latin1'))) throw fail(415, 'This PDF has scripts, actions or embedded files in it, so SiteWrite does not keep it. Save it again as a plain PDF (print to PDF), or give the reference without the file.');
     return TYPES.pdf;
   }
   if (pngReads(data)) return TYPES.png;
   if (jpegReads(data)) return TYPES.jpeg;
-  throw fail(415, 'This file is not a PDF, PNG or JPEG that SiteReady can read. Attach the design as a PDF or a photo, or give the reference without the file.');
+  throw fail(415, 'This file is not a PDF, PNG or JPEG that SiteWrite can read. Attach the design as a PDF or a photo, or give the reference without the file.');
 }
 
 // A file name to keep: no path, no control characters, the right ending for its type.

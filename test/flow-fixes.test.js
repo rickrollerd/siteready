@@ -1,7 +1,7 @@
 // Messy-user testing on staging, 13 October 2026, and the owner's answers D239, D240, D251, D252:
 // a SWMS is not stood down for a design "Not issued yet"; an answer too thin to print says what would do,
 // with an accepted example; the company name and ABN are on the list before download; work typed comes
-// back after a reload; work SiteReady has no job steps for is dealt with part by part; a task from a
+// back after a reload; work SiteWrite has no job steps for is dealt with part by part; a task from a
 // scope prints as a plain list of the work; the project zip holds Word and PDF; address suggestions
 // prefer the state expected and never switch it without a word.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
@@ -55,7 +55,7 @@ test('a stood-down draft names each answer it needs, in plain words with an acce
   assert.match(helpText({ id: 'spoilPlan', prompt: 'What happens to the spoil?' }), /^Say what happens to the spoil\. A standard answer above, with its blanks filled in, is accepted\.$/);
 });
 
-test('every example the help gives is an answer SiteReady accepts', () => {
+test('every example the help gives is an answer SiteWrite accepts', () => {
   for (const [id, help] of Object.entries(HELP)) assert.equal(answerState(id, help.example), 'supplied', `${id}: ${help.example}`);
   assert.equal(answerState('loadLimits', 'as per eng'), 'vague');
 });
@@ -113,7 +113,7 @@ function respond({ draft = DRAFT, company = { name: 'Co', abn: '33102417000' }, 
     return { body: {} };
   };
 }
-const page = (options = {}, stored = {}) => loadPage(['app.js', 'account.js', 'scope.js'], respond(options), { stored: { 'siteready.session': 'token', ...stored } });
+const page = (options = {}, stored = {}) => loadPage(['app.js', 'account.js', 'scope.js'], respond(options), { stored: { 'sitewrite.session': 'token', ...stored } });
 async function prepare(p) {
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();
@@ -133,13 +133,13 @@ test('a stood-down draft says the SWMS is not finished, lists what each answer n
 
 test('in a project, a SWMS not finished keeps the user on it: the next one is a small link, not the big button', async () => {
   const items = [{ title: 'Formwork', task: FORMWORK.task, status: 'todo', body: null }, { title: 'Reinforcement', task: 'Fix the reo.', status: 'todo', body: null }];
-  const p = page({ draft: STOOD }, { 'siteready.project': JSON.stringify({ current: 0, items }) });
+  const p = page({ draft: STOOD }, { 'sitewrite.project': JSON.stringify({ current: 0, items }) });
   await settle();
-  p.window.SiteReady.onDraft(STOOD, { task: FORMWORK.task });
+  p.window.SiteWrite.onDraft(STOOD, { task: FORMWORK.task });
   const actions = p.document.getElementById('result-actions');
   // The box the page draws for the draft's actions.
   p.document.getElementById('result').innerHTML = '<div id="result-actions"></div>';
-  p.window.SiteReady.onDraft(STOOD, { task: FORMWORK.task });
+  p.window.SiteWrite.onDraft(STOOD, { task: FORMWORK.task });
   const html = p.document.getElementById('result-actions').innerHTML;
   assert.match(html, /This SWMS is not finished\. <button type="button" class="link" data-project-open="1">Leave it unfinished for now and open SWMS 2<\/button>/);
   assert.doesNotMatch(html, /Next SWMS/);
@@ -173,9 +173,9 @@ test('the profile saves itself once the name and ABN are in, and what is typed c
   const saved = p.calls.filter((call) => call.route === '/api/company' && call.method === 'PUT');
   assert.equal(saved.length, 1);
   assert.deepEqual([saved[0].body.name, saved[0].body.abn], ['Messy Formwork', '33 102 417 000']);
-  assert.equal(p.window.localStorage.getItem('siteready.profileTyping'), null, 'nothing left to bring back once saved');
+  assert.equal(p.window.localStorage.getItem('sitewrite.profileTyping'), null, 'nothing left to bring back once saved');
   // Typed but not saved (no ABN yet): kept on this device and brought back, said so.
-  const q = page({ company: { name: '', abn: '' } }, { 'siteready.profileTyping': JSON.stringify({ name: 'Half Typed Pty Ltd', abn: '', address: '', phone: '', email: '' }) });
+  const q = page({ company: { name: '', abn: '' } }, { 'sitewrite.profileTyping': JSON.stringify({ name: 'Half Typed Pty Ltd', abn: '', address: '', phone: '', email: '' }) });
   await settle();
   assert.equal(q.document.getElementById('profile-company').value, 'Half Typed Pty Ltd');
   assert.match(q.document.getElementById('profile-status').textContent, /^Your company details are back as you typed them\. Press Save profile to keep them\.$/);
@@ -184,7 +184,7 @@ test('the profile saves itself once the name and ABN are in, and what is typed c
 test('after a reload, the work comes back even when the browser has put the task back in its box', async () => {
   const INPUT = { state: 'qld', task: 'Dig a trench for the stormwater pipe.', fallRisk: 'no', workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', facts: { loadLimits: '3 kPa' }, site: {} };
   const kept = JSON.stringify({ at: Date.now() - 60 * 1000, stage: 'draft', input: INPUT, editing: null });
-  const p = page({}, { 'siteready.unsaved': kept });
+  const p = page({}, { 'sitewrite.unsaved': kept });
   // The phone's browser has filled the task box back in as the page opens.
   p.document.getElementById('task').value = INPUT.task;
   await settle(40);
@@ -194,7 +194,7 @@ test('after a reload, the work comes back even when the browser has put the task
 
 test('each part with no job steps is dealt with on its own: your step, or the SWMS that covers it', async () => {
   const items = [{ title: 'Generator', task: DRAFT.task, status: 'todo', body: null }, { title: 'Fuel system', task: 'Install the fuel system.', status: 'todo', body: null }];
-  const p = page({}, { 'siteready.project': JSON.stringify({ current: 0, items }) });
+  const p = page({}, { 'sitewrite.project': JSON.stringify({ current: 0, items }) });
   await settle();
   p.document.getElementById('task').value = DRAFT.task;
   await prepare(p);
@@ -256,7 +256,7 @@ test('the task printed is a plain list of the work: no places, conditions, plant
   assert.equal(item.scopeTask.full, packageTask(ROWS));
 });
 
-test('SiteReady still reads the work from the scope\'s full words: the SWMS is the same but for the task printed', () => {
+test('SiteWrite still reads the work from the scope\'s full words: the SWMS is the same but for the task printed', () => {
   const rows = [{ activity: 'Clean road surfaces by machine', plant: 'Road cleaning machine', conditions: 'Near roads' }, { activity: 'Fill existing trenches in switchroom with concrete', where: 'Switchroom', conditions: 'Existing trenches in switchroom; live existing facility' }];
   const words = scopeWords(rows);
   const base = { state: 'qld', fallRisk: 'no', residential: 'no', kinds: ['slabPour'], date: '14 October 2026' };
@@ -306,7 +306,7 @@ test('address suggestions put the state expected first, ask again with it, and o
 });
 
 test('an address in another state is never switched to silently', async () => {
-  const p = loadPage(['address.js', 'app.js', 'account.js'], respond(), { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['address.js', 'app.js', 'account.js'], respond(), { stored: { 'sitewrite.session': 'token' } });
   await settle();
   const box = p.document.getElementById('workplace');
   box.value = '22 Logan Road, Woolloongabba QLD 4102';
@@ -348,7 +348,7 @@ test('Download all puts each SWMS in the zip as Word and PDF, each saved as its 
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files).sort(), ['01 Fencing.docx', '01 Fencing.pdf', '02 Gates.docx', '02 Gates.pdf']);
   assert.equal((await zip.file('01 Fencing.pdf').async('nodebuffer')).subarray(0, 4).toString(), '%PDF');
-  const saved = JSON.parse(decodeURIComponent(response.headers.get('x-siteready-saved')));
+  const saved = JSON.parse(decodeURIComponent(response.headers.get('x-sitewrite-saved')));
   assert.equal(saved.length, 2);
   assert.notEqual(saved[0].id, saved[1].id);
   // Without pdf set, as before: Word only.
@@ -391,7 +391,7 @@ test('a SWMS keeps its number from the project list in every zip', async () => {
 test('a SWMS keeps only the emergency answers its draft asks, so one not changed keeps its revision (D278)', async () => {
   const p = page();
   await settle();
-  const S = p.window.SiteReady;
+  const S = p.window.SiteWrite;
   const draft = { kind: 'draft', gateChecks: [{ id: 'emergency.fallRescue', kind: 'emergency' }, { id: 'emergency.fallKit', kind: 'emergency' }, { id: 'workplace', kind: 'field' }] };
   assert.equal(JSON.stringify(S.askedEmergency(draft)), JSON.stringify(['fallRescue', 'fallKit']));
   // An answer given for another SWMS of the project (the plant stop) is not kept with this one.

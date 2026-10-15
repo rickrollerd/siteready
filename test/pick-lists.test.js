@@ -1,6 +1,6 @@
 // Goal 1: the pick lists come from the owner's trade catalogue (pick-lists.json, built by
 // scripts/build-presets.js with the words in pick-wording.js). Each picked task drafts with its
-// own job steps, names the parts SiteReady has no job steps for, and never forces a wrong step.
+// own job steps, names the parts SiteWrite has no job steps for, and never forces a wrong step.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { TRADES, GROUPS, answersFor } = require('../presets');
@@ -86,12 +86,12 @@ test('each picked task names job steps the library has, and leaves out only step
   }
 });
 
-test('every picked task drafts with its own job steps, or stands down where SiteReady has none (Queensland)', () => {
+test('every picked task drafts with its own job steps, or stands down where SiteWrite has none (Queensland)', () => {
   const standDown = [];
   for (const item of TASKS) {
     const draft = picked(item);
     if (!item.kinds.length) {
-      // Nothing is forced onto work SiteReady has no job steps for.
+      // Nothing is forced onto work SiteWrite has no job steps for.
       assert.equal(draft.kind, 'stand-down', `${item.trade}/${item.id}`);
       standDown.push(item.id);
       continue;
@@ -111,7 +111,7 @@ test('the parts of a picked task with no job steps are listed until ticked, and 
   assert.equal(draft.kind, 'draft');
   assert.ok(draft.notCovered.includes(rail.gaps[0]));
   const refusal = notCoveredRefusal(draft, { notCoveredConfirmed: [] });
-  assert.match(refusal, /SiteReady has no job steps for: /);
+  assert.match(refusal, /SiteWrite has no job steps for: /);
   assert.ok(refusal.includes(rail.gaps[0]));
   assert.equal(notCoveredRefusal(draft, { notCoveredConfirmed: draft.notCovered }), '');
   // The same words, typed rather than picked (no parts sent), are read as typed.
@@ -174,7 +174,7 @@ test('on the page, a picked task sends its job steps and its parts with no steps
   assert.equal(p.document.getElementById('task').value, item.task);
   const note = p.document.getElementById('preset-note');
   assert.equal(note.classList.contains('hidden'), false);
-  assert.match(note.textContent, /^SiteReady has no job steps yet for: /);
+  assert.match(note.textContent, /^SiteWrite has no job steps yet for: /);
   p.document.getElementById('start').dispatchEvent(new FakeEvent('submit'));
   await settle();
   const sent = () => p.calls.filter((call) => call.route === '/api/draft/questions').pop().body;

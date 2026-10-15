@@ -39,7 +39,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
     signedIn: () => true,
     getProfile: () => profile,
   };
-  const window = { SiteReady: S };
+  const window = { SiteWrite: S };
   const fetch = async (route, options) => {
     const body = options && options.body ? JSON.parse(options.body) : null;
     calls.push({ route, body });
@@ -49,7 +49,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
   const context = vm.createContext({ window, document, fetch, setTimeout, clearTimeout, requestAnimationFrame: (fn) => setTimeout(fn, 0), console, globalThis: null });
   context.globalThis = context;
   vm.runInContext(FILL, context);
-  window.SiteReadyDesignFill = context.SiteReadyDesignFill;
+  window.SiteWriteDesignFill = context.SiteWriteDesignFill;
   vm.runInContext(RULES, context);
   vm.runInContext(PARTS, context);
   vm.runInContext(SOURCE, context);
@@ -60,7 +60,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
     node.closest = (selector) => (selector === '#project-panel' ? {} : String(selector).split(',').some((part) => { const m = /\[data-([a-z-]+)\]|#([\w-]+)/.exec(part.trim()); return m && (m[2] ? node.id === m[2] : node.attrs && node.attrs.includes(m[1])); }) ? node : null);
     for (const fn of listeners[type] || []) fn({ target: node });
   };
-  return { window, document, els, element, calls, hooks, fire, go: window.SiteReadyProjectGo };
+  return { window, document, els, element, calls, hooks, fire, go: window.SiteWriteProjectGo };
 }
 
 // A SWMS checked part by part under its draft (D286), unless the test says otherwise.

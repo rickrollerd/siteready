@@ -1,9 +1,9 @@
-// The download gate (goal 2, owner, 7 October 2026): "SiteReady will not produce a download until
+// The download gate (goal 2, owner, 7 October 2026): "SiteWrite will not produce a download until
 // the site questions are answered", and every SWMS names the site, the principal contractor and the
 // person responsible for monitoring controls. Word, PDF, the project zip and saving all ask this
 // module what a SWMS still needs; the preview stays open without it (D186).
 //
-// The other check before download (D184, the tick for work SiteReady has no job steps for) is
+// The other check before download (D184, the tick for work SiteWrite has no job steps for) is
 // listed here too, so the page and the server name every outstanding item in one place.
 //
 // What is asked, and why:
@@ -21,20 +21,20 @@
 // - The five site questions (live services, public interface, other trades, ground, access).
 //   "None" is accepted for all but access: there is always a way to the work.
 // - The plant to be used (goal 2: "ask for the plant, do not guess it"): the user confirms the plant
-//   SiteReady lists, ticking what the crew uses and adding their own, and gives the licence or ticket
-//   for an item of their own SiteReady does not know. Plant SiteReady lists after the user confirmed
+//   SiteWrite lists, ticking what the crew uses and adding their own, and gives the licence or ticket
+//   for an item of their own SiteWrite does not know. Plant SiteWrite lists after the user confirmed
 //   (the task or steps changed) is asked about again.
 // - The emergency response for each high risk category the SWMS involves (emergency.js): the one or
 //   two facts a reviewer looks for. "Not applicable" is not accepted: a question is asked only where
 //   its category applies.
 // - Any blank (____) or "To be completed" left in what prints: in the user's own answers, which are
-//   filled in their boxes, and in SiteReady's control lines, which are filled where they show.
-//   In a job step the user wrote for work SiteReady does not cover, the user changes the step.
+//   filled in their boxes, and in SiteWrite's control lines, which are filled where they show.
+//   In a job step the user wrote for work SiteWrite does not cover, the user changes the step.
 // - Each design a job step relies on (designs.js): its details, "Not issued yet" (a hold point), or
 //   "Not needed for this work", recorded as the user's choice.
 // - Each hazardous product the user listed (substances.js, owner D256): its name, the PPE and controls
 //   from its safety data sheet, the SDS's issue date, the step that uses it, and the tick that the row
-//   matches the SDS. Each type of substance SiteReady suggests needs a product or the tick "Not used
+//   matches the SDS. Each type of substance SiteWrite suggests needs a product or the tick "Not used
 //   on this job" (D277); a ticked type prints nothing.
 const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
@@ -80,7 +80,7 @@ function plantNeed(input, draft) {
   const listed = Array.isArray(draft.plantInferred) ? draft.plantInferred : (draft.plant || []).map((row) => ({ item: row.item }));
   const seen = new Set([...(choice.used || []), ...(choice.notUsed || [])]);
   const unseen = listed.filter((item) => !seen.has(item.item)).map((item) => item.item);
-  if (unseen.length) return `SiteReady now also lists ${unseen.join(', ')}. Tick ${unseen.length === 1 ? 'it' : 'each one'} if your crew uses it, then press Confirm the plant.`;
+  if (unseen.length) return `SiteWrite now also lists ${unseen.join(', ')}. Tick ${unseen.length === 1 ? 'it' : 'each one'} if your crew uses it, then press Confirm the plant.`;
   const open = (draft.plant || []).filter((row) => row.own && !clean(row.licence)).map((row) => row.item);
   if (open.length) return `Give the licence or ticket to operate ${open.join(', ')}, or write No if none is needed, then press Confirm the plant.`;
   // A licence that does not say which ("crane ticket", messy round 4) is changed under the plant.
@@ -138,8 +138,8 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   const uncovered = options.cover === false ? '' : notCoveredRefusal(draft, input);
   // Work that is all the task's work (D211) needs the user's own step, not the tick.
   const unwritten = uncovered ? notCoveredUnwritten(draft) : [];
-  if (unwritten.length) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Your own step for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.`, message: uncovered });
-  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it.`, message: uncovered });
+  if (unwritten.length) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Your own step for work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.`, message: uncovered });
+  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     const rule = fieldRule(item);
@@ -168,7 +168,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   for (const row of (draft.designs || []).filter((item) => item.kind !== 'method')) {
     add({ id: `design.${row.id}`, kind: 'design', field: `design-${row.id}`, label: `Design: ${row.what}`, design: row.id, need: designNeed(row) });
   }
-  // Each type of substance SiteReady suggests: a product added, or ticked "Not required" (D277).
+  // Each type of substance SiteWrite suggests: a product added, or ticked "Not required" (D277).
   for (const item of substances.typeItems(draft, input)) {
     add({ id: `substanceType.${item.n}`, kind: 'substanceType', field: `sub-type-${item.n}`, label: `Hazardous substance: ${rules.promptName(item.type)}`, substanceType: item.type, need: item.need });
   }
@@ -189,7 +189,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   for (const field of SITE_FIELDS) {
     judged({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}` }, { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id) }, site[field.id]);
   }
-  // SiteReady's own control lines with a blank, each filled in where it shows on the draft.
+  // SiteWrite's own control lines with a blank, each filled in where it shows on the draft.
   const answers = blankFacts.map(([, value]) => String(value));
   const seen = new Set();
   const line = (text, step) => {
@@ -209,9 +209,9 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open).slice(0, 160)}". Change your step to say what applies.` });
     else if (short) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `${notAnswer(short) || `"${clean(short).slice(0, 80)}" is too short to act on.`} Change your step to say what is done and how.` });
   });
-  // A hazard the user added needs at least one control (D254): ticked from SiteReady's offers or written.
+  // A hazard the user added needs at least one control (D254): ticked from SiteWrite's offers or written.
   (draft.ownHazards || []).forEach((item, n) => {
-    if (item.need) add({ id: `ownHazard.${n + 1}`, kind: 'own', field: `own-hazard-${n + 1}`, label: `Your hazard: ${clean(item.hazard).slice(0, 80)}`, need: `Add at least one control for your hazard "${clean(item.hazard).slice(0, 120)}": tick a line SiteReady offers under it, or write your own.` });
+    if (item.need) add({ id: `ownHazard.${n + 1}`, kind: 'own', field: `own-hazard-${n + 1}`, label: `Your hazard: ${clean(item.hazard).slice(0, 80)}`, need: `Add at least one control for your hazard "${clean(item.hazard).slice(0, 120)}": tick a line SiteWrite offers under it, or write your own.` });
   });
   for (const item of draft.controls || []) line(item && item.text);
   // Anything else left open in what prints, not already asked for above: the emergency rows print
@@ -249,7 +249,7 @@ function gateMessage(gaps) {
   const names = [...new Set(gaps.filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
   const cover = gaps.find((gap) => gap.kind === 'cover');
   return [
-    names.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given${gaps.some((gap) => gap.kind === 'design') ? ', the designs it relies on are named' : ''}${gaps.some((gap) => gap.kind === 'substance' || gap.kind === 'substanceType') ? ', each hazardous product is listed and checked against its safety data sheet' : ''} and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
+    names.length ? `SiteWrite does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given${gaps.some((gap) => gap.kind === 'design') ? ', the designs it relies on are named' : ''}${gaps.some((gap) => gap.kind === 'substance' || gap.kind === 'substanceType') ? ', each hazardous product is listed and checked against its safety data sheet' : ''} and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
     cover ? cover.message : '',
   ].filter(Boolean).join(' ');
 }

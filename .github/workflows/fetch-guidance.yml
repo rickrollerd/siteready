@@ -1,7 +1,7 @@
 name: Fetch guidance texts
 
 # Reads codes of practice and guides in full and commits the text to the
-# guidance-sources branch, so SiteReady's lines can be checked against them.
+# guidance-sources branch, so SiteWrite's lines can be checked against them.
 on:
   workflow_dispatch:
   push:

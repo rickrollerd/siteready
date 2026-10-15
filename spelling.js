@@ -1,4 +1,4 @@
-// Spelling fixes for tasks. A word that is not an English word and not in SiteReady's own
+// Spelling fixes for tasks. A word that is not an English word and not in SiteWrite's own
 // construction vocabulary is corrected when one vocabulary word is clearly closest, for
 // example "plasterbord" to "plasterboard". The SWMS shows the corrected spelling.
 const fs = require('fs');
@@ -18,7 +18,7 @@ function englishWords() {
   return dictionary;
 }
 
-// Construction words SiteReady knows: the words in its job steps, plus trade words.
+// Construction words SiteWrite knows: the words in its job steps, plus trade words.
 // Site words and brands that are not in the dictionary, so they are never "corrected".
 const SITE_WORDS = ['vibro', 'nightshift', 'nightshifts', 'dayshift', 'dayshifts', 'nightworks', 'prestart', 'prestarts', 'laydown', 'hardstand', 'hardstands', 'bunnings', 'bondek', 'highset', 'lowset', 'porte', 'cochere', 'bulkfill', 'flange', 'flanges', 'formworker', 'formworkers', 'switchroom', 'switchrooms', 'telehandler', 'telehandlers', 'hebel', 'gyprock', 'villaboard', 'colorbond', 'zincalume', 'kliplok', 'trimdek', 'speedpanel', 'ringlock', 'kwikstage', 'cuplock', 'layher', 'franna', 'frannas', 'hiabs', 'dincel', 'bondor', 'weatherboard', 'weatherboards', 'fibro', 'besser', 'versiclad', 'scyon', 'linea', 'axon', 'stria', 'matrix', 'cemintel', 'blueboard', 'aquaboard', 'fyrchek', 'boral', 'holcim', 'hanson', 'humes', 'reln', 'nylex', 'xypex', 'ardex', 'mapei', 'davco', 'wattyl', 'dulux', 'taubmans', 'haymes', 'stramit', 'lysaght', 'onesteel', 'liberty', 'ramset', 'hilti', 'makita', 'dewalt', 'genie', 'haulotte', 'manitou', 'merlo', 'skyjack', 'bobcat', 'dingo', 'kanga', 'acrow', 'acrows', 'formply', 'tilt', 'tiltup', 'shotcreting', 'spoon', 'screeding', 'screed', 'grano', 'mudmap', 'mudmaps', 'setout', 'setouts', 'downpipe', 'soffit', 'soffits', 'reveal', 'reveals', 'mullion', 'mullions', 'transom', 'transoms', 'plasterer', 'plasterers', 'renderer', 'renderers', 'tiler', 'tilers', 'glazier', 'glaziers', 'sparkies', 'chippies', 'brickies', 'scaffies', 'subbies', 'dogmen', 'riggers', 'concreter', 'concreters', 'concretor', 'concretors', 'demolisher', 'demolishers', 'hydrovac', 'vactruck', 'jetter', 'jetting', 'relining', 'bitumen', 'bituminous', 'geotextile', 'geofabric', 'geogrid', 'gabion', 'gabions', 'culvert', 'culverts', 'pavement', 'stabilised', 'stabilisation', 'crusher', 'crushers', 'screening', 'pugmill', 'shoring', 'shotcrete', 'secant', 'contiguous', 'soldier', 'whaler', 'whalers', 'waler', 'walers', 'formtie', 'formties', 'backprop', 'backprops', 'backpropping', 'reshore', 'reshoring', 'falsework', 'jumpform', 'jumpforms', 'slipform', 'tableform', 'tableforms', 'bracket', 'brackets',
   // Site words typed run together or cut short, read by slang.js rather than corrected here.

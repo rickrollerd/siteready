@@ -1,4 +1,4 @@
-// The emergency questions SiteReady asks for each high risk category (goal 2, emergency.js), as a
+// The emergency questions SiteWrite asks for each high risk category (goal 2, emergency.js), as a
 // list for the owner to approve: when each is asked, what the page says, how the answer prints and
 // the code section it is drawn from.
 // Usage: node scripts/emergency-questions.js > emergency-questions.md
@@ -26,5 +26,5 @@ for (const category of [...new Set(QUESTIONS.map((item) => item.category))]) {
   for (const item of QUESTIONS.filter((question) => question.category === category)) out.push(`| ${item.ask} | ${item.hint} | ${(item.suggestions || []).map((pick) => `${pick.label}: "${pick.text}"`).join('<br>')} | ${item.short} | ${item.source} |`);
   out.push('');
 }
-out.push('## Not asked yet', '', 'Categories with no question: demolition, asbestos, temporary support, explosives, pressurised gas mains, chemical, fuel or refrigerant lines, contaminated or flammable atmosphere, tilt-up or precast, road or rail traffic, extremes of temperature, water (drowning), diving and telecommunication towers. Where SiteReady prints an emergency row for one of them (a person in the water, a gas leak), it prints as before, with no question asked.', '');
+out.push('## Not asked yet', '', 'Categories with no question: demolition, asbestos, temporary support, explosives, pressurised gas mains, chemical, fuel or refrigerant lines, contaminated or flammable atmosphere, tilt-up or precast, road or rail traffic, extremes of temperature, water (drowning), diving and telecommunication towers. Where SiteWrite prints an emergency row for one of them (a person in the water, a gas leak), it prints as before, with no question asked.', '');
 process.stdout.write(out.join('\n'));

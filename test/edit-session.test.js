@@ -28,7 +28,7 @@ function server(extra = () => null) {
   };
 }
 
-const page = (respond, stored = {}) => loadPage(['app.js', 'account.js', 'scope.js'], respond, { stored: { 'siteready.session': 'token', ...stored } });
+const page = (respond, stored = {}) => loadPage(['app.js', 'account.js', 'scope.js'], respond, { stored: { 'sitewrite.session': 'token', ...stored } });
 
 async function prepare(p) {
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
@@ -46,8 +46,8 @@ test('a reopened SWMS saves as a revision of itself after a control is changed (
   const p = page(server());
   await settle();
   // Change: the saved SWMS goes into the form, as the account script does.
-  await p.window.SiteReady.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no' });
-  p.window.SiteReady.editing = { id: 'saved-1', title: 'Trench' };
+  await p.window.SiteWrite.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no' });
+  p.window.SiteWrite.editing = { id: 'saved-1', title: 'Trench' };
   await prepare(p);
   const actions = () => p.document.getElementById('result-actions').innerHTML;
   assert.match(actions(), />Save changes<\/button>/);
@@ -78,7 +78,7 @@ test('a new SWMS, once saved, saves its later changes as revisions of itself', a
 test('typing in the task box keeps the changes, and Continue keeps the steps picked for the same task (B1, B3)', async () => {
   const p = page(server());
   await settle();
-  await p.window.SiteReady.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', kinds: ['excavation'], leaveOut: ['Backfill'], stepOrder: ['Excavate'], controlEdits: EDITS });
+  await p.window.SiteWrite.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', kinds: ['excavation'], leaveOut: ['Backfill'], stepOrder: ['Excavate'], controlEdits: EDITS });
   const task = p.document.getElementById('task');
   task.value = 'Dig a trench 1 m deep.';
   task.dispatchEvent(new FakeEvent('input', { bubbles: true }));
@@ -98,7 +98,7 @@ test('a project SWMS opened again comes back with its changes (B2)', async () =>
     { title: 'Trench', task: 'Dig a trench.', trade: '', kinds: ['excavation'], leaveOut: null, fallRisk: 'no', body, status: 'ready' },
     { title: 'Paint', task: 'Paint the walls.', trade: '', kinds: null, leaveOut: null, fallRisk: 'no', body: null, status: 'todo' },
   ] };
-  const p = page(server(), { 'siteready.project': JSON.stringify(project) });
+  const p = page(server(), { 'sitewrite.project': JSON.stringify(project) });
   await settle();
   const open = { closest: (selector) => (selector === '[data-project-open]' ? { dataset: { projectOpen: '0' } } : null), matches: () => false, dataset: {} };
   const event = new FakeEvent('click', { bubbles: true });
@@ -121,7 +121,7 @@ test('a project download saves each SWMS, and the next download sends them as sa
     { title: 'Paint', task: 'Paint the walls.', trade: '', kinds: null, leaveOut: null, fallRisk: 'no', body: { ...body, task: 'Paint the walls.' }, status: 'ready' },
   ] };
   const saved = encodeURIComponent(JSON.stringify([{ index: 0, id: 'proj-1', revision: 1 }]));
-  const p = page(server((method, route) => (route === '/api/project.zip' ? { body: {}, headers: { 'content-type': 'application/zip', 'x-siteready-saved': saved } } : null)), { 'siteready.project': JSON.stringify(project) });
+  const p = page(server((method, route) => (route === '/api/project.zip' ? { body: {}, headers: { 'content-type': 'application/zip', 'x-sitewrite-saved': saved } } : null)), { 'sitewrite.project': JSON.stringify(project) });
   await settle();
   const zip = async () => {
     const event = new FakeEvent('click', { bubbles: true });
@@ -130,7 +130,7 @@ test('a project download saves each SWMS, and the next download sends them as sa
     await settle();
   };
   await zip();
-  assert.equal(JSON.parse(p.window.localStorage.getItem('siteready.project')).items[0].swmsId, 'proj-1');
+  assert.equal(JSON.parse(p.window.localStorage.getItem('sitewrite.project')).items[0].swmsId, 'proj-1');
   assert.match(p.document.getElementById('project-status').textContent, /Saved 1 SWMS under My SWMS/);
   await zip();
   const sent = p.calls.filter((call) => call.route === '/api/project.zip');
@@ -145,12 +145,12 @@ test('a project download saves each SWMS, and the next download sends them as sa
 test('starting a new SWMS clears the changes and saves it as a new SWMS', async () => {
   const p = page(server());
   await settle();
-  await p.window.SiteReady.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: EDITS, stepOrder: ['Excavate'] });
-  p.window.SiteReady.editing = { id: 'saved-1', title: 'Trench' };
-  p.window.SiteReady.newSwms();
+  await p.window.SiteWrite.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: EDITS, stepOrder: ['Excavate'] });
+  p.window.SiteWrite.editing = { id: 'saved-1', title: 'Trench' };
+  p.window.SiteWrite.newSwms();
   assert.equal(p.run('controlEdits'), null);
   assert.equal(p.run('stepOrder'), null);
-  assert.equal(p.window.SiteReady.editing, null);
+  assert.equal(p.window.SiteWrite.editing, null);
   p.document.getElementById('task').value = 'Paint the walls.';
   await prepare(p);
   assert.match(p.document.getElementById('result-actions').innerHTML, />Save SWMS<\/button>/);
@@ -158,7 +158,7 @@ test('starting a new SWMS clears the changes and saves it as a new SWMS', async 
   assert.ok(p.calls.some((call) => call.method === 'POST' && call.route === '/api/swms'));
 });
 
-test('a change SiteReady has reworded follows the new wording, and one that no longer matches can be discarded', async () => {
+test('a change SiteWrite has reworded follows the new wording, and one that no longer matches can be discarded', async () => {
   const report = {
     applied: [], refused: [],
     remapped: [{ step: 'Excavate', kind: 'removed', from: 'Plant is inspected daily.', line: 'Plant is inspected each day.' }],
@@ -166,10 +166,10 @@ test('a change SiteReady has reworded follows the new wording, and one that no l
   };
   const p = page(server((method, route) => (route === '/api/draft' ? { body: { ...DRAFT, controlEdits: report, controlLegal: [[]] } } : null)));
   await settle();
-  await p.window.SiteReady.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: { Excavate: { removed: ['Plant is inspected daily.'], changed: [], added: ['Old line.'] } } });
+  await p.window.SiteWrite.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: { Excavate: { removed: ['Plant is inspected daily.'], changed: [], added: ['Old line.'] } } });
   await prepare(p);
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.removed, ['Plant is inspected each day.']);
-  assert.deepEqual(p.window.SiteReady.actionInput.controlEdits.Excavate.removed, ['Plant is inspected each day.'], 'and is saved against the new wording');
+  assert.deepEqual(p.window.SiteWrite.actionInput.controlEdits.Excavate.removed, ['Plant is inspected each day.'], 'and is saved against the new wording');
   const html = p.document.getElementById('result').innerHTML;
   assert.match(html, /"Plant is inspected daily\." now reads "Plant is inspected each day\."/);
   assert.match(html, /You added &quot;Old line\.&quot;\. That line is no longer in this step/);
@@ -196,7 +196,7 @@ function clickConfirm(p, which, box) {
   p.document.getElementById('result').dispatchEvent(event);
   return box;
 }
-test('removing a line SiteReady recommends keeping asks once, with the warning, then goes ahead, and the reason is saved with it', async () => {
+test('removing a line SiteWrite recommends keeping asks once, with the warning, then goes ahead, and the reason is saved with it', async () => {
   const p = page(server());
   await settle();
   p.document.getElementById('task').value = 'Dig a trench.';
@@ -224,7 +224,7 @@ test('removing a line SiteReady recommends keeping asks once, with the warning, 
   // A reason, picked after the SWMS is shown, goes with the save.
   p.run("setReason('Excavate', 'Plant is inspected daily.', { reason: 'othersCover' })");
   p.run("setReason('Excavate', 'Plant is inspected daily.', { note: 'The hire company inspects it.' })");
-  p.window.SiteReady.actionInput = { ...p.window.SiteReady.actionInput, controlEdits: JSON.parse(p.run('JSON.stringify(controlEdits)')) };
+  p.window.SiteWrite.actionInput = { ...p.window.SiteWrite.actionInput, controlEdits: JSON.parse(p.run('JSON.stringify(controlEdits)')) };
   await save(p);
   const saved = p.calls.find((call) => call.route === '/api/swms' && call.method === 'POST');
   assert.deepEqual(saved.body.input.controlEdits.Excavate.reasons, [{ line: 'Plant is inspected daily.', reason: 'othersCover', note: 'The hire company inspects it.' }]);
@@ -260,7 +260,7 @@ test('Change on a saved SWMS opens it ready to edit, and its changes save as its
 test('a download saved as a new revision says workers must sign it; the same revision again does not', async () => {
   let revision = 0;
   const p = page(server((method, route) => (route === '/api/draft.docx'
-    ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-2', 'x-siteready-revision': String(Math.min(2, (revision += 1))), 'x-siteready-title': 'Dig%20a%20trench' } } : null)));
+    ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-sitewrite-swms': 'dl-2', 'x-sitewrite-revision': String(Math.min(2, (revision += 1))), 'x-sitewrite-title': 'Dig%20a%20trench' } } : null)));
   await settle();
   p.document.getElementById('task').value = 'Dig a trench.';
   await prepare(p);
@@ -278,7 +278,7 @@ test('a download saved as a new revision says workers must sign it; the same rev
 
 test('downloading saves the SWMS, and later changes save as its next revision', async () => {
   const p = page(server((method, route) => (route === '/api/draft.docx'
-    ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-1', 'x-siteready-revision': '1', 'x-siteready-title': 'Dig%20a%20trench' } } : null)));
+    ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-sitewrite-swms': 'dl-1', 'x-sitewrite-revision': '1', 'x-sitewrite-title': 'Dig%20a%20trench' } } : null)));
   await settle();
   p.document.getElementById('task').value = 'Dig a trench.';
   await prepare(p);
@@ -289,7 +289,7 @@ test('downloading saves the SWMS, and later changes save as its next revision', 
   await settle();
   const download = p.calls.find((call) => call.route === '/api/draft.docx');
   assert.equal(download.body.swmsId, undefined, 'a new SWMS');
-  assert.deepEqual(JSON.parse(JSON.stringify(p.window.SiteReady.editing)), { id: 'dl-1', title: 'Dig a trench', revision: 1 });
+  assert.deepEqual(JSON.parse(JSON.stringify(p.window.SiteWrite.editing)), { id: 'dl-1', title: 'Dig a trench', revision: 1 });
   assert.match(p.document.getElementById('new-status').textContent, /Saved as "Dig a trench", revision 1, and downloaded/);
   assert.doesNotMatch(p.document.getElementById('new-status').textContent, /must sign/, 'revision 1 has no earlier sign-ons');
   p.run("applyLineEdit(shownDraft.jobSteps[0], 'Plant is inspected daily.', '')");

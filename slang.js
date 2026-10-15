@@ -1,6 +1,6 @@
 // Australian site slang and shorthand, read the way it is meant before the job steps are
 // picked. The SWMS keeps the task as the user typed it. Each change gives words the rest
-// of SiteReady already knows, and reading a task twice gives the same result.
+// of SiteWrite already knows, and reading a task twice gives the same result.
 const SLANG = [
   // Shorthand
   [/\bw\/(?=\s|$)/gi, 'with '],

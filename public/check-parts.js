@@ -43,7 +43,7 @@
   // What each part prints, from the draft. The date, the revision and the business's own details are
   // left out: they are not read and ticked (the date moves on every day). So is a review date filled
   // from the date (D289), which moves on with it. So is the paragraph on how the
-  // controls are monitored and reviewed: SiteReady writes it from the reviewer and the plant, which are
+  // controls are monitored and reviewed: SiteWrite writes it from the reviewer and the plant, which are
   // in their own parts. The hazards and controls of each step are taken in a fixed order, so moving a
   // step clears only the job steps.
   function partContent(draft) {
@@ -99,5 +99,5 @@
 
   const api = { PARTS, IDS, stable, hash, partContent, partHashes, staleParts, staleMessage, labels, joinWords };
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.SiteReadyCheckParts = api;
+  else root.SiteWriteCheckParts = api;
 }(typeof window !== 'undefined' ? window : globalThis));

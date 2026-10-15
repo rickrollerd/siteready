@@ -91,7 +91,7 @@ test('the user can move an item to all work, untick it, or add an item to a step
   assert.deepEqual(forSteps(added, 'kneePads'), ['Place and tie reo']);
   assert.ok(wearLine(added, 'Place and tie reo').some((line) => /\bknee pads\b/.test(line)));
   assert.ok(!wearLine(added, 'Saw cut concrete').some((line) => /\bknee pads\b/.test(line)));
-  // A step that no longer prints is dropped: the item goes where SiteReady would put it.
+  // A step that no longer prints is dropped: the item goes where SiteWrite would put it.
   const gone = draftOf({ ...SITE, task: CONCRETE, ppe: [...ids, 'kneePads'], ppeSteps: { kneePads: ['A step that is not here'] } });
   assert.ok(!(forSteps(gone, 'kneePads') || []).includes('A step that is not here'));
   assert.ok(ticked(gone).some((item) => item.id === 'kneePads'));
@@ -122,7 +122,7 @@ test('the user\'s PPE changes are worked out against the suggestion, for the lea
   assert.ok(has('ppeToAllWork', 'Face shield', 'Saw cut concrete'), JSON.stringify(changes));
   assert.ok(has('ppeStepAdded', 'Knee pads', 'Place and tie reo'));
   assert.ok(has('ppeStepRemoved', 'Goggles'));
-  // SiteReady's own placements are not counted as the user's: no change, nothing to learn.
+  // SiteWrite's own placements are not counted as the user's: no change, nothing to learn.
   assert.deepEqual(ppeChanges(before, prepareDraft(input).ppe, input), []);
 });
 
@@ -227,12 +227,12 @@ test('the page: PPE for all work and for particular steps, where the user put it
   // browser test, which a real page needs).
   p.run("ppePlaced = { faceShield: 'all', kneePads: ['Place and tie reo'] }");
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().ppeSteps)')), { faceShield: 'all', kneePads: ['Place and tie reo'] });
-  // A new SWMS starts from SiteReady's suggestion.
+  // A new SWMS starts from SiteWrite's suggestion.
   p.run('newSwms()');
   assert.equal(p.run('payload().ppeSteps'), undefined);
   // In the draft: the two tables, and the step's PPE line without tools to change it there.
   const draft = draftOf({ ...SITE, task: CONCRETE });
-  const sheet = p.window.SiteReady.render(draft, { movable: true });
+  const sheet = p.window.SiteWrite.render(draft, { movable: true });
   assert.match(sheet, /<strong>For particular steps<\/strong>/);
   assert.match(sheet, /<th>&#9745; Face shield<\/th><td>[^<]*Saw cut concrete/);
   assert.match(sheet, /class="ppe-line">Wear [^<]*face shield over safety glasses[^<]*<span class="meta"> PPE for this step\. Change it under Personal protective equipment\.<\/span><\/li>/);

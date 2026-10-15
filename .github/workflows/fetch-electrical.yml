@@ -1,7 +1,7 @@
 name: Fetch electrical sources
 
 # Reads the electrical safety regulation and codes of practice from GitHub's
-# servers and prints their text, so SiteReady's electrical steps can be checked.
+# servers and prints their text, so SiteWrite's electrical steps can be checked.
 on:
   workflow_dispatch:
   push:
