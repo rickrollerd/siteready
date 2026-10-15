@@ -1,0 +1,2144 @@
+Model Code of Practice: Excavation work (Safe Work Australia)
+https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-excavation-work-v3.pdf
+
+EXCAVATION WORK
+Code of Practice
+
+
+
+
+MARCH 2015
+Safe Work Australia is an Australian Government statutory agency established in 2009.
+Safe Work Australia consists of representatives of the Commonwealth, state and territory
+governments, the Australian Council of Trade Unions, the Australian Chamber of Commerce
+and Industry and the Australian Industry Group.
+
+Safe Work Australia works with the Commonwealth, state and territory governments to
+improve work health and safety and workers’ compensation arrangements. Safe Work Australia
+is a national policy body, not a regulator of work health and safety. The Commonwealth, states
+and territories have responsibility for regulating and enforcing work health and safety laws in
+their jurisdiction.
+
+ISBN 978-0-642-78544-2     [PDF]
+ISBN 978-0-642-78545-9     [DOCX]
+
+
+
+
+Creative Commons
+
+Except for the logos of Safe Work Australia, SafeWork SA, WorkSafe Tasmania, WorkSafe WA,
+Workplace Health and Safety QLD, NT WorkSafe, WorkCover NSW, Comcare and WorkSafe
+ACT, this copyright work is licensed under a Creative Commons Attribution-Noncommercial 3.0
+Australia licence. To view a copy of this licence, visit
+
+creativecommons.org/licenses
+
+In essence, you are free to copy, communicate and adapt the work for non commercial
+purposes, as long as you attribute the work to Safe Work Australia and abide by the other
+licence terms.
+
+Contact information
+Safe Work Australia
+Phone: 1300 551 832
+Email: info@swa.gov.au
+Website: safeworkaustralia.gov.au
+TABLE OF CONTENTS
+
+
+FOREWORD                                             2        4.8 Information, training, instruction
+                                                                  and supervision                      24
+Scope and application                                2
+                                                              5     EXCAVATION METHODS                 25
+1     INTRODUCTION                                   3
+                                                              5.1   Trenching                          25
+1.1   What is excavation work?                       3
+                                                              5.2 Tunnelling                           25
+1.2   Who has health and safety duties
+      in relation to excavation work?                3        5.3 Shafts                               27
+
+1.3   What is required to manage risks                        6     PREVENTING GROUND COLLAPSE         29
+      associated with excavation work?              4
+                                                              6.1   Benching and battering             31
+2     THE RISK MANAGEMENT PROCESS                   6
+                                                              6.2 Shoring                              33
+2.1   Identifying the hazards                        6
+                                                              6.3 Removal of shoring supports          39
+2.2 Assessing the risks                              7
+                                                              6.4 Shields and boxes                    40
+2.3 Controlling the risks                            7
+                                                              6.5 Other ground support methods         41
+2.4 Reviewing control measures                      8
+                                                              6.6 Regular inspection                   41
+3     PLANNING THE EXCAVATION WORK                  9
+                                                              APPENDIX A – DEFINITIONS                 42
+3.1   Principal contractor                          9
+                                                              LIST OF AMENDMENTS                       44
+3.2 Designers                                       10
+
+3.3 Safe Work Method Statements                     10
+
+3.4 Adjacent buildings or structures                11
+
+3.5 Essential services                              11
+
+3.6 Securing the work area                          13
+
+3.7 Emergency plan                                  13
+
+4     CONTROLLING RISKS IN
+      EXCAVATION WORK                               14
+
+4.1   Excavated material and loads
+      near excavations                              14
+
+4.2 Plant and equipment                             17
+
+4.3 Powered mobile plant                            18
+
+4.4 Falls                                           21
+
+4.5 Using Explosives                                22
+
+4.6 Atmospheric conditions and ventilation         23
+
+4.7 Manual work                                    23
+
+
+
+
+                         CODE OF PRACTICE | EXCAVATION WORK                                                 1
+FOREWORD
+
+
+      This Code of Practice for managing health and safety risks associated with excavation
+      work is an approved code of practice under section 274 of the Work Health and Safety Act
+      (the WHS Act).
+
+      An approved code of practice is a practical guide to achieving the standards of health,
+      safety and welfare required under the WHS Act and the Work Health and Safety Regulations
+      (the WHS Regulations).
+
+      A code of practice applies to anyone who has a duty of care in the circumstances
+      described in the code. In most cases, following an approved code of practice would achieve
+      compliance with the health and safety duties in the WHS Act, in relation to the subject
+      matter of the code. Like regulations, codes of practice deal with particular issues and do not
+      cover all hazards or risks that may arise. The health and safety duties require duty holders
+      to consider all risks associated with work, not only those for which regulations and codes
+      of practice exist.
+
+      Codes of practice are admissible in court proceedings under the WHS Act and Regulations.
+      Courts may regard a code of practice as evidence of what is known about a hazard, risk
+      or control and may rely on the code in determining what is reasonably practicable in the
+      circumstances to which the code relates.
+
+      Compliance with the WHS Act and Regulations may be achieved by following another
+      method, such as a technical or an industry standard, if it provides an equivalent or higher
+      standard of work health and safety than the code.
+
+      An inspector may refer to an approved code of practice when issuing an improvement
+      or prohibition notice.
+
+      This Code of Practice has been developed by Safe Work Australia as a model code of
+      practice under the Council of Australian Governments’ Inter-Governmental Agreement
+      for Regulatory and Operational Reform in Occupational Health and Safety for adoption
+      by the Commonwealth, state and territory governments.
+
+
+
+      Scope and application
+      This Code provides practical guidance for persons conducting a business or undertaking
+      on how to manage the health and safety risks associated with excavation work. This Code
+      applies to all types of excavation work including bulk excavations more than 1.5 metres deep,
+      trenches, shafts and tunnels.
+
+      The guidance in this Code is relevant to excavation contractors as well as persons conducting
+      a business or undertaking who have management or control of workplaces where excavation
+      work is carried out, such as principal contractors.
+
+      Persons who have duties in relation to excavation work should also refer to the Code of
+      Practice: Construction work.
+
+      HOW TO USE THIS CODE OF PRACTICE
+      In providing guidance, the word ‘should’ is used in this Code to indicate a recommended
+      course of action, while ‘may’ is used to indicate an optional course of action.
+
+      This Code also includes various references to provisions of the WHS Act and Regulations
+      which set out the legal requirements. These references are not exhaustive. The words ‘must’,
+      ‘requires’ or ‘mandatory’ indicate that a legal requirement exists and must be complied with.
+
+
+
+
+2     CODE OF PRACTICE | EXCAVATION WORK
+1. INTRODUCTION
+
+
+       Excavation failures are particularly dangerous because they may occur quickly, limiting
+       the ability of workers (and in some cases others in the vicinity) to escape especially if the
+       collapse is extensive.
+
+       The speed of an excavation collapse increases the risk associated with this type of work and
+       the consequences are significant as the falling earth can bury or crush any person in its path.
+       This can result in death by suffocation or internal crush injuries.
+
+
+
+       1.1    What is excavation work?
+       Excavation work generally means work involving the removal of soil or rock from a site to
+       form an open face, hole or cavity using tools, machinery or explosives.
+
+       A person conducting a business or undertaking must manage risks associated with all kinds
+       of excavations at the workplace, no matter how deep.
+
+       Specific duties apply in relation to the higher-risk excavations such as trenches, shafts and
+       tunnels. However these requirements do not apply to a mine, a bore to which a relevant
+       water law applies or a trench used as a place of interment.
+
+       Any construction work (including any work connected with an ‘excavation’) that is carried
+       out in or near:
+
+           a shaft or trench with an excavated depth of greater than 1.5 metres, or
+           a tunnel
+       is considered to be ‘high risk construction work’ for which a Safe Work Method Statement
+       (SWMS) must be prepared.
+
+       Further guidance on the duties related to high risk construction work and SWMS is available
+       in the Code of Practice: Construction work.
+
+       Other key terms relating to excavation work are listed in Appendix A.
+
+
+
+       1.2    Who has health and safety duties in relation
+              to excavation work?
+       A person conducting a business or undertaking has the primary duty to ensure, so far as is
+       reasonably practicable, that workers and other persons are not exposed to health and safety
+       risks arising from the business or undertaking.
+
+       The WHS Regulations include specific obligations for a person conducting a business or
+       undertaking to manage the risks associated with excavation work including trenches.
+
+       A person conducting a business or undertaking who has management or control of a
+       workplace where excavation work is being carried out must take all reasonable steps to
+       obtain current underground essential services information relating to the part of a workplace
+       where the excavation work is being carried out and areas adjacent to it before directing or
+       allowing the excavation to commence. This information must be provided to any person
+       engaged to carry out excavation work.
+
+
+
+
+       CODE OF PRACTICE | EXCAVATION WORK                                                              3
+                                                                                                1. INTRODUCTION
+
+
+
+
+                   For the purpose of this Code, the person conducting a business or undertaking who carries
+                   out the excavation work is sometimes referred to as the ‘excavation contractor’.
+
+                   A principal contractor for a construction project (for example where the cost of the
+                   construction work is $250 000 or more) has additional duties under the WHS Regulations
+                   (refer to section 3.1 of this Code).
+
+                   Designers of structures must ensure, so far as is reasonably practicable, that the structure
+                   is without risks to health and safety, when used for a purpose for which it was designed.
+                   Designers must give the person who commissioned the design a written safety report that
+                   specifies the hazards relating to the design of the structure (refer to section 3.2 of this Code).
+
+                   Officers, such as company directors, have a duty to exercise due diligence to ensure that
+                   the business or undertaking complies with the WHS Act and Regulations. This includes
+                   taking reasonable steps to ensure that the business or undertaking has and uses appropriate
+                   resources and processes to eliminate or minimise risks that arise from the excavation work.
+
+                   Workers have a duty to take reasonable care for their own health and safety and that they
+                   do not adversely affect the health and safety of other persons. Workers must comply with
+                   any reasonable instruction and cooperate with any reasonable policy or procedure relating
+                   to health and safety at the workplace.
+
+
+
+                   1.3     What is required to manage risks associated with
+                           excavation work?
+                         A person conducting a business or undertaking must manage risks to health and safety
+Regulation 305
+                         associated with excavation work.
+
+                         In order to manage risks under the WHS Regulations, a duty holder must:
+Regulation 34-38
+                            identify reasonably foreseeable hazards that could give rise to the risk
+                            eliminate the risk so far as is reasonably practicable
+                            if it is not reasonably practicable to eliminate the risk – minimise the risk so far as is
+                              reasonably practicable by implementing control measures in accordance with the
+                              hierarchy of control
+                            maintain the implemented control measure so that it remains effective, and
+                            review, and if necessary revise control measures so as to maintain, so far as
+                              is reasonably practicable, a work environment that is without risks to health
+                              and safety.
+
+                   This Code provides guidance on managing the risks associated with excavation work by
+                   following a systematic process that involves:
+
+                       identifying hazards
+                       if necessary, assessing the risks associated with these hazards
+                       implementing control measures, and
+                       maintaining and reviewing the effectiveness of control measures.
+                   Guidance on the general risk management process is available in the Code of Practice:
+                   How to manage work health and safety risks.
+
+
+
+ 4                 CODE OF PRACTICE | EXCAVATION WORK
+                                                                                 1. INTRODUCTION
+
+
+
+
+             CONSULTING YOUR WORKERS
+
+                A person conducting a business or undertaking must consult, so far as is reasonably
+Section 47
+                practicable, with workers who carry out work for them who are (or are likely to be)
+                directly affected by a work health and safety matter.
+
+Section 48      If the workers are represented by a health and safety representative, the consultation
+                must involve that representative.
+
+             Consultation with workers and their health and safety representatives is required at every
+             step of the risk management process. In many cases, decisions about construction work and
+             projects are made prior to engaging workers, therefore, it may not be possible to consult
+             with workers in these early stages. However, it is important to consult with them as the
+             excavation work progresses.
+
+             CONSULTING, CO-OPERATING AND CO-ORDINATING ACTIVITIES
+             WITH OTHER DUTY HOLDERS
+
+                A person conducting a business or undertaking must consult, co-operate and
+Section 46
+                co-ordinate activities with all other persons who have a work health or safety duty
+                in relation to the same matter, so far as is reasonably practicable.
+
+             A construction workplace will often be shared by various persons conducting a business
+             or undertaking, such as civil engineers and contractors. Persons with overlapping duties
+             should exchange information about the risks associated with the excavation work including
+             any traffic and plant movements near the excavation area. They should work together in a
+             co-operative and co-ordinated way so that all risks are eliminated or minimised so far as is
+             reasonably practicable.
+             Further guidance on consultation is available in the Code of Practice: Work health and safety
+             consultation, co-operation and co-ordination.
+
+
+
+
+             CODE OF PRACTICE | EXCAVATION WORK                                                             5
+  2. THE RISK MANAGEMENT PROCESS
+
+
+
+Regulation 305        A person conducting a business or undertaking must manage risks to health and safety
+                      associated with excavation work before the work commences including the risk of:
+
+                          a person falling into an excavation
+                          a person being trapped by the collapse of an excavation
+                          a person working in an excavation being struck by a falling thing, and
+                          a person working in an excavation being exposed to an airborne contaminant.
+                      To manage the risks, all relevant matters must be considered including:
+
+                          the nature of the excavation
+                          the nature of the excavation work including the range of possible methods of
+                            carrying out the work, and
+                          the means of entry into and exit from the excavation (if applicable).
+
+
+                 2.1        Identifying the hazards
+                 The first step in the risk management process is to identify the hazards associated with
+                 excavation work. Examples of excavation specific hazards include:
+
+                      underground essential services - including gas, water, sewerage, telecommunications,
+                        electricity, chemicals and fuel or refrigerant in pipes or lines. Information about the
+                        location of these and other underground services, such as drainage pipes, soak wells
+                        and storage tanks, in and adjacent to the workplace, must be established before
+                        directing or allowing excavation work to commence
+                      the fall or dislodgement of earth or rock
+                      falls from one level to another
+                      falling objects
+                      inappropriate placement of excavated materials, plant or other loads
+                      the instability of any adjoining structure caused by the excavation
+                      any previous disturbance of the ground including previous excavation
+                     the instability of the excavation due to persons or plant working adjacent
+                       to the excavation
+                      the presence of or possible inrush of water or other liquid
+                      hazardous manual tasks
+                      hazardous chemicals (e.g. these may be present in the soil where excavation work
+                        is to be carried out)
+                     hazardous atmosphere in an excavation (e.g. using Methyl Ethyl Ketone (MEK) solvent
+                       for PVC pipes in poorly ventilated trenches)
+                      vibration and hazardous noise, and
+                     overhead essential services (powerlines) and ground mounted essential services
+                       (transformers, gas and water meters).
+
+
+
+
+ 6               CODE OF PRACTICE | EXCAVATION WORK
+                                                    2. THE RISK MANAGEMENT PROCESS
+
+
+
+
+2.2    Assessing the risks
+Under the WHS Regulations, a risk assessment is not mandatory for excavation work
+however it is required for specific situations, for example when working with asbestos.
+In many circumstances a risk assessment will assist in determining the control measures
+that should be implemented. It will help to:
+
+    identify which workers are at risk
+    determine what sources and processes are causing that risk
+    identify if and what kind of control measures should be implemented, and
+    check the effectiveness of existing control measures.
+When assessing the risks associated with excavation work you should consider things such as:
+
+    local site conditions including access, ground slope, adjacent buildings and structures,
+      water courses (including underground) and trees
+    depth of the excavation
+    soil properties including variable soil types, stability, shear strength, cohesion, presence
+      of ground water, effect of exposure to the elements
+    fractures or faults in rocks including joints, bedding planes, dip and strike directions
+      and angles, clay seams
+    any specialised plant or work methods required (e.g. ground support)
+    the method(s) of transport, haul routes and disposal
+    what exposures might occur, such as to noise, ultra violet rays or hazardous chemicals
+    the number of people involved
+    the possibility of unauthorised access to the work area
+    local weather conditions, and
+    the length of time that the excavation will be open.
+
+
+2.3    Controlling the risks
+THE HIERARCHY OF CONTROL MEASURES
+Some control measures are more effective than others. Control measures can be ranked
+from the highest level of protection and reliability to the lowest. This ranking is known as the
+hierarchy of control.
+
+You must always aim to eliminate a hazard which is the most effective control. If this is not
+reasonably practicable, you must minimise the risk by one or a combination of the following:
+
+    Substitution – for example using an excavator with a rock breaker rather than
+      manual method
+    Isolation – for example using concrete barriers to separate pedestrians and powered
+      mobile plant to reduce the risk of collision, and
+    Engineering Controls – for example benching, battering or shoring the sides of the
+      excavation to reduce the risk of ground collapse.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                                   7
+                                                                     2. THE RISK MANAGEMENT PROCESS
+
+
+
+
+                If risk remains, it must be minimised by implementing administrative controls, so far as
+                is reasonably practicable, for example by installing warning signs near the excavation.
+
+                Any remaining risk must be minimised with suitable Personal Protective Equipment (PPE),
+                such as providing workers with hard hats, hearing protectors and high visibility vests.
+
+                Administrative control measures and PPE rely on human behaviour and supervision and used
+                on their own tend to be the least effective in minimising risks.
+
+                Factors that should be considered when choosing suitable control measures include:
+
+                    excavating plant - when quantities are large, it may be effective to use different types
+                      of plant for the various materials to be excavated
+                    stockpiling arrangements - another site may need to be found for temporary stockpiling
+                      of materials
+                    material placement - the methods and plant used for excavating, transporting and
+                      compacting the material should be evaluated
+                    dewatering equipment, if required, and the system to be used, and
+                    transport of the excavated material - the type of plant used, the length of haul, the
+                      nature of the haul route, and the conditions of tipping and/or spreading.
+                Chapters 4-6 of this Code provide information on control measures for excavation work.
+
+                2.4       Reviewing control measures
+                The control measures that are put in place to protect health and safety should be regularly
+                reviewed to make sure they are effective.
+
+                     You must review your control measures and, if necessary, revise them:
+Regulation 39
+                      when the control measure is not effective in controlling the risk
+
+                        before a change at the workplace that is likely to give rise to a new or different
+                          health and safety risk that the control measure may not effectively control
+                        if a new hazard or risk is identified
+                        if the results of consultation indicate that a review is necessary, or
+                        if a health and safety representative requests a review.
+
+                Common review methods include workplace inspection, consultation, testing and analysing
+                records and data. When reviewing control measures, a SWMS must also be reviewed and
+                revised where necessary.
+
+                If problems are found, go back through the risk management steps, review your information
+                and make further decisions about control measures.
+
+
+
+
+ 8              CODE OF PRACTICE | EXCAVATION WORK
+3. PLANNING THE EXCAVATION WORK
+
+
+       Excavation work should be carefully planned before work starts so it can be carried out
+       safely. Planning involves identifying the hazards, assessing the risks and determining
+       appropriate control measures in consultation with all relevant persons involved in the
+       work including the principal contractor, excavation contractor, designers and mobile plant
+       operators. Structural or geotechnical engineers may also need to be consulted at this stage.
+
+       Consultation should include discussions on the:
+
+           nature and/or condition of the ground and/or working environment
+           weather conditions
+           nature of the work and other activities that may affect health and safety
+           static and dynamic loads near the excavation
+           interaction with other trades
+           site access
+           SWMS
+           management of surrounding vehicular traffic and ground vibration
+           type of equipment used for excavation work
+           public safety
+           existing services and their location
+           the length of time the excavation is to remain open
+           provision of adequate facilities, and
+           procedures to deal with emergencies.
+       Further information on amenities and emergencies is available in the Code of Practice:
+       Managing the work environment and facilities.
+
+
+
+       3.1    Principal contractor
+       Where the value of construction work is $250 000 or more, the construction work is
+       considered a ‘construction project’ for which additional duties apply to the principal
+       contractor. There can only be one principal contractor for a construction project and this
+       will be either the person commissioning the construction work or a person appointed as the
+       principal contractor by the person commissioning the construction work.
+
+       The principal contractor has a range of duties in relation to a construction project including:
+
+           preparing and reviewing a WHS management plan
+           obtaining SWMS before any high risk construction work commences
+           putting in place arrangements to manage the work environment including falls, facilities,
+             first aid, an emergency plan and traffic management
+           installing signs showing the principal contactor’s name, contact details and location
+             of any site office, and
+           securing the construction workplace.
+
+
+
+
+       CODE OF PRACTICE | EXCAVATION WORK                                                                9
+                                                                   3. PLANNING THE EXCAVATION WORK
+
+
+
+
+                 Where significant excavation work is being carried out and building works have not
+                 commenced the person who commissions the construction work may appoint the
+                 excavation contractor as the principal contractor for the site preparation phase of the project
+                 and then replace them with a building expert after this phase is completed. If the excavation
+                 contractor is appointed as the principal contractor the contractor must comply with all
+                 principal contractor duties while undertaking this role.
+
+                 For further guidance on how to calculate the cost of construction work and on principal
+                 contractor duties refer to the Code of Practice: Construction work.
+
+
+
+                 3.2       Designers
+
+Section 22            Designers must ensure, so far as is reasonably practicable, that the structure is designed
+                      to be without risks to the health and safety of persons who construct the structure at
+                      a workplace.
+
+Regulation 295        The designer of a structure or any part of a structure that is to be constructed must
+                      give the person conducting a business or undertaking who commissioned the design
+                      a written report that specifies the hazards associated with the design of the structure
+                      that, so far as the designer is reasonably aware:
+
+                         create a risk to the health or safety of persons who are to carry out construction
+                           work on the structure or part, and
+                          are associated only with the particular design and not with other designs of the
+                            same type of structure.
+
+                 Designers of structures should consider possible excavation work methods and health and
+                 safety control measures when producing any final design documents and the safety report
+                 for the structure.
+
+                 A person commissioning the construction work must consult, so far as is reasonably
+                 practicable, with the designer of the whole or any part of the structure about eliminating
+                 and controlling risks. If the person commissioning the construction work did not commission
+                 the design of the construction project, they must take all reasonable steps to obtain the
+                 designer’s safety report.
+
+                 Where there is a principal contractor, the person commissioning the construction work
+                 must give the principal contractor any information they have about the hazards and risks
+                 associated with the work.
+
+                 For further guidence on the duties of designers refer to the Code of Practice: Safe design
+                 of structures.
+
+
+
+                 3.3       Safe Work Method Statements
+                 If the excavation work is or involves high risk construction work, a person conducting a
+                 business or undertaking must prepare a SWMS before the high risk construction work starts.
+                 The SWMS must:
+
+                     identify the type of high risk construction work being done
+                     specify the health and safety hazards and risks arising from that work
+                     describe how the risks will be controlled
+
+
+ 10              CODE OF PRACTICE | EXCAVATION WORK
+                                                 3. PLANNING THE EXCAVATION WORK
+
+
+
+
+    describe how the control measures will be implemented, monitored and reviewed, and
+    be developed in consultation with workers and their representatives who are carrying
+      out the high risk construction work.
+In some circumstances one SWMS can be prepared to cover more than one high risk
+construction work activity being carried out at the workplace by contractors and/or
+subcontractors. For example, where there is:
+
+    a risk of a person falling more than 2 metres, and
+    a trench with an excavated depth greater than 1.5 metres.
+In this case, the contractors or subcontractors can consult and cooperate to prepare one
+SWMS. Alternatively they can prepare separate SWMS. If they choose to do this they
+must consult with each other to ensure all SWMS are consistent and they are not creating
+unintended additional risks at the workplace.
+
+Further guidance on SWMS and an example SWMS template is available in the Code
+of Practice: Construction work.
+
+
+
+3.4    Adjacent buildings or structures
+Excavation work may seriously affect the security or stability of any part of a structure at
+or adjacent to the location of the proposed excavation which can lead to structural failure
+or collapse. Excavation work must not commence until steps are taken to prevent the
+collapse or partial collapse of any potentially affected building or structure.
+
+Any excavation that is below the level of the footing of any structure including retaining
+walls that could affect the stability of the structure must be assessed by a competent person
+and secured by a suitable ground support system which has been designed by a competent
+person. Suitable supports to brace the structure may also be required and should be
+identified by a competent person.
+
+It is also important that other buildings in and around the excavation site are not adversely
+affected by vibration or concussion during the excavation work. Special precautions may
+need to be taken in the vicinity of hospitals and other buildings containing equipment
+sensitive to shock and vibration.
+
+Excavation work must be carried out in a way that does not cause flooding or water
+penetration to any adjacent building.
+
+
+
+3.5    Essential services
+Essential services include the supply of gas, water, sewerage, telecommunications, electricity,
+chemicals, fuel and refrigerant in pipes or lines. The principal contractor must manage the
+risks associated with essential services at the workplace.
+
+Specific control measures must be implemented before using excavators or other
+earthmoving machinery near overhead electric lines. The relevant authority should be
+consulted regarding approach distances and appropriate control measures implemented to
+prevent any part of the plant or any load carried on it from coming too close or contacting
+overhead electric lines.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                              11
+                                                                   3. PLANNING THE EXCAVATION WORK
+
+
+
+
+                 UNDERGROUND ESSENTIAL SERVICE
+
+                      A person with management or control of the workplace must, before directing or
+Regulation 304
+                      allowing work to commence, take all reasonable steps to obtain current underground
+                      essential services information about the areas at the workplace where the excavation
+                      work is to be carried out. They must also obtain information about underground
+                      essential services in areas adjacent to the site of excavation and have regard for all of
+                      the information.
+
+                 Information on the location of underground services may be obtained by contacting the Dial
+                 Before You Dig organisation in your state or territory. Any underground service plans that
+                 are obtained including information on underground essential services must be provided to
+                 the principal contractor and/or the excavation contractor. Other relevant parties including
+                 any subcontractors and plant operators carrying out the excavation work should also be
+                 provided with information about essential services and other plans so the information is
+                 considered when planning all work in the area.
+                 Underground essential services information obtained must be:
+
+                    made available to any worker, principal contractor and subcontractors
+                    readily available for inspection, as required under the WHS Act, and
+                    retained until the excavation work is completed or, if there is a notifiable incident relating
+                      to the excavation work, 2 years after the incident occurs.
+                 Available information about existing underground essential services may not be accurate.
+                 Therefore it is important that excavation methods include an initial examination of the area
+                 to be excavated, for example sampling the area by exposing a short section of underground
+                 services usually using water pressure and a vacuum system to excavate or ‘pothole’ the area.
+
+                   FIGURE 1 Underground essential services exposed by ‘potholing’
+
+
+
+
+                 Further guidance on underground essential services and how to locate them is available
+                 in the Code of Practice: Construction work.
+
+
+
+
+ 12              CODE OF PRACTICE | EXCAVATION WORK
+                                                                  3. PLANNING THE EXCAVATION WORK
+
+
+
+
+                 3.6    Securing the work area
+
+Regulation 306        A person conducting a business or undertaking who proposes to excavate a trench at
+                      least 1.5 m deep, must ensure, so far as is reasonably practicable, that the work area is
+                      secured from unauthorised access (including inadvertent entry).
+
+                 In securing the trench or excavation, you must consider:
+
+                     risks to health and safety arising from unauthorised access to the work area, and
+                     the likelihood of unauthorised access occurring.
+                 This requirement aims to protect other workers on site who may be at risk by restricting
+                 access to the excavation area. It applies in addition to the duty that the person with
+                 management or control of the construction site has to ensure, so far as is reasonably
+                 practicable, that the site is secured from unauthorised access from members of the public,
+                 for example when the site is near schools, parks, shops or other public places.
+
+
+
+                 3.7    Emergency plan
+
+Regulation 43         A person conducting a business or undertaking must ensure that an emergency plan
+                      is prepared for the workplace.
+
+
+                 The excavation contractor must ensure that the emergency plan deals with unexpected
+                 incidents, such as ground slip, flooding, gas leaks and the rescue of workers from an
+                 excavation.
+
+                 To ensure a co-ordinated response to an emergency, the plan should be incorporated as part
+                 of the broader construction project emergency plan prepared by the principal contractor.
+
+
+
+
+                 CODE OF PRACTICE | EXCAVATION WORK                                                               13
+4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+       The following table lists common hazards associated with excavation work and examples
+       of control measures:
+
+
+             Potential hazards           Examples of control measures
+
+
+             Ground collapse             the use of benching or the installation of ground
+                                         support (e.g. shoring)
+
+
+             Water inrush                pumps or other dewatering systems to remove water
+                                         and prevent build-up
+
+
+             Falls                       ramps, steps or other appropriate access into
+                                         the excavation
+
+
+             Hazardous manual            rotating tasks between workers
+             tasks
+
+
+             Airborne                    mechanical ventilation to remove airborne
+             contaminants                contaminants
+
+
+             Buried contaminants         training to identify buried contaminants and what
+             (e.g. asbestos)             action to take
+
+
+             Underground services        obtain information from the relevant authorities
+                                         on the location of underground services
+
+
+
+       4.1   Excavated material and loads near excavations
+       Mechanical plant, vehicles, storage of materials (including excavated material) or any other
+       heavy loads should not be located in the ‘zone of influence’ of an excavation unless the
+       ground support system installed has been designed by a competent person, for example
+       a geotechnical engineer, to carry such loads.
+
+       The zone of influence will depend on the ground conditions. It is the zone in which there may
+       be an influence on the excavation including possible ground collapse (see Figure 2).
+
+
+
+
+14     CODE OF PRACTICE | EXCAVATION WORK
+                                       4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+  FIGURE 2 Excavated material and loads near excavations
+
+
+
+
+Figure 2 shows an example of:
+
+   an excavation with shoring that has been designed to carry vehicle and material loads
+     – this may be required where there is limited space around the excavation for vehicle
+      movement and/or material storage, and
+   an excavation with shoring that has been designed only to carry the load of the excavated
+     faces and the related zone of influence.
+Any material will add a load to the area where it is placed. It is important that materials are not
+placed or stacked near the edge of any excavation as this would put persons working in the
+excavation at risk. For example, the placement of material near the edge of an excavation may
+cause a collapse of the side of the excavation.
+
+To reduce the risk of ground collapse, excavated or loose material should be stored away
+from the excavation. Excavated material should be placed outside the zone of influence.
+Alternatively, a ground support system should be designed and installed to carry the
+additional loads including any ground water pressures, saturated soil conditions and saturated
+materials.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                              15
+                                            4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+     If excavating in sloping ground decide which side of the excavation to place the excavated
+     material. Things to consider include:
+
+        ground conditions
+        access to the excavation
+        existing underground services
+        the need for earthmoving machinery or vehicles to work or move along beside
+          the excavation
+        service installation and backfilling requirements, and
+        any manual work being undertaken in the excavation.
+     Placing material on the lower side of the excavation will reduce the effective height of the
+     excavation (see Figure 3) and the risk of material falling or being washed into the excavation.
+
+
+      FIGURE 3 Excavated material impact on effective
+      excavation depth
+
+
+
+
+     Care should be taken to ensure that material placed on the high side of the excavation does
+     not increase the risk of ground collapse, or flooding by ponding or holding back runoff water.
+     Excavated material should be placed so that it channels rainwater and other run-off water
+     away from the excavation.
+
+     When a trench is being excavated beside an old service line, the excavated material should
+     be placed on the side opposite the old service line to prevent excessive loading on previously
+     weakened ground.
+
+     If excavated material is placed close to a trench due to obstructions such as fences, buildings
+     or trees, the weight of the excavated material may overload the sides of a trench. In this case,
+     the ground support system should be strengthened at these locations and barriers such as
+     toeboards may need to be provided to prevent the material falling into the excavation.
+
+
+
+
+16   CODE OF PRACTICE | EXCAVATION WORK
+                                       4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+Different soils when dumped in heaps, will assume a characteristic shape and settle naturally
+at different slopes. The angle which a sloping face of loose earth makes with the horizontal
+is sometimes referred to as the angle of repose. However, it is poor practice to relate the safe
+slope of an excavation to the angle of repose, even though the safe slope may be similar in
+some types of soil to the angle of repose.
+
+
+
+4.2    Plant and equipment
+Excavation work cannot be carried out safely unless the plant being used is appropriate for
+the work and maintained in good condition. A range of plant and equipment may be used
+for excavation work including:
+
+    powered mobile plant (see section 4.3)
+    air compressors
+    electric generators
+    jack hammers
+    hydraulic jacks
+    oxy-acetylene (gas cutting/welding)
+    scaffolding
+    ladders, and
+    many types of handheld plant such as shovels, picks, hammers, hydraulic jacks
+      and pinch/lever bars.
+You should ensure:
+
+    plant is used and operated by a competent person
+    that appropriate guards and operator protective devices are fitted
+    that the safe working load is displayed and any load measurement devices are operating
+      correctly, and
+    plant is maintained in accordance with the manufacturer/supplier’s instructions or
+      relevant Australian Standards.
+Further general guidance on plant can be found in the Code of Practice: Managing risks
+of plant in the workplace.
+
+LASERS
+Lasers must be designed, constructed and installed so that no person is exposed to accidental
+irradiation. Lasers that are capable of producing hazardous diffuse reflections or that may
+constitute a fire hazard, being laser classes 3B and 4, must not be used in construction work.
+
+Any worker operating lasers must be trained in the use of the equipment. Further information
+on the safe use of lasers is available in AS 2397: Safe use of lasers in the building and
+construction industry.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                             17
+                                              4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+     4.3    Powered mobile plant
+     A wide range of powered mobile plant including earthmoving machinery, may be used
+     for excavation work. To select plant that is suitable for the task, you should consider:
+
+         site access and restrictions
+         site hazards such as overhead powerlines and underground services
+         the ground conditions
+         the type and depth of excavation
+         the volume of material to be excavated and transported, and
+         where the excavated material is to be located and/or stored.
+     A high risk work licence is required to operate some types of powered mobile plant. However
+     in most cases earthmoving machinery does not require a licensed operator if it is being used
+     for the purpose for which it was originally designed. Earthmoving machinery operators must
+     be able to demonstrate they are competent to operate the specific type of plant being used
+     and any attachments fitted to the plant.
+
+     Traffic management arrangements must be implemented at the workplace when powered
+     mobile plant is to be used for excavation work to prevent collision with pedestrians or other
+     mobile plant.
+
+     EARTHMOVING MACHINERY
+     Bulldozers and scrapers are often used to prepare a work area for further specific excavation.
+
+     Bulldozers typically excavate and move large amounts of material short distances. Bulldozers
+     can be equipped with hydraulically operated rippers at the back of the machine which are
+     capable of loosening the hardest of sedimentary rocks. This material may then be bulldozed
+     away. This method frequently proves more economical than drilling and blasting softer rock.
+
+     Self-propelled rubber tyred scrapers enable very large quantities of material to be excavated
+     and hauled economically over long distances at relatively high speed. Because of the large
+     potential output and speeds of modern scrapers, careful attention should be given to job
+     layout, haul roads, vehicle pathways and overall traffic management to achieve a healthy and
+     safe workplace.
+
+     Temporary haul roads should be well constructed and maintained to enable plant operators
+     to complete the work safely.
+
+     Large earthmoving machinery such as bulldozers should not operate close to an overhang
+     or a deep excavation as the weight may collapse the sides. Equipment should always
+     approach embankments or trenches from across the line of a trench rather than parallel to it.
+
+     Excavation work exceeding 1.5 metres deep is typically done by excavators or specialised
+     plant such as tunnelling machines and raise-bores. Most of these types of plant have an
+     element of mobility, although tunnelling machines typically have restricted movement.
+
+     Other plant used in excavation work includes backhoes, rubber tyred loaders, skid steer
+     loaders (for example bobcat), trench diggers, graders and tip trucks.
+
+     BLIND SPOTS
+     Operators of powered mobile plant can often have severely restricted visibility of ground
+     workers or nearby pedestrians, particularly those close to the plant. Figure 4 shows some of
+     the blind spots for operators of typical excavation equipment.
+
+
+18   CODE OF PRACTICE | EXCAVATION WORK
+                                     4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+ FIGURE 4 Mobile plant operator blind spots
+
+
+
+
+Powered mobile plant operating near ground personnel or other powered mobile plant
+should be equipped with warning devices (for example reversing alarm and a revolving light).
+
+An effective system of communication based on two way acknowledgement between
+mobile plant operators and ground workers should be established before work
+commences. Relevant workers should also be trained in the procedures involved prior
+to the work commencing. The system should stop ground workers from approaching
+mobile plant until the operator has agreed to their request to approach. Similarly the
+system should stop operators from moving plant closer than a set distance from ground
+workers until the operator has been advised by ground workers that they are aware of the
+proposed movement.
+
+Mobile plant operators and ground workers should be made familiar with the blind spots
+of particular items of plant being used. Induction training programs should emphasise the
+dangers of workers working in close proximity to mobile plant, and adequate supervision
+should be provided.
+
+Mobile plant operators and ground workers should be provided with and required to wear
+high-visibility clothing.
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                             19
+                                            4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+     OPERATOR PROTECTION
+     Powered mobile plant should be equipped with appropriate combination of operator
+     protection devices, for example enclosed cabin and seat belts, to prevent the ejection
+     of the operator or the operator being struck by falling objects.
+
+     Any earthmoving machinery weighing more than 1500 kgs, not including attachments, and
+     designed to have a seated operator must have an appropriate operator protective structure
+     fitted. These are either in the form of roll-over protective structures (ROPS) or falling object
+     protective structures (FOPS) or both, depending on the application.
+
+     OPERATING NEAR EXCAVATIONS
+     Powered mobile plant should not operate or travel near the edge of an excavation unless
+     the ground support system installed has been designed by a competent person to carry
+     such loads. Physical barriers, such as wheel stoppers, can be one way of restricting plant
+     movement near an excavation (see Figure 5).
+
+      FIGURE 5 Preventing plant operation near
+      excavations
+
+
+
+
+     INSPECTION AND MAINTENANCE
+     Regular planned inspection and adequate maintenance must be carried out in accordance
+     with the manufacturer’s recommendations to ensure safe operation of mobile plant used
+     on excavation work, whether leased, hired or owned. Both mechanical and electrical testing
+     should be done. The following checks should also be carried out:
+
+        daily pre-start checks by the plant operator on the general condition and maintenance
+          of the plant, and
+        regular inspections of the plant by a competent person in accordance with the
+          manufacturer/supplier’s specifications or relevant Australian Standards.
+
+
+
+
+20   CODE OF PRACTICE | EXCAVATION WORK
+                                                          4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+                Any plant defects should be reported immediately to the person conducting business
+                or undertaking. Where a defect is likely to pose an immediate risk to health and safety
+                the plant should be removed from service until the defect is rectified.
+
+                Owners of plant should keep logbooks and inspection check sheets containing a full service
+                and repair history. These records should include any reported defects, kept current and
+                retained for the life of the plant. If the plant is sold, the records should form part of the
+                documentation forwarded to the purchaser of the plant upon its sale.
+
+                4.4        Falls
+                     A person conducting a business or undertaking must manage the risk of a fall from one
+Regulation 78
+                     level to another that is reasonably likely to cause injury to the person or another person.
+
+
+                In managing the risks of falls, the WHS Regulations require the following specific control
+                measures to be implemented where it is reasonably practicable to do so:
+
+                    carry out the work on solid construction that includes a safe means of access
+                      and egress
+                    if a fall risk cannot be eliminated, minimise the risk of fall by providing and maintaining
+                      a safe system of work including
+                          using fall prevention devices (e.g. temporary work platforms and guard rails) or
+                          work positioning systems (e.g. industrial rope access systems), or
+                          fall arrest systems such as catch platforms.
+                Control measures include:
+
+                    the support system itself, for example using trench box extensions or trench sheets
+                      longer than the trench depth (see Figure 6)
+                    installing guard rails or covers on trench shields (see Figure 7)
+                    inserting guard rails and toe boards into the ground immediately next to the supported
+                      excavation side
+                    installing landing platforms or scaffold towers inside deep excavations
+                    securing ladders to trench shields
+                    installing effective barriers or barricades
+                    providing clearly defined pedestrian detours
+                    provision of alternative access and egress points to the excavation for emergency
+                      use, and
+                    backfilling the excavation as work progresses.
+
+
+
+
+                CODE OF PRACTICE | EXCAVATION WORK                                                                  21
+                                           4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+      FIGURE 6 Extending trench shields above         FIGURE 7 Steel mesh covers over
+      the excavation                                  trench shields
+
+
+
+
+     A SWMS must be prepared for excavation work that involves a risk of a person falling more
+     than 2 metres.
+
+     Further guidance on controlling the risk of falls is available in the Code of Practice: How
+     to prevent falls at workplaces.
+
+
+
+     4.5 Using explosives
+
+     Construction work that involves the use of explosives is defined by the WHS Regulations as
+     high risk construction work and a SWMS must be prepared before this work commences.
+
+     A competent person experienced in the controlled application of explosives for the purpose
+     of carrying out the excavation work should be consulted before deciding whether explosives
+     may be used for the excavation.
+
+     All possession, storage, handling and use of explosives must be carried out in compliance
+     with the relevant dangerous substances/goods or explosives legislation applicable in your
+     state or territory.
+
+     The transport of explosives must be in accordance with the Australian Code for the Transport
+     of Explosives by Road and Rail.
+
+     Explosives must only be used by a competent person who is licensed in the use of explosives
+     and has experience in the work to be undertaken. If explosives are used in excavation work,
+     a licensed competent person must develop the blast management plan and be responsible
+     for all aspects of the use of explosives.
+
+     For further information on the use of explosives for excavation work, refer to AS 2187.2:
+     Explosives - Storage and Use - Use of explosives.
+
+
+
+
+22   CODE OF PRACTICE | EXCAVATION WORK
+                                                       4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+                4.6 Atmospheric conditions and ventilation
+
+                The risk of atmospheric contamination through a build up of gases and fumes must be
+                controlled in excavation work. Gases and fumes heavier than air can collect in tunnels and
+                excavations for example: gases (such as sulphur dioxide), engine fumes (such as carbon
+                monoxide and carbon dioxide) and leakage from gas bottles, fuel tanks, sewers, drains, gas
+                pipes and LPG tanks.
+
+                Plant that uses a combustion engine (for example air compressors, electrical generators)
+                should never be used in a confined excavation such as a trench if workers are in the trench.
+                The build-up of exhaust gases in the excavation, particularly carbon monoxide, can cause
+                death.
+
+                Ventilation systems help to maintain adequate oxygen levels and dilute flammable gases,
+                fumes and certain dusts, such as coal and sulphide which can ignite if in its explosive limits.
+                The use of mechanical ventilation also reduces dust, fumes, hazardous contaminants and can
+                control air temperature and humidity.
+
+                The ventilation system should be designed by a competent person to provide adequate
+                ventilation levels through the excavation (for example a tunnel) during construction. This
+                might include additional localised extraction ventilation to deal with the production of
+                dust, heat or fumes from the excavation process and the operation of large plant or other
+                activities like plant maintenance. The design should allow for the installation of ventilation
+                equipment or ducting as the excavation progresses to maintain adequate air supply to the
+                working face.
+
+                Other methods of controlling the risks associated with atmospheric contamination include:
+
+                    pre-start checks of atmospheric conditions
+                    using gas monitors including workers’ wearing personal monitors near their airways
+                    ensuring adequate ventilation (either natural or mechanical)
+                    working in pairs, with one person as a safety observer at the surface to monitor
+                      conditions
+                    ensuring familiarity with rescue procedures, and
+                    using PPE.
+                Further guidance on working in confined spaces is available in Code of Practice:
+                Confined spaces.
+
+                4.7    Manual work
+                Manual excavation methods are generally used for small, shallow excavations (for example
+                less than 1.5 metres deep) in soft soils.
+
+                     A person conducting a business or undertaking must manage the risk of a
+Regulation 60
+                     musculoskeletal disorder associated with hazardous manual tasks.
+
+
+                When working in close proximity, workers should be kept sufficiently far apart to prevent
+                injury from the use of picks or other hand tools. This applies particularly to work in trenches
+                and small excavations.
+
+                Preparatory drilling activity and the use of hand drills may increase the risk of
+                musculoskeletal disorders including disorders associated with exposure to vibration.
+
+
+                CODE OF PRACTICE | EXCAVATION WORK                                                               23
+                                                       4. CONTROLLING RISKS IN EXCAVATION WORK
+
+
+
+
+                 For further guidance on controlling the risks of musculoskeletal disorders, refer to the
+                 Code of Practice: Hazardous manual tasks.
+
+
+
+                 4.8 Information, training, instruction and supervision
+
+                    A person conducting a business or undertaking must ensure, so far as is reasonably
+Section 19
+                    practicable, the provision of any information, training, instruction and supervision that
+                    is necessary to protect all persons from risks to their health and safety arising from the
+                    work carried out.
+
+Regulation 39       A person conducting a business or undertaking must ensure that information, training
+                    and instruction provided to a worker is suitable and adequate having regard to:
+
+                       the nature of the work carried out by the worker
+                       the nature of the risks associated with the work at the time of the information,
+                         training and instruction, and
+                       the control measures implemented.
+                    The training provided must be readily understandable by any person to whom
+                    it is provided.
+
+Regulation 317      A person conducting a business or undertaking must not direct or allow a worker to
+                    carry out construction work unless the worker has successfully completed general
+                    construction induction training.
+
+                 Training specific to the excavation work and to the site should also be provided to workers
+                 by a competent person. Workers operating certain types of plant at the workplace must
+                 possess a valid licence to operate that plant.
+
+                 Workers in a supervisory role (for example leading hand or foreman) should be experienced
+                 and trained in excavation work to ensure the work is carried out in accordance with SWMS.
+
+                 Further information on general construction induction training and other training is available
+                 in Chapter 6 of the Code of Practice: Construction work.
+
+
+
+
+ 24              CODE OF PRACTICE | EXCAVATION WORK
+  5. EXCAVATION METHODS
+
+
+                 The nature of the excavation work being undertaken will affect the selection of an excavation
+                 method and a safe system of work. Careful consideration should be given to health and
+                 safety issues when planning the work where the excavation involves anything other than
+                 shallow trenching and small quantities of material.
+
+                 5.1        Trenching
+                       A person conducting a business or undertaking who proposes to excavate a trench at
+Regulation 306
+                       least 1.5m deep, must minimise the risk to any person arising from the collapse of the
+                       trench by ensuring that all sides of the trench are adequately supported by one or more
+                       of the following:
+
+                           shoring by shielding or other comparable means (for example boxing)
+                           benching, and
+                           battering.
+
+
+                 A combination of these control measures may be the most effective depending on the work
+                 environment and characteristics of the excavated material. In built up areas or streets the
+                 excavation may have to be fully or partly sheeted or supported to prevent collapse due to
+                 localised vehicle movement.
+
+                 Where a worker enters a trench and there is a risk of engulfment, these control measures
+                 should be implemented regardless of the depth of the trench.
+
+                 A report from a geotechnical engineer may be required to provide information on the
+                 stability and safety of a trench excavation. The report should include details of the soil
+                 conditions, any shoring or trench support requirements, dewatering requirements and
+                 any longer term effects on stability and safety of the excavation. A competent person (for
+                 example an engineer) should design any support systems or be involved in the selection of
+                 other ground collapse control measures, such as trench shields.
+
+                 Shoring, benching and/or battering may not be required if written advice is received from
+                 a geotechnical engineer that all sides of the trench are safe from collapse. Any advice should
+                 state the period of time to which it applies and may be subject to a condition that specified
+                 natural occurrences may create a risk of collapse.
+
+                 PREPARATION AND EXCAVATION
+                 Bulldozers, scrapers, excavators and other types of earthmoving equipment are commonly
+                 used for either preparing work areas prior to trenching or for the trenching work itself.
+
+                 For some trench excavations manual work, such as trimming by hand, will be required.
+                 Trimming can often be accomplished from outside the trench by shovelling or pushing the
+                 material with a long handled tool or shovel to the bottom of the excavation where it can be
+                 picked up by the excavation plant. Risks associated with falls and working with powered
+                 mobile plant must be controlled.
+
+
+
+                 5.2        Tunnelling
+                 The nature of tunnelling work is complex and highly specialised, requiring high levels of
+                 engineering expertise during the planning, investigation, design and construction stages.
+
+
+
+
+                 CODE OF PRACTICE | EXCAVATION WORK                                                              25
+                                                                   5. EXCAVATION METHODS
+
+
+
+
+     DESIGN
+     Safe tunnel construction depends on adequate pre-construction engineering investigation
+     of the ground and site and accurate interpretation of the information obtained.
+     Designers should:
+
+        obtain or be provided with all available relevant information
+        be advised of any gaps in the information for planning and construction
+        undertake or be involved in data acquisition for the site investigation program, and
+        have on-site involvement during the engineering investigation.
+     The information obtained from the engineering investigation and the anticipated excavation
+     methods should be considered in preparing a tunnel design. The design should include:
+
+        details on the tunnel dimensions and allowable excavation tolerances
+        temporary and final support and lining requirements for each location within the tunnel
+        details of expected tunnel drive lengths and location of shafts, and
+        any other requirements for the finished tunnel.
+     The design should also include information on the excavation methods and ground
+     conditions considered in the design. This will allow the design to be reviewed if another
+     excavation method is chosen or the ground conditions differ from that expected as the
+     excavation proceeds.
+
+     The design also needs to take into account the construction methods that may be used to
+     construct the tunnel so that a safe design for construction purposes is achieved.
+
+     TUNNELLING HAZARDS AND RISKS
+     Common hazards and risks in tunnel construction generally relate to the confines of working
+     underground including:
+
+        tunnel stability – rock or earth falls and rock bursts
+        changing ground conditions – strata and stress fluctuations
+        limited space and access, with possible confined spaces involved
+        air contamination or oxygen depletion
+        fire or explosion
+        the use of fixed and powered mobile plant
+        the interaction of people and powered mobile plant
+        temporary electrical supplies and circuits including loss of power for lighting and
+          ventilation
+        compressed air use and high pressure hydraulics
+        large scale materials and equipment handling
+        overhead seepage, ground and process water
+        uneven and wet or other slippery surfaces
+        falls of people or objects
+        contaminated groundwater
+        ground gas and water in-rush
+
+
+
+26   CODE OF PRACTICE | EXCAVATION WORK
+                                                              5. EXCAVATION METHODS
+
+
+
+
+    noise
+    vibration
+    heat and humidity
+    ground loss or settlement at surface level, and
+    hazardous substances.
+
+CONTROL MEASURES INCLUDE:
+    ground support, for example tunnelling shields, mesh, rockbolts and shotcrete
+    appropriate fall protection, for example temporary work platforms
+    plant and vehicular traffic management systems
+    regular plant maintenance
+    pumps or dewatering systems to remove ground water
+    mechanical ventilation to control airborne contaminants and air temperature/humidity
+    dust extraction
+    plant fitted with water scrubbers
+    plant fitted with catalytic converters, and
+    provision of breathing equipment when a hazardous atmosphere is present and cannot
+      be effectively ventilated by external means.
+Using ground support designed for the unique circumstances of the work is essential to
+control the risk of a collapse or tunnel support failure. All excavation for tunnelling should
+be supported.
+
+
+
+5.3    Shafts
+Shafts are often constructed to provide access or ventilation to a tunnel. Comparatively
+shallow shafts can be sunk for investigating or constructing foundations, dewatering or
+providing openings to underground facilities.
+
+Shafts vary greatly in design and construction technique, depending on their purpose and
+the local conditions. They may be vertical or inclined, lined or unlined, various shapes, and
+excavated using various techniques.
+
+Shaft sinking involves excavating a shaft from the top, with access and spoil removal from
+the top. Other construction methods include raise-boring, which is a method of constructing
+a shaft (or raise) where underground access has already been established. Raised bored
+shafts can be from the surface or from one horizon to another underground. The method
+can be remotely executed, not requiring people to enter the shaft.
+
+Access to shaft openings should be controlled by using a secure cover that is lockable and
+accessible only by a designated persons. An alternative means is to use a suitable guard rail
+and toe-board with gate for access and supporting the sides by steel frames or sets
+of timber. In special cases support can also be provided by installing precast concrete or
+steel liners.
+
+Shafts can have special features so design and construction advice should be obtained from
+a competent person (for example an engineer) before excavation and installation. In some
+cases, special ventilation facilities may be required.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                               27
+                                                                     5. EXCAVATION METHODS
+
+
+
+
+     COMMON HAZARDS AND RISKS INVOLVED IN SHAFT CONSTRUCTION INCLUDE:
+        shaft dimensions limiting work space, possibly including confined space work
+        the potential for ground instability for lifting and removing spoil
+        falls and falling objects including fine material and water from the shaft wall
+        hoisting equipment (e.g. winch, ropes and hooks)
+        hoisting and winching people, materials, spoil and plant
+        water inflow/inrush and dewatering
+        airborne contaminants and ventilation
+        confined space
+        manual tasks
+        hazardous materials
+        fire or explosion
+        inadequate communication systems
+        mobile plant
+        noise, and
+        emergency exits.
+
+
+     CONTROL MEASURES INCLUDE:
+        stabilising the ground at the head of the shaft and removal of spoil
+        continuously lining or supporting the shaft
+        providing appropriate fall protection, for example temporary work platforms
+        providing and maintaining appropriate hoisting equipment
+        installing dewatering systems
+        installing mechanical ventilation to control airborne contaminants and air
+          temperature/humidity
+        isolating access to moving parts of plant and equipment
+        guiding the working platforms and material
+        avoiding overfilling material kibbles and cleaning kibbles before lifting
+        closing shaft doors before tipping, and
+        cleaning the spillage off doors, stage and any steelwork.
+     Further guidance on confined spaces is available in the Code of Practice: Confined spaces.
+
+
+
+
+28   CODE OF PRACTICE | EXCAVATION WORK
+6. PREVENTING GROUND COLLAPSE
+
+
+       Ground collapse is one of the primary risks to be controlled in excavation work. Ground
+       collapse can occur quickly and without warning, giving a worker virtually no time to escape,
+       especially if the collapse is extensive. A buried worker is likely to die from suffocation before
+       help arrives (for example either the head is buried, or the chest is so restricted by the weight
+       of ground that the worker can no longer breathe).
+
+       Figure 8 shows a typical example of ground failure where material collapses onto a
+       worker pinning them against the wall of a trench. Trench collapses of this nature can
+       cause fatal injuries.
+
+        FIGURE 8 Trench collapse and associated ground forces
+
+
+
+
+       CODE OF PRACTICE | EXCAVATION WORK                                                             29
+                                                          6. PREVENTING GROUND COLLAPSE
+
+
+
+
+     When planning the work and selecting appropriate excavation methods and control
+     measures, it is important to consider:
+
+        the type and strength of the material to be excavated (e.g. whether the ground is natural
+          and self-supporting or has been previously backfilled)
+        the moisture content of the soil
+        if the ground is level or sloping
+        if groundwater is present
+        if there are any discontinuities or faults in the strata
+        if there are any other nearby water courses, drains or run-off that might affect the
+          stability of the excavation
+        the work area and any access or operational limitations
+        the planned height of the excavated face
+        if vehicular traffic and/or powered mobile plant will operate near the excavation
+        if there will be other construction activity nearby that may cause vibration
+        any other loads adjacent to the planned excavation (e.g. buildings, tanks, retaining
+          walls, trees)
+        if the need for persons to enter the excavation can be eliminated, and
+        any underground essential services.
+     The ground conditions will have a significant impact on the selection of an excavation
+     method and the control measures implemented.
+
+     GROUND CONDITIONS
+     In their natural condition, soils have varying degrees of cohesive strength and frictional
+     resistance. Examples of materials with virtually no cohesive strength are dry sand, saturated
+     sand and gravels with minimum clay content. Ground encountered in excavations can
+     generally be categorised as one of three types:
+
+        hard, compact soil
+        soil liable to crack or crumble, and
+        loose or running material.
+     Of these materials, hard compact soil is the type that can cause the most trouble because
+     the face ‘looks good’ and this often leads to risks being taken. Loose or running material is
+     often the safest, because the need for safety precautions is obvious from the start.
+
+     Soil liable to crack or crumble is doubtful and should be given careful consideration before
+     the treatment to be given is determined. Useful information can often be obtained from
+     local authorities.
+
+     Non-cohesive faces can be very hazardous. With the right amount of moisture they can
+     look safe and solid. A little loss of water by evaporation from the face or an increase in water
+     content from rain or other causes can make the soil crumble.
+
+     The stability of any excavated face depends on the strength of the soil in the face being
+     greater at all times than the stresses it is subjected to. The following situations all increase
+     soil stresses in an excavated face and may lead to failure under adverse weather conditions,
+     additional load or vibration:
+
+
+
+30   CODE OF PRACTICE | EXCAVATION WORK
+                                                    6. PREVENTING GROUND COLLAPSE
+
+
+
+
+    deep cuts and steep slopes, by removal of the natural side support of the
+      excavated material
+    loads on the ground surface near the top of the face, such as excavated material,
+      digging equipment or other construction plant and material
+    shock and vibration, which could be caused by pile-driving, blasting, passing loads or
+      vibration producing plant
+    water pressure from ground water flow, which fills cracks in the soil, increases horizontal
+      stresses and the possibility of undermining, and
+    saturation of soil, which increases the weight and in some cases the volume of the soil.
+The following may reduce soil strength:
+
+    excess water pressure in sandy soil which may cause boils and saturate the soil and
+      increase its plasticity
+    dryness of the soil may reduce cohesion in sandy soil and soils high in organic content
+      which then crumble readily
+    prolonged stress, may cause plastic deformity (squeezing or flowing), and
+    prolonged inactivity at an excavation site. An evaluation of the soil should be undertaken
+      before work recommences.
+There are three main types of ground collapse control measures that can be used where
+ground collapse may occur:
+
+    benching and battering
+    positive ground support for example shoring, and
+    shielding – shields do not ensure ground stability but they protect workers inside the
+      shield from ground collapse by preventing the collapsing material from falling onto them.
+
+
+6.1    Benching and battering
+One fairly simple way of controlling the risk of ground collapse is to bench or batter the
+excavation walls. An excavated slope is safe when the ground is stable. That is, the slope
+does not flatten when left for a considerable period, there is no movement of material down
+the slope and the toe of the slope remains in the same place.
+
+If excavation work is planned to be carried out without positive ground support (that is,
+shoring), the continuing safety of the excavation will depend on the conditions arising during
+construction. If the conditions during construction are not as expected, or if conditions
+change during the course of the work (for example different soils, heavy rain/flooding)
+action should be taken immediately to protect workers, other persons and property.
+Implement appropriate control measures such as temporarily suspending work until the
+ground is stable or, if necessary, providing positive ground support.
+
+Benching is the creation of a series of steps in the vertical wall of an excavation to reduce
+the wall height and ensure stability (see Figure 9). Benching is a method of preventing
+collapse by excavating the sides of an excavation to form one or more horizontal levels
+or steps with vertical surfaces between levels.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                               31
+                                                      6. PREVENTING GROUND COLLAPSE
+
+
+
+
+      FIGURE 9 Benching
+
+
+
+
+     Battering is where the wall of an excavation is sloped back to a predetermined angle to
+     ensure stability (see Figure 10). Battering prevents ground collapse by cutting the excavated
+     face back to a safe slope. Battering should commence from the bottom of the excavation
+     and in some circumstances it may be appropriate to use a combination of the two methods
+     on an excavation (see Figure 11).
+
+      FIGURE 10 Battering
+
+
+
+
+      FIGURE 11 Combination of benching and battering controls
+
+
+
+
+     Benching and battering of excavation walls can minimise the risk of soil or rock slipping onto
+     the excavation. Control measures should be designed by a competent person (for example
+     geotechnical engineer) and be relative to the soil type, the moisture content of the soil, the
+     planned height of the excavated face and any surcharge loads acting on the excavated face.
+
+
+
+
+32   CODE OF PRACTICE | EXCAVATION WORK
+                                                 6. PREVENTING GROUND COLLAPSE
+
+
+
+
+It is not necessary to bench or batter the face of excavations which a competent person
+determines are in stable rock or has assessed that there is no risk of collapse. When
+benching or battering the walls of an excavation, an angle of repose of 45 degrees should
+not be exceeded unless designed by a competent person and certified in writing.
+
+Benches should be wide enough to stabilise the slopes and to prevent material from the top
+falling down to the working area. They should also be sloped to reduce the possibility
+of water scouring.
+
+The size and type of any earthmoving machinery to be used and any related haul routes
+should be considered when designing the face slopes and widths of benches.
+
+
+
+6.2 Shoring
+
+Shoring is a positive ground support system that can be used when the location or depth of
+an excavation makes battering and/or benching impracticable. It should always be designed
+for the specific workplace conditions by a competent person (for example an engineer).
+
+Shoring is the provision of support for excavated face(s) to prevent the movement of
+soil and therefore ground collapse. It is a common method of ground support in trench
+excavation where unstable ground conditions, such as soft ground or ground liable to be wet
+during excavation such as sand, silt or soft moist clay are often encountered.
+
+Where ground is not self-supporting and benching or battering are not practical or effective
+control measures, shoring should be used. Shoring should also be used when there is a risk
+of a person being buried, struck or trapped by dislodged or falling material which forms the
+side of, or is adjacent to, the excavation work.
+
+Where such a risk also exists for those installing shoring, other appropriate control measures
+must be in place to ensure the health and safety of persons entering the excavation.
+
+Shoring the face of an excavation should progress as the excavation work progresses. Where
+earthmoving machinery is used risk assessment should be used to determine whether any
+part of the trench may be left unsupported.
+
+The system of work included in the SWMS should ensure workers do not enter any part of
+the excavation that is not protected. They should not work ahead of the shoring protection
+if it is being progressively installed.
+
+The basic types of shoring are hydraulically operated metal shoring and timber shoring.
+The most common shoring used consists of hydraulic jacks and steel struts, walls and
+sheeting. Sometimes aluminium or timber components are used.
+
+The use of metal shoring has largely replaced timber shoring because of its ability to ensure
+even distribution of pressure along a trench line and it is easily adapted to various depths
+and trench widths.
+
+Some of the common types of shoring are:
+
+   hydraulic systems
+   steel sheet piling
+   steel trench sheeting
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                              33
+                                                        6. PREVENTING GROUND COLLAPSE
+
+
+
+
+        timber systems (e.g. soldier sets)
+        precast concrete panels, and
+        ground anchors.
+
+     HYDRAULIC SYSTEMS
+     Hydraulic support systems are commonly used to provide temporary or mobile ground
+     support while other ground supports are being installed (see Figure 12).
+
+     Ground pressures should be considered prior to installing hydraulic supports. The hydraulic
+     support system should be designed by a competent person in consultation with the
+     geotechnical engineer. The hydraulic capacity of the temporary ground support system must
+     be designed to resist the expected ground pressures and potential for collapse.
+
+     Hydraulic support systems may become unreliable if not properly maintained and properly
+     used. Frequent inspections of pressure hoses and rams are necessary to detect abrasion,
+     fatigue or damage such as bent or notched rams.
+
+     When a trench has been fully supported the hydraulic support systems should be dismantled
+     to prevent costly damage. The hydraulic supports should be inspected, repaired if necessary
+     and carefully stored prior to re-use.
+
+     Further information on hydraulic shoring is available in AS 5047: Hydraulic shoring and
+     trench lining equipment.
+
+
+      FIGURE 12 Hydraulic shoring (soldier set style)
+
+
+
+
+34   CODE OF PRACTICE | EXCAVATION WORK
+                                                 6. PREVENTING GROUND COLLAPSE
+
+
+
+
+STEEL SHEET PILING
+Steel sheet piling is generally used on major excavations such as large building foundations
+or where large embankments are to be held back and can be installed prior to excavation
+work commencing. It is also used where an excavation is in close proximity to adjoining
+buildings (see Figure 13).
+
+Sheet piling may be used when the ground is so unstable that side wall collapse is likely to
+occur during excavation, for example in loose and running sand. In such cases, sheet piling
+should be installed before excavation commences.
+
+
+ FIGURE 13 Steel sheet piling
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                             35
+                                                       6. PREVENTING GROUND COLLAPSE
+
+
+
+
+     STEEL TRENCH SHEETING
+     Other methods of excavation may require the use of steel trench sheeting or shoring.
+     It is positioned and pneumatically driven in to final depth. Toms and walings are placed
+     into position as the soil is excavated. Although timber can be used it is more efficient to
+     use adjustable jacks or struts (see Figure 14).
+
+     Steel trench sheeting is lighter weight than normal sheet piling and in some circumstances
+     may be driven by hand-held pneumatic hammers or electrical operated vibrating hammers.
+     The potential for manual handling injuries to occur in this operation is very high, as is the
+     risk of lacerations due to sharp metal protrusions. These risks should be addressed prior to
+     commencement of driving the steel sheet. Any projections on the underside of the anvil of
+     jack hammers should be removed to prevent damage to the driving cap and potential injury
+     to the operator.
+
+     During driving operations, if it is likely that workers may be exposed to noise levels in excess
+     of the exposure standard, a method of controlling the noise exposure is required.
+
+     Steel shoring and trench lining equipment should be designed by a competent person.
+     Further information on steel shoring can be found in AS 4744.1: Steel shoring and trench
+     lining – Design.
+
+
+       FIGURE 14 Steel trench sheeting and jacks
+
+
+
+
+36   CODE OF PRACTICE | EXCAVATION WORK
+                                                   6. PREVENTING GROUND COLLAPSE
+
+
+
+
+TIMBER SOLDIER SETS
+The soldier set is a simple form of trench support set which can be formed with steel or
+timber. This system is mostly used in rock, stiff clays and in other soil types with similar
+self-supporting properties.
+
+Unlike closed sheeting sets, soldier sets retain the earth where there may be a fault in the
+embankment. Soldier sets only provide ground support at regular intervals and do not
+provide positive ground support to the whole excavated face. Open soldier sets are only
+suitable for use in stable soil types. (See Figure 15).
+
+  FIGURE 15 Timber soldier sets
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                             37
+                                                        6. PREVENTING GROUND COLLAPSE
+
+
+
+
+     CLOSED SHEETING
+     Closed sheeting is where vertical timber or metal members are used to fully cover and
+     support a trench wall and which are in turn supported by other members of a ground
+     support system.
+
+      FIGURE 16 Example of closed sheeting
+
+
+
+
+     Side lacing is a form of closed sheeting used primarily to ensure worker safety by
+     preventing soil from slipping by the placement of fill behind timber boards or steel
+     plates (see Figure 17). Side lacing is used in all types of ground, and is particularly
+     useful where long or large diameter pipes are to be installed and in variable ground
+     conditions where steel or timber supports are difficult to install. Side lacing should be
+     firmly wedged into the ground to prevent it from moving when fill is placed against it.
+
+     When closed sheeting or side lacing is used to prevent ground collapse, workers
+     should not:
+
+        enter the excavation prior to the installation of the sheeting/lacing
+        work inside a trench, outside the protection of sheeting/lacing
+        enter the excavation after sheeting/lacing has been removed, and
+        enter an area where there is sheeting/lacing, other than by a ladder.
+
+      FIGURE 17 Side lacing in sand trench
+
+
+
+
+38   CODE OF PRACTICE | EXCAVATION WORK
+                                                    6. PREVENTING GROUND COLLAPSE
+
+
+
+
+GROUND ANCHORS
+A ground anchor is a tie back to the soil behind the face requiring support and is
+typically used with steel sheet piling (see Figure 18). Ground anchors may be installed
+in either granular or clay soils. The design of ground anchors should be carried out by
+a competent person, for example a geotechnical engineer.
+
+In granular soil, the anchorage zone is usually a plug of grout located behind the
+active soil limit line. This plug resists the tension force induced in the stressing cables,
+due to the shear and cohesion forces developed along its length.
+
+These forces can be due, in part, to the overburden. Removal of soil above installed
+ground anchors should only be carried out after approval has been received from
+a competent person.
+
+  FIGURE 18 Ground anchors for supporting steel sheet piling
+
+
+
+
+Removal of the soil between the retaining wall and the active soil limit line may cause
+sheet piling to bend. This bending will release the load in the stressing cable, and
+render the ground anchor useless and dangerous to workers in the excavation area.
+
+The ground anchor may not develop its original load carrying capacity on replacement
+of the soil. The anchorage of the stressing cable at the face of the sheet piling may
+be also dislodged or loosened. This depends on the type of stressing cable and
+the respective anchoring systems. While the ground anchoring system is operative,
+periodic checks with hydraulic jacks and pressure gauges are used to assess anchor
+behaviour over long periods.
+
+
+
+6.3 Removal of shoring supports
+
+Shoring and all support systems should be removed in a manner that protects workers
+from ground collapse, structural collapse or being struck by structural members.
+Before removal begins, temporary structural members may need to be installed to
+ensure worker safety.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                             39
+                                                      6. PREVENTING GROUND COLLAPSE
+
+
+
+
+     When removing shoring, the support system should be extracted or dismantled in
+     reverse order to its installation. Persons performing the work in the excavation
+     should not work outside the protection of the ground support system. No part of
+     a ground support system should be removed until the trench is ready for final backfill
+     and compaction.
+
+
+
+     6.4 Shields and boxes
+
+     A shield is a structure, usually manufactured from steel, which is able to withstand the
+     forces imposed by a ground collapse and protect workers within it. Shields can be
+     permanently installed or portable and designed to move along as work progresses.
+
+     Many different shield system configurations are available for hire or purchase. Figure
+     19 shows a typical trench shield.
+
+       FIGURE 19 Typical trench shield
+
+
+
+
+     Shields and boxes used in trenches are often referred to as trench shields or trench
+     boxes, and are designed and constructed to withstand the earth pressures of
+     particular trench depths and ground types. They incorporate specific lifting points for
+     installation and removal.
+
+     Trench shields and boxes differ from shoring as shoring is designed to prevent collapse
+     where shielding and boxes are only designed to protect workers if a collapse occurs.
+
+
+
+
+40   CODE OF PRACTICE | EXCAVATION WORK
+                                                  6. PREVENTING GROUND COLLAPSE
+
+
+
+
+Trench shields and boxes are useful where other forms of support are not reasonably
+practicable to install. They are mainly used in open areas where access is available for
+an excavator or backhoe to lower and raise the boxes or shields into and out of a trench.
+They are generally not suitable where as access is difficult and ground conditions prevent
+the use of lifting equipment.
+
+Steel boxes for trench work can be light or heavy duty construction depending on the
+depth of the trench and ground conditions. Trench shields and boxes should be designed
+by a competent person, for example an engineer, and be pre-manufactured to job specific
+dimensions.
+
+Used correctly, shields and boxes can provide a safe work space for workers needing to
+enter an excavation. Trench shields and boxes should be adequately maintained or they
+may fail unexpectedly, particularly if they have been abused or misused. The manufacturer’s
+instructions for the installation, use, removal and maintenance of shields and boxes should
+always be followed.
+
+Trench boxes should not be subjected to loads exceeding those which the system was
+designed to withstand. Earth pressures are reduced when correct benching and battering
+practices are used.
+
+Shields and boxes should be stored and transported in accordance with the manufacturer’s
+instructions. Heavy duty equipment may require disassembly for transport.
+
+Boxes should be regularly inspected for damage. They should only be altered or modified
+with the approval of a competent person.
+
+
+
+6.5 Other ground support methods
+
+Support to the face of an excavation can sometimes be effectively provided by the use
+of chemical stabilisation techniques. These techniques involve injection under pressure of
+chemical solutions which bind and solidify soil. This method of stabilisation is only possible
+in porous soils.
+
+
+
+6.6 Regular inspection
+
+The condition of soil surrounding excavations can change quickly due to the soil drying out,
+changes in the water table or water saturation of the soil. The soil condition and the state
+of shoring, battering and trench walls should be frequently checked by a competent person
+for signs of earth fretting, slipping, slumping or ground swelling. Where necessary, repair the
+excavation or strengthen the shoring system from above before allowing work below ground
+to continue.
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                               41
+APPENDIX A – DEFINITIONS
+
+
+        Barrier means a physical structure which blocks or impedes something.
+
+        Barricade means any object or structure that creates a barrier obstacle to control, block
+        passage or force the flow of traffic in the desired direction.
+
+        Backfill means material used for refilling excavations.
+
+        Battering means to form the face or side or wall of an excavation to an angle, usually less
+        than the natural angle of repose, to prevent earth slippage.
+
+        Bench means a horizontal step cut into the face or side or wall of an excavation to provide
+        horizontal bearing and sliding resistance.
+
+        Benching means the horizontal stepping of the face, side, or wall of an excavation.
+
+        Closed sheeting means a continuous frame with vertical or horizontal sheathing planks
+        placed side by side to form a continuous retaining wall supported by other members of
+        a support system used to hold up the face of an excavation.
+
+        Competent person means a person who has acquired through training, qualification or
+        experience the knowledge and skills to carry out the task.
+
+        Earthmoving machinery means operator controlled mobile plant used to excavate, load,
+        transport, compact or spread earth, overburden, rubble, spoil, aggregate or similar material,
+        but does not include a tractor or industrial lift truck.
+
+        Exclusion zone means an area from which all persons are excluded during excavation work.
+
+        Face means an exposed sloping or vertical surface resulting from the excavation of material.
+
+        Geotechnical Engineer means an engineer whose qualifications are acceptable for
+        membership of the Institution of Engineers, Australia and who has qualifications and
+        experience in soil stability and mechanics and excavation work.
+
+        Hoist means an appliance intended for raising or lowering a load or people, and includes
+        an elevating work platform, a mast climbing work platform, personnel and materials
+        hoist, scaffolding hoist and serial hoist but does not include a lift or building maintenance
+        equipment.
+
+        Overburden means the surface soil that must be moved away.
+
+        Operator protective device means a roll-over protective structure (ROPS), falling object
+        protective structure (FOPS), operator restraining device and seat belt.
+
+        Powered mobile plant means plant that is provided with some form of self-propulsion that
+        is ordinarily under the direct control of an operator.
+
+        Safe slope means the steepest slope at which an excavated face is stable against slips
+        and slides, having regard to the qualities of the material in the face, the height of the face,
+        the load above the face and the moisture conditions for the time being existing.
+
+        Shaft means a vertical or inclined way or opening from the surface downwards or from
+        any underground working, the dimensions of which (apart from the perimeter) are less
+        than its depth.
+
+        Sheet piling means vertical, close-spaced, or interlocking planks of steel, reinforced concrete
+        or other structural material driven to form a continuous wall ahead of the excavation
+        and supported either by tie-backs into solid ground structural members from within the
+        excavation as the work proceeds.
+
+
+
+42      CODE OF PRACTICE | EXCAVATION WORK
+                                                           APPENDIX A – DEFINITIONS
+
+
+
+
+Shoring means the use of timber, steel or other structural material to support an excavation
+in order to prevent collapse so that construction can proceed.
+
+Soldier means vertical upright steel or timber element used for supporting a trench wall.
+
+Strut means structural member (usually horizontal) in compression resisting thrust or
+pressure from the face or faces of an excavation.
+
+Tom means structural member used to hold soldiers against a trench wall or to press walers
+apart in a close sheeted trench.
+
+Trench means a horizontal or inclined way or opening:
+
+   the length of which is greater than its width and greater than or equal to its depth; and
+   that commences at and extends below the surface of the ground; and
+   that is open to the surface along its length.
+Trench box means a structure with four vertical side plates permanently braced apart by
+bracing designed to resist the pressure from the walls of a trench and capable of being
+moved as a unit.
+
+Trench shield means a steel or metal structure with two vertical side plates permanently
+braced apart by cross frames or struts designed to resist the pressure from the walls of
+a trench and capable of being moved as a unit.
+
+Tunnel means an underground passage or opening that is approximately horizontal and
+commences at the surface of the ground or an excavation.
+
+Waler means a horizontal steel or timber element used for supporting a trench wall.
+
+Water scouring means an erosion process resulting from the action of the flow of water.
+
+Zone of influence means the volume of soil around the excavation affected by any external
+load (for example vehicles, plant, excavated material).
+
+
+
+
+CODE OF PRACTICE | EXCAVATION WORK                                                               43
+LIST OF AMENDMENTS
+
+
+
+ Date                    Page Number           Amendments
+
+                                               Publication date changed from first published date
+     15 October 2013     Front Cover
+                                               of July 2012 to republished date of October 2013.
+
+     15 October 2013     Whole document        Style and formatting has been reviewed.
+
+     15 October 2013     13                    Section 3.7 - Regulation number 150 changed to 43.
+
+     15 October 2013     29                    Figure 8 amended consistent with word version.
+
+     15 October 2013     37                    Figure 15 number 1 - text changed from 600mm
+                                               to 1000mm and ‘both sides’ changed to ‘the side’.
+
+     11 March 2015       Front cover           Publication date changed from republished date of October
+                                               2013 to second republished date of March 2015.
+
+     11 March 2015       14                    Section 4.1 - Text in first paragraph amended so the two
+                                               sentences are joined by ‘unless’.
+
+
+
+
+44                     CODE OF PRACTICE | EXCAVATION WORK
+CODE OF PRACTICE | EXCAVATION WORK   45
+THIS CODE OF PRACTICE PROVIDES
+PRACTICAL GUIDANCE ON HOW TO
+MANAGE RISKS ASSOCIATED WITH
+ALL TYPES OF EXCAVATION WORK
+INCLUDING BULK EXCAVATIONS,
+TRENCHES, SHAFTS AND TUNNELS.
+
