@@ -127,7 +127,8 @@ app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_W
 // network sharing one address can still sign several people up. Only sending counts; opening the
 // team list does not. If the shared count cannot be read, no email is sent (rate-store.js).
 // The main contractor's sign-in and team invitations (Goal 12 stage 3) count the same way.
-const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email', '/api/hse/email', '/api/hse/orgs/:orgId/members'];
+// The sign-in link from a main contractor's list page (stage 5) counts the same way.
+const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email', '/api/hse/email', '/api/hse/orgs/:orgId/members', '/api/list/:token/sign-in'];
 const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
 const notSending = (req) => req.method !== 'POST';
 app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
@@ -148,6 +149,13 @@ app.use('/api/hse', limiter('hse', positiveNumber(process.env.RATE_LIMIT_HSE_REQ
 // only sending a scope counts, not the page asking how the reading is going.
 const hseScopeLimit = limiter('hse-scope', positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
 app.use(HSE_SCOPE, (req, res, next) => (req.method === 'POST' ? hseScopeLimit(req, res, next) : next()));
+// A main contractor's list page (stage 5), opened from the email with no account. Uploads have a lower
+// limit of their own, and so do the lead's list emails and reminders.
+app.use('/api/list', limiter('list', positiveNumber(process.env.RATE_LIMIT_LIST_REQUESTS, 300)));
+const listUploadLimit = limiter('list-upload', positiveNumber(process.env.RATE_LIMIT_LIST_UPLOADS, 30));
+app.use(/^\/api\/list\/[^/]+\/items\/[^/]+\/upload$/, (req, res, next) => (req.method === 'POST' ? listUploadLimit(req, res, next) : next()));
+const listSendLimit = limiter('list-send', positiveNumber(process.env.RATE_LIMIT_LIST_SENDS, 60));
+app.use(/^\/api\/hse\/subcontracts\/[^/]+\/(?:send|remind)$/, (req, res, next) => (req.method === 'POST' ? listSendLimit(req, res, next) : next()));
 app.use('/api/sign', limiter('sign-on', positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
@@ -690,6 +698,7 @@ app.use('/api', billing.router);
 app.use('/api', admin.router);
 app.use('/api', reviews.router);
 app.use('/api', hse.router);
+app.use('/api', require('./sitelink-send').publicRouter);
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {
@@ -700,7 +709,8 @@ app.use('/api', (_req, res) => {
 app.use((error, req, res, _next) => {
   const status = error.status || error.statusCode || 500;
   // A worker sign-on key is never written to the error log.
-  if (status >= 500) recordError(`${req.method} ${req.path.replace(/^\/api\/sign\/[^/]+/, '/api/sign/:token')}`, error);
+  // Nor is a list page's link or its stop link (stage 5).
+  if (status >= 500) recordError(`${req.method} ${req.path.replace(/^\/api\/sign\/[^/]+/, '/api/sign/:token').replace(/^\/api\/list\/stop\/[^/]+/, '/api/list/stop/:token').replace(/^\/api\/list\/(?!stop\/)[^/]+/, '/api/list/:token')}`, error);
   const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : 'The statement could not be prepared.';
   // What a SWMS still needs before it is saved or downloaded (goal 2), for the page to show.
   const gate = error.publicMessage && Array.isArray(error.gate) ? { gate: error.gate } : {};
@@ -719,7 +729,9 @@ app.use((error, req, res, _next) => {
   // SiteLink (messy round 6): every box's problem at once, and a scope that reads as another trade.
   const fields = error.publicMessage && error.fields && typeof error.fields === 'object' ? { fields: error.fields } : {};
   const tradeMismatch = error.publicMessage && error.tradeMismatch === true ? { tradeMismatch: true } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace, ...fields, ...tradeMismatch });
+  // Stage 5: the email as it now stands, when it changed after the lead checked it.
+  const preview = error.publicMessage && error.preview && typeof error.preview === 'object' ? { preview: error.preview } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview });
 });
 
 // One worker per processor core, as many as the memory allows. A worker holds the step library, the word

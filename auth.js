@@ -98,15 +98,16 @@ async function recordSignin(userId, req) {
 // A first sign-in makes the company, with its free trial. An invited person
 // joins the company that invited them. The person who makes the company is
 // its administrator.
-async function userForEmail(email, companyId) {
+// A company started from a main contractor's list carries where it came from (D283, source).
+async function userForEmail(email, companyId, source = '') {
   const existing = await db.one('SELECT * FROM users WHERE email = $1', [email]);
   if (existing) return existing;
   let company = companyId;
   const founder = !company;
   if (!company) {
     company = newId();
-    await db.query('INSERT INTO companies (id, email, trial_ends_at, created_at) VALUES ($1, $2, $3, $4)',
-      [company, email, later(TRIAL_DAYS * DAY), new Date()]);
+    await db.query('INSERT INTO companies (id, email, trial_ends_at, created_at, source) VALUES ($1, $2, $3, $4, $5)',
+      [company, email, later(TRIAL_DAYS * DAY), new Date(), String(source || '').slice(0, 120)]);
     await record('trial_started', company);
   }
   const id = newId();
@@ -119,8 +120,24 @@ async function finishLogin(token, req = null) {
   // A reviewer's link never opens an account (or starts a trial).
   if (!row || row.used_at || new Date(row.expires_at) < new Date() || row.purpose === REVIEWER) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
   await db.query('UPDATE login_tokens SET used_at = $1 WHERE token_hash = $2', [new Date(), row.token_hash]);
-  const user = await userForEmail(row.email, row.company_id);
+  const user = await userForEmail(row.email, row.company_id, row.source || '');
   return createSession(user.id, req);
+}
+
+// The sign-in link from a main contractor's list page (Goal 12 stage 5, D308): the same as an account's
+// sign-in link, but it opens the list again, so the person can claim it once signed in. A first sign-in
+// starts the company's trial as usual, tagged with the project it came from.
+async function sendListLink(req, email, { listToken, source, builder }) {
+  const token = newToken();
+  await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL AND purpose <> $2', [email, REVIEWER]);
+  await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, source) VALUES ($1, $2, $3, $4, $5)',
+    [hash(token), email, null, later(LINK_MINUTES * 60 * 1000), String(source || '').slice(0, 120)]);
+  const link = `${appUrl(req)}/list.html?t=${encodeURIComponent(listToken)}&login=${token}`;
+  await sendMail({
+    to: email,
+    subject: 'Your SiteWrite sign-in link',
+    text: `Use this link to sign in to SiteWrite, or to start an account, and take up the SWMS list from ${builder}.\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
+  });
 }
 
 function hasAccess(company) {
@@ -334,7 +351,7 @@ async function passkeyLogin(req) {
 
 module.exports = {
   TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl,
-  sendLoginLink, finishLogin, createSession, hasAccess,
+  sendLoginLink, sendListLink, finishLogin, createSession, hasAccess,
   readSession, requireUser, requireAccess,
   sendReviewerLink, sendHseLink, finishReviewerLogin, readReviewer, requireReviewer,
   passkeyRegistrationOptions, passkeyRegister, passkeyLoginOptions, passkeyLogin,

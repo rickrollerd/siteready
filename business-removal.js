@@ -96,6 +96,9 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   const code = businessCode(id);
   if (code) await run('industry_records', 'DELETE FROM industry_records WHERE business = $1', [code]);
 
+  // A main contractor's list it claimed (Goal 12 stage 5) is the main contractor's record: it stays,
+  // with the company's name and ABN as they were when claimed, and no link to the account or its user.
+  await db.query("UPDATE subcontracts SET company_id = '', claimed_by = '' WHERE company_id = $1", [id]);
   // The ABN stays, with no link to the account, so it cannot have a second free trial.
   await db.query("UPDATE trial_abns SET company_id = '' WHERE company_id = $1", [id]);
   await run('users', 'DELETE FROM users WHERE company_id = $1');

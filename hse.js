@@ -609,6 +609,8 @@ async function projectPage(project, org, role, viewerId = '') {
   const rows = await versionsOf(project.id);
   const creator = await db.one('SELECT name, email FROM reviewers WHERE id = $1', [project.created_by]);
   const events = await db.query("SELECT * FROM project_events WHERE org_id = $1 AND (project_id = $2 OR (project_id = '' AND created_at >= $3)) ORDER BY created_at DESC LIMIT 200", [org.id, project.id, project.created_at]);
+  // Stage 5: lists sent, reminders, links opened, uploads and claims (project_log).
+  for (const row of await require('./sitelink-send').logOf(project.id)) events.push({ created_at: row.created_at, text: row.summary });
   return {
     project: projectView(project),
     org: orgView(org, role),
@@ -704,5 +706,9 @@ router.put('/hse/projects/:projectId/site-details', route(async (req, res) => {
 // ---- Subcontracts and their scopes (stage 4, sitelink-scopes.js) ----
 
 const scopes = require('./sitelink-scopes').install(router, { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS, logEvent, supportEmail });
+
+// ---- Sending the list, the list page, reminders and the project log (stage 5, sitelink-send.js) ----
+
+require('./sitelink-send').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, versionsOf, detailsView, FIELDS, dateTime, zones: ZONES });
 
 module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey, tidyAddress, supportEmail };

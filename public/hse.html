@@ -127,8 +127,10 @@
     /* A subcontract on a computer: the list in the wide column, the scope and points beside it. */
     .sub-cols { display: flex; flex-direction: column; }
     .sub-cols > .sub-side { display: contents; }
-    #s-scope { order: 1; } #s-list-card { order: 2; } #s-points-card { order: 3; } #s-preview-actions { order: 4; }
+    #s-scope { order: 1; } #s-list-card { order: 2; } #s-points-card { order: 3; } #s-preview-actions { order: 4; } #s-send { order: 5; } #s-log-card { order: 6; }
     @media (min-width: 980px) {
+      /* On a computer, sending sits at the top beside the list. */
+      .sub-cols #s-send { order: 0; }
       .sub-cols { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 14px; align-items: start; }
       .sub-cols > .sub-side { display: flex; flex-direction: column; gap: 14px; grid-column: 2; grid-row: 1; }
       .sub-cols #s-list-card { grid-column: 1; grid-row: 1; }
@@ -179,9 +181,21 @@
     .read-done .actions { justify-content: center; }
     .read-done .read-done-mark { width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%; background: #e3f3e8; color: #1e7e34; font-size: 26px; line-height: 44px; font-weight: 700; }
     .read-done button.secondary { background: #fff; color: #1f4e3d; }
+    /* Stage 5: sending the list, the email to check, reminders and uploaded files. */
+    .send-state p { margin: 4px 0 0; }
+    .email-box { border: 1px solid #c5cdd6; border-radius: 8px; background: #fbfcfd; margin-top: 10px; }
+    .email-box dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 10px; margin: 0; padding: 10px 12px; border-bottom: 1px solid #e3e7ec; font-size: 14px; }
+    .email-box dt { color: #5c6773; font-weight: 600; }
+    .email-box dd { margin: 0; }
+    .email-box pre { margin: 0; padding: 12px; white-space: pre-wrap; font: inherit; font-size: 15px; }
+    .uploaded { font-size: 14px; margin: 8px 0 0; padding: 6px 8px; background: #e8f3ee; border-radius: 6px; }
+    .uploaded button.link { font-weight: 600; }
+    input[type="date"] { width: 100%; max-width: 260px; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; background: #fff; color: inherit; min-height: 44px; }
     /* Phones (goal 7): text at least 16 px. */
     @media (max-width: 640px) {
-      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs, .tabs a span, .brand .by, .hrcw, .read-progress .rp-lead, .rp-row { font-size: 16px; }
+      .meta, label, dl.details dt, table.subs, .log li, .who, .crumbs, .tabs a span, .brand .by, .hrcw, .read-progress .rp-lead, .rp-row, .email-box dl, .email-box pre, .uploaded { font-size: 16px; }
+      .email-box dl { grid-template-columns: minmax(0, 1fr); }
+      .email-box dt { margin-top: 4px; }
       .log .when { font-size: 15px; }
     }
   </style>
@@ -378,9 +392,12 @@
         <label for="sf-trade">Trade <span class="hint">For example Formwork or Electrical.</span></label>
         <input id="sf-trade" type="text" autocomplete="off" maxlength="120">
         <p class="field-error hidden" id="sf-trade-error"></p>
-        <label for="sf-email">Contact email <span class="hint">Optional for now. Sending the list to the subcontractor is not open yet.</span></label>
+        <label for="sf-email">Contact email <span class="hint">The list email goes to this address. You can add it later.</span></label>
         <input id="sf-email" type="email" autocomplete="off" inputmode="email" maxlength="200">
         <p class="field-error hidden" id="sf-email-error"></p>
+        <label for="sf-abn">ABN <span class="hint">Optional. With it, only a company with this ABN can take up the list in SiteWrite. Without it, the first company to take it up gets it.</span></label>
+        <input id="sf-abn" type="text" inputmode="numeric" autocomplete="off" maxlength="20">
+        <p class="field-error hidden" id="sf-abn-error"></p>
         <div class="actions"><button type="submit" id="sf-save">Add the subcontract</button><a class="button light" id="sf-cancel" href="#/">Cancel</a></div>
         <div id="sf-status" role="status"></div>
       </form>
@@ -399,6 +416,8 @@
       <div class="panel short" id="s-scope"></div>
       <div class="panel short" id="s-points-card"></div>
       <div class="actions short" id="s-preview-actions"><a class="button" id="s-preview-go" href="#">What the subcontractor sees</a></div>
+      <div class="panel short" id="s-send"></div>
+      <div class="panel short" id="s-log-card"><h2>Log</h2><ul class="plain log" id="s-log"></ul></div>
       </div>
       <div class="panel short" id="s-list-card">
         <div class="card-head"><h2 id="s-list-title">SWMS this subcontract needs</h2><a class="button light" id="s-preview-link" href="#">What the subcontractor sees</a></div>

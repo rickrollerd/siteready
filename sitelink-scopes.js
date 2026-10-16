@@ -20,6 +20,8 @@ const { BRIEF_VERSION } = require('./ai-brief');
 const controlLearning = require('./control-learning');
 const { controlLearningKey } = require('./secret-keys');
 const answers = require('./sitelink-answers');
+const send = require('./sitelink-send');
+const { validAbn } = require('./accounts');
 
 const { fail } = auth;
 const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -126,15 +128,19 @@ function typed(value, max, label, field, { answer = false } = {}) {
   return text;
 }
 
+// The subcontractor's ABN is optional (D308). With it, only a company with that ABN can take up the list
+// in SiteWrite; its check digits must work.
 function cleanSubcontract(body) {
   const name = oneLine(body && body.name, 200);
   const trade = oneLine(body && body.trade, 120);
   const rawEmail = oneLine(body && body.email, 200);
+  const abn = String((body && typeof body.abn === 'string' && body.abn) || '').replace(/\s+/g, '');
   if (!name) throw Object.assign(fail(400, 'Enter the subcontractor\'s company name.'), { field: 'name' });
   if (!trade) throw Object.assign(fail(400, 'Enter the trade, for example Formwork or Electrical.'), { field: 'trade' });
   const email = rawEmail ? auth.cleanEmail(rawEmail) : '';
   if (rawEmail && !email) throw Object.assign(fail(400, 'Enter a valid email address, or leave it empty.'), { field: 'email' });
-  return { name, trade, email };
+  if (abn && !validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits, or leave it empty.'), { field: 'abn' });
+  return { name, trade, email, abn };
 }
 
 // ---- Learning from the lead's changes (without names) ----
@@ -285,6 +291,7 @@ function install(router, deps) {
       docName: sub.doc_name, scopeOn: sub.scope_at ? dateTime(sub.scope_at, state) : '', scopeBy: sub.scope_by_name, listRev: Number(sub.list_rev || 0),
       readOn: readAt ? dateTime(readAt, state) : '', readBefore: Boolean(readAt && sub.scope_at && new Date(readAt) < new Date(sub.scope_at) - 60000),
       tradeWarning: sub.trade_warning || '',
+      abn: sub.abn || '',
     };
   }
 
@@ -308,6 +315,8 @@ function install(router, deps) {
       points: points.map((row) => pointView(row, project.state, rows)),
       readings: await readingsLeft(project),
       preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS }),
+      // Stage 5: sending the list, reminders, the files uploaded, the claim and the log.
+      sending: await send.sendingFor(ctx),
       ...extra,
     };
   }
@@ -332,6 +341,7 @@ function install(router, deps) {
         swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && row.removed_why !== 'noLaw').length,
         aside: items.filter((row) => row.removed_at && row.removed_why === 'noLaw').length,
         pointsOpen: open.length,
+        ...(await send.summaryFor(sub, project)),
       });
     }
     return { subcontracts: out, readings: await readingsLeft(project) };
@@ -345,8 +355,8 @@ function install(router, deps) {
     const fields = cleanSubcontract(req.body);
     const id = auth.newId();
     const now = new Date();
-    await db.query('INSERT INTO subcontracts (id, project_id, name, trade, contact_email, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)',
-      [id, project.id, fields.name, fields.trade, fields.email, req.reviewer.id, now]);
+    await db.query('INSERT INTO subcontracts (id, project_id, name, trade, contact_email, abn, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)',
+      [id, project.id, fields.name, fields.trade, fields.email, fields.abn, req.reviewer.id, now]);
     record('subcontract_added', null);
     const sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [id]);
     await log({ org, project }, req, `added the subcontract ${fields.name} (${fields.trade}).`);
@@ -361,9 +371,12 @@ function install(router, deps) {
   router.put('/hse/subcontracts/:subId', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     const fields = cleanSubcontract(req.body);
+    // Once a company has taken up the list, the ABN that decided it stays (D308).
+    if (ctx.sub.claimed_at && fields.abn !== (ctx.sub.abn || '')) throw Object.assign(fail(400, `${ctx.sub.claimed_name} has taken up the list in SiteWrite, so the ABN cannot be changed now.`), { field: 'abn' });
     // A new trade clears the warning that the scope is for another trade.
-    await db.query('UPDATE subcontracts SET name = $1, trade = $2, contact_email = $3, updated_at = $4, trade_warning = $6 WHERE id = $5',
-      [fields.name, fields.trade, fields.email, new Date(), ctx.sub.id, fields.trade === ctx.sub.trade ? ctx.sub.trade_warning || '' : '']);
+    await db.query('UPDATE subcontracts SET name = $1, trade = $2, contact_email = $3, abn = $7, updated_at = $4, trade_warning = $6 WHERE id = $5',
+      [fields.name, fields.trade, fields.email, new Date(), ctx.sub.id, fields.trade === ctx.sub.trade ? ctx.sub.trade_warning || '' : '', fields.abn]);
+    if (fields.email !== ctx.sub.contact_email && ctx.sub.sent_at) await log(ctx, req, `changed the contact email for ${ctx.sub.name} from ${ctx.sub.contact_email || 'none'} to ${fields.email || 'none'}.`);
     ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
     res.json(await subcontractPage(ctx, { message: 'The subcontract details are saved.' }));
   }));
@@ -480,7 +493,7 @@ function install(router, deps) {
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));
   }));
 
-  return { projectSubcontracts };
+  return { projectSubcontracts, subcontractFor, subcontractPage };
 }
 
 module.exports = { install, notAScope, tradeMismatch, DRAWING, PRICE_SCHEDULE };

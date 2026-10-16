@@ -125,6 +125,7 @@ async function bucketRequest(method, objectKey, body = null, contentType = '') {
   if (!response.ok) throw new Error(`The storage bucket answered ${response.status}.`);
   return method === 'GET' ? Buffer.from(await response.arrayBuffer()) : null;
 }
+// A SiteLink list's uploaded SWMS (sitelink-send.js) use the same bucket under list-uploads/.
 const objectKey = (id) => `design-files/${id}`;
 
 async function putData(id, data, type) {
@@ -264,6 +265,6 @@ function storageProblem() {
 }
 
 module.exports = {
-  MAX_BYTES, MAX_MB, UNSAVED_DAYS, checkFile, fileName, enabled, bucketConfigured, bucketSettings, signature, useBucketFetch,
+  MAX_BYTES, MAX_MB, UNSAVED_DAYS, checkFile, fileName, enabled, bucketConfigured, bucketSettings, signature, useBucketFetch, bucketRequest, pdfReads, PDF_ACTIVE,
   saveUpload, ownFile, missingFiles, needFiles, recordUses, fileForSwms, fileOfCompany, sendFile, removeUnused, removeForCompany, filesOfSwms, storageProblem,
 };

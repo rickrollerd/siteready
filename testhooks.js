@@ -24,15 +24,23 @@ function secretMatches(given) {
 
 let ready = null;
 function table() {
-  if (!ready) ready = db.query('CREATE TABLE IF NOT EXISTS test_inbox (id TEXT PRIMARY KEY, recipient TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL)').catch((error) => { ready = null; throw error; });
+  if (!ready) {
+    // The From name and Reply-To are kept too (stage 5), so testers can check who a list email is from.
+    ready = db.query('CREATE TABLE IF NOT EXISTS test_inbox (id TEXT PRIMARY KEY, recipient TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL)')
+      .then(() => db.query("ALTER TABLE test_inbox ADD COLUMN IF NOT EXISTS from_name TEXT NOT NULL DEFAULT ''"))
+      .then(() => db.query("ALTER TABLE test_inbox ADD COLUMN IF NOT EXISTS reply_to TEXT NOT NULL DEFAULT ''"))
+      .then(() => db.query("ALTER TABLE test_inbox ADD COLUMN IF NOT EXISTS headers TEXT NOT NULL DEFAULT '{}'"))
+      .catch((error) => { ready = null; throw error; });
+  }
   return ready;
 }
 
 const isTestAddress = (to) => String(to || '').toLowerCase().endsWith(`@${DOMAIN()}`);
 
-async function keep({ to, subject, text }) {
+async function keep({ to, subject, text, from, replyTo, headers }) {
   await table();
-  await db.query('INSERT INTO test_inbox (id, recipient, subject, body, created_at) VALUES ($1, $2, $3, $4, $5)', [crypto.randomBytes(12).toString('hex'), String(to).toLowerCase(), subject, text, new Date()]);
+  await db.query('INSERT INTO test_inbox (id, recipient, subject, body, created_at, from_name, reply_to, headers) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+    [crypto.randomBytes(12).toString('hex'), String(to).toLowerCase(), subject, text, new Date(), String((from && from.name) || ''), String(replyTo || ''), JSON.stringify(headers || {})]);
   // A week of test mail is plenty.
   await db.query('DELETE FROM test_inbox WHERE created_at < $1', [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)]);
 }
@@ -47,8 +55,9 @@ function install(app, { sendReviewReminders, removeExpired }) {
       const to = String(req.query.to || '').toLowerCase();
       if (!isTestAddress(to)) return res.status(400).json({ kind: 'error', message: `Only addresses at ${DOMAIN()}.` });
       await table();
-      const rows = await db.query('SELECT subject, body, created_at FROM test_inbox WHERE recipient = $1 ORDER BY created_at DESC LIMIT 20', [to]);
-      return res.json({ messages: rows.map((row) => ({ subject: row.subject, text: row.body, at: row.created_at })) });
+      const rows = await db.query('SELECT subject, body, created_at, from_name, reply_to, headers FROM test_inbox WHERE recipient = $1 ORDER BY created_at DESC LIMIT 20', [to]);
+      const headersOf = (row) => { try { return JSON.parse(row.headers || '{}'); } catch { return {}; } };
+      return res.json({ messages: rows.map((row) => ({ subject: row.subject, text: row.body, at: row.created_at, fromName: row.from_name || '', replyTo: row.reply_to || '', headers: headersOf(row) })) });
     } catch (error) { return next(error); }
   });
   // Google's raw results for Find nearest, with what the filter kept, so it can be tuned on real data.
@@ -95,7 +104,7 @@ function install(app, { sendReviewReminders, removeExpired }) {
     } catch (error) { return next(error); }
   });
   // SiteLink (messy round 6): removes a test SiteLink account, with its team, projects, site details,
-  // log, subcontracts, SWMS lists, points and project readings, so testers can set up again. Named by
+  // log, subcontracts, SWMS lists, points, the lists' links, emails and uploads, and project readings, so testers can set up again. Named by
   // a test address in the team ({ email }) or by its ABN ({ abn }). Only an account whose every member
   // and invitation, and whose maker, is a test address is removed; any other is left as it is.
   router.post('/sitelink/remove', async (req, res, next) => {
@@ -120,13 +129,17 @@ function install(app, { sendReviewReminders, removeExpired }) {
           for (const sub of subs) {
             await db.query('DELETE FROM required_swms WHERE subcontract_id = $1', [sub.id]);
             await db.query('DELETE FROM subcontract_points WHERE subcontract_id = $1', [sub.id]);
+            // Stage 5: the list's links, emails, uploads and claims.
+            await require('./sitelink-send').removeForSubcontract(sub.id);
           }
+          await db.query('DELETE FROM project_log WHERE project_id = $1', [project.id]);
           await db.query('DELETE FROM subcontracts WHERE project_id = $1', [project.id]);
           await db.query('DELETE FROM project_site_details WHERE project_id = $1', [project.id]);
         }
         await db.query('DELETE FROM project_events WHERE org_id = $1', [org.id]);
         await db.query('DELETE FROM projects WHERE org_id = $1', [org.id]);
         await db.query("DELETE FROM ai_readings WHERE org_id = $1 AND company_id = ''", [org.id]);
+        await db.query('DELETE FROM mail_stops WHERE org_id = $1', [org.id]);
         await db.query('DELETE FROM org_members WHERE org_id = $1', [org.id]);
         await db.query('DELETE FROM orgs WHERE id = $1', [org.id]);
         removed.push(org.id);
