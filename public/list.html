@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <!-- The address holds the list's private link: it is never sent on to another site. -->
+  <meta name="referrer" content="no-referrer">
+  <title>SWMS list: SiteWrite</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 48px; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid #d5dbe3; margin-bottom: 14px; }
+    .brand { font-weight: 700; color: #1f4e3d; font-size: 17px; text-decoration: none; }
+    .who { font-size: 14px; color: #5c6773; }
+    h1 { font-size: 24px; margin: 6px 0 4px; }
+    h2 { font-size: 19px; margin: 0 0 8px; }
+    h3 { font-size: 17px; margin: 0 0 4px; }
+    .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
+    a { color: #1f4e3d; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    .panel > p:first-child, .panel > div:first-child { margin-top: 0; }
+    .actions + .meta, form + div + .meta { margin-top: 12px; }
+    .due { font-size: 18px; font-weight: 700; margin: 8px 0 0; }
+    .due.past { color: #8a2b2b; }
+    label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 4px; }
+    label .hint { display: block; font-weight: 400; color: #5c6773; margin-top: 2px; }
+    input[type="text"], input[type="email"] { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; background: #fff; color: inherit; }
+    input[type="file"] { display: block; width: 100%; margin-top: 4px; font: inherit; padding: 10px; border: 1px dashed #9aa5b1; border-radius: 6px; background: #fff; }
+    button, .button { display: inline-block; border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 11px 14px; min-height: 44px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; }
+    button.light, .button.light { background: #fff; color: #1f4e3d; }
+    button.danger { background: #fff; color: #8a1f1f; border-color: #c98b8b; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+    @media (max-width: 640px) { .actions > button, .actions > .button { flex: 1 1 100%; } }
+    .ok { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+    .bad { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+    .warn { background: #fff4dc; border: 1px solid #e6c77a; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+    .note { background: #f4f6f8; border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 14px; }
+    .ok p, .bad p, .warn p, .note p { margin: 6px 0 0; }
+    .field-error { color: #a01818; font-weight: 700; margin: 6px 0 0; }
+    .has-error { border-color: #c02020 !important; border-width: 2px !important; }
+    .hidden { display: none !important; }
+    .tag { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #e8f3ee; color: #1f4e3d; }
+    .tag.unverified { background: #fff4dc; color: #7a4d00; border: 1px solid #e6c77a; }
+    .swms { border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 10px; background: #fff; }
+    .swms .work { margin: 6px 0 0; }
+    .also { font-size: 14px; color: #3d4a59; margin: 6px 0 0; }
+    .hrcw { display: block; font-size: 14px; margin-top: 4px; }
+    .hrcw-yes { color: #8a2b2b; } .hrcw-likely, .hrcw-depends { color: #7a4d00; } .hrcw-none { color: #5c6773; }
+    .files { list-style: none; margin: 8px 0 0; padding: 0; }
+    .files li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; background: #e8f3ee; border-radius: 6px; padding: 6px 8px; margin-top: 6px; }
+    .files button { min-height: 40px; padding: 6px 10px; }
+    details.upload { margin-top: 10px; }
+    details.upload > summary { cursor: pointer; font-weight: 600; color: #1f4e3d; min-height: 44px; padding: 10px 0; }
+    dl.details { margin: 8px 0 0; }
+    dl.details dt { font-weight: 600; font-size: 14px; margin-top: 10px; }
+    dl.details dd { margin: 2px 0 0; }
+    dl.details ul { margin: 2px 0 0; padding-left: 20px; }
+    .qa { border-left: 3px solid #9cc9b3; padding: 4px 0 4px 10px; margin-top: 10px; }
+    .qa p { margin: 2px 0; }
+    /* Phones (goal 7): text at least 16 px. */
+    @media (max-width: 640px) {
+      .meta, label, dl.details dt, .who, .hrcw, .also { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="/">SiteWrite</a>
+      <span class="who hidden" id="who-line"></span>
+    </div>
+    <div id="flash" aria-live="polite"></div>
+
+    <section id="view-loading"><p class="meta">Opening the list...</p></section>
+    <section id="view-error" class="hidden"><h1>This list cannot be opened</h1><div id="error-box"></div></section>
+
+    <!-- The SWMS list a main contractor sent (Goal 12 stage 5): no account needed. -->
+    <section id="view-list" class="hidden">
+      <p class="meta" id="l-from"></p>
+      <h1 id="l-title"></h1>
+      <div id="l-changed"></div>
+      <div class="panel">
+        <p><strong id="l-project"></strong><br><span id="l-workplace"></span><br><span class="meta" id="l-pc"></span></p>
+        <p class="meta" id="l-for"></p>
+        <p class="due" id="l-due"></p>
+      </div>
+      <div class="panel">
+        <h2 id="l-swms-title"></h2>
+        <p class="meta" id="l-swms-intro"></p>
+        <div id="l-swms"></div>
+      </div>
+      <div class="panel hidden" id="l-answers-card"><div id="l-answers"></div></div>
+      <div class="panel" id="l-details-card"><div id="l-details"></div></div>
+      <div class="panel" id="l-claim"></div>
+      <div class="note" id="l-contact"></div>
+    </section>
+
+    <!-- "Stop these emails" from a list email -->
+    <section id="view-stop" class="hidden">
+      <h1>Stop these emails</h1>
+      <div class="panel" id="stop-box"></div>
+    </section>
+  </div>
+  <script src="/old-keys.js"></script>
+  <script src="/net.js" data-message="No signal. Try again when you have signal."></script>
+  <script src="/list.js"></script>
+</body>
+</html>

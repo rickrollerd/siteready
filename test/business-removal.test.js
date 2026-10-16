@@ -106,7 +106,11 @@ const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_m
 // The main contractor's account, team, projects and site details (Goal 12 stage 3) belong to the main
 // contractor, never to a subcontractor's business, so deleting a business leaves them.
 // Their subcontracts, SWMS lists and answered points (stage 4) are the main contractor's too.
-const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details', 'subcontracts', 'required_swms', 'subcontract_points', 'project_events'];
+// The lists sent (stage 5), their emails, the addresses that asked to stop them, the SWMS uploaded
+// from the list page and the project log are the main contractor's too: a list a business claimed
+// loses its link to the business (sitelink-send.test.js).
+const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details', 'subcontracts', 'required_swms', 'subcontract_points', 'project_events',
+  'list_links', 'mail_messages', 'mail_stops', 'list_uploads', 'list_upload_data', 'project_log'];
 
 async function tiedCounts(business) {
   const out = {};

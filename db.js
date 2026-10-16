@@ -741,6 +741,108 @@ const SCHEMA = [
     reading_key TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL
   )`,
+  // Goal 12 stage 5: sending the list. The submission due date the lead sets (YYYY-MM-DD), when the
+  // list was first sent and first opened, and the company that claimed it in SiteWrite (D308): its id
+  // and the user who claimed, and its name and ABN as they were then, which the main contractor sees.
+  // The ABN the lead may enter for the subcontract is in abn (above).
+  "ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS due_date TEXT NOT NULL DEFAULT ''",
+  'ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS sent_at TIMESTAMPTZ',
+  'ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ',
+  'ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ',
+  "ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS claimed_by TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS claimed_name TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS claimed_abn TEXT NOT NULL DEFAULT ''",
+  // Each list email sent carries a link of its own: one for each subcontract and list version. Only the
+  // hashes of the link's token and of its "stop these emails" token are kept. items is the list as
+  // it was sent (titles and work), so a later email can say what changed. A link sent to an address
+  // the lead has since corrected is revoked.
+  `CREATE TABLE IF NOT EXISTS list_links (
+    id TEXT PRIMARY KEY,
+    subcontract_id TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    org_id TEXT NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    stop_hash TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    list_rev INTEGER NOT NULL,
+    due_date TEXT NOT NULL DEFAULT '',
+    items JSONB NOT NULL,
+    sent_by TEXT NOT NULL DEFAULT '',
+    sent_by_name TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    opened_at TIMESTAMPTZ,
+    last_opened_at TIMESTAMPTZ,
+    revoked_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS list_links_subcontract ON list_links (subcontract_id, created_at)',
+  // Every email SiteLink sends about a project, with the template and its version, so it is known
+  // which wording went out. The body is kept with the link's token taken out.
+  `CREATE TABLE IF NOT EXISTS mail_messages (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    subcontract_id TEXT NOT NULL DEFAULT '',
+    link_id TEXT NOT NULL DEFAULT '',
+    template TEXT NOT NULL,
+    template_version INTEGER NOT NULL,
+    recipient TEXT NOT NULL,
+    from_name TEXT NOT NULL DEFAULT '',
+    reply_to TEXT NOT NULL DEFAULT '',
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    provider TEXT NOT NULL DEFAULT '',
+    provider_id TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS mail_messages_subcontract ON mail_messages (subcontract_id, created_at)',
+  // An address that asked for no more list emails from one main contractor's account ("stop these
+  // emails"). SiteLink sends it nothing more from that account until it asks to start them again.
+  `CREATE TABLE IF NOT EXISTS mail_stops (
+    org_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    stopped_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (org_id, email)
+  )`,
+  // A SWMS the subcontractor already has, uploaded from the list page for one SWMS on the list (PDF or
+  // Word). The file is in the storage bucket, or in list_upload_data without one (design-files.js).
+  `CREATE TABLE IF NOT EXISTS list_uploads (
+    id TEXT PRIMARY KEY,
+    subcontract_id TEXT NOT NULL,
+    required_swms_id TEXT NOT NULL,
+    link_id TEXT NOT NULL DEFAULT '',
+    name TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    sha256 TEXT NOT NULL,
+    storage TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    removed_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS list_uploads_subcontract ON list_uploads (subcontract_id, created_at)',
+  `CREATE TABLE IF NOT EXISTS list_upload_data (
+    upload_id TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  )`,
+  // The project's log both sides see (plan section B), from stage 5: lists sent, reminders, a list's
+  // link opened, uploads and claims. subcontract_id is empty for an entry about the whole project.
+  `CREATE TABLE IF NOT EXISTS project_log (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    subcontract_id TEXT NOT NULL DEFAULT '',
+    required_swms_id TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL,
+    actor_kind TEXT NOT NULL,
+    actor_name TEXT NOT NULL DEFAULT '',
+    summary TEXT NOT NULL,
+    ref_ids JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS project_log_project ON project_log (project_id, created_at)',
+  // D283: a sign-up that came from a builder's list is tagged with where it came from
+  // ('project-invite:{projectId}'), so sign-ups from the review loop can be counted.
+  "ALTER TABLE login_tokens ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE companies ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT ''",
 ];
 
 async function migrate() {

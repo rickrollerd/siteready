@@ -19,6 +19,8 @@
     get: (key) => { try { return localStorage.getItem(key) || ''; } catch { return ''; } },
     set: (key, value) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key); } catch { /* not kept */ } },
   };
+  // An ABN as people write it: "51 824 753 556".
+  const formatAbn = (abn) => { const d = String(abn || '').replace(/\D/g, ''); return d.length === 11 ? `${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8)}` : String(abn || ''); };
   const STATE_NAME = { act: 'Australian Capital Territory', nsw: 'New South Wales', nt: 'Northern Territory', qld: 'Queensland', sa: 'South Australia', tas: 'Tasmania', vic: 'Victoria', wa: 'Western Australia' };
   // What each site detail asks for, under its name.
   const HINTS = {
@@ -47,7 +49,7 @@
     });
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && token) signedOut('You have been signed out. Sign in again to carry on.');
-    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch });
+    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch, preview: data.preview });
     return data;
   }
 
@@ -674,8 +676,12 @@
     $('p-subs').innerHTML = subs.length ? subs.map((sub) => {
       const off = [sub.removed ? `${sub.removed} removed` : '', sub.aside ? `${sub.aside} may not need one` : ''].filter(Boolean).join(', ');
       const list = !sub.swms && !sub.removed && !sub.aside ? (sub.scope === 'reading' ? 'Not listed yet' : 'None yet') : `${sub.swms} SWMS${off ? ` (${off})` : ''}${sub.pointsOpen ? `<span class="scope-state">${sub.pointsOpen} ${sub.pointsOpen === 1 ? 'point' : 'points'} to answer</span>` : ''}`;
+      // Stage 5: whether the list has gone, its due date, and whether it was opened or taken up.
+      const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}` : sub.opened ? '. Opened' : '. Not opened yet'}` : 'Not sent yet';
+      const filesIn = sub.filesIn ? `${sub.filesIn} of ${sub.swms} uploaded` : 'None yet';
+      const last = sub.lastContact ? `${esc(sub.lastContact.text)}, ${esc(sub.lastContact.on)}` : 'None yet';
       return `<tr><td class="sub-name"><a href="#/sub/${esc(sub.id)}">${esc(sub.name)}</a><span class="scope-state">${esc(sub.trade)} · ${esc(SCOPE_STATE[sub.scope] || SCOPE_STATE.none)}</span></td>
-        <td data-label="SWMS list">${list}</td><td data-label="SWMS in">None yet</td><td data-label="Review status">List not sent yet</td><td data-label="Conditions outstanding">None</td><td data-label="Updated after plan change">No plans yet</td><td data-label="Last contact">None yet</td></tr>`;
+        <td data-label="SWMS list">${list}<span class="scope-state">${sent}</span></td><td data-label="SWMS in">${filesIn}</td><td data-label="Review status">None yet</td><td data-label="Conditions outstanding">None</td><td data-label="Updated after plan change">No plans yet</td><td data-label="Last contact">${last}</td></tr>`;
     }).join('') : '<tr><td class="empty" colspan="7">No subcontractors yet. Add each subcontract and upload its scope of works. SiteLink lists the SWMS each one needs.</td></tr>';
   }
 
@@ -693,6 +699,7 @@
       $('sf-name').value = data.subcontract.name;
       $('sf-trade').value = data.subcontract.trade;
       $('sf-email').value = data.subcontract.email;
+      $('sf-abn').value = formatAbn(data.subcontract.abn || '');
       $('sf-save').textContent = 'Save';
       $('sf-cancel').href = `#/sub/${subId}`;
     } else {
@@ -700,7 +707,7 @@
       subForm = { projectId: data.project.id, subId: null };
       $('sf-title').textContent = 'Add a subcontract';
       $('sf-crumbs').innerHTML = `<a href="#/">Your projects</a> › <a href="#/project/${esc(data.project.id)}">${esc(data.project.name)}</a>`;
-      for (const id of ['sf-name', 'sf-trade', 'sf-email']) $(id).value = '';
+      for (const id of ['sf-name', 'sf-trade', 'sf-email', 'sf-abn']) $(id).value = '';
       $('sf-save').textContent = 'Add the subcontract';
       $('sf-cancel').href = `#/project/${data.project.id}`;
     }
@@ -710,7 +717,7 @@
     event.preventDefault();
     clearErrors($('sub-form'));
     box('sf-status', '');
-    const body = { name: $('sf-name').value, trade: $('sf-trade').value, email: $('sf-email').value };
+    const body = { name: $('sf-name').value, trade: $('sf-trade').value, email: $('sf-email').value, abn: $('sf-abn').value };
     if (!body.name.trim()) { fieldError('sf-name', 'Enter the subcontractor\'s company name.'); return; }
     if (!body.trade.trim()) { fieldError('sf-trade', 'Enter the trade, for example Formwork or Electrical.'); return; }
     await busy($('sf-save'), 'Saving...', async () => {
@@ -723,7 +730,7 @@
           go(`#/sub/${data.subcontract.id}`, `${esc(data.subcontract.name)} is added. Now upload its scope of works.`);
         }
       } catch (error) {
-        if (['name', 'trade', 'email'].includes(error.field)) fieldError(`sf-${error.field}`, error.message);
+        if (['name', 'trade', 'email', 'abn'].includes(error.field)) fieldError(`sf-${error.field}`, error.message);
         else box('sf-status', esc(error.message), 'bad');
       }
     });
@@ -801,8 +808,15 @@
     }
     const also = item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers the subcontractor's own ${esc(item.alsoCovers.join(', ').toLowerCase())}.</p>` : '';
     return `<div class="swms-item" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>${hrcwLine(item.highRisk)}
-      <p class="work" id="item-${esc(item.id)}-work">${esc(item.task)}</p>${also}${clauses}
+      <p class="work" id="item-${esc(item.id)}-work">${esc(item.task)}</p>${also}${clauses}${uploadedLine(item)}
       <div class="actions" id="item-${esc(item.id)}-buttons"><button type="button" class="light" data-reword="${esc(item.id)}" ${named('Change the work for')}>Change the work</button><button type="button" class="danger" data-remove-item="${esc(item.id)}" ${named('Remove')}>Remove</button></div></div>`;
+  }
+
+  // Files the subcontractor uploaded for this SWMS on the list page (stage 5), to open.
+  function uploadedLine(item) {
+    const files = ((sub && sub.sending && sub.sending.uploads) || []).filter((file) => file.itemId === item.id);
+    if (!files.length) return '';
+    return `<p class="uploaded">Uploaded from the list page: ${files.map((file) => `<button type="button" class="link" data-upload-open="${esc(file.id)}" data-upload-name="${esc(file.name)}">${esc(file.name)}</button> <span class="meta">(${esc(file.type)}, ${esc(file.on)})</span>`).join('; ')}</p>`;
   }
 
   // Where a SWMS just left the list: a note in its place, beside where the person was looking, with a
@@ -881,7 +895,7 @@
     document.title = `${s.name}: SiteLink`;
     $('s-crumbs').innerHTML = `<a href="#/">Your projects</a> › <a href="#/project/${esc(data.project.id)}">${esc(data.project.name)}</a>`;
     $('s-name').textContent = s.name;
-    $('s-meta').textContent = [s.trade, s.email || 'No contact email yet'].filter(Boolean).join(' · ');
+    $('s-meta').textContent = [s.trade, s.email || 'No contact email yet', s.abn ? `ABN ${formatAbn(s.abn)}` : 'No ABN given'].filter(Boolean).join(' · ');
     box('s-trade', s.tradeWarning ? `<strong>${esc(s.tradeWarning)}</strong> <a href="#/sub/${esc(s.id)}/edit">Change the trade</a> or upload a different scope below.` : '', 'warn');
     $('s-edit').href = `#/sub/${s.id}/edit`;
     $('s-preview-link').href = `#/sub/${s.id}/preview`;
@@ -889,6 +903,8 @@
     renderScope();
     renderList();
     renderPoints();
+    renderSend();
+    $('s-log').innerHTML = data.sending.log.length ? data.sending.log.map((entry) => `<li><span class="when">${esc(entry.when)}</span>${esc(entry.text)}</li>`).join('') : '<li class="meta">Nothing yet. Sending the list, reminders, the link being opened, files uploaded and the list being taken up show here.</li>';
     if (message) box('s-flash', esc(message), 'ok');
   }
 
@@ -1150,6 +1166,138 @@
     }
   });
 
+  // ---- Sending the list, and reminders (stage 5) ----
+  // The lead chooses the due date and presses "Check the email". The email shows exactly as it will go,
+  // with the two links in brackets (they are made when it is sent). "Send the email" sends that email and
+  // no other: if anything in it changed since, the new email is shown to check again.
+
+  let checking = null;
+  const SEND_TYPED = (id) => typedKey('due', id);
+  function changeLines(changes) {
+    const parts = [];
+    if (changes.added.length) parts.push(`added ${changes.added.join(', ')}`);
+    if (changes.removed.length) parts.push(`removed ${changes.removed.join(', ')}`);
+    if (changes.changed.length) parts.push(`changed the work for ${changes.changed.join(', ')}`);
+    return parts.join('; ');
+  }
+  function renderSend() {
+    const card = $('s-send');
+    const sending = sub.sending;
+    const id = sub.subcontract.id;
+    const lines = [];
+    if (!sending.sent) lines.push('<p>Not sent yet.</p>');
+    else {
+      lines.push(`<p><strong>Sent to ${esc(sending.sent.to)}</strong> on ${esc(sending.sent.on)} by ${esc(sending.sent.by)}. Due ${esc(sending.sent.dueShown)}.</p>`);
+      lines.push(sending.opened ? `<p>Opened on ${esc(sending.opened)}.</p>` : '<p class="meta">Not opened yet. It counts as opened when the link in the email is used.</p>');
+      if (sending.claimed) lines.push(`<p>Taken up in SiteWrite by <strong>${esc(sending.claimed.name)}</strong> (ABN ${esc(sending.claimed.abn)}) on ${esc(sending.claimed.on)}.</p>`);
+      else lines.push(`<p class="meta">${sending.abn ? `Only a company with ABN ${esc(sending.abnShown)} can take it up in SiteWrite.` : 'No ABN given, so the first company to take it up in SiteWrite gets it. You will see which company.'}</p>`);
+    }
+    let warn = '';
+    if (sending.stopped) warn += `<div class="warn"><strong>${esc(sending.stopped.email)} asked on ${esc(sending.stopped.on)} for no more list emails from you.</strong> SiteLink will not email them. Contact them yourself, or change the contact email to another person.</div>`;
+    if (sending.emailChanged) warn += `<div class="warn"><strong>The list was sent to ${esc(sending.sent.to)}.</strong> Send it to ${esc(sending.email)} now. The link sent to ${esc(sending.sent.to)} will stop working.</div>`;
+    if (sending.changes) warn += `<div class="warn"><strong>The list has changed since it was sent:</strong> ${esc(changeLines(sending.changes))}. Send the updated list. The email says what changed.</div>`;
+    const typed = readTyped(SEND_TYPED(id));
+    const due = typed && typeof typed.due === 'string' ? typed.due : sending.dueDate;
+    const to = sending.email ? `<p>To <strong>${esc(sending.email)}</strong>. <a href="#/sub/${esc(id)}/edit">Change details</a></p>` : `<p class="warn">No contact email yet. <a href="#/sub/${esc(id)}/edit">Add it under Change details</a>.</p>`;
+    const checkLabel = !sending.sent || sending.emailChanged ? 'Check the email' : sending.changes ? 'Check the updated email' : 'Check the email with a new due date';
+    // Reminders go to the address the list went to; after the address changes, the list goes first.
+    const remind = sending.sent && !sending.emailChanged && !sending.stopped ? `<h3>Remind</h3><p class="meta">Sends ${esc(sending.sent.to)} the SWMS on the list with no file uploaded yet. At most once every ${esc(Math.round(sending.reminderHours / 24))} days, ${esc(sending.remind.max)} times after each list, so they are not flooded.${sending.remind.used ? ` ${esc(sending.remind.used)} sent so far.` : ''}</p>
+      ${sending.remind.why ? `<p class="meta"><strong>${esc(sending.remind.why)}</strong></p>` : ''}
+      <div class="actions"><button type="button" class="light" id="s-remind"${sending.remind.can ? '' : ' disabled'}>Remind</button></div>` : '';
+    card.innerHTML = `<h2>Send the list</h2><div class="send-state">${lines.join('')}</div>${warn}
+      ${to}
+      <label for="s-due">Submission due date <span class="hint">The date the SWMS are due back to you. It is in the email.</span></label>
+      <input id="s-due" type="date" min="${esc(sending.today)}" value="${esc(due)}">
+      <p class="field-error hidden" id="s-due-error"></p>
+      <div class="actions"><button type="button" id="s-check">${checkLabel}</button></div>
+      <div id="s-confirm"></div>${remind}<div id="s-send-status" role="status"></div>`;
+    if (checking && checking.id === id) showEmail(checking);
+  }
+  function showEmail(state) {
+    const p = state.preview;
+    const what = state.remind ? 'reminder' : 'email';
+    const others = p.others && p.others.length ? `<p class="warn">The link sent to ${esc(p.others.join(' and '))} will stop working when this goes.</p>` : '';
+    $('s-confirm').innerHTML = `<div class="panel" style="border-color:#1f4e3d"><h3 style="margin-top:0">Check the ${what}</h3><p class="meta">This is the ${what} exactly as it will go. The parts in square brackets become links when it is sent.</p>
+      <div class="email-box"><dl><dt>From</dt><dd>${esc(p.email.fromName)}</dd><dt>Reply to</dt><dd>${esc(p.email.replyTo)}</dd><dt>To</dt><dd>${esc(p.email.to)}</dd><dt>Subject</dt><dd>${esc(p.email.subject)}</dd></dl><pre>${esc(p.email.text)}</pre></div>
+      ${others}<div class="actions"><button type="button" id="s-send-go">${state.remind ? 'Send the reminder' : 'Send the email'}</button><button type="button" class="light" id="s-send-cancel">Change something</button></div></div>`;
+    $('s-confirm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  async function checkEmail(button, remind) {
+    clearErrors($('s-send'));
+    box('s-send-status', '');
+    const id = sub.subcontract.id;
+    const due = remind ? '' : $('s-due').value;
+    if (!remind && !due) { fieldError('s-due', 'Choose the date the SWMS are due.'); return; }
+    await busy(button, 'Checking...', async () => {
+      try {
+        const { preview } = await call('POST', `/api/hse/subcontracts/${encodeURIComponent(id)}/${remind ? 'remind' : 'send'}/preview`, remind ? {} : { due });
+        checking = { id, preview, due, remind };
+        showEmail(checking);
+      } catch (error) {
+        checking = null;
+        if (error.field === 'due') fieldError('s-due', error.message);
+        else box('s-send-status', esc(error.message), 'bad');
+      }
+    });
+  }
+  $('s-send').addEventListener('input', (event) => {
+    if (event.target.id !== 's-due' || !sub) return;
+    // A new date is a new email: the one shown is taken away until it is checked again.
+    checking = null;
+    $('s-confirm').innerHTML = '';
+    keepTyped(SEND_TYPED(sub.subcontract.id), event.target.value && event.target.value !== sub.sending.dueDate ? { due: event.target.value } : null);
+  });
+  $('s-send').addEventListener('click', async (event) => {
+    if (!sub) return;
+    const id = sub.subcontract.id;
+    if (event.target.closest('#s-check')) { await checkEmail(event.target.closest('#s-check'), false); return; }
+    if (event.target.closest('#s-remind')) { await checkEmail(event.target.closest('#s-remind'), true); return; }
+    if (event.target.closest('#s-send-cancel')) { checking = null; $('s-confirm').innerHTML = ''; ($('s-due') || $('s-send')).focus(); return; }
+    const go = event.target.closest('#s-send-go');
+    if (!go || !checking) return;
+    await busy(go, 'Sending...', async () => {
+      try {
+        const route = `/api/hse/subcontracts/${encodeURIComponent(id)}/${checking.remind ? 'remind' : 'send'}`;
+        const data = await call('POST', route, checking.remind ? { check: checking.preview.check } : { due: checking.due, check: checking.preview.check });
+        checking = null;
+        keepTyped(SEND_TYPED(id), null);
+        renderSub(data);
+        box('s-send-status', `<strong>${esc(data.message)}</strong>`, 'ok');
+        $('s-send').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) {
+        if (error.preview) {
+          // The email changed since it was checked (the list or the details moved): show the new one.
+          checking = { ...checking, preview: error.preview };
+          showEmail(checking);
+          box('s-send-status', esc(error.message), 'warn');
+        } else {
+          box('s-send-status', esc(error.message), 'bad');
+        }
+      }
+    });
+  });
+
+  // A file the subcontractor uploaded, opened in a new tab (a PDF) or saved (a Word file). It is sent
+  // only with the lead's sign-in, so there is no public link to it.
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest && event.target.closest('[data-upload-open]');
+    if (!button || !sub) return;
+    const isPdf = /\.pdf$/i.test(button.dataset.uploadName || '');
+    const tab = isPdf ? window.open('', '_blank') : null;
+    try {
+      const response = await fetch(`/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/uploads/${encodeURIComponent(button.dataset.uploadOpen)}`, { headers: { 'X-Reviewer-Token': token } });
+      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'The file could not be opened. Try again.');
+      const url = URL.createObjectURL(await response.blob());
+      // A browser with no PDF viewer (Android) saves the PDF under its own name instead, as account.js does.
+      if (tab && navigator.pdfViewerEnabled !== false) tab.location.href = url;
+      else { if (tab) tab.close(); const link = document.createElement('a'); link.href = url; link.download = button.dataset.uploadName || 'SWMS'; link.click(); }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      if (tab) tab.close();
+      box('s-flash', esc(error.message), 'bad');
+    }
+  });
+
   // ---- What the subcontractor sees ----
 
   async function showPreview(subId) {
@@ -1159,7 +1307,7 @@
     view('preview');
     document.title = `What the subcontractor sees: ${data.subcontract.name}`;
     $('pv-crumbs').innerHTML = `<a href="#/">Your projects</a> › <a href="#/project/${esc(data.project.id)}">${esc(data.project.name)}</a> › <a href="#/sub/${esc(subId)}">${esc(data.subcontract.name)}</a>`;
-    $('pv-intro').textContent = `This is the list ${p.to} will get from ${p.from}. SWMS you removed and points you did not answer are left out. Prices, rates and amounts from the scope are never shown. Sending the list is not open yet.`;
+    $('pv-intro').textContent = `This is what ${p.to} sees on the page the list email links to. SWMS you removed and points you did not answer are left out. Prices, rates and amounts from the scope are never shown.`;
     $('pv-back').href = `#/sub/${subId}`;
     // Only the list, with the high risk work each SWMS holds: never that it may not need a SWMS.
     const swms = p.swms.length ? `<ol>${p.swms.map((item) => `<li><strong>${esc(item.title)}</strong><div>${esc(item.task)}</div>${item.alsoCovers && item.alsoCovers.length ? `<div class="also">Also covers your own ${esc(item.alsoCovers.join(', ').toLowerCase())}.</div>` : ''}${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}${item.clauses.length ? `<span class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</span>` : ''}</li>`).join('')}</ol>`
