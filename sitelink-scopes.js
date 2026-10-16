@@ -318,6 +318,8 @@ function install(router, deps) {
       preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS }),
       // Stage 5: sending the list, reminders, the files uploaded, the claim and the log.
       sending: await send.sendingFor(ctx),
+      // Stage 7: what has been submitted or received for each SWMS on the list.
+      received: await require('./sitelink-submit').forSubcontractPage(ctx),
       ...extra,
     };
   }
@@ -343,6 +345,8 @@ function install(router, deps) {
         aside: items.filter((row) => row.removed_at && row.removed_why === 'noLaw').length,
         pointsOpen: open.length,
         ...(await send.summaryFor(sub, project)),
+        // Stage 7: each SWMS on the list, whether it is in, its review, conditions and changed details.
+        ...(await require('./sitelink-submit').summaryFor(sub, project)),
       });
     }
     return { subcontracts: out, readings: await readingsLeft(project) };

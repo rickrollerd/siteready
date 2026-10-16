@@ -299,5 +299,5 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
 }));
 
 module.exports = {
-  router, RESPONSES, REVIEW_BACK, cleanRef, revisionForRef, forReviewer, printedTables, checkRevision, reviewsFor, latestReview, currentReviews, reviewLink, reviewBackMail,
+  router, RESPONSES, REVIEW_BACK, EMPTY_WORDS, SAYS_NOTHING, TEXT_LIMIT, REPEAT_MINUTES, cleanRef, revisionForRef, forReviewer, printedTables, revisionFiles, checkRevision, reviewsFor, latestReview, currentReviews, reviewLink, reviewBackMail, reviewView,
 };

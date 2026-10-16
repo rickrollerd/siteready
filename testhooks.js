@@ -133,6 +133,8 @@ function install(app, { sendReviewReminders, removeExpired }) {
             await require('./sitelink-send').removeForSubcontract(sub.id);
             // Stage 6: the subcontractor's work on the list and any release.
             await require('./sitelink-subbie').removeForSubcontract(sub.id);
+            // Stage 7: submissions, their reviews and conditions, and files received outside SiteWrite.
+            await require('./sitelink-submit').removeForSubcontract(sub.id);
           }
           await db.query('DELETE FROM project_log WHERE project_id = $1', [project.id]);
           await db.query('DELETE FROM subcontracts WHERE project_id = $1', [project.id]);

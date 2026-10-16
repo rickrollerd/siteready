@@ -887,6 +887,76 @@ const SCHEMA = [
   )`,
   'CREATE INDEX IF NOT EXISTS subcontract_releases_subcontract ON subcontract_releases (subcontract_id)',
   'CREATE INDEX IF NOT EXISTS subcontracts_company ON subcontracts (company_id)',
+  // Goal 12 stage 7: a SWMS submitted to the main contractor for one SWMS on its list. channel
+  // 'sitewrite' is a saved revision the company submitted after its check: the revision is frozen, and
+  // the check (check_info), SiteWrite's Builder check (builder_check) and the builder's details it
+  // changed (overrides) are kept as they were on submission. channel 'outside' is a SWMS the main
+  // contractor received another way and recorded against the list item, with its file. Only these
+  // revisions are ever read by the main contractor: never a draft, and never a later revision until it
+  // is submitted. company_id is cleared when the business is deleted; the record stays the builder's.
+  `CREATE TABLE IF NOT EXISTS submissions (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    subcontract_id TEXT NOT NULL,
+    required_swms_id TEXT NOT NULL,
+    company_id TEXT NOT NULL DEFAULT '',
+    company_name TEXT NOT NULL DEFAULT '',
+    channel TEXT NOT NULL,
+    swms_id TEXT NOT NULL DEFAULT '',
+    revision INTEGER NOT NULL DEFAULT 0,
+    ref TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL DEFAULT '',
+    content_hash TEXT NOT NULL DEFAULT '',
+    check_info JSONB,
+    builder_check JSONB,
+    overrides JSONB NOT NULL,
+    file_name TEXT NOT NULL DEFAULT '',
+    file_type TEXT NOT NULL DEFAULT '',
+    file_size INTEGER NOT NULL DEFAULT 0,
+    file_sha256 TEXT NOT NULL DEFAULT '',
+    file_storage TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
+    check_status TEXT NOT NULL DEFAULT '',
+    check_error TEXT NOT NULL DEFAULT '',
+    check_reading_id TEXT NOT NULL DEFAULT '',
+    submitted_by TEXT NOT NULL DEFAULT '',
+    submitted_by_name TEXT NOT NULL DEFAULT '',
+    submitted_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS submissions_subcontract ON submissions (subcontract_id, submitted_at)',
+  'CREATE INDEX IF NOT EXISTS submissions_swms ON submissions (swms_id, revision)',
+  // The file of a SWMS received outside SiteWrite, where there is no storage bucket (design-files.js).
+  `CREATE TABLE IF NOT EXISTS submission_file_data (
+    submission_id TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  )`,
+  // A review given from the project screen names its project and submission. Reviews by reference
+  // (stage 1) have neither.
+  "ALTER TABLE swms_reviews ADD COLUMN IF NOT EXISTS project_id TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE swms_reviews ADD COLUMN IF NOT EXISTS submission_id TEXT NOT NULL DEFAULT ''",
+  'CREATE INDEX IF NOT EXISTS swms_reviews_submission ON swms_reviews (submission_id)',
+  // Each condition of an "Approved with conditions" review (K10 "C"): the subcontractor marks it done,
+  // with an optional note, and the main contractor confirms it, or says it is not done yet. status is
+  // 'outstanding', 'done' or 'closed'.
+  `CREATE TABLE IF NOT EXISTS review_conditions (
+    id TEXT PRIMARY KEY,
+    review_id TEXT NOT NULL,
+    submission_id TEXT NOT NULL,
+    subcontract_id TEXT NOT NULL,
+    required_swms_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    status TEXT NOT NULL,
+    done_note TEXT NOT NULL DEFAULT '',
+    done_by_name TEXT NOT NULL DEFAULT '',
+    done_at TIMESTAMPTZ,
+    closed_by_name TEXT NOT NULL DEFAULT '',
+    closed_at TIMESTAMPTZ,
+    back_note TEXT NOT NULL DEFAULT '',
+    back_by_name TEXT NOT NULL DEFAULT '',
+    back_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS review_conditions_subcontract ON review_conditions (subcontract_id)',
 ];
 
 async function migrate() {

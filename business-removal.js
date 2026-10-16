@@ -81,7 +81,10 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   await run('sign_translations', `DELETE FROM sign_translations WHERE swms_id IN (${SWMS})`);
   await run('swms_review_flags', `DELETE FROM swms_review_flags WHERE swms_id IN (${SWMS})`);
   // The principal contractor's responses to its SWMS, and reviewers' looks at its references.
-  await run('swms_reviews', `DELETE FROM swms_reviews WHERE swms_id IN (${SWMS})`);
+  // A response a main contractor gave on a submission (Goal 12 stage 7) is the main contractor's record,
+  // in its project's log: it stays, with no link to the SWMS once that goes.
+  await run('swms_reviews', `DELETE FROM swms_reviews WHERE swms_id IN (${SWMS}) AND submission_id = ''`);
+  await db.query(`UPDATE swms_reviews SET swms_id = '' WHERE swms_id IN (${SWMS})`, [id]);
   await run('review_access_log', `DELETE FROM review_access_log WHERE ref IN (SELECT ref FROM swms_refs WHERE company_id = $1 OR swms_id IN (${SWMS}))`);
   // The design files the business attached, from the storage bucket or the database, then their rows.
   for (const [table, n] of Object.entries(await removeDesignFiles(id))) removed[table] = (removed[table] || 0) + n;
@@ -102,6 +105,9 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   // Its own work on those lists (stage 6) is the business's, and goes. A list the lead released from it
   // keeps the name it had then, and no link to the account.
   await run('sub_progress', 'DELETE FROM sub_progress WHERE company_id = $1');
+  // What it submitted to a main contractor (stage 7) stays the main contractor's record, with the name
+  // it had then, the revision and its reference, and no link to the account. The SWMS itself goes.
+  await db.query("UPDATE submissions SET company_id = '', swms_id = '', submitted_by = '' WHERE company_id = $1", [id]);
   await db.query("UPDATE subcontract_releases SET company_id = '' WHERE company_id = $1", [id]);
   // The ABN stays, with no link to the account, so it cannot have a second free trial.
   await db.query("UPDATE trial_abns SET company_id = '' WHERE company_id = $1", [id]);

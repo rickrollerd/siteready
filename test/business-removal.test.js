@@ -116,7 +116,11 @@ const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessio
   'list_links', 'mail_messages', 'mail_stops', 'list_uploads', 'list_upload_data', 'project_log', 'lead_asks',
   // A list the lead released from a company (stage 6) is the main contractor's record: it loses its
   // link to a deleted business.
-  'subcontract_releases'];
+  'subcontract_releases',
+  // What was submitted to the main contractor, its responses' conditions and the files it received
+  // outside SiteWrite (stage 7) are its record too: a submission loses its link to a deleted business
+  // and its SWMS (sitelink-submit.test.js).
+  'submissions', 'submission_file_data', 'review_conditions'];
 
 async function tiedCounts(business) {
   const out = {};

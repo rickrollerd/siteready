@@ -697,12 +697,80 @@
       const list = !sub.swms && !sub.removed && !sub.aside ? (sub.scope === 'reading' ? 'Not listed yet' : 'None yet') : `${sub.swms} SWMS${off ? ` (${off})` : ''}${sub.pointsOpen ? `<span class="scope-state">${sub.pointsOpen} ${sub.pointsOpen === 1 ? 'point' : 'points'} to answer</span>` : ''}`;
       // Stage 5: whether the list has gone, its due date, and whether it was opened or taken up.
       const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}` : sub.opened ? '. Opened' : '. Not opened yet'}` : 'Not sent yet';
-      const filesIn = sub.filesIn ? `${sub.filesIn} of ${sub.swms} uploaded` : 'None yet';
+      // Stage 7: how many are in, their reviews and conditions (the one screen, below, lists each SWMS).
+      const s7 = sub.stage7 || { in: 0, toReview: 0, approved: 0, notApproved: 0, conditionsOpen: 0, toConfirm: 0, off: 0, items: [] };
+      const filesIn = sub.swms ? `${s7.in} of ${sub.swms} in${s7.off ? `<span class="scope-state">${s7.off} taken off its list: not submitted</span>` : ''}` : 'None yet';
+      const reviewed = [s7.toReview ? `${s7.toReview} to review` : '', s7.approved ? `${s7.approved} approved` : '', s7.notApproved ? `${s7.notApproved} not approved` : ''].filter(Boolean).join(', ') || (s7.in ? 'None reviewed yet' : 'None in yet');
+      const conditions = [s7.conditionsOpen ? `${s7.conditionsOpen} open` : '', s7.toConfirm ? `${s7.toConfirm} to confirm` : ''].filter(Boolean).join(', ') || 'None';
       const last = sub.lastContact ? `${esc(sub.lastContact.text)}, ${esc(sub.lastContact.on)}` : 'None yet';
       return `<tr><td class="sub-name"><a href="#/sub/${esc(sub.id)}">${esc(sub.name)}</a><span class="scope-state">${esc(sub.trade)} · ${esc(SCOPE_STATE[sub.scope] || SCOPE_STATE.none)}</span></td>
-        <td data-label="SWMS list">${list}<span class="scope-state">${sent}</span></td><td data-label="SWMS in">${filesIn}</td><td data-label="Review status">None yet</td><td data-label="Conditions outstanding">None</td><td data-label="Updated after plan change">No plans yet</td><td data-label="Last contact">${last}</td></tr>`;
+        <td data-label="SWMS list">${list}<span class="scope-state">${sent}</span></td><td data-label="SWMS in">${filesIn}</td><td data-label="Review status">${esc(reviewed)}</td><td data-label="Conditions outstanding">${esc(conditions)}</td><td data-label="Updated after plan change">No plans yet</td><td data-label="Last contact">${last}</td></tr>`;
     }).join('') : '<tr><td class="empty" colspan="7">No subcontractors yet. Add each subcontract and upload its scope of works. SiteLink lists the SWMS each one needs.</td></tr>';
+    renderSwms(data);
   }
+
+  // ---- The one screen (stage 7): every SWMS on the project, with what to chase ----
+  // Each SWMS on each subcontractor's list: whether it is in and how, its review, conditions open or to
+  // confirm, the details it changed that you set, a SWMS the subcontractor took off its list, and the
+  // workers signed on to the revision submitted. Filters narrow it, on a phone too.
+  const FILTERS = [
+    ['all', 'All'], ['none', 'Not in'], ['review', 'To review'], ['conditions', 'Conditions open'], ['confirm', 'To confirm'], ['changed', 'Changed your details'], ['changes', 'Not approved'],
+  ];
+  let swmsFilter = 'all';
+  const tagsOf = (row) => [
+    'all',
+    ...(['none', 'off'].includes(row.state) ? ['none'] : []),
+    ...(row.submissionId && !row.review ? ['review'] : []),
+    ...(row.conditionsOpen ? ['conditions'] : []),
+    ...(row.toConfirm ? ['confirm'] : []),
+    ...(row.overrides.length ? ['changed'] : []),
+    ...(row.review && row.review.response === 'changes' ? ['changes'] : []),
+  ];
+  const REVIEW_TAG = { approved: 'ok', conditions: 'ok', changes: 'bad' };
+  function swmsRow(sub, row) {
+    const pills = [];
+    if (row.state === 'sitewrite') pills.push(`<span class="tag">In: revision ${esc(row.revision)}</span>`);
+    else if (row.state === 'outside') pills.push('<span class="tag">In: received outside SiteWrite</span>');
+    else if (row.state === 'uploaded') pills.push('<span class="tag warn">File uploaded: record it</span>');
+    else if (row.state === 'off') pills.push('<span class="tag warn">Not submitted: taken off its list</span>');
+    else pills.push('<span class="tag grey">Not in yet</span>');
+    if (row.review) pills.push(`<span class="tag ${REVIEW_TAG[row.review.response] || ''}">${esc(row.review.label)}</span>`);
+    else if (row.submissionId) pills.push('<span class="tag due">To review</span>');
+    if (row.conditionsOpen) pills.push(`<span class="tag warn">${row.conditionsOpen} ${row.conditionsOpen === 1 ? 'condition' : 'conditions'} open</span>`);
+    if (row.toConfirm) pills.push(`<span class="tag due">${row.toConfirm} to confirm</span>`);
+    if (row.conditionsMet) pills.push('<span class="tag">Conditions met</span>');
+    if (row.overrides.length) pills.push(`<span class="tag warn">Changed ${row.overrides.length === 1 ? 'a detail' : `${row.overrides.length} details`} you set</span>`);
+    const lines = [];
+    if (row.submissionId) lines.push(`${row.state === 'outside' ? 'Recorded' : 'Submitted'} ${esc(row.on)}${row.by ? ` by ${esc(row.by)}` : ''}.${row.review ? ` ${esc(row.review.label)} by ${esc(row.review.by)}, ${esc(row.review.on)}.` : row.reviewedBefore ? ` A later revision: the one before was ${esc(row.reviewedBefore)}.` : ''}`);
+    if (row.overrides.length) lines.push(`Changed: ${row.overrides.map((item) => `${esc(item.label.toLowerCase())} ("${esc(item.now || 'empty')}", you set "${esc(item.set)}"${item.olderRev ? `, as in version ${esc(item.olderRev)}` : ''})`).join('; ')}.`);
+    if (row.signOns !== null && row.signOns !== undefined) lines.push(`Workers signed on to this revision: ${esc(row.signOns)}.`);
+    if (row.checkStatus === 'reading') lines.push('Builder check is reading the file.');
+    const action = row.submissionId
+      ? `<a class="button light small" href="/review.html?submission=${esc(row.submissionId)}" aria-label="${esc(`${row.review ? 'Open' : 'Review'} ${row.title} from ${sub.name}`)}">${row.review && !row.toConfirm ? 'Open' : 'Review'}</a>`
+      : `<a class="button light small" href="#/sub/${esc(sub.id)}" aria-label="${esc(`Chase ${row.title} from ${sub.name}`)}">${row.state === 'uploaded' ? 'Record it' : 'Chase'}</a>`;
+    return `<li class="swms-row" data-tags="${esc(tagsOf(row).join(' '))}"><div class="swms-what"><strong>${esc(row.title)}</strong><span class="meta">${esc(sub.name)}</span></div>
+      <div class="swms-tags">${pills.join(' ')}</div>${lines.length ? `<p class="meta">${lines.join(' ')}</p>` : ''}<div class="swms-go">${action}</div></li>`;
+  }
+  function renderSwms(data) {
+    const subs = (data.subcontracts || []).filter((sub) => sub.stage7 && sub.stage7.items.length);
+    const rows = subs.flatMap((sub) => sub.stage7.items.map((row) => ({ sub, row })));
+    if (!rows.length) {
+      $('p-swms-filters').innerHTML = '';
+      $('p-swms').innerHTML = '<li class="meta">No SWMS lists yet. Each subcontractor\'s SWMS show here once its list is made: whether each is in, its review, and any conditions.</li>';
+      return;
+    }
+    const count = (key) => rows.filter(({ row }) => tagsOf(row).includes(key)).length;
+    if (!FILTERS.some(([key]) => key === swmsFilter)) swmsFilter = 'all';
+    $('p-swms-filters').innerHTML = FILTERS.map(([key, label]) => `<button type="button" class="chip" data-swms-filter="${key}" aria-pressed="${key === swmsFilter}">${esc(label)} (${count(key)})</button>`).join('');
+    const shown = rows.filter(({ row }) => tagsOf(row).includes(swmsFilter));
+    $('p-swms').innerHTML = shown.length ? shown.map(({ sub, row }) => swmsRow(sub, row)).join('') : `<li class="meta">No SWMS ${esc((FILTERS.find(([key]) => key === swmsFilter) || [, ''])[1].toLowerCase())} just now.</li>`;
+  }
+  $('p-swms-filters').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-swms-filter]');
+    if (!button || !page) return;
+    swmsFilter = button.dataset.swmsFilter;
+    renderSwms(page);
+  });
 
   // ---- Adding a subcontract, or changing its details ----
 
@@ -827,15 +895,47 @@
     }
     const also = item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers the subcontractor's own ${esc(item.alsoCovers.join(', ').toLowerCase())}.</p>` : '';
     return `<div class="swms-item" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>${hrcwLine(item.highRisk)}
-      <p class="work" id="item-${esc(item.id)}-work">${esc(item.task)}</p>${also}${clauses}${uploadedLine(item)}
+      <p class="work" id="item-${esc(item.id)}-work">${esc(item.task)}</p>${also}${clauses}${uploadedLine(item)}${receivedLine(item)}
       <div class="actions" id="item-${esc(item.id)}-buttons"><button type="button" class="light" data-reword="${esc(item.id)}" ${named('Change the work for')}>Change the work</button><button type="button" class="danger" data-remove-item="${esc(item.id)}" ${named('Remove')}>Remove</button></div></div>`;
   }
 
-  // Files the subcontractor uploaded for this SWMS on the list page (stage 5), to open.
+  // Files the subcontractor uploaded for this SWMS on the list page (stage 5), to open, and to record as
+  // received (stage 7) so they can be reviewed.
   function uploadedLine(item) {
     const files = ((sub && sub.sending && sub.sending.uploads) || []).filter((file) => file.itemId === item.id);
     if (!files.length) return '';
-    return `<p class="uploaded">Uploaded from the list page: ${files.map((file) => `<button type="button" class="link" data-upload-open="${esc(file.id)}" data-upload-name="${esc(file.name)}">${esc(file.name)}</button> <span class="meta">(${esc(file.type)}, ${esc(file.on)})</span>`).join('; ')}</p>`;
+    const got = sub.received && sub.received.items[item.id];
+    const recorded = new Set([got && got.latest, ...((got && got.earlier) || [])].filter((one) => one && one.channel === 'outside' && one.file).map((one) => one.file.name));
+    return `<p class="uploaded">Uploaded from the list page: ${files.map((file) => `<button type="button" class="link" data-upload-open="${esc(file.id)}" data-upload-name="${esc(file.name)}">${esc(file.name)}</button> <span class="meta">(${esc(file.type)}, ${esc(file.on)})</span>${recorded.has(file.name) ? ' <span class="meta">Recorded as received.</span>' : ` <button type="button" class="light small" data-upload-record="${esc(file.id)}" aria-label="${esc(`Record ${file.name} as received`)}">Record it as received</button>`}`).join('; ')}</p>`;
+  }
+
+  // What has come in for this SWMS (stage 7): submitted in SiteWrite or received outside it, its review
+  // and conditions, with "Record a SWMS received outside SiteWrite".
+  function receivedLine(item) {
+    const got = sub.received && sub.received.items[item.id];
+    const latest = got && got.latest;
+    let html = '';
+    if (latest) {
+      const what = latest.channel === 'sitewrite'
+        ? `Submitted in SiteWrite on ${esc(latest.on)}, revision ${esc(latest.revision)}, by ${esc(latest.by)}.`
+        : `Received outside SiteWrite: ${esc(latest.file ? latest.file.name : 'a file')}, recorded on ${esc(latest.on)} by ${esc(latest.by)}.`;
+      const review = latest.review ? ` <strong>${esc(latest.review.label)}</strong> by ${esc(latest.review.name)}, ${esc(latest.review.on)}.` : ' Not reviewed yet.';
+      const open = got.conditions.filter((one) => one.status === 'outstanding').length;
+      const confirm = got.conditions.filter((one) => one.status === 'done').length;
+      const conditions = open || confirm ? ` Conditions: ${[open ? `${open} open` : '', confirm ? `${confirm} to confirm` : ''].filter(Boolean).join(', ')}.` : '';
+      const changed = (latest.overrides || []).length ? ` It changes details you set: ${esc(latest.overrides.map((one) => one.label.toLowerCase()).join(', '))}.` : '';
+      html += `<p class="received">${what}${review}${conditions}${changed}${got.earlier.length ? ` <span class="meta">Submitted ${got.earlier.length === 1 ? 'once' : `${got.earlier.length} times`} before.</span>` : ''} <a class="button light small" href="/review.html?submission=${esc(latest.id)}">${latest.review ? 'Open' : 'Review it'}</a></p>`;
+    }
+    if (!sub.received || !sub.received.outsideOn) return html;
+    const id = esc(item.id);
+    return `${html}<details class="outside" id="outside-${id}"><summary>Record a SWMS received outside SiteWrite</summary>
+      <p class="meta">A SWMS for this that came by email or on paper, as a PDF or Word file. It is then in, and you can review it here. Builder check on it is optional.</p>
+      <label for="outside-file-${id}">The SWMS file <span class="hint">A PDF or a Word file (.docx), up to 10 MB.</span></label>
+      <input id="outside-file-${id}" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      <p class="field-error hidden" id="outside-file-${id}-error"></p>
+      <label for="outside-note-${id}">How it came <span class="hint">Optional, for the record. For example Emailed by Tom Beck on 14 October.</span></label>
+      <input id="outside-note-${id}" type="text" maxlength="500" autocomplete="off">
+      <div class="actions"><button type="button" class="light" data-outside-record="${id}" aria-label="${esc(`Record a SWMS received for ${item.title}`)}">Record it</button></div></details>`;
   }
 
   // Where a SWMS just left the list: a note in its place, beside where the person was looking, with a
@@ -1071,6 +1171,37 @@
   }, true);
 
   $('s-list').addEventListener('click', async (event) => {
+    // Stage 7: a SWMS received outside SiteWrite, and a file uploaded on the list page, recorded as received.
+    const outside = event.target.closest('[data-outside-record]');
+    const record = event.target.closest('[data-upload-record]');
+    if (outside || record) {
+      const button = outside || record;
+      button.disabled = true;
+      try {
+        let data;
+        if (outside) {
+          const itemId = outside.dataset.outsideRecord;
+          const input = $(`outside-file-${itemId}`);
+          const file = input && input.files && input.files[0];
+          if (!file) { fieldError(`outside-file-${itemId}`, 'Choose the SWMS file first.'); button.disabled = false; return; }
+          const response = await fetch(`/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/items/${encodeURIComponent(itemId)}/outside`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream', 'X-Reviewer-Token': token, 'X-File-Name': encodeURIComponent(file.name), 'X-Note': encodeURIComponent(($(`outside-note-${itemId}`) || {}).value || '') },
+            body: file,
+          });
+          data = await response.json().catch(() => ({}));
+          if (!response.ok) { fieldError(`outside-file-${itemId}`, data.message || 'The file could not be recorded. Try again.'); button.disabled = false; return; }
+        } else {
+          data = await call('POST', `/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/uploads/${encodeURIComponent(record.dataset.uploadRecord)}/record`);
+        }
+        renderSub(data.page, data.message);
+        $('s-flash').scrollIntoView({ block: 'center' });
+      } catch (error) {
+        button.disabled = false;
+        box('s-flash', esc(error.message), 'bad');
+      }
+      return;
+    }
     const remove = event.target.closest('[data-remove-item]');
     const restore = event.target.closest('[data-restore]');
     const reword = event.target.closest('[data-reword]');

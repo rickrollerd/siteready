@@ -327,7 +327,9 @@ async function summaryFor(sub, project) {
     lastContact: last ? { text: LAST_CONTACT[last.kind] || last.summary, on: shortDate(last.created_at, project.state) } : null,
   };
 }
-const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', stopped: 'Asked to stop emails', restarted: 'Emails started again' };
+const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', stopped: 'Asked to stop emails', restarted: 'Emails started again',
+  // Stage 7.
+  submitted: 'SWMS submitted', submitted_mail: 'SWMS submitted', review_sent: 'Review sent', condition_done: 'Condition marked done', condition_undone: 'Condition no longer marked done', condition_confirmed: 'Condition confirmed', condition_back: 'Condition sent back', outside_recorded: 'SWMS received outside SiteWrite', outside_checked: 'Builder check run' };
 function shortDate(date, state) {
   return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', timeZone: ZONE(state) }).format(new Date(date));
 }
@@ -664,6 +666,6 @@ publicRouter.post('/list/stop/:token', route(async (req, res) => {
 }));
 
 module.exports = {
-  install, publicRouter, sendingFor, summaryFor, logOf, removeForSubcontract, checkUpload, cleanDue, todayIn, changesFrom,
-  PREVIEW_LINK, PREVIEW_STOP, UPLOAD_MAX_MB, reminderHours, reminderMax,
+  install, publicRouter, sendingFor, summaryFor, logOf, logEntry, removeForSubcontract, checkUpload, uploadName, readUpload, getUploadData: getData, cleanDue, todayIn, changesFrom,
+  PREVIEW_LINK, PREVIEW_STOP, UPLOAD_MAX_MB, TYPES, LAST_CONTACT, reminderHours, reminderMax,
 };
