@@ -270,7 +270,7 @@ function titleFor(body, input) {
   // was named "dismantel ... scafold" though the SWMS said "dismantle ... scaffold").
   // Pasted scope lines lose their clause numbers first, and a title is never a bare number (messy round 6,
   // run 2: "1. Installation of vinyl..." named the SWMS and its files "1").
-  const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), { places: textField(input.workplace, 300) }).text;
+  const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text;
   const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '');
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
@@ -536,10 +536,16 @@ function revisionWanted(req, row) {
 }
 
 // Where today's library or law words the SWMS differently from its current revision, the saved
-// SWMS says so, and what would change, so the user can make a new revision with it.
+// SWMS says so, and what would change, so the user can make a new revision with it. Only a library or a
+// law that really changed since the revision was saved counts: on the same library a draft of the same
+// answers is the same SWMS (messy round 8, run 1: "Updated wording is available" showed 33 minutes after
+// saving, on the same build, offering traffic corridor work for a "site road").
 function updatedWording(row, company, kept) {
+  if (!kept || !kept.draft) return { available: false, changes: [] };
   const fresh = prepareDraft(withCompany(typeof row.input === 'string' ? JSON.parse(row.input) : row.input, company));
-  if (fresh.kind !== 'draft' || !kept || revisions.contentHash(fresh) === revisions.contentHash(kept.draft)) return { available: false, changes: [] };
+  const law = (draft) => [draft.instrument, draft.versionLabel, draft.sectionRef].map((part) => String(part || '')).join('|');
+  const changed = kept.libraryVersion !== revisions.LIBRARY_VERSION || (fresh.kind === 'draft' && law(fresh) !== law(kept.draft));
+  if (fresh.kind !== 'draft' || !changed || revisions.contentHash(fresh) === revisions.contentHash(kept.draft)) return { available: false, changes: [] };
   return { available: true, changes: revisions.changesBetween(kept.draft, fresh).map(revisions.changeText) };
 }
 

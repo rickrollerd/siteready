@@ -93,6 +93,8 @@ let questions = null;
 const PROFILE_KEY = 'sitewrite.profile';
 const PROFILE_FIELDS = { name: 'profile-company', abn: 'profile-abn', address: 'profile-address', phone: 'profile-phone', email: 'profile-email' };
 let profile = loadProfile();
+// Falls answered No, kept after the draft asked to check it against a step that rates a fall High (fallCheckBlock).
+let fallNoKept = false;
 let pendingLogo = profile.logo || '';
 
 function loadProfile() {
@@ -194,6 +196,9 @@ async function lookUpAbn() {
   const digits = document.getElementById('profile-abn').value.replace(/\D/g, '');
   const box = document.getElementById('abn-found');
   if (digits.length !== 11 || digits === abnLooked) return;
+  // An ABN that cannot be right is said once, at its box (abnProblem), not again by the register lookup
+  // (messy round 8, run 3: "That is not a valid ABN. Check the digits ..." and "That is not a valid ABN." at once).
+  if (abnProblem(document.getElementById('profile-abn').value)) { box.classList.add('hidden'); return; }
   abnLooked = digits;
   try {
     const data = await (await fetch(api(`/api/abn?abn=${digits}`))).json();
@@ -267,6 +272,7 @@ async function saveProfile({ auto = false } = {}) {
         keepProfileTyping();
       }
       profileStatus(window.SiteWrite.lastCompanyNotice || (auto ? 'Saved for your company as you filled it in.' : 'Saved for your company.'));
+      if (!auto) savedInSummary();
     } catch (error) {
       profileStatus(auto ? `Not saved yet: ${error.message} Fix it, then press Save profile.` : error.message);
     }
@@ -294,6 +300,7 @@ async function saveProfile({ auto = false } = {}) {
   }
   const abnWrong = showAbnProblem();
   profileStatus(abnWrong ? `Saved on this device, but the ABN needs fixing before a SWMS can be saved or downloaded. ${abnWrong}` : auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
+  if (!auto && !abnWrong) savedInSummary();
   // An ABN that needs fixing keeps the profile open at its box, where the note is.
   if (abnWrong) {
     document.getElementById('profile').open = true;
@@ -301,6 +308,12 @@ async function saveProfile({ auto = false } = {}) {
   }
   if (shownDraft) showGate();
   draftWithProfile();
+}
+// Saved with the button, the profile closes: its heading says it was saved, where it can be seen (messy
+// round 8, runs 1 and 2: the profile closed with no "Saved" note).
+function savedInSummary() {
+  const summary = document.getElementById('profile-summary');
+  if (summary && profile.name) summary.textContent = `· ${profile.name} · Saved`;
 }
 // A draft on the page shows the company details just saved, without a reload (messy round 6, run 1: the
 // header kept "Stainles" after the name was fixed, with no Update button).
@@ -364,13 +377,18 @@ function setProfile(next) {
 // ones and are saved to the company, so the sign-in link does not empty the profile (messy round 5,
 // runs 5 and 7). A detail the company already has is kept: a blank never replaces it, and the device's
 // copy never overwrites it. Returns the company as saved, or null when nothing was saved.
-async function signedInProfile(company) {
+// The one exception is the email a new account starts with, which is only the sign-in email: a company
+// email typed before signing in takes its place (messy round 8, run 2: "dan@kowalskiroofing.com.au" was
+// replaced by the sign-in email in the profile and on the SWMS).
+async function signedInProfile(company, signInEmail = '') {
   const saved = company || {};
   const typed = keptProfileTyping() || {};
   const device = { ...loadProfile() };
   for (const key of Object.keys(PROFILE_FIELDS)) if (String(typed[key] || '').trim()) device[key] = String(typed[key]).trim();
   const fill = {};
-  for (const key of Object.keys(PROFILE_FIELDS)) if (!String(saved[key] || '').trim() && String(device[key] || '').trim()) fill[key] = String(device[key]).trim();
+  const startEmail = (key) => key === 'email' && String(signInEmail || '').trim() && String(saved.email || '').trim().toLowerCase() === String(signInEmail).trim().toLowerCase()
+    && String(device.email || '').trim().toLowerCase() !== String(saved.email || '').trim().toLowerCase();
+  for (const key of Object.keys(PROFILE_FIELDS)) if ((!String(saved[key] || '').trim() || startEmail(key)) && String(device[key] || '').trim()) fill[key] = String(device[key]).trim();
   if (!saved.logo && device.logo) fill.logo = device.logo;
   setProfile(saved);
   if (!Object.keys(fill).length) return null;
@@ -500,6 +518,8 @@ function payload() {
   return {
     state: state ? state.value : '',
     fallRisk: (document.querySelector('input[name="fallRisk"]:checked') || {}).value || '',
+    // Falls answered No, kept after the draft asked to check it (fallCheckBlock).
+    fallNoKept: fallNoKept || undefined,
     residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
     // Unanswered until the user answers (messy-user test, 14 October 2026): no crane company is assumed.
     crane: (document.querySelector('input[name="crane"]:checked') || {}).value || '',
@@ -1769,6 +1789,24 @@ function askAgainSoon() {
   askTimer = setTimeout(askAgain, 700);
 }
 
+// The spelling SiteWrite fixed in the task, under the task box. Each question and draft sends the fixes for
+// the task as it is now, and a fix whose word is no longer in the task goes as soon as it is retyped (messy
+// round 8, run 8: "stuart to start" stayed after the task was retyped "Stuart Hwy").
+let spellingShown = [];
+function showSpellingFixes(fixes) {
+  spellingShown = Array.isArray(fixes) ? fixes.filter((fix) => fix && fix.from && fix.to) : [];
+  drawSpellingFixes();
+}
+function drawSpellingFixes() {
+  const note = document.getElementById('spelling-note');
+  if (!note) return;
+  const task = (document.getElementById('task') || {}).value || '';
+  const still = spellingShown.filter((fix) => new RegExp(`(^|[^A-Za-z])${fix.from.replace(/[^A-Za-z]/g, '')}(?![A-Za-z])`).test(task));
+  note.textContent = still.length ? `Spelling fixed in the SWMS: ${still.map((fix) => `${fix.from} to ${fix.to}`).join(', ')}.` : '';
+  note.classList.toggle('hidden', !still.length);
+}
+if (document.getElementById('task')) document.getElementById('task').addEventListener('input', drawSpellingFixes);
+
 async function loadQuestions(options = {}) {
   document.getElementById('start-error').textContent = '';
   if (!options.keepDraft) resultEl.classList.add('hidden');
@@ -1777,6 +1815,11 @@ async function loadQuestions(options = {}) {
   const sent = payload();
   // A new SWMS is asked with the PPE SiteWrite suggests for it, not the last task's.
   if (fresh) delete sent.ppe;
+  // Work brought back (a reload, Back, an opened SWMS) is asked about with its own answers before their
+  // boxes are drawn, so a question that is asked because it was answered comes back with its answer
+  // (messy round 8, run 3: once a product was listed, the reload dropped the "Safety data sheet" box, and
+  // its answer went from the draft and the file). Only the questions are asked with them.
+  if (!fresh && !document.querySelector('#required-block [data-fact]') && Object.keys(factMemory).length) sent.facts = { ...factMemory, ...(sent.facts || {}) };
   // An ask already on its way is out of date once this one is sent.
   askSeq += 1;
   const { response, data } = await postJson('/api/draft/questions', sent);
@@ -1787,10 +1830,7 @@ async function loadQuestions(options = {}) {
   questions = data;
   freshFacts = false;
   // Spelling SiteWrite fixed in the task, shown so the user can check it.
-  const note = document.getElementById('spelling-note');
-  const fixes = data.spellingFixes || [];
-  note.textContent = fixes.length ? `Spelling fixed in the SWMS: ${fixes.map((fix) => `${fix.from} to ${fix.to}`).join(', ')}.` : '';
-  note.classList.toggle('hidden', !fixes.length);
+  showSpellingFixes(data.spellingFixes);
   const warning = document.getElementById('fall-warning');
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
@@ -1891,6 +1931,7 @@ function fillStart(input) {
   pick('slinging', input.slinging);
   showSlinging();
   pick('fallRisk', input.fallRisk);
+  fallNoKept = input.fallNoKept === true;
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
@@ -2176,6 +2217,8 @@ const presetsLoaded = loadPresets();
 document.querySelectorAll('input[name="fallRisk"], input[name="residential"]').forEach((input) => {
   input.addEventListener('change', showFallExplanation);
 });
+// A new fall answer is checked afresh against the steps.
+document.querySelectorAll('input[name="fallRisk"]').forEach((input) => input.addEventListener('change', () => { fallNoKept = false; }));
 
 document.getElementById('back').addEventListener('click', () => {
   factsForm.classList.add('hidden');
@@ -2292,10 +2335,9 @@ function showDetailsInDraft() {
   if (!sheet || !sheet.querySelectorAll) return;
   const now = payload();
   const before = detailsShown || shownSent || {};
+  const sent = shownSent || {};
   const clean = (value) => String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
   const cells = [...sheet.querySelectorAll('tr')];
-  const head = sheet.querySelector('#emergency-table');
-  const emergencyRows = new Set(head && head.nextElementSibling ? [...head.nextElementSibling.querySelectorAll('tr')] : []);
   for (const [key, label] of Object.entries(DETAIL_ROWS)) {
     const was = clean(before[key]);
     const is = clean(now[key]);
@@ -2304,11 +2346,33 @@ function showDetailsInDraft() {
       const th = row.querySelector('th');
       const cell = row.querySelector('td');
       if (!cell) continue;
-      if (th && clean(th.textContent) === label) { cell.textContent = is || (key === 'musterPoint' ? 'To be completed before submitting for approval' : ''); continue; }
-      // The emergency arrangements name the first aider, the hospital and the muster point.
-      if (was.length >= 3 && is && emergencyRows.has(row)) row.querySelectorAll('td').forEach((td) => { if (td.textContent.includes(was)) td.textContent = td.textContent.split(was).join(is); });
+      if (th && clean(th.textContent) === label) cell.textContent = is || (key === 'musterPoint' ? 'To be completed before submitting for approval' : '');
     }
   }
+  // The emergency arrangements name the first aider, the hospital and the muster point. Each row is drawn
+  // again from the row the draft printed, with each detail as it was sent swapped for the detail now, so a
+  // box emptied or typed one letter at a time never loses the row (messy round 8, run 3: the muster point
+  // was retyped and the Emergency row kept "main gate" while the downloads were enabled).
+  const head = sheet.querySelector('#emergency-table');
+  const table = head && head.nextElementSibling;
+  const rows = table && table.querySelectorAll ? [...table.querySelectorAll('tbody tr')] : [];
+  (shownDraft.emergency || []).forEach((item, n) => {
+    const row = rows[n];
+    if (!row) return;
+    const tds = row.querySelectorAll('td');
+    [item.type, item.equipment, item.detail].forEach((value, i) => {
+      let text = String(value == null ? '' : value);
+      for (const key of ['firstAider', 'hospital', 'musterPoint']) {
+        const was = clean(sent[key]);
+        const is = clean(now[key]);
+        if (was.length >= 3 && is !== was) text = text.split(was).join(is || (key === 'musterPoint' ? 'To be completed before submitting for approval' : '____'));
+      }
+      // The muster point row prints the muster point itself, also where none was given when it was drawn.
+      if (i === 2 && /\bmuster point\b/i.test(String(item.equipment || '')) && clean(sent.musterPoint).length < 3) text = clean(now.musterPoint);
+      const html = esc(text).replace(/\n/g, '<br>');
+      if (tds[i] && tds[i].innerHTML !== html) tds[i].innerHTML = html;
+    });
+  });
   detailsShown = Object.fromEntries(Object.keys(DETAIL_ROWS).map((key) => [key, now[key]]));
 }
 ['input', 'change'].forEach((type) => document.addEventListener(type, (event) => {
@@ -3299,6 +3363,34 @@ function coverStep(data, part, index) {
   if (!steps.length) return '';
   return `<div class="cover-where cover-step"><label for="cover-step-${index}">A step in this SWMS covers it</label><select id="cover-step-${index}" data-cover-step="${index}" class="plain"><option value="">Choose the step that covers it</option>${steps.map((item) => `<option value="${esc(item.step)}">Step ${item.number}: ${esc(item.step)}</option>`).join('')}</select></div>`;
 }
+// Falls answered No while a step of this SWMS rates a fall from height High (draft.js withFallCheck, messy
+// round 8, run 5): the person checks the answer here, as for the other answers that disagree. The download
+// waits until they answer Yes, untick the step or keep No (fallNoKept, declared at the top).
+function fallCheckBlock(data) {
+  const fall = data && data.kind === 'draft' && data.fallConflict;
+  if (!fall || fall.kept) return '';
+  const named = fall.steps.slice(0, 2).map((name) => `"${esc(name)}"`).join(' and ');
+  return `<div class="warning fall-check" id="fall-check" tabindex="-1"><p><strong>Check your answer on falls.</strong> You answered No to "Could a person fall more than ${esc(fall.metres)} metres?", but ${fall.steps.length === 1 ? 'the step' : 'the steps'} ${named} ${fall.steps.length === 1 ? 'rates' : 'rate'} a fall from height High. If anyone could fall more than ${esc(fall.metres)} metres, answer Yes. If the step is not part of this job, untick it under Job steps.</p>
+    <div class="actions"><button type="button" class="small" data-fall-yes>Change my answer to Yes</button><button type="button" class="small secondary" data-fall-keep>Keep No: no one can fall more than ${esc(fall.metres)} metres</button></div></div>`;
+}
+document.addEventListener('click', (event) => {
+  const yes = event.target.closest && event.target.closest('[data-fall-yes]');
+  const keep = event.target.closest && event.target.closest('[data-fall-keep]');
+  if (!yes && !keep) return;
+  event.preventDefault();
+  if (keep) {
+    fallNoKept = true;
+    prepareDraft({ scroll: false, keep: '.sheet' });
+    return;
+  }
+  const radio = document.querySelector('input[name="fallRisk"][value="yes"]');
+  if (radio) radio.checked = true;
+  fallNoKept = false;
+  showFallExplanation();
+  // The fall questions are asked; the draft is prepared again once they are answered.
+  refreshSteps();
+});
+
 function notCoveredBlock(data) {
   const parts = coverParts(data);
   if (!parts.length) return '';
@@ -3537,9 +3629,10 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     const report = data.controlEdits || {};
     followRewords(report.remapped);
     shownReport = report;
-    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
+    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), fallCheckBlock(data), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
     detailsShown = null;
+    if (Array.isArray(data.spellingFixes)) showSpellingFixes(data.spellingFixes);
     if (data.kind === 'draft') drawDesigns(data.designs || []);
     shownChecks = data.gateChecks || data.gate || [];
     // The scaffold supervisor is asked for only where this SWMS involves a scaffold.
@@ -4766,7 +4859,11 @@ async function restoreUnsaved() {
   const start = document.getElementById('start');
   const stage = kept.stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl : kept.stage !== 'start' && !factsForm.classList.contains('hidden') ? factsForm : start.classList.contains('hidden') ? document.getElementById('job-details') : start;
   stage.before(note);
-  note.scrollIntoView({ block: 'start' });
+  // A principal contractor's review back goes with it, above it, so both are in view (messy round 8, run 1:
+  // on the phone the review note loaded above the screen).
+  const reviews = document.getElementById('reviews-back');
+  if (reviews) note.before(reviews);
+  (reviews || note).scrollIntoView({ block: 'start' });
   // The project list follows the details brought back.
   if (window.SiteWrite && window.SiteWrite.renderProject) window.SiteWrite.renderProject();
   return true;

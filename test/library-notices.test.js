@@ -66,7 +66,7 @@ async function age(swmsId, change) {
   const row = await db.one('SELECT draft, revision FROM swms_revisions WHERE swms_id = $1 ORDER BY revision DESC LIMIT 1', [swmsId]);
   const draft = typeof row.draft === 'string' ? JSON.parse(row.draft) : row.draft;
   change(draft);
-  await db.query('UPDATE swms_revisions SET draft = $1 WHERE swms_id = $2 AND revision = $3', [JSON.stringify(draft), swmsId, row.revision]);
+  await db.query('UPDATE swms_revisions SET draft = $1, library_version = \'older\' WHERE swms_id = $2 AND revision = $3', [JSON.stringify(draft), swmsId, row.revision]);
 }
 
 test('a change that only moves the printed regulation version is flagged and listed', async () => {

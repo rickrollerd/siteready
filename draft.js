@@ -7,6 +7,13 @@ const { localControl, withoutStateCodes } = require('./citations');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
+// What the spelling fixer leaves as the user typed it: the job address (whose place names a slip in the
+// task takes), and every other name typed (messy round 8, run 8: "stuart hwy" became "start hwy").
+const NAME_FIELDS = ['principalContractor', 'company', 'subcontractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'worksManager', 'complianceResponsible', 'reviewer', 'preparedBy'];
+function typedNames(input) {
+  const given = input && typeof input === 'object' ? input : {};
+  return { places: given.workplace || given.siteAddress || '', names: NAME_FIELDS.map((key) => (typeof given[key] === 'string' ? given[key] : '')) };
+}
 const { registersFor, withoutServicedPlant, withoutOtherTrades, commsOrUps, MAINS_SAID } = require('./register');
 const { inHierarchyOrder, controlLevel, HIGHER } = require('./control-level');
 const { withFills } = require('./blanks');
@@ -33,13 +40,24 @@ const TENDER_POINTER = /,?[ \t]*(?:all[ \t]+)?(?:(?:as|where)[ \t]+(?:(?:specifi
 const LIST_BULLET = /^[ \t]*(?:[\u00b7\u2022\u2023\u2043\u2219\u25aa\u25ab\u25cf\u25cb\u25e6\u25a0\u25a1\u27a2\u27a4\u25ba\u2713\u2714*\u2013\u2014]|-(?!\d))[ \t]*(?=\S)/gm;
 const COMMERCIAL_LABEL = /(^|[.;]\s+|\n)[ \t]*(?:(?:variation|provisional|alternative|alternate|optional|separable|additional|extra)(?:[ \t]+(?:price|cost|sum|scope))?(?:[ \t]+(?:options?|items?|prices?|sums?|portions?|works?))?|p\.?c\.?[ \t]+(?:sums?|items?)|prime[ \t]+cost(?:[ \t]+(?:sums?|items?))?|lump[ \t]+sum|price[ \t]+options?|(?:option|alternative|separable portion)[ \t]+\d+|tender[ \t]+(?:items?|options?))[ \t]*:[ \t]*/gi;
 const DRAWING_POINTER = /,?[ \t]*(?:as|where)[ \t]+(?:specified|detailed|shown|noted|described|outlined|documented|nominated|indicated)[ \t]+(?:in|on|by|per)[ \t]+(?:the[ \t]+)?(?:[\w'\u2019-]+[ \t]+){0,3}?(?:drawings?|documents?|documentation|specifications?|specs?|plans?|schedules?)(?:[ \t]+(?:and|&)[ \t]+(?:the[ \t]+)?(?:drawings?|specifications?|specs?|spec|plans?|schedules?))?\b/gi;
+// A scope's own headings and the contract's words for who does the work are not the work either (messy
+// round 8, run 5: "The scope of work includes but is not limited to the following principal areas: - The
+// Subcontractor shall paint ..." named the SWMS, its files and its task line). "The Contractor" in a
+// subcontract is the builder, whose work is not ours, so only the subcontractor's words go. Nor is a price label
+// after the work it prices (run 3: "... to cover roof space: Variation Price Option.").
+const SCOPE_LEAD_IN = /(^|[.;]\s+|\n)[ \t]*(?:(?:the|this|our)[ \t]+)?(?:(?:sub-?contract(?:or(?:'s|s)?)?|trade|contract)[ \t]+)?(?:scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?(?:works?|services))?|works?|services)[ \t]+(?:includes?|comprises?|consists?[ \t]+of|covers?|(?:is|are)[ \t]+as[ \t]+follows)(?:,?[ \t]*but[ \t]+(?:is[ \t]+|are[ \t]+)?not[ \t]+(?:necessarily[ \t]+)?limited[ \t]+to,?)?(?:[ \t]+the[ \t]+following)?(?:[ \t]+(?:principal|main|key|general))?(?:[ \t]+(?:areas|items|works?|elements|tasks|activities))?[ \t]*:[ \t]*(?:[-\u2013\u2014][ \t]*)?/gi;
+const SCOPE_HEADING = /^[ \t]*(?:the[ \t]+)?(?:(?:sub-?contract|trade)[ \t]+)?scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?works?)?[ \t]*:?[ \t]*$/gim;
+const WHO_SHALL = /(^|[.;:]\s+|\n)[ \t]*(?:the[ \t]+)?(?:sub-?contractor|trade[ \t]+contractor)[ \t]+(?:shall|will|must|is[ \t]+to|is[ \t]+required[ \t]+to|has[ \t]+allowed[ \t]+(?:to|for)|allows?[ \t]+(?:to|for)|to)[ \t]+(?=[a-z])/gi;
+const PRICE_LABEL_AFTER = /[ \t]*[:,\u2013\u2014-][ \t]*(?:variation(?:[ \t]+price)?(?:[ \t]+option)?|provisional[ \t]+sum|p\.?c\.?[ \t]+(?:sum|item)|prime[ \t]+cost(?:[ \t]+(?:sum|item))?|price[ \t]+option|optional[ \t]+(?:item|extra|price)|separable[ \t]+portion(?:[ \t]+\d+)?|alternative[ \t]+price|option[ \t]+\d+)(?:[ \t]*\([^)]*\))?[ \t]*(?=[.;]|\n|$)/gi;
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
-  const lines = String(value || '').split(/\r?\n/).map((line) => {
+  const lines = String(value || '').replace(SCOPE_HEADING, '').split(/\r?\n/).map((line) => {
     const bare = line.replace(CLAUSE_NUMBER, '').replace(LIST_BULLET, '');
     return bare !== line && /\w$/.test(bare.trim()) ? `${bare.trim()}.` : bare;
   });
-  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(COMMERCIAL_LABEL, (_whole, lead) => `${lead}\u0000`).replace(/\u0000(\S)?/g, (_whole, first) => (first ? first.toUpperCase() : ''));
+  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(PRICE_LABEL_AFTER, '')
+    .replace(SCOPE_LEAD_IN, (_whole, lead) => `${lead}\u0000`).replace(WHO_SHALL, (_whole, lead) => `${lead}\u0000`)
+    .replace(COMMERCIAL_LABEL, (_whole, lead) => `${lead}\u0000`).replace(/(?:\u0000\s*)+(\S)?/g, (_whole, first) => (first ? first.toUpperCase() : ''));
   return cleanLine(text.replace(/[ \t]+([.,;:])/g, '$1').replace(/,(?=[.;:])/g, ''));
 }
 
@@ -2478,7 +2496,7 @@ function weakAnswers(input) {
   const asked = askQuestions(input);
   if (asked.kind !== 'questions') return [];
   const state = stateFor(input);
-  const task = readSlang(fixSpelling(cleanLine(input.task || input.jobDescription)).text);
+  const task = readSlang(fixSpelling(cleanLine(input.task || input.jobDescription), typedNames(input)).text);
   const facts = withDesignHolds(input.facts, input.designs);
   const { helpText } = require('./answer-help');
   // An answer typed that does not answer the question ("none" for the products used) is said under its box
@@ -2617,10 +2635,16 @@ function controlsFor(task, facts, pack) {
       if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
       continue;
     }
+    // An answer prints as the person gave it, whole, in its place (messy round 8, run 2: a silica answer
+    // printed as three "Isolate or engineer" lines, one of them PPE). The silica answer, a mix of controls,
+    // has its own row under "Documents to keep on site" and prints whole in the step that cuts or drills, so
+    // it is not said again in this table.
+    if (item.id === 'silicaControls') continue;
     if (value && (item.applies(source) || item.fromPpe || (item.printsWhenAsked && pack && pack.asked && pack.asked.has(item.id)))) {
-      for (const line of controlRows(value)) {
-        push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
-      }
+      // A sentence another line here already says word for word is not said twice.
+      const line = controlRows(value).filter((row) => !items.some((other) => other.text.includes(row))).join(' ');
+      if (!line) continue;
+      push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
     }
   }
 
@@ -2632,18 +2656,8 @@ function controlsFor(task, facts, pack) {
   const trench = trenchSupportOf(task, { ...facts, siteConditions: '' }) || keptFact(facts.trenchSupport);
   if (trenchDig(source) && trench) push('Isolate or engineer', trench);
 
-  const sheet = keptFact(facts.safetyDataSheet);
-  if (sheet) {
-    for (const line of controlRows(sheet)) {
-      // 'kept at the work area: avoid skin contact, wear gloves' is two controls: the PPE part goes under PPE.
-      const at = line.search(/[,;:]\s*(?:and\s+)?wear\b/i);
-      if (at > 0) {
-        push('Administrative', `${line.slice(0, at).trim()}.`);
-        const ppe = line.slice(at).replace(/^[,;:]\s*(?:and\s+)?/, '').replace(/[.]*$/, '.');
-        push('PPE', ppe.charAt(0).toUpperCase() + ppe.slice(1));
-      } else push('Administrative', line);
-    }
-  }
+  // The "Safety data sheet" answer prints whole under "Documents to keep on site", and in the steps that use
+  // the products, not as a control in this table (messy round 8, run 1).
 
   const ppeNamed = source.match(/\b(hard hats?|helmets?|safety glasses|eye protection|gloves?|safety boots|hearing protection|hi-?vis(?:ibility)?(?: clothing)?|high visibility clothing|respirators?|dust masks?)\b/gi) || [];
   // The PPE section lists each item with its type, so one pointer is clearer than vague 'Wear gloves' lines.
@@ -3038,7 +3052,7 @@ const DENIED_WELDING = /,?\s*\bno (?:welding|welds|hot works?)\b(?!\s+(?:without
 // (messy round 7: "propress copper no brazing" kept the brazing step, the hot work question and the
 // brazing lines).
 const DENIED_BRAZING = /,?\s*\bno (?:brazing|brazed joints?|soldering|silver solder\w*)\b(?!\s+(?:without|unless|until|except|before|after|outside|from|on|in|near|above|over|within|during|where|when|if|at)\b)/gi;
-const deniedBrazing = (input) => new RegExp(DENIED_BRAZING.source, 'i').test(readSlang(fixSpelling(cleanLine((input && (input.task || input.jobDescription)) || '')).text));
+const deniedBrazing = (input) => new RegExp(DENIED_BRAZING.source, 'i').test(readSlang(fixSpelling(cleanLine((input && (input.task || input.jobDescription)) || ''), typedNames(input)).text));
 function withoutDeniedWelding(text) {
   let words = String(text || '');
   if (words.match(DENIED_BRAZING)) words = words.replace(DENIED_BRAZING, '').replace(/\b(?:braz\w*|solder\w*)\b/gi, 'join');
@@ -3062,7 +3076,7 @@ function askQuestions(input) {
     };
   }
   // Typos are fixed, then site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
-  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription), { places: input.workplace || input.siteAddress });
+  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription), typedNames(input));
   const task = withoutDeniedWelding(readSlang(spelling.text));
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
@@ -3651,8 +3665,9 @@ function scopeWords(input) {
 }
 function printedTask(out, input) {
   if (!out || typeof out !== 'object' || typeof out.task !== 'string') return out;
-  const spelling = fixSpelling(taskLine(input.task || input.jobDescription), { places: input.workplace || input.siteAddress });
-  return { ...out, task: readSlang(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
+  const spelling = fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input));
+  // The questions read the task with its shorthand read out; a draft prints it as typed (buildDraft).
+  return { ...out, task: out.kind === 'questions' ? readSlang(spelling.text) : spelling.text, ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
 
 // The work with no job steps a SWMS for this input would name, worked out before its questions are
@@ -3691,7 +3706,45 @@ const SDS_PROMPT = 'Name the hazardous products this work uses, such as sealant,
 function prepareDraft(input) {
   const read = scopeWords(input);
   const out = buildDraft(read, false);
-  return movedTask(read === input ? out : printedTask(out, input), input);
+  return withFallCheck(withSpellingFixes(movedTask(read === input ? standDownTask(out, input) : printedTask(out, input), input), input), input);
+}
+// A stood-down SWMS shows its task as the full draft prints it: as typed, with its spelling fixed and its
+// shorthand as written (messy round 8, run 6: "lvl" read "level" in one prepare and "lvl" in the next).
+function standDownTask(out, input) {
+  if (!out || out.kind !== 'stand-down' || typeof out.task !== 'string') return out;
+  return { ...out, task: fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input)).text };
+}
+
+// Falls answered No while a job step of this SWMS rates a fall from height High before its controls (messy
+// round 8, run 5: SiteWrite's own "Set up access to the outside of the structure" rated "A fall from height"
+// Possible x Catastrophic, and the file said there was no high risk work). The answer is the person's, so
+// it is not changed: the page asks them to check it, as for the other answers that disagree, and the
+// download waits until they answer Yes, take the step off, or keep No (input.fallNoKept), which then prints
+// that no one works where they could fall that far. draft.fallConflict: { steps, metres, kept }.
+// A person falling from height, as a step's hazard says it ("A fall from height.", "A fall from the basement
+// edge.", "A person falls more than 2 metres."), not a thing that falls. A fall from the platform or ladder
+// the crew works from inside a building ("A fall from the mobile scaffold, EWP or platform ladder") can be
+// below the fall height the question asks about, so it is not a contradiction of a No on its own.
+const FALL_HAZARD = /^(?:an? |the )?(?:person |worker |people )?(?:falls?|falling)\b[^.]*\b(?:height|roofs?|edges?|voids?|penetrations?|skylights?|shafts?|risers?|openings?|more than \d)|\b(?:a person|workers?|people|someone) (?:falls?|could fall) (?:more than|from height|from (?:the |a |an )?(?:roof|edge|scaffold\w*|platform|ewp|structure|building|deck)|off (?:the |a |an )?(?:roof|edge|scaffold\w*|platform|deck)|through (?:the |a |an )?(?:roof|skylight|void|opening|penetration))/i;
+// A fall from a ladder, a step platform or a mobile scaffold alone is work below the fall height the
+// question asks about, so it is not a contradiction of a No. Nor is a fall into water, which is about
+// drowning, whatever the height (a jetty deck 1.5 m above a river).
+const LOW_ACCESS_ONLY = (line) => /\binto (?:the )?water\b/i.test(line) || (/\b(?:ladders?|step platforms?|mobile scaffolds?|trestles?|podium steps?)\b/i.test(line)
+  && !/\b(?:height|roofs?|edges?|elevating|ewps?|boom|scissor|voids?|shafts?|penetrations?|skylights?|openings?|more than \d)\b/i.test(line));
+function withFallCheck(out, input) {
+  if (!out || out.kind !== 'draft' || fallAnswer(input && input.fallRisk) !== 'no') return out;
+  const steps = (out.jobSteps || []).filter((step) => ['High', 'Extreme'].includes(step.risk && step.risk.before && step.risk.before.level)
+    && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && FALL_HAZARD.test(String(line).trim()) && !LOW_ACCESS_ONLY(String(line)))).map((step) => step.step);
+  if (!steps.length) return out;
+  const metres = out.fallMetres || 2;
+  const kept = Boolean(input && input.fallNoKept === true);
+  return { ...out, fallConflict: { steps, metres, kept }, ...(kept ? { fallRisk: `No. No work is done where a person could fall ${metres} metres or more.` } : {}) };
+}
+// The spelling fixed in the task line, with every draft, so the page's "Spelling fixed" note follows the
+// task as it is now (messy round 8, run 8: it still said "stuart to start" after the task was retyped).
+function withSpellingFixes(out, input) {
+  if (!out || typeof out !== 'object' || !['draft', 'stand-down'].includes(out.kind)) return out;
+  return { ...out, spellingFixes: fixSpelling(taskLine((input && (input.task || input.jobDescription)) || ''), typedNames(input)).fixes };
 }
 
 // Owner, D291: work moved into another SWMS of the project ("covered in", D289) comes off the Task line
@@ -3867,7 +3920,11 @@ function screenHighRisk(input, said = '') {
 // needed. An answer already given keeps its lines in each step until a product is placed in that step,
 // whose own SDS controls then replace them (D282, substances.js). Without a product it is asked as before.
 const productsListed = (input) => Array.isArray(input && input.substances) && input.substances.some((row) => row && /^sub-\d{1,2}$/.test(String(row.id || '')) && String(row.product || '').trim());
-const notSdsQuestion = (input) => (item) => !(item.id === 'safetyDataSheet' && productsListed(input));
+// An answer already given keeps its question on the page, so the page goes on sending it: dropped from the
+// page, the answer went from the next draft and the file, with the products and "Not required" reasons it
+// named (messy round 8, run 3: the SWMS 1 file had no SDS answer and no sealant line, though the draft had
+// shown them, once a product was listed and the questions were asked again).
+const notSdsQuestion = (input) => (item) => !(item.id === 'safetyDataSheet' && productsListed(input) && !keptFact(input && input.facts && input.facts.safetyDataSheet));
 // The control lines an answer to the "Safety data sheet" question makes (controlsFor), as they print.
 function sdsAnswerLines(facts) {
   const sheet = keptFact(facts && facts.safetyDataSheet);
@@ -3891,7 +3948,7 @@ function buildDraft(input, screen) {
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
   // The SWMS keeps the task as typed, with typos fixed but slang left as written.
-  const typed = fixSpelling(taskLine(input.task || input.jobDescription), { places: input.workplace || input.siteAddress }).text;
+  const typed = fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input)).text;
   const task = withoutDeniedWelding(readSlang(typed));
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   // A fall control answer the questions no longer ask (the fall answer changed to No after it was
@@ -5179,7 +5236,7 @@ function highRiskOptions(input, draft) {
   const own = new Set(draft.highRiskOwn || []);
   const all = highRiskList(state).map((item) => ({ id: item.id, label: label(item) }));
   return {
-    highRiskChoices: workshopOnly(namedInPassing(othersAndDenials(readSlang(fixSpelling(cleanLine(input.task)).text)).denied)) ? [] : all.filter((item) => !listed.has(item.label)),
+    highRiskChoices: workshopOnly(namedInPassing(othersAndDenials(readSlang(fixSpelling(cleanLine(input.task), typedNames(input)).text)).denied)) ? [] : all.filter((item) => !listed.has(item.label)),
     highRiskOwn: all.filter((item) => own.has(item.id) && listed.has(item.label)),
     // The items SiteWrite found, each with its id, so the page can offer "Does not apply" (D311).
     highRiskFound: all.filter((item) => !own.has(item.id) && (draft.highRisk || []).includes(item.label)),
@@ -8591,7 +8648,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { taskLine, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

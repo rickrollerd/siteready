@@ -39,23 +39,31 @@
     const file = event.dataTransfer.files[0];
     $('scope-error').textContent = '';
     if (!ACCEPTED.test(file.name)) {
-      $('scope-error').textContent = NOT_A_SCOPE;
+      notScope = file.name;
+      $('scope-error').textContent = notScopeText();
       return;
     }
+    notScope = '';
     dropped = file;
     $('scope-file').value = '';
     $('scope-drop-note').textContent = `${file.name} is attached. Press "Find the tasks that need a SWMS" to read it.`;
     $('scope-file-clear').classList.remove('hidden');
   });
   // A picture chosen for the scope (messy round 4, run 7: a PNG got no message) is said plainly and taken off.
-  const NOT_A_SCOPE = 'SiteWrite reads a scope from a Word file (.docx), a PDF or a text file. A photo or picture of a scope cannot be read: attach the document, or paste its words in the box below.';
+  const NOT_A_SCOPE = 'SiteWrite reads a scope from a Word file (.docx), a PDF or a text file. A photo or picture of a scope cannot be read: attach the document, or paste its words in the box above.';
+  // The picture taken off is named, here and again if Find is pressed with nothing else attached (messy
+  // round 8, run 3: the photo went with no word, and Find then said only "Attach the scope or paste it first").
+  let notScope = '';
+  const notScopeText = () => (notScope ? `${notScope} was taken off: it is not a Word file, a PDF or a text file. ${NOT_A_SCOPE}` : NOT_A_SCOPE);
   $('scope-file').addEventListener('change', () => {
     dropped = null;
     $('scope-error').textContent = '';
     const file = $('scope-file').files[0];
+    notScope = '';
     if (file && !ACCEPTED.test(file.name)) {
+      notScope = file.name;
       $('scope-file').value = '';
-      $('scope-error').textContent = NOT_A_SCOPE;
+      $('scope-error').textContent = notScopeText();
     }
     $('scope-drop-note').textContent = 'or drag the file here';
     $('scope-file-clear').classList.toggle('hidden', !$('scope-file').files.length);
@@ -69,8 +77,9 @@
     $('scope-file-clear').classList.add('hidden');
     $('scope-error').textContent = '';
     $('scope-results').innerHTML = '';
-    // Taken off, the reading of it is not brought back on the next visit either.
+    // Taken off, the reading of it is not brought back on the next visit either, nor the scope kept for sign-in.
     if ((keptReading() || {}).done) keepReading(null);
+    if (waiting || keptShown) { waiting = null; keptShown = false; keptScope('readwrite', (store) => store.delete('scope')); }
   });
 
   $('scope-read').addEventListener('click', async () => {
@@ -79,7 +88,7 @@
     const file = dropped || $('scope-file').files[0];
     const text = $('scope-text').value.trim();
     if (!file && !text) {
-      $('scope-error').textContent = 'Attach the scope or paste it first.';
+      $('scope-error').textContent = notScope ? notScopeText() : 'Attach the scope or paste it first.';
       return;
     }
     if (file && file.size > 10 * 1024 * 1024) {
@@ -157,6 +166,20 @@
     return body;
   };
 
+  // A scope kept for sign-in is named in the file box when the page is opened again signed out, so the box
+  // does not look empty while the scope is still to be read (messy round 8, run 3: after Back the box looked
+  // empty, yet the reading used the file once he signed in).
+  let keptShown = false;
+  setTimeout(async () => {
+    if (S.accountReady) await S.accountReady;
+    if (S.signedIn && S.signedIn()) return;
+    const body = await keptScope('readonly', (store) => store.get('scope'));
+    if (!body || dropped || $('scope-file').files.length) return;
+    keptShown = true;
+    $('scope-drop-note').textContent = body.file && body.file.name ? `${body.file.name} is kept on this device. It is read once you sign in.` : 'The scope you pasted is kept on this device. It is read once you sign in.';
+    $('scope-file-clear').classList.remove('hidden');
+  }, 0);
+
   async function askToSignIn(body) {
     if (S.accountsOn && !S.accountsOn()) {
       $('scope-results').innerHTML = `<p class="note">Reading a scope needs an account, and accounts are not switched on here. Write the tasks in the Task box below.</p>`;
@@ -177,6 +200,7 @@
     const task = document.getElementById('task');
     if (!body && !project && !(task && task.value.trim())) $('scope-panel').open = true;
     if (!body) { await resumeReading(); return; }
+    if (keptShown) { keptShown = false; $('scope-drop-note').textContent = 'or drag the file here'; $('scope-file-clear').classList.add('hidden'); }
     $('scope-panel').open = true;
     $('scope-error').textContent = '';
     $('scope-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });

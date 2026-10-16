@@ -15,7 +15,11 @@ const { issueRef, placeOf } = require('./refs');
 const hash = (text) => crypto.createHash('sha256').update(String(text)).digest('hex');
 
 // The library's version: a fingerprint of the files the SWMS wording comes from.
-const LIBRARY_FILES = ['activities.js', 'draft.js', 'citations.js', 'legislation.js', 'steps.js', 'control-level.js', 'presets.js', 'spelling.js', 'slang.js', 'designs.js'];
+// Every file a draft's wording is read from or worked out by (messy round 8: the version is what says
+// whether the library changed since a revision was saved, so none of them is left out).
+const LIBRARY_FILES = ['activities.js', 'draft.js', 'citations.js', 'legislation.js', 'steps.js', 'control-level.js', 'presets.js', 'spelling.js', 'slang.js', 'designs.js',
+  'register.js', 'emergency.js', 'step-ppe.js', 'substances.js', 'own-hazards.js', 'trades.js', 'scope.js', 'blanks.js', 'answer-help.js', 'builder-check.js',
+  'public/substance-rules.js', 'public/gate-rules.js', 'public/design-fill.js', 'pick-lists.json'];
 const LIBRARY_VERSION = hash(LIBRARY_FILES.map((name) => {
   try { return fs.readFileSync(path.join(__dirname, name), 'utf8'); } catch { return ''; }
 }).join('\n')).slice(0, 12);

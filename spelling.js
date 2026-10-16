@@ -108,15 +108,20 @@ const KNOWN = { cieling: 'ceiling', cielings: 'ceilings', guage: 'gauge', sepera
   // Plant typed with -er for -or (messy round 7, run 8: "13t excavater", "plate compacter"). "compacter"
   // is also an old word for more compact, which a task never means.
   excavater: 'excavator', excavaters: 'excavators', compacter: 'compactor', compacters: 'compactors',
-  crain: 'crane', crains: 'cranes', rendring: 'rendering', hydrolic: 'hydraulic', hydralic: 'hydraulic', hydrualic: 'hydraulic', sheating: 'sheeting', vynil: 'vinyl', acess: 'access', removel: 'removal', landscapping: 'landscaping', assembley: 'assembly', trimimg: 'trimming', operater: 'operator', tileing: 'tiling', seting: 'setting', laders: 'ladders', hording: 'hoarding', hordings: 'hoardings', sewar: 'sewer', formate: 'format', ammended: 'amended' };
+  crain: 'crane', crains: 'cranes', rendring: 'rendering', hydrolic: 'hydraulic', hydralic: 'hydraulic', hydrualic: 'hydraulic', sheating: 'sheeting', vynil: 'vinyl', acess: 'access', removel: 'removal', landscapping: 'landscaping', assembley: 'assembly', trimimg: 'trimming', operater: 'operator', tileing: 'tiling', seting: 'setting', laders: 'ladders', hording: 'hoarding', hordings: 'hoardings', sewar: 'sewer', formate: 'format', ammended: 'amended',
+  // Words cut short or spelt as said (messy round 8, runs 6 and 8: "6 bathrms", "nite works" stayed in the task line).
+  bathrm: 'bathroom', bathrms: 'bathrooms', nite: 'night', nites: 'nights' };
 
 function correction(word) {
   const lower = word.toLowerCase();
   if (KNOWN[lower]) return word[0] === word[0].toUpperCase() ? KNOWN[lower][0].toUpperCase() + KNOWN[lower].slice(1) : KNOWN[lower];
-  if (lower.length < 5) return null;
   const vocab = vocabularyWords();
   const known = (w) => vocab.has(w) || englishWords().has(w);
   if (known(lower)) return null;
+  // A plural made with -s where the word takes -es ("planter boxs", messy round 8, run 6).
+  const stem = /(?:x|z|ch|sh|ss)s$/.test(lower) ? lower.slice(0, -1) : '';
+  if (stem && known(stem) && known(`${stem}es`)) return word[0] === word[0].toUpperCase() ? `${stem[0].toUpperCase()}${stem.slice(1)}es` : `${stem}es`;
+  if (lower.length < 5) return null;
   // A plural made with -ys where the word takes -ies ("balconys", messy round 4, run 6).
   if (/[^aeiou]ys$/.test(lower) && known(lower.slice(0, -1)) && known(`${lower.slice(0, -2)}ies`)) {
     const plural = `${lower.slice(0, -2)}ies`;
@@ -199,16 +204,29 @@ function placeCorrection(word, places) {
   return near.length === 1 ? near[0] : null;
 }
 
+// The words of the job address and of the names the user typed (the principal contractor, the company,
+// the people), which are never changed in the task: they are spelt as the user spelt them (messy round 8,
+// run 8: "stuart hwy" became "start hwy" in the task line, title, file names and sign-on sheet, though the
+// job address is 400 Stuart Hwy).
+function typedWords(places, names) {
+  const all = [places, ...(Array.isArray(names) ? names : [names])].map((value) => String(value || '')).join(' ');
+  return new Set((all.match(/[A-Za-z]{3,}/g) || []).map((word) => word.toLowerCase()));
+}
+
 // { text, fixes: [{ from, to }] }. places: the job address, whose place names are spelt as it spells them.
-function fixSpelling(text, { places = '' } = {}) {
+// names: the other names the user typed (a string or a list), whose words are left as typed.
+function fixSpelling(text, { places = '', names = [] } = {}) {
   const fixes = [];
   const named = placeWords(places);
+  const kept = typedWords(places, names);
   const out = String(text || '').replace(/[A-Za-z]{4,}/g, (word, at, whole) => {
+    if (kept.has(word.toLowerCase())) return word;
     const place = placeCorrection(word, named);
     if (place) { fixes.push({ from: word, to: place }); return place; }
-    if (word.length < 5) return word;
     // Words in capitals are names or codes, and a capital inside a sentence is a name or brand.
     if (word === word.toUpperCase()) return word;
+    // A four letter word is fixed only where it is a known slip or a plural in -s for -es ("nite", "boxs").
+    if (word.length < 5 && !KNOWN[word.toLowerCase()] && !/(?:x|z|ch|sh|ss)s$/i.test(word)) return word;
     const sentenceStart = /(?:^|[.!?]\s+)$/.test(whole.slice(0, at));
     if (!sentenceStart && word[0] === word[0].toUpperCase()) return word;
     // A word after a name, such as a plant's species name, is part of the name.

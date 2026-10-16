@@ -84,6 +84,8 @@
   // principal contractor of "the builder". Each kind of box says what would do.
   const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area)\.?$/i;
   const NOT_A_FIRST_AIDER = /^(?:the |a |our |site )?(?:builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
+  // A person's box holding a thing, a place or a crowd, not a person (messy round 8, run 5: "gloves").
+  const NOT_A_PERSON = /^(?:the |a |our |my )?(?:gloves?|glasses|safety glasses|goggles|boots|helmets?|hard ?hats?|hi-?vis(?: vests?)?|vests?|harness(?:es)?|lanyards?|masks?|p2 masks?|respirators?|ear ?muffs?|ear ?plugs?|ppe|ladders?|scaffold\w*|ute|truck|van|car|site|office|site office|gate|stairs?|crew|workers?|anyone|everyone|everybody|all|all of us|whoever|staff|team|the boys|boys|lads|guys)\.?$/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
   // An Australian phone number a site can ring (messy round 4, run 2: a 9 digit mobile printed): a mobile
   // or landline with its area code (10 digits from 0), a landline without it (8 digits), 13 numbers
@@ -97,6 +99,7 @@
     const quoted = `"${text.slice(0, 60)}"`;
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
+    if (kind === 'person' && NOT_A_PERSON.test(text)) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (kind === 'phone' && !phoneNumber(text)) return text.replace(/\D/g, '').length < 6 ? `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.` : `${quoted} is not a full phone number. A mobile has 10 digits, for example 0412 345 678.`;
     return '';
@@ -254,9 +257,9 @@
   const PEOPLE_FIELDS = [
     { id: 'workplace', field: 'workplace', label: 'Job address', need: 'Give the address where the work is done.' },
     { id: 'principalContractor', field: 'principal', label: 'Principal contractor', none: true, kind: 'company', need: 'Name the principal contractor running the site. If no principal contractor is appointed for this work, write Not applicable.' },
-    { id: 'complianceResponsible', field: 'compliance-responsible', label: 'Person who makes sure the SWMS is followed', need: 'Name the person who checks the controls are in place on site, usually your supervisor or leading hand.' },
-    { id: 'reviewer', field: 'reviewer', label: 'Person who reviews the controls', need: 'Name the person who checks the controls are working and updates this SWMS if the job changes.' },
-    { id: 'worksManager', field: 'works-manager', label: 'Works manager', need: 'Name your own person in charge of this work, such as your supervisor or foreman. It prints at the top of the SWMS.' },
+    { id: 'complianceResponsible', field: 'compliance-responsible', label: 'Person who makes sure the SWMS is followed', kind: 'person', need: 'Name the person who checks the controls are in place on site, usually your supervisor or leading hand.' },
+    { id: 'reviewer', field: 'reviewer', label: 'Person who reviews the controls', kind: 'person', need: 'Name the person who checks the controls are working and updates this SWMS if the job changes.' },
+    { id: 'worksManager', field: 'works-manager', label: 'Works manager', kind: 'person', need: 'Name your own person in charge of this work, such as your supervisor or foreman. It prints at the top of the SWMS.' },
     { id: 'worksManagerPhone', field: 'works-manager-phone', label: 'Works manager phone', kind: 'phone', need: 'Give the works manager\'s mobile, so the site can reach them. It prints as the contact phone.' },
     { id: 'scaffoldSupervisor', field: 'scaffold-supervisor', label: 'Scaffold supervisor', none: true, scaffold: true, need: 'This SWMS involves a scaffold. Name the scaffolding company\'s supervisor who hands it over and tags it, or write Not applicable if no scaffold is used for this work.' },
     { id: 'firstAider', field: 'first-aider', label: 'First aider', kind: 'firstAider', need: 'Name a trained first aider on site, yours or the main contractor\'s.' },
