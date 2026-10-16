@@ -599,7 +599,8 @@ function localLicences(stateName, trade, list, stepText) {
 // Plant notes that read differently in a state. Victoria registers plant designs, not items
 // (r 125, Schedule 2; only amusement structures are registered items, r 127C), sets no major
 // inspection, and r 118 sets no scaffold handover or 30 day inspection. Its Schedule 3 item 18A
-// licenses non-slewing telehandlers over 3 t, and a slewing telehandler is a slewing mobile crane.
+// licenses non-slewing telehandlers over 3 t (TV, as WorkSafe Victoria's alert of 13 October 2026
+// lists it), and a slewing telehandler is a slewing mobile crane.
 const STATE_PLANT = {
   // Western Australia: earthmoving machinery used as a crane, with a safe working load over 3 t,
   // needs a high risk work licence (r 5 "crane", r 81, Schedule 3 items 14A and 15A).
@@ -613,7 +614,7 @@ const STATE_PLANT = {
     ['inspection', /^Handover certificate before first use\. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days \(WHS Reg s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m\)\./, 'Not used for work until it, or the part used, is complete; kept secure and able to support the work; repaired before use if it becomes unsafe; and access blocked when it is left unattended (WHS Reg s 225). Handover certificate before first use, and inspected by a competent person before use, after an incident or repairs, and at least every 30 days.'],
     ['inspection', /Over 4 m: handover certificate and inspections as for a scaffold \(WHS Reg s 225\)\./, 'Over 4 m: handover certificate and inspections as for a scaffold.'],
     ['inspection', /, and at least every 30 days \(WHS Reg s 225\)\./, ', and at least every 30 days.'],
-    ['licence', /^No Schedule 3 class names telehandlers(, where one is used)?\. .*$/, 'Yes for a non-slewing telehandler rated over 3 t: the non-slewing telehandler licence, or a mobile crane licence$1. A slewing telehandler is a slewing mobile crane and needs the slewing mobile crane licence for its capacity'],
+    ['licence', /^No Schedule 3 class names telehandlers(, where one is used)?\. .*$/, 'Yes for a non-slewing telehandler rated over 3 t: the non-slewing telehandler operation licence (TV), or a mobile crane licence (CN, C2, C6, C1 or C0)$1. A slewing telehandler is a slewing mobile crane and needs the slewing mobile crane licence for its capacity (C2, C6, C1 or C0)'],
   ],
 };
 function localPlant(item, stateId) {

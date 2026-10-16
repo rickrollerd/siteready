@@ -160,8 +160,9 @@ test('Victoria: scaffolds, plant registration and the telehandler licence', () =
 
   const crane = draft('vic', 'Lift roof trusses onto the frame of a commercial building with a 60 tonne mobile crane and a telehandler.');
   assert.match(crane.plant.find((item) => /^Mobile crane/.test(item.item)).inspection, /Cranes over 10 t have a registered design\.$/);
-  assert.match(crane.plant.find((item) => item.item === 'Telehandler').licence, /^Yes for a non-slewing telehandler rated over 3 t: the non-slewing telehandler licence, or a mobile crane licence/);
-  assert.ok(lines(crane).some((item) => /A non-slewing telehandler rated over 3 t needs the non-slewing telehandler licence or a mobile crane licence/.test(item)));
+  assert.match(crane.plant.find((item) => item.item === 'Telehandler').licence, /^Yes for a non-slewing telehandler rated over 3 t: the non-slewing telehandler operation licence \(TV\), or a mobile crane licence \(CN, C2, C6, C1 or C0\)/);
+  assert.ok(lines(crane).some((item) => /A non-slewing telehandler rated over 3 t needs the non-slewing telehandler operation licence \(TV\) or a mobile crane licence/.test(item)));
+  assert.ok(crane.qualifications.some((name) => /^High risk work licence: telehandler \(.*non-slewing telehandler operation licence \(TV\)/.test(name)), JSON.stringify(crane.qualifications));
 
   const tower = draft('vic', 'Install a tower crane and pour slabs with a concrete placing boom for a commercial tower.');
   for (const name of ['Tower crane', 'Concrete placing boom']) {
