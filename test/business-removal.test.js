@@ -108,9 +108,10 @@ const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_m
 // Their subcontracts, SWMS lists and answered points (stage 4) are the main contractor's too.
 // The lists sent (stage 5), their emails, the addresses that asked to stop them, the SWMS uploaded
 // from the list page and the project log are the main contractor's too: a list a business claimed
-// loses its link to the business (sitelink-send.test.js).
+// loses its link to the business (sitelink-send.test.js). Asks to a lead to be added to its team are the
+// main contractor's too (lead_asks).
 const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details', 'subcontracts', 'required_swms', 'subcontract_points', 'project_events',
-  'list_links', 'mail_messages', 'mail_stops', 'list_uploads', 'list_upload_data', 'project_log'];
+  'list_links', 'mail_messages', 'mail_stops', 'list_uploads', 'list_upload_data', 'project_log', 'lead_asks'];
 
 async function tiedCounts(business) {
   const out = {};

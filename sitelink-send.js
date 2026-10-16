@@ -31,6 +31,7 @@ const designFiles = require('./design-files');
 const listMail = require('./list-mail');
 const { record } = require('./events');
 const { textField } = require('./input');
+const testHooks = require('./testhooks');
 
 const { fail } = auth;
 const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -128,6 +129,17 @@ const lastList = (links, email = null) => [...links].reverse().find((link) => li
 
 // ---- What the lead is about to send ----
 
+// Only an account whose ABN matches the ABN register sends list emails (D311, stage 5 decision 2):
+// anyone can set up an Unverified account under a builder's name, and it must not email subcontractors
+// as that builder. With the staging test hooks on, a test address may still send to a test address,
+// whose mail stays in the test inbox (testhooks.js). '' when the account can send.
+function sendBlock(org, reviewer, to) {
+  if (org && org.abn_verified_at) return '';
+  if (testHooks.enabled() && reviewer && testHooks.isTestAddress(reviewer.email) && (!to || testHooks.isTestAddress(to))) return '';
+  const support = shared && shared.supportEmail ? shared.supportEmail() : '';
+  return `${org.name} shows Unverified, so SiteLink cannot send its lists yet. Only an account whose ABN matches the ABN register can email subcontractors. The lead can check the register again in Account settings${support ? `, or contact SiteWrite at ${support}` : ''}.`;
+}
+
 function sender(req) {
   return { id: req.reviewer.id, name: req.reviewer.name || req.reviewer.email, email: req.reviewer.email };
 }
@@ -139,6 +151,8 @@ async function plan(ctx, req, body, { reminder = false, urls = { link: PREVIEW_L
   if (!req.reviewer.name) throw Object.assign(fail(400, 'Enter your name first. The email says who it is from.'), { field: 'name' });
   const to = sub.contact_email;
   if (!to) throw Object.assign(fail(400, 'Add the subcontractor\'s contact email first, under Change details.'), { field: 'email' });
+  const blocked = sendBlock(org, req.reviewer, to);
+  if (blocked) throw Object.assign(fail(403, blocked), { unverified: true });
   const stop = await stopOf(org.id, to);
   if (stop) throw Object.assign(fail(409, `${to} asked on ${when(stop.stopped_at, project.state)} for no more list emails from ${org.name}. SiteLink will not email them. Contact them yourself, or change the contact email to another person.`), { field: 'email' });
   const rows = await keptRows(sub.id);
@@ -272,7 +286,10 @@ async function sendingFor(ctx) {
     else if (sub.contact_email !== last.email) remind = { ...remind, can: false, why: `The contact email has changed. Send the list to ${sub.contact_email || 'the new address'} first.` };
   }
   const log = await logOf(project.id, sub.id);
+  const blocked = sendBlock(org, ctx.viewer, sub.contact_email);
   return {
+    // Why nothing can be sent from this account yet (it shows Unverified), or ''.
+    blocked: blocked ? { message: blocked, orgId: org.id } : null,
     email: sub.contact_email,
     abn: sub.abn || '',
     abnShown: formatAbn(sub.abn || ''),

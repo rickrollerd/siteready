@@ -725,6 +725,16 @@ const SCHEMA = [
     created_at TIMESTAMPTZ NOT NULL
   )`,
   'CREATE INDEX IF NOT EXISTS project_events_org ON project_events (org_id, created_at)',
+  // Someone refused a second account for an ABN already on SiteLink asked SiteLink to tell that
+  // account's lead (D307, stage 3 decision 4): who asked which account, and when, so the lead is not
+  // asked again and again.
+  `CREATE TABLE IF NOT EXISTS lead_asks (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    reviewer_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS lead_asks_org ON lead_asks (org_id, created_at)',
   // The HSE lead's changes to a SWMS list, kept to improve how SiteWrite reads scopes (Goal 12): the
   // month, state, brief version, the package's name and wording with names taken out, the kind of
   // change, and the reading by a keyed fingerprint. No project, account, subcontract or person.

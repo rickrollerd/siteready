@@ -25,13 +25,22 @@
   // crane, or where the scope says this subcontractor supplies the cranage.
   const isCranage = (name) => /\bcran(?:e|es|age)\b/i.test(String(name || ''));
   const CRANAGE_SUPPLY = /\b(?:sub-?contractors?|we|our company)\b[^.;]{0,80}?\b(?:allow\w*|suppl\w*|provid\w*|includ\w*|responsible for)\b[^.;]{0,80}?\b(?:cranage|craneage|crane hire|cranes)\b/i;
+  // The same said other ways (stage 4 decision 4, D307): "a mobile crane supplied by the Subcontractor",
+  // "the Subcontractor's own crane", and "the Subcontractor is to supply a 20 t crane" (one crane the
+  // subcontractor brings, not slinging for a crane someone else runs).
+  const CRANAGE_BY_US = [
+    /\b(?:cranage|craneage|crane hire|cranes?)\b[^.;]{0,60}?\b(?:supplied|provided|hired|arranged|engaged|organised|organized|allowed for|included)\s+by\s+(?:the\s+)?(?:sub-?contractors?|us|our company)\b/i,
+    /\b(?:(?:the\s+)?sub-?contractor['’]s|our)\s+(?:own\s+)?(?:[\w-]+\s+){0,2}?(?:cranes?|cranage|crane hire)\b/i,
+    /\b(?:sub-?contractors?|we|our company)\b[^.;]{0,80}?\b(?:suppl\w*|provid\w*|hir\w*|bring\w*)\s+(?:a|an|the|its own|their own|our own)\s+(?:[\w-]+\s+){0,3}?cranes?\b/i,
+  ];
+  const suppliesCranage = (part) => CRANAGE_SUPPLY.test(part) || CRANAGE_BY_US.some((pattern) => pattern.test(part));
   const BY_OTHERS = /\b(?:by others|by the (?:head |principal |main )?contractor|by the builder|excluded|exclusions?|not included|not part of)\b/i;
 
   // The first clause in which the scope gives this subcontractor the cranage, from the quotes of its site work.
   function craneClause(reading) {
     for (const row of ((reading && reading.activities) || []).filter((item) => item.type !== 'Duty')) {
       for (const quote of row.quotes || []) {
-        const sentence = String(quote).split(/(?<=[.;])\s+/).find((part) => CRANAGE_SUPPLY.test(part) && !BY_OTHERS.test(part));
+        const sentence = String(quote).split(/(?<=[.;])\s+/).find((part) => suppliesCranage(part) && !BY_OTHERS.test(part));
         if (sentence) return { clause: String(row.clause || '').trim(), quote: sentence.trim() };
       }
     }
@@ -50,7 +59,7 @@
     for (const row of ((reading && reading.activities) || []).filter((item) => item.type !== 'Duty')) {
       const words = [...(row.quotes || []), row.conditions || '', row.plant || ''].map(String);
       for (const text of words) {
-        const sentence = text.split(/(?<=[.;])\s+/).find((part) => CRANE_WORD.test(part) && BY_OTHERS_CRANE.test(part) && !HEDGED.test(part) && !CRANAGE_SUPPLY.test(part));
+        const sentence = text.split(/(?<=[.;])\s+/).find((part) => CRANE_WORD.test(part) && BY_OTHERS_CRANE.test(part) && !HEDGED.test(part) && !suppliesCranage(part));
         if (sentence) return 'company';
       }
     }
@@ -158,7 +167,7 @@
     });
   }
 
-  const api = { packagesOf, isCranage, craneClause, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
+  const api = { packagesOf, isCranage, craneClause, suppliesCranage, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteScopeChoice = api;
 })(typeof window !== 'undefined' ? window : globalThis);

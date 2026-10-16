@@ -3957,6 +3957,12 @@ function buildDraft(input, screen) {
     draft.highRisk = draft.highRisk.filter((label) => !fromAnswers.includes(label));
   }
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
+  // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
+  // reason (D311, round 6 content decision 2). It comes off the list wherever it is found, and prints as
+  // the user's call (highRiskNotApply). offFound: the labels it took off.
+  const notApply = highRiskOffOf(input, state);
+  const notApplies = (label) => notApply.some((item) => item.label === label);
+  const offFound = new Set();
   // No job steps for this kind of work: stood down, not issued with generic text.
   const added = state.kinds ? state.kinds.filter((id) => !suggestedKinds(task, facts, { ...state, kinds: null }).includes(id)) : null;
   const mainMissing = missingMainWork(task, draft.jobSteps || [], added);
@@ -4028,6 +4034,9 @@ function buildDraft(input, screen) {
     const fallLabel = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
     // High risk construction work the user says applies, picked from the regulation's list on the draft
     // (messy round 5). It prints, and SiteWrite adds its own lines for it where it has them.
+    // Its category lines and permits are not added below, and its rescue rows follow the list.
+    for (const label of draft.highRisk) if (notApplies(label)) offFound.add(label);
+    draft.highRisk = draft.highRisk.filter((label) => !offFound.has(label));
     const added = highRiskAddedOf(input, state);
     draft.highRiskOwn = added.filter((item) => !draft.highRisk.includes(fallLabel(item))).map((item) => item.id);
     for (const item of added) if (!draft.highRisk.includes(fallLabel(item))) draft.highRisk = [...draft.highRisk, fallLabel(item)];
@@ -4036,7 +4045,10 @@ function buildDraft(input, screen) {
     const stepNames = draft.jobSteps.map((step) => step.step);
     // Permit and category lines the user removed are left out here, and reported as their removals.
     const suppressed = [];
-    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), { ...permitOptions(task, state, input), suppressed });
+    const off = new Set(notApply.filter((item) => offFound.has(item.label)).map((item) => item.id));
+    // A permit put in for that work when the steps were drafted comes out too.
+    if (off.size) draft.jobSteps = withoutPermits(draft.jobSteps, off, state.id);
+    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), { ...permitOptions(task, state, input), suppressed, off });
     draft.jobSteps = permitted.map((step, index) => {
       const had = draft.jobSteps[index].controls;
       if (step.controls.length === had.length) return step;
@@ -4068,14 +4080,16 @@ function buildDraft(input, screen) {
   // job step that processes silica brings it, whatever the task's own words.
   if (registers.jobSteps.some((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)))) {
     for (const item of highRiskMatches('cut concrete with a saw', 'no', state).filter((match) => match.check === 'silica')) {
-      if (!draft.highRisk.includes(item.label)) draft.highRisk = [...draft.highRisk, item.label];
+      if (notApplies(item.label)) offFound.add(item.label);
+      else if (!draft.highRisk.includes(item.label)) draft.highRisk = [...draft.highRisk, item.label];
     }
   }
   // Powered mobile plant the SWMS lists, even where it may be used, brings the s 291 plant item.
   // A plate compactor on a small barrowed pour is not mobile plant moving around the work.
   if (registers.plant.filter((item) => !(INSIDE_SAID.test(riskTask) && workInside(riskTask) && /, where one is used\b/.test(item.licence))).some((item) => /^(Mobile crane|Crawler crane|Non-slewing mobile crane|Vehicle loading crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating|Dozer|Grader|Loader|Scraper|Articulated dump truck|Water cart|Road profiler|Stabiliser|Asphalt paver|Bitumen sprayer|Aggregate spreader|Truck mounted attenuator|Self-propelled modular transporter|Pile driving hammer|Ground improvement rig|Rolling impact compactor|Shotcrete rig|Roadheader|Low loader|Mulcher|Fuel truck|Road rail vehicle|Track laying machine|Track maintenance machine|Hydro demolition robot|Directional drilling rig|Drill rig|Post driver|Vacuum excavation unit|Truck and dog)/.test(item.known || item.item) && !(item.item === 'Roller or plate compactor' && !/\brollers?\b/i.test(draft.task || '') && !registers.jobSteps.some((step) => step.controls.some((line) => /\b(?:any|a|the|small|ride-on) rollers?\b(?! doors?)/i.test(line) && !/\bpaint\b/i.test(line)))) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
     const plantItem = highRiskMatches('movement of powered mobile plant', 'no', state).map((item) => item.label);
-    const added = plantItem.filter((label) => !draft.highRisk.includes(label));
+    for (const label of plantItem) if (notApplies(label)) offFound.add(label);
+    const added = plantItem.filter((label) => !draft.highRisk.includes(label) && !offFound.has(label));
     draft.highRisk = [...draft.highRisk, ...added];
     // The plant category listed only now brings its warning line, as the categories above did.
     if (added.length && !workshopOnly(riskTask)) {
@@ -4086,6 +4100,8 @@ function buildDraft(input, screen) {
     }
   }
   if (workshopOnly(riskTask)) draft.highRisk = [];
+  // What the user marked as not applying, as it prints: only items SiteWrite found, each with its reason.
+  draft.highRiskNotApply = workshopOnly(riskTask) ? [] : notApply.filter((item) => offFound.has(item.label)).map(({ id, label, reason }) => ({ id, label, reason }));
   // Where each item SiteWrite listed was found, said beside it on the draft, so an item that comes from
   // a site answer can be traced (messy round 5, run 2: the street and the switchroom in the shared site
   // answers brought items the person could not trace).
@@ -4396,6 +4412,7 @@ const PERMITS = [
   },
   {
     work: LINES_WORK,
+    category: 'electrical',
     at: /\b(power lines?|electric lines?|overhead)\b/i,
     named: /\bpermits? to work\b/i,
     line: 'Before work starts near an overhead or underground electric line, a permit to work near the lines is issued by the principal contractor, or by the supervisor where the principal contractor does not issue them, recording the exclusion zone distances (at least 3 m from lines up to 132 kV, and more above 132 kV) and the safety observer. No person, plant or load enters the exclusion zone unless the network operator\'s written permission or approval for that work is held, or the network operator has isolated the line.',
@@ -4430,6 +4447,7 @@ const PERMITS = [
   },
   {
     work: /\bconfined spaces?\b/i,
+    category: 'confined',
     at: /\b(confined space|enter)\b/i,
     named: /\b(?:confined space (?:entry )?|entry )permits?\b/i,
     line: 'No person enters a confined space until a confined space entry permit is issued by the competent person named for the entry, after the air in the space is tested, with a standby person outside the space for the whole entry.',
@@ -4475,6 +4493,8 @@ function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   const noDigging = steps.some((step) => step.step === 'Work inside a deep excavation') && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
   for (const permit of PERMITS) {
     if (permit.notDomestic && options.domestic) continue;
+    // The permit for high risk work the user marked "Does not apply" goes with it (D311).
+    if (permit.category && options.off && options.off.has(permit.category)) continue;
     if (noDigging && permit.work === DIG_WORK) continue;
     if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead))) continue;
     const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(withoutStateCodes(line))));
@@ -4496,6 +4516,13 @@ function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
     steps = steps.map((step, index) => (index === at ? { ...step, controls: [...step.controls, permitLine(permit, options.stateId || 'qld')] } : step));
   }
   return steps;
+}
+
+// The permit lines for high risk work the user marked "Does not apply" (D311), taken out of the steps.
+function withoutPermits(jobSteps, off, stateId) {
+  const gone = new Set(PERMITS.filter((permit) => permit.category && off.has(permit.category)).flatMap((permit) => [permit.line, permitLine(permit, stateId || 'qld')]));
+  if (!gone.size) return jobSteps;
+  return jobSteps.map((step) => (step.controls.some((line) => gone.has(line)) ? { ...step, controls: step.controls.filter((line) => !gone.has(line)) } : step));
 }
 
 // A high risk category the SWMS lists needs controls for it in the steps (builder check H2). Where
@@ -4568,6 +4595,8 @@ const STEP_POSITIONS = [
   [/\b(communications|comms|optical fibre|wi-fi|security devices|antennas)\b/i, 'Registered cabler'],
   [/\b(refrigerant|evacuate and charge|pressure test with nitrogen|split system)\b/i, 'Licensed refrigeration technician'],
   [/\b(isolate the gas|gas (?:appliance|line|regulator)|heater and flue)\b/i, 'Licensed gas fitter'],
+  // Sprinkler pipework is fire services work, not plumbing (rename decision 7, D307).
+  [/\bsprinklers?\b/i, 'Fire services fitter'],
   [/\b(sewer|water supply|plumbing|backflow|water meters?|hot water|water heater|rainwater tank|sprinkler|hydrant|floor wastes|grey water|pump-out|risers|solder|pvc pipe|butt fuse|the pipe\b|pipe section|pipework in the ceiling|clear the drain|drainage under the slab|medical gas|gas cylinders|pneumatic tube)\b/i, 'Licensed plumber'],
   [/\b(isolate and prove|energised|switchboards?|construction power|temporary (?:lighting|power)|cabl\w*|rough-in|fit off|electrical|sub-board|sub-mains|meter box|consumer mains|supply disconnected|solar (?:array|panels)|inverter|battery system|earthing|earth stakes|high voltage|light fittings|lightning|smoke alarms|control panel|test the new work|connect and commission|unfinished work safe|test and tag|generators?|substation|fire detection|heating cables|sports lighting|pool light|event power)\b/i, 'Licensed electrician'],
   [/\b(charge and fire|blast holes)\b/i, 'Licensed shotfirer'],
@@ -5033,12 +5062,15 @@ function highRiskOptions(input, draft) {
   const state = stateFor(input);
   if (!state || !draft || draft.kind !== 'draft') return {};
   const label = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
-  const listed = new Set(draft.highRisk || []);
+  // Work the user marked "Does not apply" shows with its reason and "Put back", not in the list to add.
+  const listed = new Set([...(draft.highRisk || []), ...(draft.highRiskNotApply || []).map((item) => item.label)]);
   const own = new Set(draft.highRiskOwn || []);
   const all = highRiskList(state).map((item) => ({ id: item.id, label: label(item) }));
   return {
     highRiskChoices: workshopOnly(namedInPassing(othersAndDenials(readSlang(fixSpelling(cleanLine(input.task)).text)).denied)) ? [] : all.filter((item) => !listed.has(item.label)),
     highRiskOwn: all.filter((item) => own.has(item.id) && listed.has(item.label)),
+    // The items SiteWrite found, each with its id, so the page can offer "Does not apply" (D311).
+    highRiskFound: all.filter((item) => !own.has(item.id) && (draft.highRisk || []).includes(item.label)),
   };
 }
 
@@ -5047,6 +5079,22 @@ function highRiskOptions(input, draft) {
 function highRiskAddedOf(input, state) {
   const ids = new Set(Array.isArray(input && input.highRiskAdded) ? input.highRiskAdded : []);
   return highRiskList(state).filter((item) => ids.has(item.id));
+}
+
+// High risk construction work the user marked "Does not apply" on the draft, each with the short reason
+// it needs (D311): [{ id, label, reason }]. One with no reason, or a reason that says nothing ("dont
+// know", "TBC", one word), does not count, and the item stays listed.
+function highRiskOffOf(input, state) {
+  const given = Array.isArray(input && input.highRiskOff) ? input.highRiskOff : [];
+  const { reasonNeed } = require('./public/substance-rules');
+  const label = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
+  const out = [];
+  for (const item of highRiskList(state)) {
+    const mine = given.find((entry) => entry && entry.id === item.id);
+    const reason = mine ? String(mine.reason || '').replace(/\s+/g, ' ').trim() : '';
+    if (reason && !reasonNeed(reason) && !out.some((one) => one.id === item.id)) out.push({ id: item.id, label: label(item), reason });
+  }
+  return out;
 }
 
 function ownStepsOf(input) {
@@ -8278,6 +8326,7 @@ module.exports = { taskLine, stepCoveringPart, withoutOtherTrades, workInside, s
   workFlags,
   highRiskMatches,
   highRiskOptions,
+  highRiskOffOf,
   questionsFor,
   askQuestions,
   prepareDraft,

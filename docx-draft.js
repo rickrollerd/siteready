@@ -31,6 +31,13 @@ const open = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder 
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
 // A load rating in kPa or kN prints with its mass (D263, public/mass.js).
 const { withMass } = require('./public/mass');
+
+// High risk construction work SiteWrite found that the user marked "Does not apply" (D311): one line
+// each, as the user's call, with their reason.
+function notApplyLines(draft) {
+  return ((draft && draft.highRiskNotApply) || []).filter((item) => item && item.label && item.reason)
+    .map((item) => `Does not apply (our call): ${item.label}. Reason: ${String(item.reason).trim().replace(/[.\s]+$/, '')}.`);
+}
 const safe = (text) => withMass(String(text || '').toWellFormed().replace(CONTROL, ' '));
 
 function run(text, options = {}) {
@@ -504,11 +511,14 @@ function childrenFor(draft, options = {}) {
   blocks.push(...responsibilities(draft));
 
   blocks.push(sectionHeading('High risk construction work'));
+  const notApply = notApplyLines(draft);
   if (draft.highRisk.length) {
     for (const item of draft.highRisk) blocks.push(para(item, { before: 0, after: 40 }));
-  } else {
+  } else if (!notApply.length) {
     blocks.push(para('This task is not identified as high risk construction work.', { before: 0, after: 40 }));
   }
+  // Work SiteWrite found that the user says does not apply, with their reason, printed as their call (D311).
+  for (const line of notApply) blocks.push(para(line, { before: 0, after: 40 }));
 
   // The designs the job steps rely on and the written methods the work follows (designs.js), only
   // where there are any.
@@ -687,4 +697,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines, draftToDocx, draftedNote, revisionText };
+module.exports = { notApplyLines, sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines, draftToDocx, draftedNote, revisionText };

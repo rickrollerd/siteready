@@ -723,6 +723,9 @@ app.use((error, req, res, _next) => {
   // SiteLink's ABN check (D303): the name the ABN register lists, or that another account holds the ABN.
   const register = error.publicMessage && error.register && typeof error.register === 'object' ? { register: error.register } : {};
   const taken = error.publicMessage && error.taken === true ? { taken: true } : {};
+  // SiteWrite's own contact address, for a refusal that says to write to it (SiteLink set-up).
+  const support = error.publicMessage && typeof error.support === 'string' && error.support ? { support: error.support } : {};
+  const unverified = error.publicMessage && error.unverified === true ? { unverified: true } : {};
   // SiteLink's scope reading (stage 4): the project's free readings are used up, or a new scope would replace a list.
   const limit = error.publicMessage && error.limit === true ? { limit: true } : {};
   const replace = error.publicMessage && error.replace === true ? { replace: true } : {};
@@ -731,7 +734,7 @@ app.use((error, req, res, _next) => {
   const tradeMismatch = error.publicMessage && error.tradeMismatch === true ? { tradeMismatch: true } : {};
   // Stage 5: the email as it now stands, when it changed after the lead checked it.
   const preview = error.publicMessage && error.preview && typeof error.preview === 'object' ? { preview: error.preview } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview });
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...support, ...unverified, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview });
 });
 
 // One worker per processor core, as many as the memory allows. A worker holds the step library, the word

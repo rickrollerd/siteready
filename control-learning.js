@@ -1,6 +1,9 @@
 // What users change in their SWMS (task #102, owner decisions of 6 October 2026), kept to improve
 // the step library. Off unless CONTROL_LEARNING=on, until the privacy policy covers it.
 //
+// High risk work SiteWrite found that the user marked "Does not apply" is kept the same way (kind
+// hrcwNotApply), with the user's reason as its note, names taken out.
+//
 // Each change is recorded once for each saved revision of a SWMS, never again for a download or a
 // second save of the same revision. A row holds the job step, the kind of change, the line as
 // SiteWrite wrote it, the user's own words (with names, phone numbers, email addresses, ABNs and
@@ -311,8 +314,11 @@ async function recordControlEdits(draft, input, { company, swmsId, revision = 1,
   if (!company || company.industry_opt_out) return 0;
   // Lines changed, and PPE the user unticked, moved to all work or added to a step (D247).
   const ppeEdits = ppeEditsOf(draft, input);
-  if (!draft.controlEdits && !ppeEdits.length) return 0;
-  const changes = [...(draft.controlEdits ? changesOf(draft.controlEdits) : []), ...ppeEdits];
+  // High risk work SiteWrite found that the user marked "Does not apply" (D311): the category as
+  // SiteWrite listed it, and the user's reason with names taken out, so wrongly found work can be learnt from.
+  const notApply = (draft.highRiskNotApply || []).map((item) => ({ step: 'High risk construction work', kind: 'hrcwNotApply', outcome: 'applied', original: item.label, newLine: '', warning: '', legal: '', reason: '', note: item.reason }));
+  if (!draft.controlEdits && !ppeEdits.length && !notApply.length) return 0;
+  const changes = [...(draft.controlEdits ? changesOf(draft.controlEdits) : []), ...ppeEdits, ...notApply];
   const state = findState(input && input.state);
   const key = swmsKey(swmsId);
   const fields = {
@@ -774,7 +780,7 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
   const candidates = {
     removed: patternsOf(made.filter((row) => row.kind === 'removed'), (row) => at(row) + row.original, chosen, threshold),
     added: patternsOf(made.filter((row) => row.kind === 'added'), (row) => sameWording(row.new_line) && at(row) + sameWording(row.new_line), chosen, threshold),
-    notApplicable: patternsOf(made.filter((row) => row.kind === 'hazardNotApplicable'), (row) => at(row) + row.original, chosen, threshold),
+    notApplicable: patternsOf(made.filter((row) => row.kind === 'hazardNotApplicable' || row.kind === 'hrcwNotApply'), (row) => at(row) + row.original, chosen, threshold),
     reverted: patternsOf(made.filter((row) => row.kept === false), (row) => `${at(row)}${row.kind}\n${row.original}\n${sameWording(row.new_line)}`, chosen, threshold),
     // PPE users untick, move to all work or add to a step (D247), by step and item.
     ppe: patternsOf(made.filter((row) => PPE_KINDS.has(row.kind)), (row) => `${at(row)}${row.kind}\n${row.original}`, chosen, threshold),
@@ -854,7 +860,7 @@ const GROUP_TITLES = {
   ppe: 'PPE users change for particular steps',
 };
 const PPE_KINDS = new Set(['ppeStepRemoved', 'ppeStepAdded', 'ppeToAllWork', 'ppeAllRemoved', 'ppeAllAdded']);
-const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', whoChanged: 'Who changed', hazardControl: 'control for the user\'s own hazard', hazardRated: 'the user\'s own hazard rated',
+const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', hrcwNotApply: 'high risk work does not apply', whoChanged: 'Who changed', hazardControl: 'control for the user\'s own hazard', hazardRated: 'the user\'s own hazard rated',
   ppeStepRemoved: 'PPE unticked for the step', ppeStepAdded: 'PPE added to the step', ppeToAllWork: 'PPE moved to all work', ppeAllRemoved: 'PPE unticked for all work', ppeAllAdded: 'PPE added for all work' };
 
 function table(head, rows, empty) {

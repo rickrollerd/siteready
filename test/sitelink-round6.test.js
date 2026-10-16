@@ -54,7 +54,7 @@ const MECHANICAL_READING = {
     row('Install ductwork and fan coil units in the ceiling spaces', 'Ductwork and mechanical units: whole project', 'Installation 1', 'Install ductwork and fan coil units in the ceiling spaces on levels 1 to 4.', 'confirm who supplies the fan coil units', { where: 'Levels 1 to 4' }),
     row('Install rooftop condensers', 'Ductwork and mechanical units: whole project', 'Installation 2, Installation 1', 'Lift the rooftop condensers onto the roof with a mobile crane supplied by the builder.', '', { where: 'Roof' }),
     row('Install acoustic and vibration separation between major plant and building structure', 'Trade installation: plant', 'Installation 3', 'Install acoustic and vibration separation between major plant and building structure.'),
-    row('Install the central controller for the VRF systems', 'Controls', 'Installation 4', 'Install the central controller for the VRF systems in the plant room.', 'Where the controller is mounted'),
+    row('Install the central controller for the VRF systems', 'Controls', 'Installation 4', 'Install the central controller for the VRF systems in the plant room.', 'Who supplies the controller; where it is mounted'),
     row('Receive, check and handle materials on site', 'Materials handling', 'Installation 5', 'Receive, check and handle materials on site.'),
     row('Remove rubbish daily to the builder\'s bins', 'Housekeeping and waste', 'Installation 6', 'Remove rubbish daily to the builder\'s bins.'),
     row('Use task-specific access equipment', 'Access equipment', 'Installation 7', 'Use task-specific access equipment.'),
@@ -229,7 +229,7 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   // and it starts with a capital letter.
   const point = (text) => page.points.find((one) => one.question.startsWith(text));
   assert.equal(point('Who gives access').inPlay, false);
-  assert.equal(point('Where the controller').inPlay, false);
+  assert.equal(point('Who supplies the controller').inPlay, false);
   assert.equal(point('Confirm who supplies').inPlay, true);
   const project = (await call('GET', `/api/hse/projects/${projectId}`, { reviewer: lead })).data;
   assert.equal(project.subcontracts[0].pointsOpen, 1);
@@ -240,7 +240,7 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   // Moving Controls to the list brings its point back; removing the main SWMS takes its point away.
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${by.Controls.id}`, { reviewer: lead, body: { removed: false } })).data;
   assert.equal(next.message, 'Controls is moved to the list.');
-  assert.equal(next.points.find((one) => one.question.startsWith('Where the controller')).inPlay, true);
+  assert.equal(next.points.find((one) => one.question.startsWith('Who supplies the controller')).inPlay, true);
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${main.id}`, { reviewer: lead, body: { removed: true } })).data;
   assert.equal(next.points.find((one) => one.question.startsWith('Confirm who supplies')).inPlay, false);
   assert.deepEqual(next.preview.answers, []);
