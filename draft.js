@@ -3846,6 +3846,9 @@ function buildDraft(input, screen) {
     hospital: keptFact(input.hospital),
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint) || TO_COMPLETE,
+    // Set by the main contractor for its project (Goal 12 stage 6), printed when given.
+    firstAidLocation: keptFact(input.firstAidLocation) || undefined,
+    siteRules: Array.isArray(input.siteRules) && input.siteRules.map(keptFact).filter(Boolean).length ? input.siteRules.map(keptFact).filter(Boolean) : undefined,
     craneOperator: isCraneOrLift(task) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
     worksManager: keptFact(input.worksManager),
     worksManagerPhone: keptFact(input.worksManagerPhone),

@@ -488,6 +488,9 @@ function payload() {
     hospital: value('hospital'),
     firstAider: value('first-aider'),
     musterPoint: value('muster-point'),
+    // Set by a main contractor for its project (Goal 12 stage 6): asked only for a list from one, or once given.
+    firstAidLocation: value('first-aid-location') || undefined,
+    siteRules: value('site-rules') ? value('site-rules').split(/\n+/).map((line) => line.trim()).filter(Boolean) : undefined,
     worksManager: value('works-manager'),
     worksManagerPhone: value('works-manager-phone'),
     complianceResponsible: value('compliance-responsible'),
@@ -1816,18 +1819,31 @@ const FORM_FIELDS = {
   principalContractor: 'principal', company: 'company', workplace: 'workplace', siteManager: 'site-manager',
   worksManager: 'works-manager', worksManagerPhone: 'works-manager-phone', complianceResponsible: 'compliance-responsible',
   reviewer: 'reviewer', reviewDate: 'review-date', scaffoldSupervisor: 'scaffold-supervisor', hospital: 'hospital',
-  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', preparedBy: 'prepared-by', swmsRef: 'swms-ref', task: 'task', trade: 'task-trade',
+  firstAider: 'first-aider', musterPoint: 'muster-point', firstAidLocation: 'first-aid-location', siteRules: 'site-rules', date: 'draft-date', preparedBy: 'prepared-by', swmsRef: 'swms-ref', task: 'task', trade: 'task-trade',
 };
 
 function fillFields(values) {
   Object.entries(FORM_FIELDS).forEach(([key, id]) => {
     if (values[key] === undefined) return;
     const el = document.getElementById(id);
+    if (!el) return;
     if (DATE_FIELDS.has(id)) el.value = isoDate(values[key]) || (id === 'draft-date' ? isoToday() : isoReviewDate());
-    else el.value = values[key] || '';
+    else el.value = Array.isArray(values[key]) ? values[key].join('\n') : values[key] || '';
   });
+  // The main contractor's first aid location and site rules show once there is one (Goal 12 stage 6).
+  showBuilderFields();
   applyAddressState();
   showSameName();
+}
+
+// First aid location and site rules come from a main contractor's list (Goal 12 stage 6). Their boxes
+// show for a list from a main contractor, or when they hold something; otherwise they stay out of the way.
+function showBuilderFields(on) {
+  for (const id of ['first-aid-location', 'site-rules']) {
+    const el = document.getElementById(id);
+    const holder = document.getElementById(`${id}-field`);
+    if (el && holder) holder.classList.toggle('hidden', !(on || el.value.trim() || document.body.classList.contains('from-builder')));
+  }
 }
 
 // The task and site details of a SWMS, without asking the server for its questions.
@@ -2784,7 +2800,9 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
         ${row('Scaffold supervisor', draft.scaffoldSupervisor)}
         ${row('Hospital', draft.hospital)}
         ${row('First aider', draft.firstAider)}
+        ${row('First aid location', draft.firstAidLocation)}
         ${row('Muster point', draft.musterPoint)}
+        ${(draft.siteRules || []).length ? `<tr><th>Site rules</th><td>${draft.siteRules.map((rule) => esc(rule)).join('<br>')}</td></tr>` : ''}
         <tr><th>Task</th><td>${esc(draft.task)}</td></tr>
         ${row('Crane operated by', draft.craneOperator)}
         ${row('Residential construction work', draft.residential)}
@@ -4552,6 +4570,8 @@ function unsavedStage() {
 function keepUnsaved() {
   clearTimeout(keepTimer);
   if (restoring) return;
+  // A main contractor's list keeps its own work, for the company, on the server (Goal 12 stage 6).
+  if (document.body.classList.contains('from-builder')) return;
   const input = payload();
   PROFILE_PARTS.forEach((key) => { delete input[key]; });
   if (!input.task && !input.workplace && !input.principalContractor) return;
@@ -4587,6 +4607,8 @@ document.addEventListener('click', (event) => {
 });
 
 async function restoreUnsaved() {
+  // A main contractor's list brings its own work back (scope.js); nothing else is put over it.
+  if (document.body.classList.contains('from-builder')) return false;
   let kept = null;
   try { kept = JSON.parse(localStorage.getItem(UNSAVED_KEY) || 'null'); } catch { kept = null; }
   if (!kept || typeof kept !== 'object' || !kept.input || typeof kept.input !== 'object') return false;
@@ -4765,7 +4787,7 @@ function goToEl(el) {
 window.SiteWrite = Object.assign(window.SiteWrite || {}, {
   mustFixPlace, goToMustFix, signedInProfile,
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
-  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
+  api, esc, payload, render, fillForm, fillFields, setProfile, showBuilderFields, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, ownStepProblem, OWN_HIERARCHY, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },
   // Signed in, the account name fills Prepared by when it is empty.

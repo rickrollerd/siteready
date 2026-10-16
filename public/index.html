@@ -504,6 +504,26 @@
     .go-across { color: #1d5c3f; margin: 4px 0 0; }
     .go-sub { margin: 14px 0 6px; }
     .go-site-own { margin-top: 12px; }
+    /* Goal 12 stage 6: lists from main contractors, "Set by" notes and the company's own SWMS. */
+    .pill { display: inline-block; font-size: 12px; font-weight: 600; color: #5c4a12; background: #fdf3e3; border: 1px solid #e3b76b; border-radius: 999px; padding: 1px 8px; margin-left: 4px; vertical-align: middle; }
+    .own-tag { color: #1f4e3d; background: #e8f3ee; border-color: #9cc7b2; }
+    .set-by { font-size: 13px; margin: 4px 0 0; }
+    p.meta.set-by { color: #1f4e3d; }
+    .set-by-changed { margin: 6px 0 0; }
+    .builder-lists { list-style: none; margin: 8px 0 0; padding: 0; }
+    .builder-lists li { display: flex; gap: 12px; align-items: center; justify-content: space-between; border-top: 1px solid #e1e6ec; padding: 12px 0; }
+    .builder-lists li > div { min-width: 0; overflow-wrap: anywhere; }
+    .builder-lists li > button { white-space: nowrap; }
+    .from-builder-head { background: #f4f6f8; border: 1px solid #d5dbe3; border-radius: 6px; padding: 10px 12px; margin: 0 0 14px; overflow-wrap: anywhere; }
+    .from-builder-head > p:first-child { margin-top: 0; }
+    .go-answers summary { cursor: pointer; font-weight: 600; font-size: 14px; margin: 6px 0; }
+    .go-answers ul { padding-left: 18px; margin: 6px 0; }
+    .go-answers li { margin: 0 0 8px; }
+    .go-item-from { margin: 0 0 8px; }
+    .go-draft-notes { margin: 0 0 10px; }
+    .go-draft-notes p { margin: 0 0 4px; }
+    .go-draft-notes ul { margin: 0; padding-left: 18px; }
+    @media (max-width: 600px) { .builder-lists li { flex-direction: column; align-items: stretch; } }
     .go-review { padding-left: 22px; }
     .go-review li { border-top: 1px solid #e3e7ec; padding: 10px 0; }
     .go-review li > div { margin-bottom: 6px; }
@@ -569,6 +589,8 @@
       .blank-sentence, .blank-form-tools { font-size: 16px; }
       .blank-slot-input { font-size: 16px; min-height: 44px; }
       .human-check .check-findings { font-size: 16px; }
+      /* Goal 12 stage 6: lists from main contractors. */
+      .pill, .set-by, .go-answers summary { font-size: 16px; }
       .blank-label { font-size: 14px; }
       /* The draft: each step's tools show after Change this step, and a long list of controls shows
          its first lines until Show all (app.js). Removed lines and the reasons asked stay in view. */
@@ -631,6 +653,11 @@
       </div>
     </section>
     <p class="note hidden" id="faceid-status"></p>
+
+    <section class="panel hidden" id="from-builders" aria-live="polite">
+      <h2>From main contractors</h2>
+      <div id="from-builders-list"></div>
+    </section>
 
     <section class="panel hidden" id="my-swms">
       <h2>My SWMS</h2>
@@ -802,12 +829,24 @@
         </label>
         <input id="first-aider" type="text" autocomplete="off">
       </div>
+      <div class="field hidden" id="first-aid-location-field">
+        <label for="first-aid-location">First aid location
+          <span class="hint">Where the first aid kit or first aid room is on site. It prints with the emergency details.</span>
+        </label>
+        <input id="first-aid-location" type="text" autocomplete="off">
+      </div>
       <p class="warning hidden" id="people-same" role="status"></p>
       <div class="field">
         <label for="muster-point">Muster point
           <span class="hint">Where everyone meets in an emergency. Ask the main contractor. Needed before download.</span>
         </label>
         <input id="muster-point" type="text" autocomplete="off" placeholder="If not known yet, find out before download">
+      </div>
+      <div class="field hidden" id="site-rules-field">
+        <label for="site-rules">Site rules
+          <span class="hint">The main contractor's rules for this site, one to a line. They print in the site details.</span>
+        </label>
+        <textarea id="site-rules" rows="3"></textarea>
       </div>
       <div class="field">
         <label for="draft-date">Date of the draft</label>
@@ -967,5 +1006,7 @@
   <script src="/scope-conflicts.js"></script>
   <script src="/scope.js"></script>
   <script src="/project-go.js"></script>
+  <script src="/builder-set.js"></script>
+  <script src="/from-builders.js"></script>
 </body>
 </html>

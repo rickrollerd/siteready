@@ -560,7 +560,13 @@
   // A project: every task from the scope, each prepared in turn with the same site details.
   const PROJECT_KEY = 'sitewrite.project';
   let project = null;
-  const saveProject = () => { try { localStorage.setItem(PROJECT_KEY, JSON.stringify(project)); } catch { /* not kept */ } };
+  const writeProject = () => { try { localStorage.setItem(PROJECT_KEY, JSON.stringify(project)); } catch { /* not kept */ } };
+  const saveProject = () => {
+    // A main contractor's list is kept on the server for the company too (Goal 12 stage 6).
+    if (project && project.sitelink) { project.sitelink.dirty = true; project.sitelink.page = listPage(); }
+    writeProject();
+    if (project && project.sitelink) saveListSoon();
+  };
   try { project = JSON.parse(localStorage.getItem(PROJECT_KEY) || 'null'); } catch { project = null; }
 
   // from: the reading and the choice the project was made from, so the choice can be changed.
@@ -614,7 +620,7 @@
   // The details every SWMS of the project shares, given once on the page above. Opening a SWMS to check
   // never empties them with what it was prepared with before they were given (messy round 3, run 3: the
   // scaffold supervisor went empty after SWMS 4 was ready).
-  const SHARED_KEYS = ['workplace', 'principalContractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'worksManager', 'worksManagerPhone', 'complianceResponsible', 'reviewer', 'reviewDate', 'preparedBy'];
+  const SHARED_KEYS = ['workplace', 'principalContractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'firstAidLocation', 'siteRules', 'worksManager', 'worksManagerPhone', 'complianceResponsible', 'reviewer', 'reviewDate', 'preparedBy'];
   function withPageDetails(body) {
     const now = S.payload ? S.payload() : {};
     const out = { ...body };
@@ -1038,7 +1044,8 @@
       requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
       return;
     }
-    if (event.target.closest('#project-close, #project-fresh')) {
+    if (event.target.closest('#project-close, #project-fresh, [data-list-close]')) {
+      if (project && project.sitelink) { closeBuilderList(); return; }
       closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.');
       return;
     }
@@ -1110,9 +1117,286 @@
     statusOf,
     useTask,
     movedInto: (index) => movedInto(index),
-    close: () => closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.'),
+    close: () => (project && project.sitelink ? closeBuilderList() : closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.')),
+    builder: () => (project && project.sitelink) || null,
+    changedList: () => { if (project && project.sitelink) { project.current = 0; saveProject(); } },
     changeChoice: () => changeChoice(),
   };
+
+  // ---- A main contractor's list (Goal 12 stage 6) ----
+  // A list the company took up opens here as a project: its SWMS already listed, the builder's site
+  // details filled in above (each marked "Set by {builder}", from-builders.js), and the company's work
+  // kept on the server as well as on this device, so the office can start on a desktop and the foreman
+  // finish on a phone. The company's own details always come from its profile (builder-set.js), and
+  // the main contractor never sees any of this work.
+  const ASIDE_KEY = 'sitewrite.project.aside';
+  // The details above that every SWMS of the list shares, as kept for the company: never its company details.
+  const LIST_PAGE_KEYS = ['state', 'residential', 'workplace', 'principalContractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'firstAidLocation', 'musterPoint', 'siteRules', 'worksManager', 'worksManagerPhone', 'complianceResponsible', 'reviewer', 'reviewDate', 'date', 'preparedBy'];
+  function listPage() {
+    const now = S.payload ? S.payload() : {};
+    // An emptied first aid location or site rules box is kept as empty, so it counts as a change.
+    const empty = { firstAidLocation: '', siteRules: [] };
+    return Object.fromEntries(LIST_PAGE_KEYS.map((key) => [key, now[key] === undefined && key in empty ? empty[key] : now[key]]).filter(([, value]) => value !== undefined));
+  }
+  const sameText = (a, b) => String(a || '').replace(/\s+/g, ' ').trim().toLowerCase() === String(b || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  // Each SWMS of a list is known by the builder's id for it, or its own id (one the company added).
+  const itemKey = (item) => (item && (item.requiredId || item.ownId || item.wasRequired)) || '';
+  // The answers filled across from one SWMS to another name it by its place in the list: when the list
+  // changes (a SWMS taken off, put back, or new from the builder), each points to the same SWMS again.
+  function remapIndexes(before, after) {
+    const keyAt = before.map(itemKey);
+    const placeOf = new Map(after.map((item, index) => [itemKey(item), index]));
+    const moved = (at) => (Number.isInteger(at) && keyAt[at] && placeOf.has(keyAt[at]) ? placeOf.get(keyAt[at]) : undefined);
+    for (const item of after) {
+      if (item.filledFrom) {
+        for (const [question, at] of Object.entries(item.filledFrom)) {
+          const to = moved(at);
+          if (to === undefined) delete item.filledFrom[question]; else item.filledFrom[question] = to;
+        }
+      }
+      if (item.fallFrom !== undefined) {
+        const to = moved(item.fallFrom);
+        if (to === undefined) delete item.fallFrom; else item.fallFrom = to;
+      }
+    }
+  }
+  S.remapProjectIndexes = remapIndexes;
+
+  // The company's saved work brought together with the list as the builder has it now: a SWMS new on
+  // the list is added; one the builder took off stays, as the company's own; one whose work the builder
+  // changed is marked to prepare again.
+  function reconcile(saved, list) {
+    const builder = list.builder.name;
+    const fresh = (item) => ({ ...item, body: null, status: 'todo' });
+    if (!saved || !Array.isArray(saved.items)) return { current: 0, stage: 'questions', items: list.items.map(fresh), offList: [], shared: { crane: '', site: null, designs: {}, emergency: {} } };
+    const had = new Map(saved.items.filter((item) => item.requiredId).map((item) => [item.requiredId, item]));
+    const off = new Map((saved.offList || []).filter((item) => item && item.requiredId).map((item) => [item.requiredId, item]));
+    const update = (before, item) => {
+      const next = { ...before, title: item.title, task: item.task, scopeTask: item.scopeTask, site: item.site, plant: item.plant, kinds: item.kinds, leaveOut: item.leaveOut, unmatched: item.unmatched, highRisk: item.highRisk, clauses: item.clauses, alsoCovers: item.alsoCovers, draftNotes: item.draftNotes };
+      if (!sameText(before.task, item.task)) {
+        next.workChanged = `${builder} changed the work for this SWMS.`;
+        if (before.goTask !== undefined && sameText(before.goTask, before.task)) delete next.goTask;
+        if (next.kind && !next.stale) {
+          next.stale = `${builder} changed the work for it.`;
+          if (window.SiteWriteProjectGo && window.SiteWriteProjectGo.uncheck) window.SiteWriteProjectGo.uncheck(next);
+        }
+      }
+      return next;
+    };
+    const items = [];
+    for (const item of list.items) {
+      if (off.has(item.requiredId)) continue;
+      items.push(had.has(item.requiredId) ? update(had.get(item.requiredId), item) : { ...fresh(item), newOnList: true });
+    }
+    for (const [id, item] of had) if (!list.items.some((one) => one.requiredId === id)) items.push({ ...item, requiredId: undefined, wasRequired: id, own: true, ownId: item.ownId || `was-${id}` });
+    for (const item of saved.items) if (!item.requiredId) items.push(item);
+    remapIndexes(saved.items, items);
+    const offList = [...off.values()].map((item) => { const now = list.items.find((one) => one.requiredId === item.requiredId); return now ? update(item, now) : null; }).filter(Boolean);
+    // A SWMS open to check on another device is not open here: the list shows instead.
+    const stage = saved.stage === 'check' ? (items.some((item) => item.kind) ? 'review' : 'questions') : saved.stage || 'questions';
+    return { ...saved, current: 0, stage, items, offList, shared: saved.shared || { crane: '', site: null, designs: {}, emergency: {} } };
+  }
+
+  // The details above, as the company last had them, with the builder's where it has not changed them.
+  function fillPage(page) {
+    const values = { ...page };
+    if (Array.isArray(values.siteRules)) values.siteRules = values.siteRules.join('\n');
+    if (S.fillFields) S.fillFields(values);
+    const tick = (name, value, tries = 0) => {
+      if (!value) return;
+      const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (!radio) { if (tries < 25) setTimeout(() => tick(name, value, tries + 1), 200); return; }
+      if (!radio.checked) { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); }
+    };
+    tick('state', page.state);
+    tick('residential', page.residential);
+    if (S.showBuilderFields) S.showBuilderFields(true);
+  }
+  // The builder's details taken off the page when the list is closed, so they are not left in the next SWMS.
+  function clearListPage() {
+    const set = window.SiteWriteBuilderSet;
+    // Through the form's own filling, so what it says of the job address follows.
+    if (set && S.fillFields) S.fillFields(Object.fromEntries(set.FIELDS.map((field) => [field.key, ''])));
+    if (S.showBuilderFields) S.showBuilderFields();
+  }
+
+  function sitelinkOf(data, saved, before) {
+    const list = data.list;
+    return {
+      id: list.id, builder: list.builder, project: list.project, subcontractor: list.subcontractor, due: list.due, contact: list.contact, answers: list.answers,
+      siteDetails: list.siteDetails, builderSet: list.builderSet, seen: saved.seen || {}, listItems: list.items,
+      version: saved.version || 0, savedOn: saved.updatedOn || '', savedBy: saved.updatedBy || '',
+      dirty: false, page: saved.page || {}, note: (before && before.note) || '',
+    };
+  }
+
+  // Opens a list the company took up (from-builders.js gives it as the server sent it).
+  S.openBuilderList = async (data) => {
+    const list = data.list;
+    const saved = data.progress || {};
+    // The list already on this device is brought up to date, keeping work not yet saved.
+    if (project && project.sitelink && project.sitelink.id === list.id) {
+      paused = false;
+      S.syncBuilderList(data);
+      $('scope-panel').open = false;
+      if (project.stage !== 'check') showSingle(false);
+      renderProject();
+      requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+      return;
+    }
+    if (project && !(project.sitelink && project.sitelink.id === list.id)) {
+      // Another project on this page is put aside, and comes back when the list is closed.
+      if (!project.sitelink) { try { localStorage.setItem(ASIDE_KEY, JSON.stringify(project)); } catch { /* not kept */ } }
+      else await flushList().catch(() => {});
+    }
+    paused = false;
+    project = reconcile(saved.project, list);
+    project.sitelink = sitelinkOf(data, saved);
+    document.body.classList.add('from-builder');
+    fillPage(saved.page || {});
+    writeProject();
+    $('scope-panel').open = false;
+    showSingle(false);
+    renderProject();
+    if (S.drawSetBy) S.drawSetBy();
+    requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+  };
+
+  // The list on this device, brought up to date from the server (another device may have saved since).
+  S.builderListLocal = () => (project && project.sitelink ? project.sitelink.id : '');
+  S.builderInfo = () => (project && project.sitelink) || null;
+  S.syncBuilderList = (data) => {
+    if (!project || !project.sitelink || project.sitelink.id !== data.list.id || !data.progress) return;
+    const local = project.sitelink;
+    const saved = data.progress;
+    if (saved.version > (local.version || 0)) {
+      const note = local.dirty ? `This list was saved on another device${saved.updatedBy ? ` by ${saved.updatedBy}` : ''} on ${saved.updatedOn}. The newest work is shown. Changes made on this device since were not kept.` : '';
+      project = reconcile(saved.project, data.list);
+      project.sitelink = { ...sitelinkOf(data, saved), note };
+      fillPage(saved.page || {});
+    } else {
+      // This device is up to date: the builder's list and details as they are now, the work as it is here.
+      const set = window.SiteWriteBuilderSet;
+      const merged = set ? set.mergePage({ company: (S.getProfile && S.getProfile()) || {}, builderSet: data.list.builderSet, page: local.page, seen: local.seen }) : { page: local.page, seen: local.seen };
+      const { sitelink, ...rest } = project;
+      project = reconcile(rest, data.list);
+      // On this device a SWMS open to check stays open.
+      project.stage = rest.stage || project.stage;
+      project.sitelink = { ...sitelinkOf(data, { ...saved, page: merged.page, seen: merged.seen }), version: local.version, dirty: local.dirty };
+      fillPage(merged.page);
+      if (local.dirty) saveListSoon();
+    }
+    document.body.classList.add('from-builder');
+    writeProject();
+    renderProject();
+    if (S.drawSetBy) S.drawSetBy();
+  };
+
+  // Signed out, a list from a main contractor does not stay on a shared phone: it is the company's.
+  S.dropBuilderList = () => {
+    if (!project || !project.sitelink) return '';
+    const name = project.sitelink.builder.name;
+    leaveList();
+    return name;
+  };
+  function leaveList() {
+    clearTimeout(listTimer);
+    clearListPage();
+    let aside = null;
+    try { aside = JSON.parse(localStorage.getItem(ASIDE_KEY) || 'null'); localStorage.removeItem(ASIDE_KEY); } catch { aside = null; }
+    project = aside && Array.isArray(aside.items) ? aside : null;
+    if (project) writeProject(); else { try { localStorage.removeItem(PROJECT_KEY); } catch { /* nothing kept */ } }
+    document.body.classList.remove('from-builder');
+    window.siteWriteScopeTask = null;
+    showSingle(true);
+    renderProject();
+    if (S.drawSetBy) S.drawSetBy();
+  }
+
+  // Closing the list keeps the work: it is the company's, on the server, and opens again from the list.
+  async function closeBuilderList() {
+    if (!project || !project.sitelink) return false;
+    const builder = project.sitelink.builder.name;
+    if (!confirm(`Close the list from ${builder}? Your work on it is kept for your company. Open it again from From main contractors.`)) return false;
+    await flushList().catch(() => {});
+    if (project && project.sitelink && project.sitelink.dirty && !confirm('Your latest changes could not be saved to SiteWrite: it could not be reached. Close anyway? They are lost if you do.')) return false;
+    leaveList();
+    if (S.showPanel) S.showPanel('from-builders');
+    return true;
+  }
+
+  // Kept on the server a moment after the last change, and when the page is put away.
+  let listTimer = null;
+  let listSaving = null;
+  function saveListSoon(wait = 2500) {
+    clearTimeout(listTimer);
+    listTimer = setTimeout(() => { saveList().catch(() => {}); }, wait);
+  }
+  const savedLine = (link) => (link.offline ? 'Not saved to SiteWrite yet: it could not be reached. Your work is kept on this device, and is saved when SiteWrite can be reached.'
+    : link.savedOn ? `Saved for your company on ${link.savedOn}. Anyone in your team can carry on, on any device.` : 'Saved for your company as you go. Anyone in your team can carry on, on any device.');
+  S.listSavedLine = () => (project && project.sitelink ? savedLine(project.sitelink) : '');
+  function sayList(text, kind = '') {
+    if (project && project.sitelink) project.sitelink.note = text;
+    const el = $('list-note');
+    if (el) { el.textContent = text; el.className = `${kind || 'note'}${text ? '' : ' hidden'}`; }
+  }
+  async function saveList() {
+    clearTimeout(listTimer);
+    if (!project || !project.sitelink || !project.sitelink.dirty || !S.signedIn || !S.signedIn()) return;
+    if (listSaving) { await listSaving.catch(() => {}); if (project && project.sitelink && project.sitelink.dirty) saveListSoon(300); return; }
+    const link = project.sitelink;
+    const { sitelink, ...rest } = project;
+    const body = { baseVersion: link.version || 0, project: rest, page: listPage() };
+    link.dirty = false;
+    listSaving = S.call('PUT', `/api/from-builders/${encodeURIComponent(link.id)}/progress`, body).then((data) => {
+      if (!project || !project.sitelink || project.sitelink.id !== link.id) return;
+      Object.assign(project.sitelink, { version: data.version, savedOn: data.savedOn, overrides: data.overrides, offline: false });
+      writeProject();
+      const el = $('list-saved');
+      if (el) el.textContent = savedLine(project.sitelink);
+    }, (error) => {
+      if (!project || !project.sitelink || project.sitelink.id !== link.id) return;
+      project.sitelink.dirty = true;
+      if (error.status === 409 && error.data && error.data.progress) {
+        const saved = error.data.progress;
+        // The newer work from the other device is shown; the builder's list is as this page last had it.
+        project = reconcile(saved.project, { builder: link.builder, items: link.listItems || [] });
+        project.sitelink = { ...link, version: saved.version, savedOn: saved.updatedOn, savedBy: saved.updatedBy, seen: saved.seen, page: saved.page, dirty: false, offline: false };
+        fillPage(saved.page || {});
+        writeProject();
+        renderProject();
+        if (S.drawSetBy) S.drawSetBy();
+        sayList(`${error.message} Changes made on this device since were not kept.`, 'warning');
+        return;
+      }
+      if (error.status === 404) { sayList(error.message, 'warning'); return; }
+      if (error.status === 402) { sayList(error.message, 'warning'); return; }
+      project.sitelink.offline = true;
+      writeProject();
+      const el = $('list-saved');
+      if (el) el.textContent = savedLine(project.sitelink);
+      saveListSoon(15000);
+    }).finally(() => { listSaving = null; });
+    await listSaving;
+  }
+  async function flushList() {
+    if (listSaving) await listSaving.catch(() => {});
+    if (project && project.sitelink && project.sitelink.dirty) await saveList();
+  }
+  S.flushBuilderList = flushList;
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && project && project.sitelink && project.sitelink.dirty) saveList().catch(() => {}); });
+  // The details above are part of the list's work too: a change to one is kept, and the "Set by" notes follow.
+  ['input', 'change'].forEach((type) => document.addEventListener(type, (event) => {
+    if (!project || !project.sitelink || !event.target.closest || !event.target.closest('#job-details')) return;
+    saveProject();
+    if (S.drawSetBy) S.drawSetBy();
+  }));
+  // A list on this device opens with its own state, the details above as last given here; signed in,
+  // from-builders.js brings it up to date from the server.
+  if (project && project.sitelink) {
+    document.body.classList.add('from-builder');
+    fillPage(project.sitelink.page || {});
+  }
 
   // On a computer the scope section starts open, so a person whose way in is a scope sees where to
   // attach it (messy round 4, run 1: it started closed and the scope went into the logo box). A project

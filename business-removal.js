@@ -99,6 +99,10 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   // A main contractor's list it claimed (Goal 12 stage 5) is the main contractor's record: it stays,
   // with the company's name and ABN as they were when claimed, and no link to the account or its user.
   await db.query("UPDATE subcontracts SET company_id = '', claimed_by = '' WHERE company_id = $1", [id]);
+  // Its own work on those lists (stage 6) is the business's, and goes. A list the lead released from it
+  // keeps the name it had then, and no link to the account.
+  await run('sub_progress', 'DELETE FROM sub_progress WHERE company_id = $1');
+  await db.query("UPDATE subcontract_releases SET company_id = '' WHERE company_id = $1", [id]);
   // The ABN stays, with no link to the account, so it cannot have a second free trial.
   await db.query("UPDATE trial_abns SET company_id = '' WHERE company_id = $1", [id]);
   await run('users', 'DELETE FROM users WHERE company_id = $1');

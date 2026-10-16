@@ -131,6 +131,8 @@ function install(app, { sendReviewReminders, removeExpired }) {
             await db.query('DELETE FROM subcontract_points WHERE subcontract_id = $1', [sub.id]);
             // Stage 5: the list's links, emails, uploads and claims.
             await require('./sitelink-send').removeForSubcontract(sub.id);
+            // Stage 6: the subcontractor's work on the list and any release.
+            await require('./sitelink-subbie').removeForSubcontract(sub.id);
           }
           await db.query('DELETE FROM project_log WHERE project_id = $1', [project.id]);
           await db.query('DELETE FROM subcontracts WHERE project_id = $1', [project.id]);
