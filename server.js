@@ -714,7 +714,10 @@ app.use((error, req, res, _next) => {
   // SiteLink's scope reading (stage 4): the project's free readings are used up, or a new scope would replace a list.
   const limit = error.publicMessage && error.limit === true ? { limit: true } : {};
   const replace = error.publicMessage && error.replace === true ? { replace: true } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace });
+  // SiteLink (messy round 6): every box's problem at once, and a scope that reads as another trade.
+  const fields = error.publicMessage && error.fields && typeof error.fields === 'object' ? { fields: error.fields } : {};
+  const tradeMismatch = error.publicMessage && error.tradeMismatch === true ? { tradeMismatch: true } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace, ...fields, ...tradeMismatch });
 });
 
 // One worker per processor core. A worker that stops is replaced.

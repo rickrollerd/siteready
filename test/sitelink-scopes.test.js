@@ -112,8 +112,8 @@ async function addSub(lead, projectId, name = 'Tallow Formwork Pty Ltd', trade =
 }
 
 // The scope sent as the page sends a file, then the page asking until the reading is finished.
-async function upload(lead, subId, text, { name = 'Scope.txt', replace } = {}) {
-  return call('POST', `/api/hse/subcontracts/${subId}/scope`, { reviewer: lead, body: { file: { name, data: Buffer.from(text).toString('base64') }, ...(replace ? { replace: true } : {}) } });
+async function upload(lead, subId, text, { name = 'Scope.txt', replace, tradeChecked } = {}) {
+  return call('POST', `/api/hse/subcontracts/${subId}/scope`, { reviewer: lead, body: { file: { name, data: Buffer.from(text).toString('base64') }, ...(replace ? { replace: true } : {}), ...(tradeChecked ? { tradeChecked: true } : {}) } });
 }
 async function finished(lead, subId) {
   for (let i = 0; i < 200; i += 1) {
@@ -222,7 +222,7 @@ test('the project\'s free readings: at the limit no reading runs, and the same f
     assert.equal(asked.readings, before, 'no reading ran');
     assert.equal(Number((await db.one("SELECT COUNT(*) AS n FROM ai_readings WHERE project_id = $1 AND status <> 'failed'", [projectId])).n), 2);
     // A re-read of the same file costs nothing and does not count, even at the limit.
-    const same = await upload(lead, subs[2], D.plainScope('Tiling'));
+    const same = await upload(lead, subs[2], D.plainScope('Tiling'), { tradeChecked: true });
     assert.equal(same.status, 200);
     assert.equal(same.data.kept, true);
     assert.equal(asked.readings, before);
@@ -231,7 +231,7 @@ test('the project\'s free readings: at the limit no reading runs, and the same f
     assert.equal(aiScope.projectFreeReadings(), 50);
     // Two uploads at the same moment cannot both take the last free reading.
     process.env.PROJECT_FREE_READINGS = '3';
-    const both = await Promise.all([upload(lead, subs[0], D.plainScope('Render'), { replace: true }), upload(lead, subs[2], D.plainScope('Glazing'), { replace: true })]);
+    const both = await Promise.all([upload(lead, subs[0], D.plainScope('Render'), { replace: true, tradeChecked: true }), upload(lead, subs[2], D.plainScope('Glazing'), { replace: true, tradeChecked: true })]);
     assert.deepEqual(both.map((one) => one.status).sort(), [202, 402]);
   } finally {
     delete process.env.PROJECT_FREE_READINGS;
@@ -387,7 +387,7 @@ test('keep, remove, put back, add and reword: the preview follows, and every pac
   const replace = await upload(lead, subId, D.ELECTRICAL);
   assert.equal(replace.status, 409);
   assert.equal(replace.data.replace, true);
-  await upload(lead, subId, D.ELECTRICAL, { replace: true });
+  await upload(lead, subId, D.ELECTRICAL, { replace: true, tradeChecked: true });
   page = (await finished(lead, subId)).data;
   assert.deepEqual(page.items.map((item) => item.title), ['Trade installation: ceiling space', 'Plant lifting and cranage', 'Testing and commissioning', 'Perimeter screens']);
 });

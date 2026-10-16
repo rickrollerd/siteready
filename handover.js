@@ -164,31 +164,131 @@ function itemFields(item, pack, flag) {
   };
 }
 
-// The SWMS a reading lists for a subcontract, as the main contractor first sees them: every work
-// package with site work, kept, except two the subcontractor would not need by default: work done
-// only off site, and cranage the scope does not give this subcontractor (owner testing, 13 October
-// 2026, item 9). Each comes with why it starts removed, and the lead can put it back.
+// Work a trade does as part of its main work, not as a SWMS of its own (messy round 6: one mechanical
+// scope gave 12 SWMS): its own housekeeping and waste, handling its own materials, and the general
+// access equipment it uses (ladders, mobile scaffolds, EWPs). Each folds into the trade's main SWMS,
+// unless it carries high risk construction work of its own.
+const SUPPORT = [
+  ['housekeeping', /\b(?:housekeeping|clean[- ]?ups?|(?:site|trade) clean\w*|cleaning and waste|waste|rubbish)\b/i],
+  ['handling', /\bmaterials? handling\b|\b(?:handling|deliveries) (?:and|&) (?:storage|deliveries|handling)\b|^deliveries\b/i],
+  ['access', /^(?:general |task[- ]specific |trade )?access (?:equipment|and (?:scaffold\w*|equipment))\b/i],
+];
+const supportKind = (name) => (SUPPORT.find(([, test]) => test.test(String(name || ''))) || [''])[0];
+// Maintenance in the defects period: done after the work is handed over, when the site may be
+// occupied, so its SWMS is asked for when that work is booked.
+const DEFECTS = /\bdefects? (?:liability )?period\b|\bdefects liability\b|\bDLP\b|\bmaintenance period\b/i;
+const MAINTENANCE = /\b(?:maint\w*|servicing|warranty)\b/i;
+function defectsOnly(pack) {
+  const words = (row) => `${row.activity || ''} ${(row.quotes || []).join(' ')}`;
+  return MAINTENANCE.test(pack.name) && pack.rows.every((row) => DEFECTS.test(words(row)) || MAINTENANCE.test(row.activity));
+}
+// High risk work the package's own words carry: a category that is not only likely.
+const ownHighRisk = (flag) => ((flag && flag.categories) || []).some((item) => !item.likely);
+
+// "Moving powered mobile plant" comes from the step groups matched to a package. Where the package's
+// own words never move, lift or drive anything (messy round 6: "acoustic and vibration separation
+// between major plant" was said to need a SWMS by law for it), it may be, not is: the SWMS questions
+// confirm it.
+const MOVING = /\b(?:cran(?:e|es|age)|forklifts?|telehandlers?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|excavators?|bobcats?|skid steers?|loaders?|trucks?|utes?|hiabs?|franna|mobile plant|vehicles?|rollers?|graders?|dozers?|tippers?|dumpers?|lift(?:s|ed|ing)?|hoist\w*|deliver\w*|unload\w*|pallet jacks?|skates?|rigg\w*|tow\w*|piling rigs?|concrete pumps?|traffic)\b/i;
+function plantFromWords(flag, words) {
+  if (!flag || !(flag.categories || []).some((item) => item.id === 'plant') || MOVING.test(String(words || ''))) return flag;
+  const plant = flag.categories.find((item) => item.id === 'plant');
+  return {
+    ...flag,
+    categories: flag.categories.filter((item) => item.id !== 'plant'),
+    dependsOn: [...(flag.dependsOn || []).filter((item) => item.id !== 'plant'), { id: 'plant', short: plant.short, on: 'whether powered mobile plant moves where the work is done' }],
+  };
+}
+const packWords = (pack) => pack.rows.map((row) => `${row.activity || ''} ${row.plant || ''} ${row.where || ''}`).join(' ');
+
+// The SWMS a reading lists for a subcontract, as the main contractor first sees them. Goal 12: it is
+// the list, with no second guessing, so only work the subcontractor must give a SWMS for is on it
+// to start with. The rest each come with why, and the lead can put any back:
+//   - work done only off site, and cranage the scope does not give this subcontractor (owner
+//     testing, 13 October 2026, item 9) start removed;
+//   - maintenance in the defects period starts removed;
+//   - the trade's own housekeeping, materials handling and access equipment fold into its main SWMS;
+//   - work the reading finds no high risk construction work in ("may not need a SWMS by law") is set
+//     aside in its own group (removedWhy 'noLaw'), for the lead to move onto the list if needed.
 function listItems(reading) {
   const safe = scrubReading(reading);
   const { work } = scopeChoice.packagesOf(safe);
   const flags = new Map((safe.highRisk || []).map((item) => [item.package, item]));
   const craneClause = scopeChoice.craneClause(safe);
   const items = scopeChoice.projectItems(safe, work.map((pack) => pack.name));
-  return items.map((item, index) => {
+  const out = items.map((item, index) => {
     const pack = work[index];
-    const flag = flags.get(pack.name);
+    const flag = plantFromWords(flags.get(pack.name), `${pack.name} ${packWords(pack)}`);
     let removedWhy = '';
     if (flag && flag.offSite) removedWhy = 'offSite';
     else if (scopeChoice.isCranage(pack.name) && !craneClause) removedWhy = 'cranage';
-    return { package: pack.name, removedWhy, ...itemFields(item, pack, flag) };
+    else if (defectsOnly(pack)) removedWhy = 'defects';
+    return { package: pack.name, removedWhy, support: supportKind(pack.name), ownHighRisk: ownHighRisk(flag), ...itemFields(item, pack, flag) };
   });
+  // The trade's main SWMS: the package with the most work in it that is not support work, and not
+  // testing, set-up or making good, when there is one. Support work folds into it, and goes where it
+  // goes: set aside with it, or onto the list when the lead moves it there.
+  const SECONDARY = /\b(?:testing|commissioning|demolition|strip[- ]?out|set[- ]?up|establishment|protection|making good|penetrations?|core drilling)\b/i;
+  const main = out.filter((item) => !item.removedWhy && !item.support)
+    .sort((a, b) => (SECONDARY.test(a.package) ? 1 : 0) - (SECONDARY.test(b.package) ? 1 : 0) || b.activities.length - a.activities.length)[0];
+  for (const item of out) {
+    if (!item.removedWhy && main && item.support && !item.ownHighRisk) {
+      item.removedWhy = 'folded';
+      item.foldedInto = main.package;
+    } else if (!item.removedWhy && item.highRisk && item.highRisk.status === 'none') item.removedWhy = 'noLaw';
+  }
+  return out.map(({ support, ownHighRisk: own, ...item }) => item);
 }
 
-// Why a SWMS starts removed, as the lead reads it.
+// Why a SWMS is not on the list to start with, as the lead reads it. 'folded' names the SWMS it is in.
 const REMOVED_WHY = {
   offSite: 'Removed to start with: all of this work is done off site, so it needs no SWMS on site.',
   cranage: 'Removed to start with: the scope does not say this subcontractor supplies the cranage. Put it back if they need a cranage SWMS.',
+  defects: 'Removed to start with: this is maintenance in the defects period, after the work is handed over. Put it back, or ask for its SWMS when that work is booked.',
+  noLaw: 'No high risk construction work was found in it, so the law may not need a SWMS for it. Move it to the list if you need one.',
 };
+const foldedWhy = (title) => `Part of ${title} to start with: the subcontractor's own work of this kind goes in that SWMS. Put it back to ask for a SWMS of its own.`;
+
+// What the lead's own words say about high risk work, by the same rules the scope reading uses
+// (ai-scope.js packageHighRisk): the SWMS's own rules read the task, with the package's step groups
+// when it has them and without them, so words the lead adds count ("working from mobile scaffolds",
+// "a 60 t mobile crane"). Returned in the list's words (hrcwSummary), or null when the rules are
+// not loaded.
+function highRiskOf(task, state, item = {}) {
+  const { screenHighRisk } = require('./draft');
+  const input = { state: state || 'qld', task: String(task || ''), leaveOut: (item && item.leaveOut) || [] };
+  const own = screenHighRisk({ ...input, kinds: null });
+  const grouped = item && Array.isArray(item.kinds) && item.kinds.length ? screenHighRisk({ ...input, kinds: item.kinds }) : { categories: [], dependsOn: [] };
+  const categories = [...own.categories];
+  for (const extra of grouped.categories) if (!categories.some((one) => one.id === extra.id)) categories.push(extra);
+  const dependsOn = [...own.dependsOn, ...grouped.dependsOn].filter((one, i, all) => !categories.some((c) => c.id === one.id) && all.findIndex((other) => other.id === one.id) === i);
+  return hrcwSummary(plantFromWords({ categories, dependsOn }, task));
+}
+
+// Clause references once each: "Description of Work Area, Description of Work Area" reads once, and
+// "Installation 6, 10" and "Installation 6" read "Installation 6, 10".
+function clauseList(list) {
+  const out = [];
+  let prefix = '';
+  for (const entry of list || []) {
+    for (const raw of String(entry || '').split(/\s*[;,]\s*/)) {
+      const part = raw.trim();
+      if (!part) continue;
+      const named = /^(.*?)\s*(\d[\w.]*)$/.exec(part);
+      if (named && named[1]) prefix = named[1];
+      const key = (named && !named[1] && prefix ? `${prefix} ${part}` : part).toLowerCase();
+      if (out.some((one) => one.key === key)) continue;
+      out.push({ key, text: part });
+    }
+  }
+  return out.map((one) => one.text).slice(0, 12);
+}
+
+// A point starts with a capital letter (messy round 6: "confirm who supplies the AC equipment").
+function sentence(text) {
+  const value = tidy(text);
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+}
 
 // The points the scope leaves open about who does the work or what the main contractor provides
 // (the brief's "Unknowns"), one for each activity that has one. The lead may answer them; only the
@@ -197,7 +297,7 @@ function listPoints(reading) {
   const safe = scrubReading(reading);
   const out = [];
   for (const row of safe.activities || []) {
-    const question = tidy(row.unknowns);
+    const question = sentence(row.unknowns);
     if (!question) continue;
     if (out.some((point) => point.question === question && point.activity === row.activity)) continue;
     out.push({ activity: wordsWithoutPrices(row.activity), clause: wordsWithoutPrices(row.clause), question, duty: row.type === 'Duty' });
@@ -207,22 +307,52 @@ function listPoints(reading) {
 
 // ---- What the subcontractor sees ----
 
+// The SWMS on the list a point is about: the one whose work holds the point's activity. A point about
+// a duty, or work no SWMS holds, belongs to none.
+function pointItem(point, items) {
+  return (items || []).find((row) => ((row.item && row.item.activities) || []).some((entry) => entry.activity && entry.activity === point.activity)) || null;
+}
+// A point goes with its SWMS: when that SWMS is removed or set aside it is not asked or sent (messy
+// round 6: the defects-period point still asked for an answer after its SWMS was removed). Work
+// folded into another SWMS is still on the list, so its points stay.
+function pointInPlay(point, items) {
+  const row = pointItem(point, items);
+  if (!row) return true;
+  const gone = (one) => Boolean(one.removed_at || one.removedAt);
+  if (!gone(row)) return true;
+  if (row.removed_why !== 'folded') return false;
+  const main = (items || []).find((one) => one.package && row.item && one.package === row.item.foldedInto);
+  return Boolean(main) && !gone(main);
+}
+
+// What the subcontractor is told about the high risk work in a SWMS on its list: only what the work
+// is, never that it may not need a SWMS (Goal 12: it is the list, no second guessing).
+function sentHighRisk(flag) {
+  if (!flag || !['yes', 'likely'].includes(flag.status)) return null;
+  return { status: flag.status, heading: flag.heading, line: (flag.lines || [])[0] || '' };
+}
+
 // The list as the subcontractor will be given it: the project, the SWMS kept on the list with the
-// work each covers, the points the lead answered, and the site details. Removed SWMS and unanswered
-// points are left out. The same function will build what is sent (stage 5), so the preview is the list.
+// work each covers, the points the lead answered, and the site details. Removed and set-aside SWMS,
+// their points and unanswered points are left out. The same function will build what is sent
+// (stage 5), so the preview is the list.
 function subcontractorView({ project, org, subcontract, items, points, siteDetails, fields }) {
-  const kept = (items || []).filter((item) => !item.removed_at && !item.removedAt);
-  const answered = (points || []).filter((point) => String(point.answer || '').trim());
+  const all = items || [];
+  const kept = all.filter((item) => !item.removed_at && !item.removedAt);
+  const answered = (points || []).filter((point) => String(point.answer || '').trim() && pointInPlay(point, all));
   return {
     from: org.name,
+    // An account whose ABN does not match the ABN register shows Unverified beside its name.
+    fromVerified: Boolean(org.abn_verified_at || org.verified),
     to: subcontract.name,
     trade: subcontract.trade || '',
     project: { name: project.name, workplace: project.workplace, state: project.state, pcName: project.pc_name || project.pcName || org.name },
     swms: kept.map((item) => ({
       title: nameWithoutPrices(item.title),
       task: wordsWithoutPrices(item.task),
-      highRisk: item.item && item.item.highRisk ? { status: item.item.highRisk.status, heading: item.item.highRisk.heading } : null,
-      clauses: [...new Set(((item.item && item.item.activities) || []).map((row) => row.clause).filter(Boolean))].slice(0, 12),
+      highRisk: sentHighRisk(item.item && item.item.highRisk),
+      clauses: clauseList(((item.item && item.item.activities) || []).map((row) => row.clause)),
+      alsoCovers: all.filter((other) => other.removed_why === 'folded' && (other.removed_at || other.removedAt) && other.item && other.item.foldedInto && other.item.foldedInto === item.package).map((other) => nameWithoutPrices(other.title)),
       added: item.source === 'added',
     })),
     answers: answered.map((point) => ({ activity: point.activity, clause: point.clause, question: point.question, answer: String(point.answer).trim(), by: point.answered_by_name || '' })),
@@ -233,4 +363,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, REMOVED_WHY, subcontractorView };
+module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView };

@@ -402,7 +402,8 @@ test('an account shows Unverified until its ABN matches the ABN register', async
   assert.equal(renamed.data.org.verified, false);
   assert.equal(renamed.data.org.registerName, 'Corbel Build Pty Ltd');
   assert.equal(renamed.data.message, 'The account details are saved.');
-  assert.equal(renamed.data.org.abnNote, 'The ABN register lists this ABN under Corbel Build Pty Ltd. The account shows Unverified until its name matches the register.');
+  // The register's name is shown, with where to write if this is that company: never offered as a one-click rename.
+  assert.equal(renamed.data.org.abnNote, 'The ABN register lists this ABN under Corbel Build Pty Ltd. The account shows Unverified. If this account is for Corbel Build Pty Ltd, contact SiteWrite at sitereadyaus@gmail.com to have it checked.');
   // While the register is down, the names it gave before still count.
   register.set(downAbn, DOWN);
   const back = await call('PUT', `/api/hse/orgs/${down.data.org.id}`, { reviewer: lead, body: { name: 'Corbel Build' } });
@@ -429,7 +430,10 @@ test('setting up with a wrong ABN asks first, and an ABN that is not on the regi
   register.set(missing, NOT_LISTED);
   const notListed = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Tallow Build Pty Ltd', abn: missing } });
   assert.equal(notListed.status, 400);
-  assert.equal(notListed.data.message, 'That ABN is not on the ABN register. Check the 11 digits.');
+  // The check digits are right, so it does not say to check the 11 digits: it says the register does
+  // not list it, and what to do (messy round 6).
+  assert.equal(notListed.data.message, `The ABN register does not list ABN ${missing.slice(0, 2)} ${missing.slice(2, 5)} ${missing.slice(5, 8)} ${missing.slice(8)}. Check it against the company's records. A company registered in the last few days may not be listed yet: try again in a few days, or contact SiteWrite at sitereadyaus@gmail.com.`);
+  assert.doesNotMatch(notListed.data.message, /11 digits/);
   const cancelled = nextAbn();
   register.set(cancelled, listed('TALLOW BUILD PTY LTD', [], 'Cancelled'));
   assert.match((await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Tallow Build Pty Ltd', abn: cancelled } })).data.message, /shows that ABN as cancelled/);
@@ -507,8 +511,8 @@ test('a second account with the same ABN is asked to join the first, and learns 
   // Even when the register is down, and even at the same moment, there is one account for the ABN.
   const raceAbn = nextAbn();
   register.set(raceAbn, DOWN);
-  const a = await hseSignIn('race-a@corbel.example', 'Race A');
-  const b = await hseSignIn('race-b@corbel.example', 'Race B');
+  const a = await hseSignIn('race-a@corbel.example', 'Rae Avery');
+  const b = await hseSignIn('race-b@corbel.example', 'Rob Bell');
   const both = await Promise.all([a, b].map((reviewer) => call('POST', '/api/hse/orgs', { reviewer, body: { name: 'Race Build', abn: raceAbn } })));
   assert.deepEqual(both.map((r) => r.status).sort(), [201, 409]);
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM orgs WHERE abn = $1', [raceAbn])).n), 1);
@@ -591,5 +595,19 @@ test('SiteLink is served at /sitelink and /hse.html, with a SiteLink tab at the 
   }
   assert.doesNotMatch(page('hse.js'), /SiteWrite for main contractors/);
   assert.match(page('hse.html'), /The company's 11 digit ABN\. It links this account to your company and cannot be changed later\./);
-  assert.match(page('hse.js'), /The ABN links this account and cannot be changed\. If it is wrong, contact SiteWrite\./);
+  assert.match(page('hse.js'), /The ABN links this account and cannot be changed\. If it is wrong, contact SiteWrite/);
+});
+
+// Messy round 6: with the staging test hooks off (production), a test address gets no exception from
+// the ABN register, and the hook that removes a test SiteLink account is not there at all.
+test('with the test hooks off, a test address is checked against the ABN register and the remove hook is absent', async () => {
+  assert.equal(require('../testhooks').enabled(), false);
+  const removed = await fetch(`${base}/api/test/sitelink/remove`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Test-Secret': 'r'.repeat(40) }, body: JSON.stringify({ email: 'lead-off@siteready.test' }) });
+  assert.equal(removed.status, 404);
+  const lead = await hseSignIn('lead-off@siteready.test', 'Tess Offord');
+  const abn = nextAbn();
+  register.set(abn, NOT_LISTED);
+  const refused = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Offline Builders Pty Ltd', abn } });
+  assert.equal(refused.status, 400);
+  assert.match(refused.data.message, /^The ABN register does not list ABN/);
 });
