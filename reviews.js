@@ -139,9 +139,21 @@ function reviewView(row, { withEmail = false } = {}) {
 }
 
 // Every response returned on a SWMS, newest first. The business sees each reviewer's email.
+// A response from a SiteLink project (a submitted SWMS) says so, with each condition and how far it has
+// got, so My SWMS says to submit it again there, not to send a new reference (messy round 8, wording 7).
+const CONDITION_STATUS = { outstanding: 'To do', done: 'Marked done', closed: 'Confirmed done' };
 async function reviewsFor(swmsId, { withEmail = false } = {}) {
   const rows = await db.query('SELECT * FROM swms_reviews WHERE swms_id = $1 ORDER BY created_at DESC', [String(swmsId)]);
-  return rows.map((row) => reviewView(row, { withEmail }));
+  const out = [];
+  for (const row of rows) {
+    const view = reviewView(row, { withEmail });
+    if (row.submission_id) {
+      const conditions = await db.query('SELECT text, status FROM review_conditions WHERE review_id = $1 ORDER BY position', [row.id]).catch(() => []);
+      Object.assign(view, { sitelink: true, conditions: conditions.map((one) => ({ text: one.text, status: CONDITION_STATUS[one.status] || one.status, done: one.status === 'closed' })) });
+    }
+    out.push(view);
+  }
+  return out;
 }
 
 // The response that stands on one revision: the latest returned.

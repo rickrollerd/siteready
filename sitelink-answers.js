@@ -126,7 +126,27 @@ const capitalFirst = (text) => {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
 };
 
+// Each sentence starts with a capital, and a sentence ends with a full stop: "Bowerbird supplies the
+// boards. wallaroo installs them" reads "... Wallaroo installs them." (messy round 8, wording 2 and 14).
+// Nothing else is changed.
+function capitalSentences(text, { stop = false } = {}) {
+  const value = capitalFirst(text);
+  if (!value) return value;
+  const out = value.replace(/([.!?]\s+)([a-z])/g, (whole, gap, letter) => `${gap}${letter.toUpperCase()}`);
+  return stop && /[A-Za-z0-9)]$/.test(out) ? `${out}.` : out;
+}
+
+// A role typed all in lower case: its first letter, and a short title such as HSE, in capitals
+// ("hse" reads "HSE", "hse manager" reads "HSE manager"; messy round 8, wording 1).
+const ROLE_SHORT = new Set(['hse', 'whs', 'ohs', 'ohse', 'hseq', 'qhse', 'she', 'sheq', 'ehs', 'pm', 'cm', 'ceo', 'cfo', 'coo', 'md', 'gm', 'hr', 'qa', 'qs', 'it']);
+function tidyRole(text) {
+  const value = clean(text);
+  if (!value || /[A-Z]/.test(value)) return value;
+  const words = value.replace(/[a-z]+/g, (word) => (ROLE_SHORT.has(word) ? word.toUpperCase() : word));
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPlace, capitalFirst, listed, PASSED_ON };
+module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPlace, capitalFirst, capitalSentences, tidyRole, listed, PASSED_ON };

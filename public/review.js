@@ -29,7 +29,8 @@
   // that is safe to send again (tries: 2) is sent once more first (messy round 7, run 7: a 502 on
   // "Email me a sign-in link" said "Something went wrong" while the button already read "Email me another
   // link").
-  const SERVER_DOWN = 'SiteWrite could not reach the server. Try again.';
+  // On a SiteLink project's page the message names SiteLink (messy round 8, stuck point 5).
+  const SERVER_DOWN = `${inProject ? 'SiteLink' : 'SiteWrite'} could not reach the server. Try again.`;
   async function call(method, route, body, { tries = 1, down = SERVER_DOWN } = {}) {
     for (let attempt = 1; ; attempt += 1) {
       let response;
@@ -189,10 +190,13 @@
     const row = $(`cond-${id}`);
     button.disabled = true;
     try {
-      if (confirmIt) await call('POST', `/api/hse/conditions/${encodeURIComponent(id)}/confirm`);
-      else await call('POST', `/api/hse/conditions/${encodeURIComponent(id)}/back`, { note: ($(`back-${id}`) || {}).value || '' });
+      const done = confirmIt
+        ? await call('POST', `/api/hse/conditions/${encodeURIComponent(id)}/confirm`)
+        : await call('POST', `/api/hse/conditions/${encodeURIComponent(id)}/back`, { note: ($(`back-${id}`) || {}).value || '' });
       await loadProject({ keepCheck: true });
       const again = $(`cond-${id}`);
+      // The reply is said beside the condition (messy round 8: the row just changed, with no word).
+      if (again && done && done.message) again.insertAdjacentHTML('beforeend', `<p class="ok-line" role="status">${esc(done.message)}</p>`);
       if (again) again.scrollIntoView({ block: 'center' });
     } catch (error) {
       button.disabled = false;
@@ -344,7 +348,14 @@
     $('name').readOnly = true;
     $('company').readOnly = true;
     $('who-note').innerHTML = data.me.name ? `From your SiteLink details. <a href="/sitelink#/you">Change your name</a>` : '<strong>Add your name in SiteLink first, under Your details.</strong> <a href="/sitelink#/you">Your details</a>';
-    $('text-hint').textContent = 'For conditions, write each one on its own line. The subcontractor marks each one done, and you confirm it.';
+    textLabel();
+    // A business not on SiteWrite is not emailed: the page says so before sending, not only after (messy
+    // round 8, wording 5).
+    const told = data.onSiteWrite !== false;
+    $('intro').textContent = `From your SiteLink project. Read the SWMS as it was submitted, run Builder check, and send your response. ${told ? 'The subcontractor sees it in SiteWrite and is emailed that its review is back, from you.' : `${business || 'The subcontractor'} is not on SiteWrite, so SiteLink does not email it: send your response to them yourself.`}`;
+    $('sent-note').textContent = told
+      ? `Recorded against ${outside ? 'this SWMS' : 'this revision'} with today's date. ${business || 'The business'} sees your response in SiteWrite and is emailed that its review is back. ${outside ? '' : 'A later revision starts unreviewed.'}`.trim()
+      : `Recorded against this SWMS with today's date, and kept in the project log. ${business || 'The business'} is not on SiteWrite, so SiteLink does not email it: send your response to them yourself.`;
     $('check-intro').textContent = outside ? outsideCheckNote(data) : $('check-intro').dataset.revision || $('check-intro').textContent;
     $('run-check').disabled = outside && (data.submission.checkStatus === 'reading' || !(data.readings || {}).on);
     $('run-check').textContent = outside ? (data.submission.builderCheck ? 'Builder check is done' : data.submission.checkStatus === 'reading' ? 'Reading the file...' : 'Run Builder check on the file') : 'Run Builder check';
@@ -409,6 +420,11 @@
   const EMPTY_WORDS = /^(?:none|nil|nothing|no|n\/?a|na|tbc|tba|tbd|ok|okay|yes|see above|as discussed|-+|\.+|x+)$/i;
   function textLabel() {
     $('text-label').textContent = { conditions: inProject ? 'Conditions (required), one to a line' : 'Conditions (required)', changes: 'Changes needed (required)' }[chosen()] || 'Comments (optional)';
+    // The hint fits the response chosen (messy round 8, wording 4: the conditions hint showed under
+    // "Changes needed").
+    $('text-hint').textContent = chosen() === 'conditions' && inProject ? 'Write each condition on its own line. The subcontractor marks each one done, and you confirm it.'
+      : chosen() === 'changes' ? 'Write each change on its own line, so the business knows what to fix.'
+      : 'One per line is easiest to read.';
   }
   document.querySelectorAll('input[name="response"]').forEach((input) => input.addEventListener('change', () => { textLabel(); clearErrors(); keepDraft(); }));
   for (const id of ['text', 'name', 'company']) $(id).addEventListener('input', keepDraft);
@@ -448,7 +464,8 @@
     if (inProject) {
       const outside = page && page.submission.channel === 'outside';
       const told = sent.emailed ? `${esc(business)} can see it in SiteWrite and has been emailed that its review is back, from you.` : `${esc(business)} is not on SiteWrite, so SiteLink did not email it. Send your response to them yourself.`;
-      return `<div class="ok"><strong>Sent: ${esc(review.label)}.</strong><p>Recorded against ${outside ? 'this SWMS' : `revision ${esc(review.revision)}`} on ${esc(review.date)}. ${told} It is in the project log.</p>${(review.conditions || []).length ? `<p>${review.conditions.length === 1 ? 'The condition shows' : `The ${review.conditions.length} conditions show`} on the project screen until you confirm ${review.conditions.length === 1 ? 'it' : 'each'} done.</p>` : ''}</div>
+      const again = sent.repeated ? ' It was already sent, so it was not sent or emailed a second time.' : '';
+      return `<div class="ok"><strong>Sent: ${esc(review.label)}.</strong><p>${again ? `${again.trim()} ` : ''}Recorded against ${outside ? 'this SWMS' : `revision ${esc(review.revision)}`} on ${esc(review.date)}. ${told} It is in the project log.</p>${(review.conditions || []).length ? `<p>${review.conditions.length === 1 ? 'The condition shows' : `The ${review.conditions.length} conditions show`} on the project screen until you confirm ${review.conditions.length === 1 ? 'it' : 'each'} done.</p>` : ''}</div>
         <p><a href="/sitelink#/project/${esc(page.project.id)}">Back to the project</a></p>
         <button type="button" class="light" id="change-response">Send a different response</button>`;
     }

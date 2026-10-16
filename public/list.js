@@ -62,7 +62,8 @@
     const l = list;
     document.title = `SWMS for ${l.project.name}: SiteWrite`;
     const unverified = l.builder.verified ? '' : ' <span class="tag unverified" title="This builder\'s ABN does not match the ABN register yet.">Unverified</span>';
-    $('l-from').innerHTML = `From ${esc(l.builder.name)}${unverified}, sent by ${esc(l.from.name)}`;
+    // No comma straight after the tag (messy round 8, wording 12: "Unverified , sent by").
+    $('l-from').innerHTML = `From ${esc(l.builder.name)}${unverified}<br>Sent by ${esc(l.from.name)}`;
     $('l-title').textContent = `${l.builder.name} needs these SWMS from you`;
     box('l-changed', l.changed ? `<strong>${esc(l.builder.name)} has changed this list since the email of ${esc(l.sentOn)}.</strong> This is the list as it is now.` : '', 'warn');
     $('l-project').textContent = l.project.name;
@@ -185,8 +186,13 @@
       // A company that cannot take it up (another ABN, or another company has it) is told why, with no button.
       const refused = (claimNote && claimNote.kind === 'bad' && claimNote.message) || (ready && l.refusal);
       if (refused) {
-        html += `<p>Signed in for <strong>${esc(company.name)}</strong> (ABN ${esc(formatAbn(company.abn))}).</p><div class="bad">${esc(refused)}</div>
-          <p class="meta">You can still upload your SWMS above. If you signed in with the wrong account, sign out at the top of the page.</p>`;
+        // A wrong ABN saved on the company is fixed here (messy round 8, stuck point 3: the page offered
+        // only "contact" and "sign out", and the fix was found by hand in the company profile).
+        const abnWrong = l.refusalKind === 'abn';
+        html += `<p>Signed in for <strong>${esc(company.name)}</strong> (ABN ${esc(formatAbn(company.abn))}).</p><div class="bad">${esc(refused)}</div>`;
+        if (abnWrong && fixing) html += companyForm(company, 'Save and try again', '<p>Change your company name and ABN as they should be. They print on every SWMS your company makes in SiteWrite.</p>');
+        else if (abnWrong) html += `<p>Is your company's name or ABN wrong in SiteWrite? <button type="button" class="light" id="company-fix">Change the company name and ABN</button></p>`;
+        html += '<p class="meta">You can still upload your SWMS above. If you signed in with the wrong account, sign out at the top of the page.</p>';
         $('l-claim').innerHTML = html;
         return;
       }
@@ -199,15 +205,24 @@
       } else if (ready) {
         html += `<p>Take up this list for <strong>${esc(company.name)}</strong> (ABN ${esc(formatAbn(company.abn))}).${abnLine}</p><div class="actions"><button type="button" id="claim-go">Take up this list for ${esc(company.name)}</button></div>`;
       } else {
-        html += `<p>Add your company name and ABN. They link the list to your company, and print on your SWMS.${abnLine}</p>
-          <form id="company" novalidate><label for="c-name">Company name</label><input id="c-name" type="text" autocomplete="organization" maxlength="200" value="${esc(company.name || '')}"><p class="field-error hidden" id="c-name-error"></p>
-          <label for="c-abn">ABN <span class="hint">Your company's 11 digit ABN.</span></label><input id="c-abn" type="text" inputmode="numeric" maxlength="20" value="${esc(company.abn || '')}"><p class="field-error hidden" id="c-abn-error"></p>
-          <div class="actions"><button type="submit" id="company-go">Save and take up the list</button></div></form>`;
+        html += companyForm(company, 'Save and take up the list', `<p>Add your company name and ABN. They link the list to your company, and print on your SWMS.${abnLine}</p>`);
       }
       if (claimNote) html += `<div class="${esc(claimNote.kind)}">${esc(claimNote.message)}</div>`;
     }
     $('l-claim').innerHTML = html;
   }
+
+  // The company's name and ABN, to add or to put right.
+  let fixing = false;
+  function companyForm(company, label, lede) {
+    return `${lede}<form id="company" novalidate><label for="c-name">Company name</label><input id="c-name" type="text" autocomplete="organization" maxlength="200" value="${esc(company.name || '')}"><p class="field-error hidden" id="c-name-error"></p>
+      <label for="c-abn">ABN <span class="hint">Your company's 11 digit ABN.</span></label><input id="c-abn" type="text" inputmode="numeric" maxlength="20" value="${esc(company.abn || '')}"><p class="field-error hidden" id="c-abn-error"></p>
+      <div class="actions"><button type="submit" id="company-go">${esc(label)}</button></div></form>`;
+  }
+  // A company name typed all in lower case gets capitals ("wallaroo electrical" is Wallaroo Electrical):
+  // it prints on every SWMS (messy round 8, wording 13). A name with any capital is kept as typed.
+  const SMALL = new Set(['and', 'of', 'the', 'for', 'at', 'in', 'on', 'by']);
+  const tidyCompany = (name) => (/[A-Z]/.test(name) ? name : name.replace(/[a-z][\w']*/g, (word, at) => (at && SMALL.has(word) ? word : `${word[0].toUpperCase()}${word.slice(1)}`)));
 
   async function claim(button) {
     await busy(button, 'Taking it up...', async () => {
@@ -228,7 +243,10 @@
   $('l-claim').addEventListener('click', async (event) => {
     const go = event.target.closest('#claim-go');
     if (go) { await claim(go); return; }
+    if (event.target.closest('#company-fix')) { fixing = true; renderClaim(); $('c-abn').focus(); return; }
     if (event.target.closest('#claim-no')) {
+      // Logged for the lead (messy round 8, blocker 5); the page says the same whatever the answer.
+      call('POST', `/api/list/${encodeURIComponent(token)}/not-ours`, {}, { signedIn: true }).catch(() => {});
       claimNote = { kind: 'warn', message: `Then do not take it up. ${list.uploadsOn ? 'You can still upload a SWMS above. ' : ''}If the list should be yours, contact ${list.from.name} at ${list.builder.name}${list.from.email ? ` (${list.from.email})` : ''}. If you signed in with the wrong account, sign out at the top of the page.` };
       renderClaim();
     }
@@ -265,7 +283,7 @@
       return;
     }
     if (form.id === 'company') {
-      const name = $('c-name').value.trim();
+      const name = tidyCompany($('c-name').value.trim().replace(/\s+/g, ' '));
       const abn = $('c-abn').value.trim();
       if (!name) { mark('c-name', 'Enter your company name.'); return; }
       if (abn.replace(/\D/g, '').length !== 11) { mark('c-abn', 'That ABN is not valid. Check the 11 digits.'); return; }
@@ -276,12 +294,14 @@
           const data = await call('PUT', '/api/company', { name, abn, address: c.address || '', phone: c.phone || '', email: c.email || '' }, { signedIn: true });
           me.company = data.company;
           claimNote = null;
+          fixing = false;
           // The list again, now that the company is known: whether it can take the list up, and why not
           // (messy round 7: a company another had beaten to it was asked "Is that your company?").
           list = await call('GET', `/api/list/${encodeURIComponent(token)}`, null, { signedIn: true }).catch(() => list);
           renderList();
         } catch (error) {
-          if (/ABN/.test(error.message)) mark('c-abn', error.message);
+          // A name and ABN fixed once a SWMS was saved or downloaded: the message says how SiteWrite corrects them.
+          if (/ABN/.test(error.message) || error.status === 403) mark('c-abn', error.message);
           else mark('c-name', error.message);
           return;
         }

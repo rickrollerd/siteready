@@ -40,6 +40,10 @@
     text = text.replace(/\s*\(([^)]*)\)/g, (whole, inside) => {
       const words = inside.trim();
       if (!words || PLACE.test(words) || CONDITION.test(words) || PLANT.test(words)) return '';
+      // A bracket that carries on the sentence ("(and CCTV and duress)", "(including the risers)") reads
+      // on from it, not after a colon (messy round 8: "for access control: and CCTV and duress").
+      if (/^(?:and|or|plus|with)\b/i.test(words)) return ` ${words}`;
+      if (/^(?:including|incl\.?|such as|e\.?g\.?)\s/i.test(words)) return `, ${words.replace(/^incl\.?\s/i, 'including ')}`;
       return `: ${words}`;
     });
     text = text.replace(/\s+([,.;:])/g, '$1').replace(/[\s.;,:]+$/, '').trim();

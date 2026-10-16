@@ -134,7 +134,12 @@ router.put('/company', requireUser, route(async (req, res) => {
   const changed = (req.company.name && name !== req.company.name) || (req.company.abn && abn.replace(/\s/g, '') !== req.company.abn.replace(/\s/g, ''));
   if (changed) {
     const used = await db.one("SELECT COUNT(*) AS n FROM events WHERE company_id = $1 AND type IN ('download_pdf', 'download_word', 'swms_saved')", [req.company.id]);
-    if (used && Number(used.n) > 0) throw fail(403, 'Your company name and ABN are fixed once a SWMS has been saved or downloaded, because they are printed on every SWMS. Contact support to change them.');
+    // How to have them corrected, said in full (messy round 8, stuck point 3: "Contact support" said
+    // neither who nor how).
+    if (used && Number(used.n) > 0) {
+      const support = require('./hse').supportEmail();
+      throw Object.assign(fail(403, `Your company name and ABN are fixed once a SWMS has been saved or downloaded, because they are printed on every SWMS. To have SiteWrite correct them, email ${support} from this account's email address with the right name and ABN.`), { fixed: true, support });
+    }
   }
   // A logo that is not a readable PNG or JPEG is refused with a plain message, not kept.
   if (body.logo && !readLogo(body.logo)) throw fail(400, 'The logo could not be read. Use a PNG or JPEG image under 400 KB.');

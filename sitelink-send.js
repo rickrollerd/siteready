@@ -376,7 +376,7 @@ async function summaryFor(sub, project) {
     lastContact: last ? { text: LAST_CONTACT[last.kind] || last.summary, on: shortDate(last.created_at, project.state) } : null,
   };
 }
-const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', stopped: 'Asked to stop emails', restarted: 'Emails started again',
+const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', claim_declined: 'Another company said it is not theirs', opened_other: 'Opened by another company', stopped: 'Asked to stop emails', restarted: 'Emails started again',
   // Stage 7.
   submitted: 'SWMS submitted', submitted_mail: 'SWMS submitted', review_sent: 'Review sent', condition_done: 'Condition marked done', condition_undone: 'Condition no longer marked done', condition_confirmed: 'Condition confirmed', condition_back: 'Condition sent back', outside_recorded: 'SWMS received outside SiteWrite', outside_checked: 'Builder check run' };
 function shortDate(date, state) {
@@ -436,6 +436,9 @@ async function removeForSubcontract(subId) {
   for (const link of await db.query('SELECT token_hash FROM list_links WHERE subcontract_id = $1', [subId])) {
     await db.query('INSERT INTO withdrawn_links (token_hash, builder, withdrawn_at) VALUES ($1, $2, $3) ON CONFLICT (token_hash) DO NOTHING', [link.token_hash, builder ? builder.name : '', new Date()]);
   }
+  // And the list itself, so the company that took it up is told it was withdrawn, not to contact a lead
+  // whose account is gone (messy round 8, wording 15).
+  await db.query('INSERT INTO withdrawn_links (token_hash, builder, withdrawn_at) VALUES ($1, $2, $3) ON CONFLICT (token_hash) DO NOTHING', [auth.hash(`list:${subId}`), builder ? builder.name : '', new Date()]);
   for (const row of await db.query('SELECT * FROM list_uploads WHERE subcontract_id = $1', [subId])) await removeData(row);
   await db.query('DELETE FROM list_uploads WHERE subcontract_id = $1', [subId]);
   await db.query('DELETE FROM list_links WHERE subcontract_id = $1', [subId]);
@@ -523,7 +526,7 @@ async function linkFor(token) {
   const org = project && await db.one('SELECT * FROM orgs WHERE id = $1', [project.org_id]);
   if (!sub || !project || !org) throw fail(404, GONE_LINK);
   const person = await db.one('SELECT name, email, phone, position FROM reviewers WHERE id = $1', [link.sent_by]);
-  const from = { name: (person && person.name) || link.sent_by_name, email: (person && person.email) || '', phone: (person && person.phone) || '', position: (person && person.position) || '' };
+  const from = { name: (person && person.name) || link.sent_by_name, email: (person && person.email) || '', phone: (person && person.phone) || '', position: require('./sitelink-answers').tidyRole((person && person.position) || '') };
   const contact = `${from.name} at ${org.name}${from.email ? ` (${from.email})` : ''}`;
   if (sub.removed_at) throw fail(410, `${org.name} has withdrawn this list. If you think this is wrong, contact ${contact}.`);
   if (link.revoked_at) throw fail(410, `This link no longer works. ${org.name} sent the list to another address. Ask ${contact} to send it to you.`);
@@ -585,6 +588,8 @@ async function listView(found, viewer = null) {
     // The list in the company's SiteWrite, under From main contractors (stage 6).
     listId: viewer && sub.company_id && sub.company_id === viewer.id ? sub.id : '',
     refusal: await refusalFor(sub, viewer, found.contact, org.name),
+    // A wrong ABN on the company is fixed from the page (messy round 8, stuck point 3).
+    refusalKind: viewer && sub.abn && !(sub.company_id && sub.company_id === viewer.id) && abnDigits(viewer.abn).length === 11 && sub.abn !== abnDigits(viewer.abn) ? 'abn' : '',
     uploadsOn: designFiles.enabled(),
     uploadMaxMb: UPLOAD_MAX_MB,
   };
@@ -595,6 +600,23 @@ publicRouter.get('/list/:token', route(async (req, res) => {
   const found = await linkFor(req.params.token);
   const { link, sub, project } = found;
   const now = new Date();
+  // Opened by someone signed in for another company (a forwarded email): logged as that company's, once,
+  // and not counted as the subcontractor opening it (messy round 8, blocker 5: Wallaroo's admin opened
+  // Pademelon's link, and the lead was told Pademelon had opened it).
+  const viewer = req.company;
+  const other = viewer && String(viewer.name || '').trim() && !(sub.company_id && sub.company_id === viewer.id)
+    && !(sub.abn && abnDigits(viewer.abn) === sub.abn) && !sameCompany(viewer.name, sub.name);
+  if (other) {
+    const seen = await db.query("SELECT ref_ids FROM project_log WHERE subcontract_id = $1 AND kind = 'opened_other'", [sub.id]);
+    const refsOf = (row) => { try { return typeof row.ref_ids === 'string' ? JSON.parse(row.ref_ids) : row.ref_ids || {}; } catch { return {}; } };
+    if (!seen.some((row) => refsOf(row).company === viewer.id)) {
+      await logEntry({ projectId: project.id, subId: sub.id, kind: 'opened_other', actorKind: 'sub', actorName: viewer.name, summary: `The link in the list sent to ${sub.name} at ${link.email} was opened by someone signed in to SiteWrite for ${viewer.name}, not ${sub.name}.`, refs: { link: link.id, company: viewer.id } });
+    }
+    const view = await listView(found, viewer);
+    if (view.refusalKind === 'abn') await refusedOnce(found, viewer);
+    res.json(view);
+    return;
+  }
   // "Opened" is the link used (D306): the first time for each email is logged; later times are counted.
   const first = await db.query('UPDATE list_links SET opened_at = $1, last_opened_at = $1 WHERE id = $2 AND opened_at IS NULL RETURNING id', [now, link.id]);
   if (first.length) {
@@ -605,8 +627,21 @@ publicRouter.get('/list/:token', route(async (req, res) => {
   } else {
     await db.query('UPDATE list_links SET last_opened_at = $1 WHERE id = $2', [now, link.id]);
   }
-  res.json(await listView(found, req.company));
+  const view = await listView(found, req.company);
+  // A company whose ABN does not match the one the lead gave is told so on the page, with no button to
+  // press: the try is logged for the lead here, once for each company and ABN (messy round 8, stuck
+  // point 3: the lead's log had no line for it, as g12s5 said it should).
+  if (view.refusalKind === 'abn') await refusedOnce(found, req.company);
+  res.json(view);
 }));
+const ABN_TRIED = 'A company whose ABN does not match the ABN you gave tried to take up the list in SiteWrite. It was not linked to them.';
+async function refusedOnce({ sub, project }, company) {
+  const abn = abnDigits(company && company.abn);
+  const rows = await db.query("SELECT ref_ids FROM project_log WHERE subcontract_id = $1 AND kind = 'claim_refused'", [sub.id]);
+  const refsOf = (row) => { try { return typeof row.ref_ids === 'string' ? JSON.parse(row.ref_ids) : row.ref_ids || {}; } catch { return {}; } };
+  if (rows.some((row) => { const refs = refsOf(row); return refs.company === company.id && refs.abn === abn; })) return;
+  await logEntry({ projectId: project.id, subId: sub.id, kind: 'claim_refused', actorKind: 'sub', summary: `${sub.name}: ${ABN_TRIED}`, refs: { company: company.id, abn } });
+}
 
 // A sign-in link to the address given, which opens this list again to claim it.
 publicRouter.post('/list/:token/sign-in', route(async (req, res) => {
@@ -615,6 +650,18 @@ publicRouter.post('/list/:token/sign-in', route(async (req, res) => {
   if (!email) throw Object.assign(fail(400, 'Enter a valid email address.'), { field: 'email' });
   await auth.sendListLink(req, email, { listToken: req.params.token, source: `project-invite:${found.project.id}`, builder: found.org.name });
   res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes. Open it on this device to take up the list.` });
+}));
+
+// "No, it is not ours" on a list with no ABN given (messy round 8, blocker 5: the No was not logged). The
+// lead sees which company said so; the list stays untaken.
+publicRouter.post('/list/:token/not-ours', auth.requireUser, route(async (req, res) => {
+  const found = await linkFor(req.params.token);
+  const { sub, project } = found;
+  const name = String(req.company.name || '').trim() || 'A company';
+  if (!(sub.company_id && sub.company_id === req.company.id)) {
+    await logEntry({ projectId: project.id, subId: sub.id, kind: 'claim_declined', actorKind: 'sub', actorName: name, summary: `${name} (ABN ${formatAbn(abnDigits(req.company.abn))}) was asked in SiteWrite whether the list for ${sub.name} is its own, and said no. It did not take it up.`, refs: { company: req.company.id } });
+  }
+  res.json({ ok: true });
 }));
 
 // Takes up the list for the signed-in person's company (D308).
@@ -634,7 +681,8 @@ publicRouter.post('/list/:token/claim', auth.requireUser, route(async (req, res)
     return;
   }
   if (sub.abn && sub.abn !== abn) {
-    await refused(ABN_REFUSED(name, contact), 'A company whose ABN does not match the ABN you gave tried to take up the list in SiteWrite. It was not linked to them.');
+    await refusedOnce(found, company);
+    throw Object.assign(fail(409, ABN_REFUSED(name, contact)), { field: 'claim', abnRefused: true });
   }
   // Released from this company by the lead (stage 6, D311): it cannot take the list up again.
   if (await subbie().releasedFrom(sub, company)) {

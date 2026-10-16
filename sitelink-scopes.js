@@ -123,7 +123,9 @@ function typed(value, max, label, field, { answer = false } = {}) {
   if (PLACEHOLDER.test(text)) throw Object.assign(fail(400, `Leave ${label} empty until you know it. The subcontractor would see "${text}".`), { field });
   if (handover.hasPrice(text)) throw Object.assign(fail(400, 'Take the price out. The subcontractor sees this, and SiteLink never passes on prices, rates or amounts.'), { field });
   // An answer the SWMS app would refuse ("me", "dont know", "check with dana") says nothing yet.
-  const weak = answer ? answers.notAnswer(text) : '';
+  // A point asks who does or supplies something: "us" is answered with the company, not a site role
+  // (messy round 8, wording 10: the example was "The site supervisor").
+  const weak = answer ? answers.notAnswer(text).replace(/Name the role, for example "The site supervisor"\.$/, 'Name the company, for example "The main contractor supplies them" or "The subcontractor supplies them".') : '';
   if (weak) throw Object.assign(fail(400, weak), { field });
   return text;
 }
@@ -297,7 +299,10 @@ function install(router, deps) {
     // "SiteLink read it" only once the reading has finished (messy round 7: it was logged at 6%).
     if (made) {
       const kept = items.filter((item) => !item.removedWhy).length;
-      await logEvent({ orgId: ctx.org.id, projectId: ctx.project.id, text: `SiteLink read ${ctx.sub.doc_name || 'the scope'}, the scope for ${ctx.sub.name}, and listed ${kept} SWMS.` });
+      // A file read before is not read again: the line says the list came from that reading (messy round
+      // 8, wording 11: "SiteLink read ..." straight after "It was read before, so it cost nothing").
+      const reused = Boolean(await db.one('SELECT id FROM subcontracts WHERE reading_id = $1 AND id <> $2 LIMIT 1', [reading.id, ctx.sub.id]));
+      await logEvent({ orgId: ctx.org.id, projectId: ctx.project.id, text: reused ? `SiteLink listed ${kept} SWMS for ${ctx.sub.name} from its earlier reading of ${ctx.sub.doc_name || 'the scope'}.` : `SiteLink read ${ctx.sub.doc_name || 'the scope'}, the scope for ${ctx.sub.name}, and listed ${kept} SWMS.` });
     }
   }
 
@@ -454,7 +459,7 @@ function install(router, deps) {
     const ctx = await subcontractFor(req, req.params.subId);
     const body = req.body || {};
     const title = answers.capitalFirst(typed(body.title, 160, 'the title', 'title'));
-    const task = answers.capitalFirst(typed(body.task, 1500, 'the work', 'task'));
+    const task = answers.capitalSentences(typed(body.task, 1500, 'the work', 'task'), { stop: true });
     if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
     if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
     // The high risk work the lead's own words name, by the scope reading's rules (messy round 6: a
@@ -515,20 +520,34 @@ function install(router, deps) {
         row.item = item;
       }
     }
+    let unfolded = '';
     if (typeof body.task === 'string') {
       // Typed case is tidied (messy round 7: "install AHUs, ..." reached the subcontractor).
-      const task = answers.capitalFirst(typed(body.task, 1500, 'the work', 'task'));
+      // Each sentence with its capital and the last with its full stop (messy round 8, wording 14).
+      const task = answers.capitalSentences(typed(body.task, 1500, 'the work', 'task'), { stop: true });
       if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
       if (task !== row.task) {
         const rev = await bumpList(ctx);
-        // The high risk work is read again from the lead's own words, with the package's step groups,
-        // and so is whether SiteWrite has job steps for it.
-        const base = { ...(row.item || {}), task };
-        const item = { ...base, highRisk: handover.highRiskOf(`${row.title}. ${task}`, ctx.project.state, row.item || {}), noSteps: handover.noJobSteps({ task, kinds: handover.draftKinds(base.kinds) }, ctx.project.state) };
+        // The high risk work is read again from the lead's own words, with only the package's step groups
+        // those words still name, and so is whether SiteWrite has job steps for it (messy round 8, blocker
+        // 1: reworded to data cabling only, it still said "Chemical, fuel or refrigerant lines" and
+        // "Energised electrical installations" from the scope's step groups).
+        const named = require('./draft').kindsInWords({ state: ctx.project.state, task });
+        const kept = Array.isArray((row.item || {}).kinds) ? row.item.kinds.filter((id) => named.includes(id)) : null;
+        const base = { ...(row.item || {}), task, kinds: kept && kept.length ? kept : null };
+        const item = { ...base, highRisk: handover.highRiskOf(`${row.title}. ${task}`, ctx.project.state, base), noSteps: handover.noJobSteps({ task, kinds: handover.draftKinds(base.kinds) }, ctx.project.state) };
         await db.query('UPDATE required_swms SET task = $1, item = $2, task_changed = TRUE, list_rev = $3, updated_at = $4 WHERE id = $5', [task, JSON.stringify(item), rev, now, row.id]);
+        // Work folded into it from the scope is no longer part of it: the lead's words say what it covers
+        // now, so "Also covers" and that work's high risk go with it. It is under Removed, to put back.
+        const folded = (await itemsOf(ctx.sub.id)).filter((other) => other.removed_at && other.removed_why === 'folded' && row.package && other.item && other.item.foldedInto === row.package);
+        if (folded.length) {
+          for (const other of folded) await db.query("UPDATE required_swms SET removed_why = 'unfolded', list_rev = $1, updated_at = $2 WHERE id = $3", [rev, now, other.id]);
+          const names = folded.map((other) => other.title);
+          unfolded = ` ${names.length === 1 ? `${names[0]} is` : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} are`} no longer part of it: ${names.length === 1 ? 'it is' : 'they are'} under Removed. Put ${names.length === 1 ? 'it' : 'one'} back if it needs a SWMS of its own.`;
+        }
         await recordListEdit(ctx, { kind: 'taskChanged', pack: row.package || row.title, wording: task, original: row.task });
         await log(ctx, req, `changed the work for ${row.title} on the SWMS list for ${ctx.sub.name}.`);
-        message = message ? `${message} The work for ${row.title} is saved too.` : `The work for ${row.title} is saved.`;
+        message = `${message ? `${message} The work for ${row.title} is saved too.` : `The work for ${row.title} is saved.`}${unfolded}`;
       }
     }
     res.json(await subcontractPage(ctx, { message }));
@@ -540,7 +559,8 @@ function install(router, deps) {
     needName(req);
     const row = await db.one('SELECT * FROM subcontract_points WHERE id = $1 AND subcontract_id = $2', [String(req.params.pointId || ''), ctx.sub.id]);
     if (!row) throw fail(404, 'That point is not on this subcontract.');
-    const answer = answers.capitalFirst(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }));
+    // Each sentence with its capital (messy round 8, wording 2: "... boards. wallaroo installs them").
+    const answer = answers.capitalSentences(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }));
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));

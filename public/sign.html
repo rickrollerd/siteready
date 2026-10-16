@@ -47,6 +47,12 @@
     #sign-error { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 6px; padding: 10px 12px; margin: 0 0 12px; scroll-margin: 16px 0 96px; }
     #sign-error a { display: inline-block; margin: 6px 12px 0 0; color: #8a2b2b; font-weight: 600; }
     .q { scroll-margin: 16px 0 96px; }
+    /* The way in for a worker who cannot read the SWMS is never greyed (messy round 8, stuck point 2). */
+    .cannot-read { background: #fff7e0; border: 1px solid #e3c977; border-radius: 8px; padding: 10px 14px; margin: 12px 0 4px; }
+    .cannot-read p { margin: 0 0 4px; }
+    .explained-box { border: 1px solid #d5dbe3; border-radius: 6px; padding: 10px 12px; }
+    .explained-box .meta { margin: 6px 0 0; }
+    .progress .link { background: none; border: 0; color: #fff; text-decoration: underline; padding: 0; margin: 4px 0 0; width: auto; font: inherit; font-weight: 600; min-height: 0; display: block; text-align: left; }
     .done { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 16px; margin-top: 14px; font-weight: 600; }
     .hidden { display: none; }
     /* Phones (goal 7): controls at least 44 px each way and text at least 16 px. The progress bar
@@ -81,14 +87,19 @@
     </div>
 
     <div class="panel hidden" id="swms">
-      <p>Read every section below, in order, before you sign. The sign-on form opens once you have read to the end. If you cannot read it, ask your supervisor to explain it to you.</p>
+      <p>Read every section below, in order, before you sign. The sign-on form opens once you have read to the end.</p>
+      <div class="cannot-read" id="cannot-read">
+        <p><strong>Cannot read this SWMS?</strong> Ask your supervisor to explain it to you. Then you can sign on straight away.</p>
+        <button type="button" class="secondary" id="explained-go">My supervisor has explained it to me</button>
+      </div>
       <div id="sections"></div>
       <p class="meta" id="end">End of the SWMS.</p>
     </div>
 
     <form class="panel hidden" id="sign-form">
-      <div class="field">
+      <div class="field explained-box">
         <label class="check"><input type="checkbox" id="explained"><span>I cannot read this SWMS. My supervisor has explained it to me.</span></label>
+        <p class="meta">You can tick this without reading to the end.</p>
       </div>
       <div class="field hidden" id="supervisor-field">
         <label for="supervisor">Supervisor who explained it</label>

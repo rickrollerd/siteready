@@ -605,7 +605,7 @@
             <strong>${esc(item.title)}</strong>
             <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Check due</span>' : `Check by ${shortDate(item.reviewDueAt)}`}</span>
             ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteWrite changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
-            ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span>, ${esc(item.review.date)}</span>` : ''}
+            ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span> on <span class="nowrap">${esc(item.review.date)}</span></span>` : ''}
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
         </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (every revision in Word, with team and sites, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>');
@@ -751,12 +751,21 @@
     const current = (reviews || []).filter((item) => item.revision === Number(swms.revision));
     const earlier = (reviews || []).filter((item) => item.revision !== Number(swms.revision));
     const textHead = { conditions: 'Conditions', changes: 'Changes needed' };
+    // From a SiteLink project, each condition on its own line with where it has got (messy round 8,
+    // wording 7: two conditions ran into one line, and the confirmed one was not marked).
+    const conditionList = (item) => `<ul class="pc-conditions">${item.conditions.map((one) => `<li><span class="pill">${esc(one.status)}</span> ${esc(one.text)}</li>`).join('')}</ul>`;
     const line = (item) => `<li><strong class="${PC_CLASS[item.response] || ''}">${esc(item.label)}</strong> · revision ${esc(item.revision)} · ${esc(item.date)}<br>${esc(item.name)}, ${esc(item.company)}${item.email ? ` (<a href="mailto:${esc(item.email)}">${esc(item.email)}</a>)` : ''}
-      ${item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(conditionLines(item.text))}</div>` : ''}</li>`;
+      ${item.sitelink && (item.conditions || []).length ? `<div class="pc-text"><strong>Conditions:</strong>${conditionList(item)}</div>` : item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(conditionLines(item.text))}</div>` : ''}</li>`;
     const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteWrite, send them the reference ${esc(swms.ref)} or this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
     const latest = current[0];
+    // A SWMS submitted on a main contractor's list in SiteLink goes back the same way: submitted again
+    // from From main contractors, with each condition marked done there.
+    const viaList = latest && latest.sitelink;
+    const fixText = viaList
+      ? (latest.response === 'changes' ? `Make the changes, check the SWMS again, and submit it to ${latest.company} again from From main contractors.` : `Meet each condition before work starts, and mark it done under From main contractors. ${latest.company} confirms each one. If you change the SWMS, submit it again from there.`)
+      : (latest && latest.response === 'changes' ? 'Make the changes, save the SWMS as a new revision, and send the principal contractor the new reference.' : 'Meet the conditions before work starts. If you change the SWMS, save it as a new revision and send the principal contractor the new reference.');
     const fix = latest && latest.response !== 'approved'
-      ? `<p>${latest.response === 'changes' ? 'Make the changes, save the SWMS as a new revision, and send the principal contractor the new reference.' : 'Meet the conditions before work starts. If they change the SWMS, save it as a new revision and send the principal contractor the new reference.'}</p>
+      ? `<p>${esc(fixText)}</p>
         <div class="actions"><button type="button" id="pc-fix">Fix this in SiteWrite</button></div>` : '';
     return `<div class="pc-review${latest && latest.response !== 'approved' ? ' pc-back' : ''}" id="pc-review"><h2>Principal contractor review</h2>
       ${current.length ? `<ul class="pc-list">${current.map(line).join('')}</ul>${fix}` : `<p>Revision ${esc(swms.revision)} has not been reviewed yet.</p>${send}`}

@@ -250,6 +250,9 @@
     /* The principal contractor's response on a saved SWMS (goal 3). */
     .pc-ok { color: #1f4e3d; font-weight: 600; }
     .pc-cond { color: #7a5300; font-weight: 600; }
+    .nowrap { white-space: nowrap; }
+    .pc-conditions { margin: 4px 0 0; padding-left: 0; list-style: none; white-space: normal; }
+    .pc-conditions li { margin: 0 0 4px; }
     .pc-review { border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; margin-top: 16px; }
     .pc-review h2 { margin: 0 0 6px; }
     .pc-review.pc-back { border-color: #e3b76b; background: #fdf8ee; }
@@ -523,6 +526,7 @@
     .go-draft-notes { margin: 0 0 10px; }
     .go-draft-notes p { margin: 0 0 4px; }
     .go-draft-notes ul { margin: 0; padding-left: 18px; }
+    .go-note-settled { display: block; color: #1f4e3d; }
     @media (max-width: 600px) { .builder-lists li { flex-direction: column; align-items: stretch; } }
     .go-review { padding-left: 22px; }
     .go-review li { border-top: 1px solid #e3e7ec; padding: 10px 0; }

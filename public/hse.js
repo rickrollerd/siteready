@@ -41,12 +41,33 @@
   let pendingFlash = null;
   let autoState = true;
 
+  // A host's error (502, 503, 504), a reply that is not SiteLink's own, or no connection says so plainly
+  // and by this page's name (messy round 8, stuck point 5: a 502 said "Something went wrong"). Only a
+  // read is sent once more by itself; anything that changes something waits for the person to press again,
+  // and the server keeps a repeat once.
+  const SERVER_DOWN = 'SiteLink could not reach the server. Try again.';
   async function call(method, route, body) {
-    const response = await fetch(route, {
-      method,
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { 'X-Reviewer-Token': token } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const tries = method === 'GET' ? 2 : 1;
+    let response;
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        response = await fetch(route, {
+          method,
+          headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { 'X-Reviewer-Token': token } : {}) },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+      } catch {
+        if (attempt < tries) { await new Promise((resolve) => { setTimeout(resolve, 900); }); continue; }
+        throw Object.assign(new Error(SERVER_DOWN), { status: 0, serverDown: true });
+      }
+      const type = (response.headers && response.headers.get && response.headers.get('content-type')) || '';
+      const ours = /json/i.test(type);
+      if (!ours || [502, 503, 504].includes(response.status)) {
+        if (attempt < tries) { await new Promise((resolve) => { setTimeout(resolve, 900); }); continue; }
+        if (!ours || response.status >= 500) throw Object.assign(new Error(SERVER_DOWN), { status: response.status, serverDown: true });
+      }
+      break;
+    }
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && token) signedOut('You have been signed out. Sign in again to carry on.');
     if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, support: data.support, unverified: data.unverified, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch, preview: data.preview, noSteps: data.noSteps });
@@ -699,7 +720,7 @@
       const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}${sub.claimedMismatch ? ` <span class="tag warn">Not the name on the subcontract: check it</span>` : ''}` : sub.opened ? '. Opened' : '. Not opened yet'}` : 'Not sent yet';
       // Stage 7: how many are in, their reviews and conditions (the one screen, below, lists each SWMS).
       const s7 = sub.stage7 || { in: 0, toReview: 0, approved: 0, notApproved: 0, conditionsOpen: 0, toConfirm: 0, off: 0, items: [] };
-      const filesIn = sub.swms ? `${s7.in} of ${sub.swms} in${s7.off ? `<span class="scope-state">${s7.off} taken off its list: not submitted</span>` : ''}` : 'None yet';
+      const filesIn = sub.swms ? `${s7.in} of ${sub.swms} in${s7.uploaded ? `<span class="scope-state">${s7.uploaded === 1 ? 'One file' : `${s7.uploaded} files`} uploaded to record</span>` : ''}${s7.off ? `<span class="scope-state">${s7.off} taken off its list: not submitted</span>` : ''}` : 'None yet';
       const reviewed = [s7.toReview ? `${s7.toReview} to review` : '', s7.approved ? `${s7.approved} approved` : '', s7.notApproved ? `${s7.notApproved} not approved` : ''].filter(Boolean).join(', ') || (s7.in ? 'None reviewed yet' : 'None in yet');
       const conditions = [s7.conditionsOpen ? `${s7.conditionsOpen} open` : '', s7.toConfirm ? `${s7.toConfirm} to confirm` : ''].filter(Boolean).join(', ') || 'None';
       const last = sub.lastContact ? `${esc(sub.lastContact.text)}, ${esc(sub.lastContact.on)}` : 'None yet';
@@ -747,7 +768,11 @@
     if (row.checkStatus === 'reading') lines.push('Builder check is reading the file.');
     const action = row.submissionId
       ? `<a class="button light small" href="/review.html?submission=${esc(row.submissionId)}" aria-label="${esc(`${row.review ? 'Open' : 'Review'} ${row.title} from ${sub.name}`)}">${row.review && !row.toConfirm ? 'Open' : 'Review'}</a>`
-      : `<a class="button light small" href="#/sub/${esc(sub.id)}" aria-label="${esc(`Chase ${row.title} from ${sub.name}`)}">${row.state === 'uploaded' ? 'Record it' : 'Chase'}</a>`;
+      // "Record it" is named so for a screen reader, and opens the subcontract at that SWMS's file (messy
+      // round 8: it was named "Chase ..." and opened the top of the page).
+      : row.state === 'uploaded'
+        ? `<a class="button light small" href="#/sub/${esc(sub.id)}/item/${esc(row.id)}" aria-label="${esc(`Record the file uploaded for ${row.title} from ${sub.name}`)}">Record it</a>`
+        : `<a class="button light small" href="#/sub/${esc(sub.id)}" aria-label="${esc(`Chase ${row.title} from ${sub.name}`)}">Chase</a>`;
     return `<li class="swms-row" data-tags="${esc(tagsOf(row).join(' '))}"><div class="swms-what"><strong>${esc(row.title)}</strong><span class="meta">${esc(sub.name)}</span></div>
       <div class="swms-tags">${pills.join(' ')}</div>${lines.length ? `<p class="meta">${lines.join(' ')}</p>` : ''}<div class="swms-go">${action}</div></li>`;
   }
@@ -933,7 +958,8 @@
       const changed = (latest.overrides || []).length ? ` It changes details you set: ${esc(latest.overrides.map((one) => one.label.toLowerCase()).join(', '))}.` : '';
       html += `<p class="received">${what}${review}${conditions}${changed}${got.earlier.length ? ` <span class="meta">Submitted ${got.earlier.length === 1 ? 'once' : `${got.earlier.length} times`} before.</span>` : ''} <a class="button light small" href="/review.html?submission=${esc(latest.id)}">${latest.review ? 'Open' : 'Review it'}</a></p>`;
     }
-    if (!sub.received || !sub.received.outsideOn) return html;
+    // Only once the list has gone: before that there is nothing to receive (messy round 8).
+    if (!sub.received || !sub.received.outsideOn || !(sub.sending && sub.sending.sent)) return html;
     const id = esc(item.id);
     return `${html}<details class="outside" id="outside-${id}"><summary>Record a SWMS received outside SiteWrite</summary>
       <p class="meta">A SWMS for this that came by email or on paper, as a PDF or Word file. It is then in, and you can review it here. Builder check on it is optional.</p>
@@ -947,12 +973,13 @@
 
   // Where a SWMS just left the list: a note in its place, beside where the person was looking, with a
   // button to undo (messy round 6: the note showed at the top, out of view, and the page jumped).
-  let gone = null;
-  function goneCard() {
-    if (!gone) return '';
-    const item = sub.items.find((one) => one.id === gone.id);
+  // Each SWMS removed in a row keeps its note (messy round 8: after three quick Removes only the last
+  // note stayed in place).
+  let gone = [];
+  function goneCard(one) {
+    const item = one && sub.items.find((other) => other.id === one.id);
     if (!item || !item.removed) return '';
-    return `<div class="swms-gone" id="gone-${esc(item.id)}" role="status"><p><strong>${esc(gone.message)}</strong></p>
+    return `<div class="swms-gone" id="gone-${esc(item.id)}" role="status"><p><strong>${esc(one.message)}</strong></p>
       <div class="actions"><button type="button" class="light" data-restore="${esc(item.id)}" aria-label="${esc(`Put back ${item.title}`)}">Put back</button></div></div>`;
   }
 
@@ -967,8 +994,8 @@
     else if (!kept.length && aside.length && !removed.some((item) => !item.removedWhy)) html += '<div class="warn"><strong>No SWMS are on the list yet.</strong> SiteLink found no high risk construction work in this scope. Move any SWMS you need from "Work that may not need a SWMS" below, or add one.</div>';
     else if (!kept.length) html += '<div class="warn"><strong>Every SWMS is removed.</strong> The subcontractor would be told this subcontract needs no SWMS. Put one back or add one if it needs any.</div>';
     // The note for a SWMS just removed sits where it was in the list.
-    const at = gone ? Math.min(gone.at, kept.length) : -1;
-    html += kept.map((item, i) => `${i === at ? goneCard() : ''}${itemCard(item)}`).join('') + (at >= kept.length ? goneCard() : '');
+    const notesAt = (i) => gone.filter((one) => Math.min(one.at, kept.length) === i).map(goneCard).join('');
+    html += kept.map((item, i) => `${notesAt(i)}${itemCard(item)}`).join('') + notesAt(kept.length);
     if (aside.length) {
       html += `<details class="aside-group" id="s-aside"${openGroups.aside ? ' open' : ''}><summary>Work that may not need a SWMS (${aside.length})</summary>
         <p class="meta">SiteLink found no high risk construction work in these, so the law may not need a SWMS for them. They are not on the list, and the subcontractor does not see them. Move any you need to the list.</p>${aside.map(itemCard).join('')}</details>`;
@@ -1096,7 +1123,7 @@
     view('sub');
     box('s-flash', '');
     clearErrors($('s-add'));
-    gone = null;
+    gone = [];
     if (!sub || sub.subcontract.id !== subId) { openGroups.aside = false; openGroups.removed = false; openGroups.points = false; }
     // A SWMS being added, typed before Back or a reload, is back in its boxes.
     const adding = readTyped(typedKey('add', subId));
@@ -1163,7 +1190,8 @@
     const beforeTop = anchor ? anchor.getBoundingClientRect().top : null;
     const at = sub.items.filter((item) => item.group === 'list').findIndex((item) => item.id === itemId);
     const data = await call('PUT', `/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/items/${encodeURIComponent(itemId)}`, body);
-    gone = removing ? { id: itemId, at: Math.max(0, at), message: data.message } : null;
+    // A note stays for each SWMS removed and not put back since; a SWMS put back loses its note.
+    gone = [...gone.filter((one) => one.id !== itemId && (data.items || []).some((item) => item.id === one.id && item.removed)), ...(removing ? [{ id: itemId, at: Math.max(0, at), message: data.message }] : [])];
     box('s-flash', '');
     renderSub(data);
     const target = removing ? `gone-${itemId}` : targetId;
@@ -1336,7 +1364,7 @@
         $('s-add-title').value = '';
         $('s-add-task').value = '';
         keepTyped(typedKey('add', sub.subcontract.id), null);
-        gone = null;
+        gone = [];
         renderSub(data);
         // The new SWMS is shown, with the message beside it.
         const added = data.items.filter((item) => item.source === 'added').pop();
@@ -1435,7 +1463,7 @@
     if (sending.changes) warn += `<div class="warn"><strong>The list has changed since it was sent:</strong> ${esc(changeLines(sending.changes))}. Send the updated list. The email says what changed.</div>`;
     const typed = readTyped(SEND_TYPED(id));
     const due = typed && typeof typed.due === 'string' ? typed.due : sending.dueDate;
-    const to = sending.email ? `<p>To <strong>${esc(sending.email)}</strong>. <a href="#/sub/${esc(id)}/edit">Change details</a></p>` : `<p class="warn">No contact email yet. <a href="#/sub/${esc(id)}/edit">Add it under Change details</a>.</p>`;
+    const to = sending.email ? `<p>To <strong>${esc(sending.email)}</strong> <a href="#/sub/${esc(id)}/edit">Change details</a></p>` : `<p class="warn">No contact email yet. <a href="#/sub/${esc(id)}/edit">Add it under Change details</a>.</p>`;
     const checkLabel = !sending.sent || sending.emailChanged ? 'Check the email' : sending.changes ? 'Check the updated email' : 'Check the email with a new due date';
     // Sent, and nothing changed since: the email goes again only with a new due date, so its button shows
     // only once a new date is chosen (messy round 7: it showed straight after sending).
@@ -1772,12 +1800,18 @@
       if (!me) await loadMe();
       if (!me.name || parts[0] === 'you') { showYou(); return; }
       if (!orgs.length) { showSetup(); return; }
-      if (!(parts[0] === 'sub' && parts.length === 2)) stopPoll();
+      if (!(parts[0] === 'sub' && (parts.length === 2 || parts[2] === 'item'))) stopPoll();
       if (parts[0] === 'team') await showTeam(parts[1]);
       else if (parts[0] === 'project' && parts[2] === 'subs' && parts[3] === 'new') await showSubForm(parts[1], null);
       else if (parts[0] === 'sub' && parts[2] === 'edit') await showSubForm(null, parts[1]);
       else if (parts[0] === 'sub' && parts[2] === 'preview') await showPreview(parts[1]);
-      else if (parts[0] === 'sub') await showSub(parts[1]);
+      else if (parts[0] === 'sub' && parts[2] === 'item') {
+        // Opened at one SWMS (the one screen's "Record it"): its card, with the file uploaded for it.
+        await showSub(parts[1]);
+        const card = $(`item-${parts[3]}`);
+        const file = card && card.querySelector('.uploaded');
+        if (file || card) { (file || card).scrollIntoView({ block: 'center' }); return; }
+      } else if (parts[0] === 'sub') await showSub(parts[1]);
       else if (parts[0] === 'account') await showAccount(parts[1]);
       else if (parts[0] === 'new') await showProjectForm(parts[1], null);
       else if (parts[0] === 'project' && parts[2] === 'details') await showDetails(parts[1]);
@@ -1794,9 +1828,18 @@
   }
   window.addEventListener('hashchange', route);
 
+  // A link to a page of SiteLink (the "SWMS submitted" email's link to the project) opened signed out is
+  // kept, and opened once the sign-in link is used (messy round 8: it landed on the project list).
+  const AFTER_KEY = 'sitelink.after';
   (async () => {
     const params = new URLSearchParams(location.search);
     const login = params.get('login');
+    if (!token && !login && /^#\/(?:project|sub)\//.test(location.hash)) store.set(AFTER_KEY, location.hash);
+    if (login && !location.hash) {
+      const after = store.get(AFTER_KEY);
+      if (after && /^#\/(?:project|sub)\/[\w-]+(?:\/[\w-]+)*$/.test(after)) history.replaceState(null, '', `${location.pathname}${location.search}${after}`);
+    }
+    if (login) store.set(AFTER_KEY, '');
     if (login) {
       // The link works once: it is taken out of the address so a reload or Back does not use it again.
       history.replaceState(null, '', `${location.pathname}${location.hash}`);

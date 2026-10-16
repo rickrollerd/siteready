@@ -575,6 +575,9 @@ function payload() {
     movedOut: coverMovedSent(),
     // Work another SWMS of the project named this one as covering (D289, scope.js).
     movedIn: (window.SiteWrite && window.SiteWrite.projectMovedIn && window.SiteWrite.projectMovedIn()) || undefined,
+    // The site answers are the project's, filled across to every SWMS (scope.js): high risk work they
+    // alone bring is not this SWMS's own (messy round 8, SiteLink blocker 2).
+    siteShared: (window.SiteWrite && window.SiteWrite.projectSiteShared && window.SiteWrite.projectSiteShared(site)) || undefined,
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
