@@ -87,7 +87,7 @@ async function builder(prefix, { abn = '' } = {}) {
   const added = await call('POST', `/api/hse/projects/${projectId}/subcontracts`, { reviewer: lead, body: { name: 'Tallow Formwork Pty Ltd', trade: 'Formwork', email, abn } });
   assert.equal(added.status, 201, JSON.stringify(added.data));
   const subId = added.data.subcontract.id;
-  for (const [title, task] of [['Formwork to suspended slabs', 'Form up, pour and strip the suspended slabs on levels 1 to 4.'], ['Edge protection to slab edges', 'Put up and take down the edge screens at each slab edge.']]) {
+  for (const [title, task] of [['Formwork to suspended slabs', 'Form up, pour and strip the suspended slabs on levels 1 to 4.'], ['Edge protection to slab edges', 'Install and dismantle the edge screens at each slab edge.']]) {
     assert.equal((await call('POST', `/api/hse/subcontracts/${subId}/items`, { reviewer: lead, body: { title, task } })).status, 201);
   }
   // An answered point, as stage 4 keeps them.
@@ -247,13 +247,15 @@ test('the office saves on a desktop and the foreman carries on on a phone; a sav
   assert.equal(phone.data.progress.project.items[0].body.company, undefined);
   assert.match(phone.data.progress.updatedOn, /\d{4}/);
   // The foreman changes the muster point back and saves: no change from the builder's now.
-  const back = await call('PUT', `/api/from-builders/${c.subId}/progress`, { session: foreman, body: { baseVersion: 1, ...pageWork(list, { worksManager: 'Sam Lee', musterPoint: DETAILS.musterPoint }) } });
+  // Named by the "Prepared by" name on the page, as the foreman has no name on his account (messy round 7:
+  // it showed an email address).
+  const back = await call('PUT', `/api/from-builders/${c.subId}/progress`, { session: foreman, body: { baseVersion: 1, ...pageWork(list, { worksManager: 'Sam Lee', musterPoint: DETAILS.musterPoint, preparedBy: 'Tom Beck, Foreman' }) } });
   assert.equal(back.status, 200);
   assert.deepEqual(back.data.overrides, []);
   // The office's tab, still on version 1, is refused, and given the foreman's work.
   const behind = await call('PUT', `/api/from-builders/${c.subId}/progress`, { session: c.office, body: { baseVersion: 1, ...work } });
   assert.equal(behind.status, 409);
-  assert.match(behind.data.message, /^This list was saved on another device by .+ on .+\. The newest work is shown\.$/);
+  assert.match(behind.data.message, /^This list was saved on another device by Tom Beck on .+\. The newest work is shown\.$/);
   assert.equal(behind.data.progress.version, 2);
   assert.equal(behind.data.progress.page.musterPoint, DETAILS.musterPoint);
   // The list of lists shows how far the work has got.

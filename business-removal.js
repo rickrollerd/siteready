@@ -109,6 +109,8 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   // it had then, the revision and its reference, and no link to the account. The SWMS itself goes.
   await db.query("UPDATE submissions SET company_id = '', swms_id = '', submitted_by = '' WHERE company_id = $1", [id]);
   await db.query("UPDATE subcontract_releases SET company_id = '' WHERE company_id = $1", [id]);
+  // A file uploaded from a list page while signed in (messy round 7) loses its link to the business.
+  await db.query("UPDATE list_uploads SET company_id = '' WHERE company_id = $1", [id]);
   // The ABN stays, with no link to the account, so it cannot have a second free trial.
   await db.query("UPDATE trial_abns SET company_id = '' WHERE company_id = $1", [id]);
   await run('users', 'DELETE FROM users WHERE company_id = $1');

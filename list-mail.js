@@ -7,14 +7,16 @@
 // Each template has a version. The version that went out is kept with every email sent
 // (mail_messages.template_version), so it is always known which wording a subcontractor got. Change
 // the version whenever the wording changes.
+// Version 2 (messy round 7): one line says SiteWrite is not needed (Goal 12: SiteWrite is never required).
 const TEMPLATES = {
   // The first email of the list to an address.
-  list_sent: { version: 1 },
+  list_sent: { version: 2 },
   // The list again after the lead changed it, or its due date, saying what changed.
-  list_changed: { version: 1 },
+  list_changed: { version: 2 },
   // A reminder of the SWMS not yet received.
-  reminder: { version: 1 },
+  reminder: { version: 2 },
 };
+const NO_ACCOUNT = 'You do not need SiteWrite: you can reply to this email, or upload your SWMS on the same page, with no account.';
 
 // "Friday 30 October 2026" from "2026-10-30".
 function longDue(date) {
@@ -67,9 +69,9 @@ function compose({ kind, person, builder, project, items, due, changes = null, d
   const past = today && due < today;
   if (kind === 'reminder' && past) lines.push('', `The submission due date was ${longDue(due)}.`);
   else lines.push('', `Submission due date: ${longDue(due)}${dueWas && dueWas !== due ? ` (was ${longDue(dueWas)})` : ''}`);
-  lines.push('', 'To review them, sign in to SiteWrite or start an account:', link);
+  lines.push('', 'To review them, sign in to SiteWrite or start an account:', link, '', NO_ACCOUNT);
   lines.push('', '--', `Sent through SiteWrite for ${line(builder)}. To stop these emails from ${line(builder)}: ${stopLink}`);
   return { template: kind, version: template.version, subject, text: lines.join('\n') };
 }
 
-module.exports = { TEMPLATES, compose, fromName, longDue, shortDue };
+module.exports = { TEMPLATES, compose, fromName, longDue, shortDue, NO_ACCOUNT };

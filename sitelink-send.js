@@ -32,6 +32,7 @@ const listMail = require('./list-mail');
 const { record } = require('./events');
 const { textField } = require('./input');
 const testHooks = require('./testhooks');
+const { listed } = require('./sitelink-answers');
 
 const { fail } = auth;
 const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -78,6 +79,19 @@ function cleanDue(value, state, now = new Date()) {
 
 const abnDigits = (value) => String(value || '').replace(/\D/g, '');
 const formatAbn = (abn) => (abn.length === 11 ? `${abn.slice(0, 2)} ${abn.slice(2, 5)} ${abn.slice(5, 8)} ${abn.slice(8)}` : abn);
+
+// Whether a company's name is the subcontract's (messy round 7: Kestrel Sheetmetal Pty Ltd took up the
+// list for Numbat Ductwork with no question). Case, punctuation, "Pty", "Ltd" and "The" do not count, and
+// one name may be the other with more words ("Quenda Mechanical" and "Quenda Mechanical Services").
+const nameWords = (name) => String(name || '').toLowerCase().replace(/&/g, ' and ').replace(/\bproprietary\b/g, 'pty').replace(/\blimited\b/g, 'ltd')
+  .replace(/[^a-z0-9]+/g, ' ').split(' ').filter((word) => word && !['pty', 'ltd', 'the', 'co', 'company', 'group', 'australia', 'aust'].includes(word));
+function sameCompany(a, b) {
+  const one = nameWords(a);
+  const two = nameWords(b);
+  if (!one.length || !two.length) return true;
+  const [short, long] = one.length <= two.length ? [one, two] : [two, one];
+  return short.every((word) => long.includes(word));
+}
 
 // ---- The list as it stands, and what changed since it was sent ----
 
@@ -157,6 +171,9 @@ async function plan(ctx, req, body, { reminder = false, urls = { link: PREVIEW_L
   if (stop) throw Object.assign(fail(409, `${to} asked on ${when(stop.stopped_at, project.state)} for no more list emails from ${org.name}. SiteLink will not email them. Contact them yourself, or change the contact email to another person.`), { field: 'email' });
   const rows = await keptRows(sub.id);
   if (!rows.length) throw fail(400, 'No SWMS are on the list. Put one back or add one before sending it.');
+  // A SWMS on the list never reaches the subcontractor with no job steps (messy round 7: three did).
+  const empty = rows.filter((row) => row.item && row.item.noSteps).map((row) => handover.nameWithoutPrices(row.title));
+  if (empty.length) throw Object.assign(fail(400, `SiteWrite has no job steps yet for ${listed(empty)}, so the subcontractor would get ${empty.length === 1 ? 'that SWMS' : 'those SWMS'} with none. Change the work so it says what is done, or remove ${empty.length === 1 ? 'it' : 'them'}. Each is marked on the list.`), { noSteps: empty });
   const versions = await shared.versionsOf(project.id);
   if (!versions.length) throw fail(400, 'Set the project\'s site details before sending the list. The subcontractor\'s list page shows them.');
   const links = await linksOf(sub.id);
@@ -187,7 +204,11 @@ async function plan(ctx, req, body, { reminder = false, urls = { link: PREVIEW_L
   if (before) {
     changes = changesFrom(itemsOf(before), items);
     dueWas = before.due_date !== due ? before.due_date : '';
-    if (!anyChange(changes) && !dueWas) throw fail(409, `The list has not changed since it was sent to ${to} on ${when(before.created_at, project.state)}. Use Remind to send a reminder.`);
+    if (!anyChange(changes) && !dueWas) {
+      // Only an action that can be taken now is offered (messy round 7: "Use Remind" while Remind was greyed).
+      const remind = remindState(links, sub, project, changes);
+      throw fail(409, `The list has not changed since it was sent to ${to} on ${when(before.created_at, project.state)}. ${remind.can ? 'Use Remind to send a reminder.' : remind.why}`);
+    }
     kind = 'list_changed';
   }
   const email = listMail.compose({ ...base, kind, items: items.map((item) => item.title), due, changes, dueWas });
@@ -263,7 +284,44 @@ async function deliver(ctx, req, planned) {
 async function uploadsOf(subId) {
   return db.query('SELECT * FROM list_uploads WHERE subcontract_id = $1 AND removed_at IS NULL ORDER BY created_at', [subId]);
 }
-const uploadView = (row, state) => ({ id: row.id, itemId: row.required_swms_id, name: row.name, type: row.content_type === TYPES.pdf ? 'PDF' : 'Word', size: Number(row.size), on: when(row.created_at, state) });
+const uploadView = (row, state) => ({ id: row.id, itemId: row.required_swms_id, name: row.name, type: row.content_type === TYPES.pdf ? 'PDF' : 'Word', size: Number(row.size), on: when(row.created_at, state), flag: FLAGS[row.flag] || '' });
+
+// A file uploaded from the list page that is clearly not a SWMS (messy round 7: the builder's own scope
+// was accepted as the "Roof works" SWMS). It is still taken, and the lead is told why it may not be one.
+const FLAGS = {
+  scope: 'This file reads as the scope of works for this subcontract, not a SWMS.',
+  notSwms: 'This file may not be a SWMS: it does not say it is one, and names few hazards or controls.',
+};
+async function notASwms(data, type, sub) {
+  let text = '';
+  try {
+    text = await require('./scope-text').scopeText({ file: { name: type === TYPES.pdf ? 'upload.pdf' : 'upload.docx', data: data.toString('base64') } });
+  } catch {
+    return '';
+  }
+  if (!String(text).trim()) return '';
+  if (sub.doc_hash && require('./ai-scope').fingerprint(text) === sub.doc_hash) return 'scope';
+  if (/\b(?:swms|safe work method statements?|work method statements?)\b/i.test(text)) return '';
+  const words = (String(text).match(/\b(?:hazards?|controls?|risks?|ppe|personal protective)\b/gi) || []).length;
+  return words < 5 ? 'notSwms' : '';
+}
+
+// Whether a reminder can go now, and if not, why and when (said the same on the card and in a refusal).
+function remindState(links, sub, project, changes) {
+  const last = lastList(links);
+  let remind = { can: false, why: last ? '' : 'Send the list first.', used: 0, max: reminderMax(), next: '' };
+  if (!last) return remind;
+  const toNow = links.filter((link) => link.email === last.email);
+  const used = toNow.filter((link) => link.kind === 'reminder' && link.created_at >= last.created_at).length;
+  const latest = toNow[toNow.length - 1];
+  const next = new Date(new Date(latest.created_at).getTime() + reminderHours() * HOUR);
+  remind = { can: true, why: '', used, max: reminderMax(), next: next > new Date() ? when(next, project.state) : '' };
+  if (used >= reminderMax()) return { ...remind, can: false, why: `${used} reminders have gone since the list was sent. Ring them instead.` };
+  if (remind.next) return { ...remind, can: false, why: `The next reminder can go from ${remind.next}.` };
+  if (anyChange(changes)) return { ...remind, can: false, why: 'The list has changed. Send the updated list instead.' };
+  if (sub.contact_email !== last.email) return { ...remind, can: false, why: `The contact email has changed. Send the list to ${sub.contact_email || 'the new address'} first.` };
+  return remind;
+}
 
 async function sendingFor(ctx) {
   const { sub, project, org } = ctx;
@@ -273,18 +331,7 @@ async function sendingFor(ctx) {
   const changes = last ? changesFrom(itemsOf(last), snapshot(rows)) : null;
   const stop = await stopOf(org.id, sub.contact_email);
   // Reminders: how many since the list was sent, and when the next can go.
-  let remind = { can: false, why: last ? '' : 'Send the list first.', used: 0, max: reminderMax(), next: '' };
-  if (last) {
-    const toNow = links.filter((link) => link.email === last.email);
-    const used = toNow.filter((link) => link.kind === 'reminder' && link.created_at >= last.created_at).length;
-    const latest = toNow[toNow.length - 1];
-    const next = new Date(new Date(latest.created_at).getTime() + reminderHours() * HOUR);
-    remind = { can: true, why: '', used, max: reminderMax(), next: next > new Date() ? when(next, project.state) : '' };
-    if (used >= reminderMax()) remind = { ...remind, can: false, why: `${used} reminders have gone since the list was sent. Ring them instead.` };
-    else if (remind.next) remind = { ...remind, can: false, why: `The next reminder can go from ${remind.next}.` };
-    else if (anyChange(changes)) remind = { ...remind, can: false, why: 'The list has changed. Send the updated list instead.' };
-    else if (sub.contact_email !== last.email) remind = { ...remind, can: false, why: `The contact email has changed. Send the list to ${sub.contact_email || 'the new address'} first.` };
-  }
+  const remind = remindState(links, sub, project, changes);
   const log = await logOf(project.id, sub.id);
   const blocked = sendBlock(org, ctx.viewer, sub.contact_email);
   return {
@@ -299,7 +346,8 @@ async function sendingFor(ctx) {
     sent: last ? { to: last.email, on: when(last.created_at, project.state), by: last.sent_by_name, due: last.due_date, dueShown: listMail.longDue(last.due_date), count: itemsOf(last).length } : null,
     firstSentOn: sub.sent_at ? when(sub.sent_at, project.state) : '',
     opened: sub.opened_at ? when(sub.opened_at, project.state) : '',
-    claimed: sub.claimed_at ? { name: sub.claimed_name, abn: formatAbn(sub.claimed_abn || ''), on: when(sub.claimed_at, project.state) } : null,
+    // mismatch: the company's name is not the subcontract's, said on the card and the project table.
+    claimed: sub.claimed_at ? { name: sub.claimed_name, abn: formatAbn(sub.claimed_abn || ''), on: when(sub.claimed_at, project.state), mismatch: !sameCompany(sub.claimed_name, sub.name) } : null,
     stopped: stop ? { email: stop.email, on: when(stop.stopped_at, project.state) } : null,
     // Stage 6 (D311): whether the list can be released from the company that took it up, and by whom.
     release: await subbie().releaseFor(ctx),
@@ -323,6 +371,7 @@ async function summaryFor(sub, project) {
     due: sub.due_date ? listMail.shortDue(sub.due_date) : '',
     opened: Boolean(sub.opened_at),
     claimedName: sub.claimed_at ? sub.claimed_name : '',
+    claimedMismatch: Boolean(sub.claimed_at) && !sameCompany(sub.claimed_name, sub.name),
     filesIn: uploads.filter((row) => kept.has(row.required_swms_id)).length,
     lastContact: last ? { text: LAST_CONTACT[last.kind] || last.summary, on: shortDate(last.created_at, project.state) } : null,
   };
@@ -382,6 +431,11 @@ async function removeData(row) {
 
 // Everything stage 5 keeps for a subcontract, for the staging hook that removes a test account.
 async function removeForSubcontract(subId) {
+  // Each link is kept as its hash and the builder's name only, so it can say the list was withdrawn.
+  const builder = await db.one('SELECT orgs.name FROM subcontracts JOIN projects ON projects.id = subcontracts.project_id JOIN orgs ON orgs.id = projects.org_id WHERE subcontracts.id = $1', [subId]);
+  for (const link of await db.query('SELECT token_hash FROM list_links WHERE subcontract_id = $1', [subId])) {
+    await db.query('INSERT INTO withdrawn_links (token_hash, builder, withdrawn_at) VALUES ($1, $2, $3) ON CONFLICT (token_hash) DO NOTHING', [link.token_hash, builder ? builder.name : '', new Date()]);
+  }
   for (const row of await db.query('SELECT * FROM list_uploads WHERE subcontract_id = $1', [subId])) await removeData(row);
   await db.query('DELETE FROM list_uploads WHERE subcontract_id = $1', [subId]);
   await db.query('DELETE FROM list_links WHERE subcontract_id = $1', [subId]);
@@ -457,7 +511,13 @@ const GONE_LINK = 'This link is not right. Check you copied all of it from the e
 async function linkFor(token) {
   const value = String(token || '');
   const link = /^[A-Za-z0-9_-]{20,80}$/.test(value) ? await db.one('SELECT * FROM list_links WHERE token_hash = $1', [auth.hash(value)]) : null;
-  if (!link) throw fail(404, GONE_LINK);
+  if (!link) {
+    // A list whose builder's account has gone says it was withdrawn (messy round 7: it said the link
+    // was not right).
+    const gone = /^[A-Za-z0-9_-]{20,80}$/.test(value) ? await db.one('SELECT builder FROM withdrawn_links WHERE token_hash = $1', [auth.hash(value)]).catch(() => null) : null;
+    if (gone) throw fail(410, `${gone.builder || 'The main contractor'} has withdrawn this list, and no longer uses SiteLink. If you think this is wrong, contact the person who sent you the email.`);
+    throw fail(404, GONE_LINK);
+  }
   const sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [link.subcontract_id]);
   const project = sub && await db.one('SELECT * FROM projects WHERE id = $1', [sub.project_id]);
   const org = project && await db.one('SELECT * FROM orgs WHERE id = $1', [project.org_id]);
@@ -497,6 +557,10 @@ async function listView(found, viewer = null) {
   const kept = rows.filter((row) => !row.removed_at);
   const uploads = await uploadsOf(sub.id);
   const due = sub.due_date || link.due_date;
+  // Once a company has taken up the list, only its own signed-in people see the files uploaded and can
+  // take them off (messy round 7: a refused company saw another's file and "Take it off").
+  const owner = Boolean(viewer && sub.company_id && sub.company_id === viewer.id);
+  const filesShown = !sub.company_id || owner;
   return {
     builder: { name: org.name, verified: Boolean(org.abn_verified_at) },
     from: { name: from.name, position: from.position, phone: from.phone, email: from.email },
@@ -504,7 +568,12 @@ async function listView(found, viewer = null) {
     subcontractor: { name: sub.name, trade: sub.trade },
     due: { date: due, shown: listMail.longDue(due), past: due < todayIn(project.state) },
     // Each SWMS as the preview shows it, with its id for uploads, and the files uploaded for it.
-    swms: view.swms.map((item, i) => ({ ...item, id: kept[i].id, uploads: uploads.filter((row) => row.required_swms_id === kept[i].id).map((row) => uploadView(row, project.state)) })),
+    swms: view.swms.map((item, i) => {
+      const mine = uploads.filter((row) => row.required_swms_id === kept[i].id);
+      // The flag for a file that may not be a SWMS is for the lead only.
+      return { ...item, id: kept[i].id, uploads: filesShown ? mine.map((row) => { const { flag: _flag, ...shown } = uploadView(row, project.state); return shown; }) : [], uploadsHidden: filesShown ? 0 : mine.length };
+    }),
+    filesFor: filesShown ? '' : sub.claimed_name,
     answers: view.answers,
     siteDetails: view.siteDetails,
     // An older email's link shows the list as it is now, and says the list has changed since.
@@ -574,6 +643,12 @@ publicRouter.post('/list/:token/claim', auth.requireUser, route(async (req, res)
   if (sub.company_id) {
     await refused(TAKEN(name, contact), 'A second company tried to take up the list in SiteWrite. It stays with the company that took it up first.');
   }
+  // With no ABN given, a company whose name is not the subcontract's is asked first (messy round 7). The
+  // page asks every company; this stops a press that skipped the question.
+  const mismatch = !sameCompany(name, sub.name);
+  if (!sub.abn && mismatch && !(req.body && req.body.confirm === true)) {
+    throw Object.assign(fail(409, `This list is for ${sub.name}. Is that your company? Taking it up links it to ${name} (ABN ${formatAbn(abn)}).`), { field: 'claim', confirm: true, forName: sub.name, company: name });
+  }
   const now = new Date();
   // The first company to claim it gets it, even when two press at the same moment.
   const taken = await db.query("UPDATE subcontracts SET company_id = $1, claimed_by = $2, claimed_at = $3, claimed_name = $4, claimed_abn = $5, status = 'claimed', updated_at = $3 WHERE id = $6 AND company_id = '' RETURNING id",
@@ -583,7 +658,7 @@ publicRouter.post('/list/:token/claim', auth.requireUser, route(async (req, res)
     if (again && again.company_id === company.id) { res.json({ ok: true, already: true, company: name, listId: sub.id, message: `This list is already linked to ${name} in SiteWrite.` }); return; }
     await refused(TAKEN(name, contact), 'A second company tried to take up the list in SiteWrite. It stays with the company that took it up first.');
   }
-  await logEntry({ projectId: project.id, subId: sub.id, kind: 'claimed', actorKind: 'sub', actorName: name, summary: `${name} (ABN ${formatAbn(abn)}) took up the list for ${sub.name} in SiteWrite.`, refs: {} });
+  await logEntry({ projectId: project.id, subId: sub.id, kind: 'claimed', actorKind: 'sub', actorName: name, summary: `${name} (ABN ${formatAbn(abn)}) took up the list for ${sub.name} in SiteWrite.${mismatch ? ` Its name is not ${sub.name}: check it is the right company.` : ''}`, refs: {} });
   record('list_claimed', company.id);
   res.json({ ok: true, company: name, listId: sub.id, message: `The list is now linked to ${name} in SiteWrite. ${org.name} can see that you have it.` });
 }));
@@ -605,9 +680,10 @@ publicRouter.post('/list/:token/items/:itemId/upload', readUpload, route(async (
   if (active.length >= UPLOADS_PER_LIST) throw fail(400, `This list already has ${UPLOADS_PER_LIST} files. Take one off before adding another.`);
   const name = uploadName((() => { try { return decodeURIComponent(String(req.get('X-File-Name') || '')); } catch { return ''; } })(), type);
   const id = auth.newId();
+  const flag = await notASwms(data, type, sub);
   const storage = await putData(id, data, type);
-  await db.query('INSERT INTO list_uploads (id, subcontract_id, required_swms_id, link_id, name, content_type, size, sha256, storage, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-    [id, sub.id, item.id, found.link.id, name, type, data.length, crypto.createHash('sha256').update(data).digest('hex'), storage, new Date()]);
+  await db.query('INSERT INTO list_uploads (id, subcontract_id, required_swms_id, link_id, name, content_type, size, sha256, storage, created_at, flag, company_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
+    [id, sub.id, item.id, found.link.id, name, type, data.length, crypto.createHash('sha256').update(data).digest('hex'), storage, new Date(), flag, (req.company && req.company.id) || '']);
   await logEntry({ projectId: project.id, subId: sub.id, itemId: item.id, kind: 'uploaded', actorKind: 'sub', summary: `${name} was uploaded for ${handover.nameWithoutPrices(item.title)} on the list sent to ${sub.name}.`, refs: { upload: id } });
   record('list_upload', null);
   res.status(201).json({ message: `${name} is uploaded for ${handover.nameWithoutPrices(item.title)}. ${found.org.name} can see it.`, list: await listView(found, req.company) });
@@ -617,6 +693,10 @@ publicRouter.post('/list/:token/items/:itemId/upload', readUpload, route(async (
 publicRouter.delete('/list/:token/uploads/:uploadId', route(async (req, res) => {
   const found = await linkFor(req.params.token);
   const { sub, project } = found;
+  // Once a company has taken up the list, only people signed in for it can take a file off.
+  if (sub.company_id && !(req.company && req.company.id === sub.company_id)) {
+    throw fail(403, `${sub.claimed_name} has taken up this list in SiteWrite, so only people signed in for ${sub.claimed_name} can take files off it. If a file is wrong, contact ${found.contact}.`);
+  }
   const row = await db.one('SELECT * FROM list_uploads WHERE id = $1 AND subcontract_id = $2 AND removed_at IS NULL', [String(req.params.uploadId || ''), sub.id]);
   if (!row) throw fail(404, 'That file was not found. Reload the page.');
   const item = await db.one('SELECT title FROM required_swms WHERE id = $1', [row.required_swms_id]);

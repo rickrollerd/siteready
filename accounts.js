@@ -129,7 +129,8 @@ router.put('/company', requireUser, route(async (req, res) => {
   const name = textField(body.name, 200);
   const abn = textField(body.abn, 40);
   if (!name) throw fail(400, 'Enter your business name.');
-  if (!validAbn(abn)) throw fail(400, 'Enter your business\'s 11 digit ABN. The one entered is not a valid ABN.');
+  // The same words as SiteLink's (messy round 7).
+  if (!validAbn(abn)) throw fail(400, 'That ABN is not valid. Check the 11 digits.');
   const changed = (req.company.name && name !== req.company.name) || (req.company.abn && abn.replace(/\s/g, '') !== req.company.abn.replace(/\s/g, ''));
   if (changed) {
     const used = await db.one("SELECT COUNT(*) AS n FROM events WHERE company_id = $1 AND type IN ('download_pdf', 'download_word', 'swms_saved')", [req.company.id]);
@@ -521,7 +522,10 @@ async function saveOnce(req, body, options) {
     return { ...(await reviseSwms(req, existing, { input, draft, confirmation, reason })), saved: true };
   }
   const site = typeof body.siteId === 'string' && body.siteId ? await ownSite(req, body.siteId).catch(() => null) : null;
-  const made = await createSwms(req, { input, draft, confirmation, siteId: site ? site.id : null, title: titleFor({ title: options.title }, input), reason });
+  // A SWMS from a main contractor's list is named by its title on that list (messy round 7: the download
+  // was named after the task).
+  const listTitle = typeof body.swmsTitle === 'string' ? body.swmsTitle : '';
+  const made = await createSwms(req, { input, draft, confirmation, siteId: site ? site.id : null, title: titleFor({ title: options.title || listTitle }, input), reason });
   return { ...made, saved: true };
 }
 

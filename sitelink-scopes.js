@@ -132,7 +132,8 @@ function typed(value, max, label, field, { answer = false } = {}) {
 // in SiteWrite; its check digits must work.
 function cleanSubcontract(body) {
   const name = oneLine(body && body.name, 200);
-  const trade = oneLine(body && body.trade, 120);
+  // Typed case is tidied (messy round 7: "(mechanical)").
+  const trade = answers.capitalFirst(oneLine(body && body.trade, 120));
   const rawEmail = oneLine(body && body.email, 200);
   const abn = String((body && typeof body.abn === 'string' && body.abn) || '').replace(/\s+/g, '');
   if (!name) throw Object.assign(fail(400, 'Enter the subcontractor\'s company name.'), { field: 'name' });
@@ -206,12 +207,20 @@ function install(router, deps) {
       removedWhy: !row.removed_at ? '' : row.removed_why === 'folded' ? handover.foldedWhy(into ? into.title : 'the main SWMS') : handover.REMOVED_WHY[row.removed_why] || '',
       alsoCovers: rows.filter((other) => other.removed_at && other.removed_why === 'folded' && other.item && other.item.foldedInto && other.item.foldedInto === row.package).map((other) => other.title),
       taskChanged: row.task_changed,
-      highRisk: item.highRisk || null,
+      // With the high risk work of the work folded into it, in SiteLink's words (messy round 7).
+      highRisk: row.removed_at ? handover.riskOf(item.highRisk || null) : handover.withFolded(row, rows).highRisk,
+      // SiteWrite has no job steps for its work: it must not reach the subcontractor empty.
+      noSteps: Boolean(item.noSteps),
+      titleChanged: Boolean(item.titleChanged),
       activities: (item.activities || []).length,
       clauses: handover.clauseList((item.activities || []).map((entry) => entry.clause)),
     };
   }
 
+  // A point is asked of the lead only when it asks who does or supplies what (messy round 7: 33 points,
+  // mostly statements). A point kept from an earlier reading that does not is not shown, unless it was
+  // answered.
+  const asked = (row) => Boolean(String(row.answer || '').trim()) || handover.asksWho(row.question);
   function pointView(row, state, rows = []) {
     const item = handover.pointItem(row, rows);
     return {
@@ -254,11 +263,15 @@ function install(router, deps) {
   // confirm. SWMS the lead added stay. Made once for each reading, by whichever request gets there first.
   async function buildList(ctx, reading) {
     const items = handover.listItems(reading.reading);
+    // Whether SiteWrite has job steps for each SWMS's work, asked once, here.
+    for (const item of items) item.noSteps = handover.noJobSteps(item, ctx.project.state);
     const points = handover.listPoints(reading.reading);
     const now = new Date();
+    let made = false;
     await db.transaction(async (tx) => {
       const claimed = await tx.query('UPDATE subcontracts SET list_reading_id = $1, list_rev = list_rev + 1, updated_at = $3 WHERE id = $2 AND list_reading_id <> $1 RETURNING list_rev', [reading.id, ctx.sub.id, now]);
       if (!claimed.length) return;
+      made = true;
       const rev = Number(claimed[0].list_rev);
       await tx.query("DELETE FROM required_swms WHERE subcontract_id = $1 AND source = 'reading'", [ctx.sub.id]);
       await tx.query('DELETE FROM subcontract_points WHERE subcontract_id = $1', [ctx.sub.id]);
@@ -281,6 +294,11 @@ function install(router, deps) {
       }
     });
     ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
+    // "SiteLink read it" only once the reading has finished (messy round 7: it was logged at 6%).
+    if (made) {
+      const kept = items.filter((item) => !item.removedWhy).length;
+      await logEvent({ orgId: ctx.org.id, projectId: ctx.project.id, text: `SiteLink read ${ctx.sub.doc_name || 'the scope'}, the scope for ${ctx.sub.name}, and listed ${kept} SWMS.` });
+    }
   }
 
   function subcontractView(sub, state, read) {
@@ -313,7 +331,7 @@ function install(router, deps) {
       reading,
       sameFile: shared.map((row) => `${row.name}${row.trade ? ` (${row.trade})` : ''}`),
       items: rows.map((row) => itemView(row, rows)),
-      points: points.map((row) => pointView(row, project.state, rows)),
+      points: points.filter(asked).map((row) => pointView(row, project.state, rows)),
       readings: await readingsLeft(project),
       preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS }),
       // Stage 5: sending the list, reminders, the files uploaded, the claim and the log.
@@ -333,7 +351,10 @@ function install(router, deps) {
       // A reading finished since anyone opened the subcontract becomes its list here, so the count is right.
       if (sub.reading_id && sub.list_reading_id !== sub.reading_id) await readingOf({ sub, org, project });
       const items = await db.query('SELECT * FROM required_swms WHERE subcontract_id = $1', [sub.id]);
-      const open = (await db.query("SELECT * FROM subcontract_points WHERE subcontract_id = $1 AND answer = ''", [sub.id])).filter((point) => handover.pointInPlay(point, items));
+      // Only the points the lead is still asked: who does or supplies what, about a SWMS on the list, before
+      // the list is sent. Once it is sent, a point left unanswered is the lead's choice (messy round 7:
+      // "27 points to answer" stayed after sending).
+      const open = sub.sent_at ? [] : (await db.query("SELECT * FROM subcontract_points WHERE subcontract_id = $1 AND answer = ''", [sub.id])).filter((point) => asked(point) && handover.pointInPlay(point, items));
       let scope = sub.reading_id ? 'reading' : 'none';
       if (sub.reading_id) {
         const row = await db.one('SELECT status FROM ai_readings WHERE id = $1', [sub.reading_id]);
@@ -341,7 +362,9 @@ function install(router, deps) {
       }
       out.push({
         id: sub.id, name: sub.name, trade: sub.trade, scope, status: sub.status,
-        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && row.removed_why !== 'noLaw').length,
+        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && !['noLaw', 'folded'].includes(row.removed_why)).length,
+        // Work folded into another SWMS on the list, said apart from work removed (messy round 7).
+        folded: items.filter((row) => row.removed_at && row.removed_why === 'folded').length,
         aside: items.filter((row) => row.removed_at && row.removed_why === 'noLaw').length,
         pointsOpen: open.length,
         ...(await send.summaryFor(sub, project)),
@@ -420,7 +443,7 @@ function install(router, deps) {
     await db.query('UPDATE subcontracts SET reading_id = $1, doc_name = $2, doc_hash = $3, scope_at = $4, scope_by_name = $5, updated_at = $4, trade_warning = $7 WHERE id = $6',
       [started.id, name, hash, new Date(), personName(req.reviewer), ctx.sub.id, mismatch]);
     record(started.kept ? 'project_scope_kept' : 'project_scope', null);
-    await log(ctx, req, started.kept ? `used ${name} as the scope for ${ctx.sub.name}. It was read before, so it cost nothing.` : `uploaded ${name} as the scope for ${ctx.sub.name}, and SiteLink read it.`);
+    await log(ctx, req, started.kept ? `used ${name} as the scope for ${ctx.sub.name}. It was read before, so it cost nothing.` : `uploaded ${name} as the scope for ${ctx.sub.name}. SiteLink is reading it.`);
     ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
     const message = started.kept ? 'This file was read before for your account, so it was not read again. It cost nothing and does not count toward the project\'s free readings.' : '';
     res.status(started.kept ? 200 : 202).json(await subcontractPage(ctx, { kept: Boolean(started.kept), message }));
@@ -442,7 +465,7 @@ function install(router, deps) {
     const now = new Date();
     const rev = await bumpList(ctx);
     await db.query('INSERT INTO required_swms (id, subcontract_id, position, package, title, task, item, source, list_rev, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)',
-      [auth.newId(), ctx.sub.id, rows.length, '', title, task, JSON.stringify({ title, task, scopeTask: { plain: task, full: task, notes: '' }, kinds: null, leaveOut: null, unmatched: null, activities: [], highRisk }), 'added', rev, now]);
+      [auth.newId(), ctx.sub.id, rows.length, '', title, task, JSON.stringify({ title, task, scopeTask: { plain: task, full: task, notes: '' }, kinds: null, leaveOut: null, unmatched: null, activities: [], highRisk, noSteps: handover.noJobSteps({ task, kinds: null }, ctx.project.state) }), 'added', rev, now]);
     await recordListEdit(ctx, { kind: 'added', pack: title, wording: task });
     await log(ctx, req, `added ${title} to the SWMS list for ${ctx.sub.name}.`);
     res.status(201).json(await subcontractPage(ctx, { message: `${title} is added to the list.` }));
@@ -470,17 +493,42 @@ function install(router, deps) {
       message = body.removed ? `${row.title} is removed from the list.` : moved ? `${row.title} is moved to the list.` : `${row.title} is back on the list.`;
       await log(ctx, req, body.removed ? `removed ${row.title} from the SWMS list for ${ctx.sub.name}.` : `put ${row.title} on the SWMS list for ${ctx.sub.name}.`);
     }
+    // A new title (messy round 7: "Plant delivery and lifting: whole project" held the whole installation,
+    // and could not be renamed). The same checks as a SWMS the lead adds: a capital first letter, no price.
+    if (typeof body.title === 'string') {
+      const title = answers.capitalFirst(typed(body.title, 160, 'the title', 'title'));
+      if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
+      const rows = await itemsOf(ctx.sub.id);
+      if (rows.some((other) => other.id !== row.id && !other.removed_at && other.title.trim().toLowerCase() === title.toLowerCase())) throw Object.assign(fail(400, 'Another SWMS on this list has that title. Give this one another.'), { field: 'title' });
+      if (title !== row.title) {
+        const rev = await bumpList(ctx);
+        const task = row.task;
+        // A title alone does not change the work, so the reading's high risk work stays; the lead's own
+        // words are read again, as when they are changed.
+        const own = row.source === 'added' || row.task_changed;
+        const item = { ...(row.item || {}), title, titleChanged: true, ...(own ? { highRisk: handover.highRiskOf(`${title}. ${task}`, ctx.project.state, row.item || {}) } : {}) };
+        await db.query('UPDATE required_swms SET title = $1, item = $2, list_rev = $3, updated_at = $4 WHERE id = $5', [title, JSON.stringify(item), rev, now, row.id]);
+        await recordListEdit(ctx, { kind: 'titleChanged', pack: row.package || row.title, wording: title, original: row.title });
+        await log(ctx, req, `changed the title of ${row.title} to ${title} on the SWMS list for ${ctx.sub.name}.`);
+        message = `The title is saved: ${title}.`;
+        row.title = title;
+        row.item = item;
+      }
+    }
     if (typeof body.task === 'string') {
-      const task = typed(body.task, 1500, 'the work', 'task');
+      // Typed case is tidied (messy round 7: "install AHUs, ..." reached the subcontractor).
+      const task = answers.capitalFirst(typed(body.task, 1500, 'the work', 'task'));
       if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
       if (task !== row.task) {
         const rev = await bumpList(ctx);
-        // The high risk work is read again from the lead's own words, with the package's step groups.
-        const item = { ...(row.item || {}), task, highRisk: handover.highRiskOf(`${row.title}. ${task}`, ctx.project.state, row.item || {}) };
+        // The high risk work is read again from the lead's own words, with the package's step groups,
+        // and so is whether SiteWrite has job steps for it.
+        const base = { ...(row.item || {}), task };
+        const item = { ...base, highRisk: handover.highRiskOf(`${row.title}. ${task}`, ctx.project.state, row.item || {}), noSteps: handover.noJobSteps({ task, kinds: handover.draftKinds(base.kinds) }, ctx.project.state) };
         await db.query('UPDATE required_swms SET task = $1, item = $2, task_changed = TRUE, list_rev = $3, updated_at = $4 WHERE id = $5', [task, JSON.stringify(item), rev, now, row.id]);
         await recordListEdit(ctx, { kind: 'taskChanged', pack: row.package || row.title, wording: task, original: row.task });
         await log(ctx, req, `changed the work for ${row.title} on the SWMS list for ${ctx.sub.name}.`);
-        message = `The work for ${row.title} is saved.`;
+        message = message ? `${message} The work for ${row.title} is saved too.` : `The work for ${row.title} is saved.`;
       }
     }
     res.json(await subcontractPage(ctx, { message }));

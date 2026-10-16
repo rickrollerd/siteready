@@ -104,7 +104,11 @@
     return `This was set by ${builder}. They asked all contractors to use: "${String(set).replace(/\n/g, '; ')}". ${builder} will see this change when you submit.`;
   }
 
-  const api = { FIELDS, KEYS, COMPANY_KEYS, builderSetOf, overridesOf, mergePage, companyDetails, withoutCompany, changedWarning, linesOf, asText, same, fieldOf };
+  // A name with its possessive: "Marlowe Ridge Builders'" for a name ending in s, else "Corbel's" (messy
+  // round 7: "Marlowe Ridge Builders's list").
+  const possessive = (name) => { const text = String(name || '').trim(); return /s$/i.test(text) ? `${text}'` : `${text}'s`; };
+
+  const api = { FIELDS, KEYS, COMPANY_KEYS, builderSetOf, overridesOf, mergePage, companyDetails, withoutCompany, changedWarning, linesOf, asText, same, fieldOf, possessive };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteBuilderSet = api;
 })(typeof window !== 'undefined' ? window : globalThis);

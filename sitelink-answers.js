@@ -54,6 +54,36 @@ function personProblem(text, { firstAider = false, example = 'Jo Park, 0412 345 
   return '';
 }
 
+// The first aider SiteLink sets for every contractor: a person by full name, with a phone, never a role
+// (messy round 7: "the site supervisor" was accepted, as the SWMS app's own refusal of "me" suggested,
+// and printed with no name or phone). The box's hint asks for both.
+const ROLE_WORDS = new Set('the a an our your their site main head principal contractor contractors builder builders subcontractor any on duty first aid aider aiders officer person staff supervisor supervisors foreman forewoman manager managers leading hand engineer project safety hse whs team member members nurse medic paramedic of for at in and or each every all trained qualified nominated appointed designated senior junior assistant general works construction office'.split(' '));
+const FIRST_AIDER_EXAMPLE = 'Jo Park, 0412 345 678';
+function firstAiderProblem(text) {
+  const value = clean(text);
+  if (!value) return '';
+  const q = quoted(value);
+  const not = notAnswer(value);
+  // "me", "him" and the like: the SWMS app's own wording names a role, which SiteLink does not take.
+  if (not && /does not say who/.test(not)) return `${q} does not say who. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}".`;
+  if (not) return not;
+  const phone = phoneProblem(value);
+  if (phone) return phone;
+  const name = value.replace(PHONE_RUN, ' ').replace(/[(),;:–-]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const words = name.split(' ').filter((word) => /[a-z]/i.test(word));
+  if (!words.length || words.every((word) => ROLE_WORDS.has(word.toLowerCase().replace(/['’]s$/, '').replace(/[.']/g, '')))) return `${q} is a role, not a person. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}". Contractors print it on their SWMS.`;
+  if (words.length < 2) return `${q} gives a first name only. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}".`;
+  if (words.length === 2 && words[1].replace(/\./g, '').length === 1) return `${q} gives a first name only. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}".`;
+  if (!(value.match(PHONE_RUN) || []).some((run) => gate.phoneNumber(run))) return `${q} has no phone number. Give the first aider's phone too, for example "${tidyName(name)}, 0412 345 678".`;
+  return '';
+}
+
+// Typed in a hurry, all in lower case, a detail is tidied as it reads, without changing its words
+// (messy round 7: "tom keane 0413 222 908", "front gate" and "hi vis at all times" printed so on the
+// SWMS). A person or a hospital takes a capital on each word; a place or a rule on its first word.
+const tidyPerson = (text) => tidyName(text);
+const tidyPlace = (text) => capitalFirst(text);
+
 // A place a new worker can find: not "carpark", "gate" or "out the front" (the SWMS app's rule).
 function placeProblem(text) {
   const value = clean(text);
@@ -99,4 +129,4 @@ const capitalFirst = (text) => {
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { notAnswer, personProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, capitalFirst, listed, PASSED_ON };
+module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPlace, capitalFirst, listed, PASSED_ON };

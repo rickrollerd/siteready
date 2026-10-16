@@ -49,7 +49,7 @@
     });
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && token) signedOut('You have been signed out. Sign in again to carry on.');
-    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, support: data.support, unverified: data.unverified, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch, preview: data.preview });
+    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, support: data.support, unverified: data.unverified, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch, preview: data.preview, noSteps: data.noSteps });
     return data;
   }
 
@@ -693,10 +693,10 @@
     $('p-readings').className = readings && !readings.left ? 'limit-note' : 'meta';
     const subs = data.subcontracts || [];
     $('p-subs').innerHTML = subs.length ? subs.map((sub) => {
-      const off = [sub.removed ? `${sub.removed} removed` : '', sub.aside ? `${sub.aside} may not need one` : ''].filter(Boolean).join(', ');
-      const list = !sub.swms && !sub.removed && !sub.aside ? (sub.scope === 'reading' ? 'Not listed yet' : 'None yet') : `${sub.swms} SWMS${off ? ` (${off})` : ''}${sub.pointsOpen ? `<span class="scope-state">${sub.pointsOpen} ${sub.pointsOpen === 1 ? 'point' : 'points'} to answer</span>` : ''}`;
+      const off = [sub.folded ? `${sub.folded} in another SWMS` : '', sub.removed ? `${sub.removed} removed` : '', sub.aside ? `${sub.aside} may not need one` : ''].filter(Boolean).join(', ');
+      const list = !sub.swms && !sub.removed && !sub.aside && !sub.folded ? (sub.scope === 'reading' ? 'Not listed yet' : 'None yet') : `${sub.swms} SWMS${off ? ` (${off})` : ''}${sub.pointsOpen ? `<span class="scope-state">${sub.pointsOpen} ${sub.pointsOpen === 1 ? 'point' : 'points'} to answer</span>` : ''}`;
       // Stage 5: whether the list has gone, its due date, and whether it was opened or taken up.
-      const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}` : sub.opened ? '. Opened' : '. Not opened yet'}` : 'Not sent yet';
+      const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}${sub.claimedMismatch ? ` <span class="tag warn">Not the name on the subcontract: check it</span>` : ''}` : sub.opened ? '. Opened' : '. Not opened yet'}` : 'Not sent yet';
       // Stage 7: how many are in, their reviews and conditions (the one screen, below, lists each SWMS).
       const s7 = sub.stage7 || { in: 0, toReview: 0, approved: 0, notApproved: 0, conditionsOpen: 0, toConfirm: 0, off: 0, items: [] };
       const filesIn = sub.swms ? `${s7.in} of ${sub.swms} in${s7.off ? `<span class="scope-state">${s7.off} taken off its list: not submitted</span>` : ''}` : 'None yet';
@@ -847,7 +847,12 @@
   }
   // "clause 1.2", but "clauses 1.3, 1.4" when one entry names two.
   const clauseWord = (list) => (list.length === 1 && !/[,;&]|\band\b/.test(list[0]) ? 'clause' : 'clauses');
-  const hrcwLine = (flag) => (flag ? `<span class="hrcw hrcw-${esc(flag.status)}"><strong>${esc(flag.heading)}.</strong>${flag.lines && flag.lines[0] ? ` ${esc(flag.lines[0])}.` : ''}</span>` : '');
+  // "Also covers: cells and secure areas, cast-in items and access equipment." The package names read as
+  // a list: "Trade installation:" is taken off, and each starts in lower case (messy round 7).
+  const coversList = (list) => { const names = list.map((name) => String(name).replace(/^trade installation:\s*/i, '').replace(/^./, (letter) => letter.toLowerCase())); return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || ''; };
+  // Every line of the flag: "needs a SWMS by law" names only what is certain, and what may also be high
+  // risk work follows with what it depends on (messy round 7).
+  const hrcwLine = (flag) => (flag ? `<span class="hrcw hrcw-${esc(flag.status)}"><strong>${esc(flag.heading)}.</strong>${(flag.lines || []).filter(Boolean).map((line) => ` ${esc(line)}.`).join('')}</span>` : '');
 
   function uploadBlock(again) {
     return `<label for="s-file">${again ? 'A different scope for this subcontract' : 'The scope of works'} <span class="hint">A Word file (.docx) or a PDF with typed text.</span></label>
@@ -893,10 +898,12 @@
       return `<div class="swms-item removed" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>${item.group === 'aside' ? hrcwLine(item.highRisk) : ''}${item.task ? `<p class="work">${esc(item.task)}</p>` : ''}${item.removedWhy ? `<p class="meta">${esc(item.removedWhy)}</p>` : ''}
         <div class="actions"><button type="button" class="light" data-restore="${esc(item.id)}" ${named(back)}>${back}</button></div></div>`;
     }
-    const also = item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers the subcontractor's own ${esc(item.alsoCovers.join(', ').toLowerCase())}.</p>` : '';
-    return `<div class="swms-item" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>${hrcwLine(item.highRisk)}
+    const also = item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</p>` : '';
+    // A SWMS SiteWrite has no job steps for is said before sending, and the list waits (messy round 7).
+    const empty = item.noSteps ? `<p class="warn" id="item-${esc(item.id)}-nosteps"><strong>SiteWrite has no job steps for this work yet.</strong> The subcontractor would get this SWMS with none, so the list cannot be sent until it has them. Change the work so it says what is done, or remove it.</p>` : '';
+    return `<div class="swms-item${item.noSteps ? ' no-steps' : ''}" id="item-${esc(item.id)}"><h3 id="item-${esc(item.id)}-title">${esc(item.title)}</h3>${hrcwLine(item.highRisk)}${empty}
       <p class="work" id="item-${esc(item.id)}-work">${esc(item.task)}</p>${also}${clauses}${uploadedLine(item)}${receivedLine(item)}
-      <div class="actions" id="item-${esc(item.id)}-buttons"><button type="button" class="light" data-reword="${esc(item.id)}" ${named('Change the work for')}>Change the work</button><button type="button" class="danger" data-remove-item="${esc(item.id)}" ${named('Remove')}>Remove</button></div></div>`;
+      <div class="actions" id="item-${esc(item.id)}-buttons">${itemButtons(item)}</div></div>`;
   }
 
   // Files the subcontractor uploaded for this SWMS on the list page (stage 5), to open, and to record as
@@ -906,7 +913,7 @@
     if (!files.length) return '';
     const got = sub.received && sub.received.items[item.id];
     const recorded = new Set([got && got.latest, ...((got && got.earlier) || [])].filter((one) => one && one.channel === 'outside' && one.file).map((one) => one.file.name));
-    return `<p class="uploaded">Uploaded from the list page: ${files.map((file) => `<button type="button" class="link" data-upload-open="${esc(file.id)}" data-upload-name="${esc(file.name)}">${esc(file.name)}</button> <span class="meta">(${esc(file.type)}, ${esc(file.on)})</span>${recorded.has(file.name) ? ' <span class="meta">Recorded as received.</span>' : ` <button type="button" class="light small" data-upload-record="${esc(file.id)}" aria-label="${esc(`Record ${file.name} as received`)}">Record it as received</button>`}`).join('; ')}</p>`;
+    return `<p class="uploaded">Uploaded from the list page: ${files.map((file) => `<button type="button" class="link" data-upload-open="${esc(file.id)}" data-upload-name="${esc(file.name)}">${esc(file.name)}</button> <span class="meta">(${esc(file.type)}, ${esc(file.on)})</span>${file.flag ? ` <span class="upload-flag"><strong>${esc(file.flag)}</strong> Open it to check before you record it.</span>` : ''}${recorded.has(file.name) ? ' <span class="meta">Recorded as received.</span>' : ` <button type="button" class="light small" data-upload-record="${esc(file.id)}" aria-label="${esc(`Record ${file.name} as received`)}">Record it as received</button>`}`).join('; ')}</p>`;
   }
 
   // What has come in for this SWMS (stage 7): submitted in SiteWrite or received outside it, its review
@@ -969,11 +976,28 @@
     if (removed.length) html += `<details class="removed-group" id="s-removed"${kept.length && !openGroups.removed ? '' : ' open'}><summary>Removed (${removed.length})</summary>${removed.map(itemCard).join('')}</details>`;
     const duties = sub.reading.duties || [];
     if (duties.length) html += `<details><summary>${duties.length} ${duties.length === 1 ? 'duty' : 'duties'} in the scope ${duties.length === 1 ? 'needs' : 'need'} no SWMS</summary><ul>${duties.map((duty) => `<li>${esc(duty)}</li>`).join('')}</ul></details>`;
+    // What is typed in an open box, and where the cursor is, before the list is drawn again.
+    const active = document.activeElement;
+    const focus = active && active.closest && active.closest('#s-list') && (active.dataset.work || active.dataset.titleEdit) ? { id: active.id, start: active.selectionStart, end: active.selectionEnd } : null;
+    for (const box of document.querySelectorAll('#s-list [data-work]')) if (editing[box.dataset.work]) editing[box.dataset.work].work = box.value;
+    for (const box of document.querySelectorAll('#s-list [data-title-edit]')) if (editing[box.dataset.titleEdit]) editing[box.dataset.titleEdit].title = box.value;
     $('s-list').innerHTML = html;
-    // A rewording typed before Back or a reload is back in its box.
     for (const item of kept) {
+      // A rewording typed before Back or a reload is back in its box; so is a box left open.
       const typed = readTyped(typedKey('work', sub.subcontract.id, item.id));
-      if (typed && typeof typed.task === 'string' && typed.task !== item.task) openReword(item.id, typed.task, true);
+      const typedTitle = readTyped(typedKey('title', sub.subcontract.id, item.id));
+      const open = editing[item.id] || {};
+      if (open.title !== undefined) openRetitle(item.id, open.title);
+      else if (typedTitle && typeof typedTitle.title === 'string' && typedTitle.title !== item.title) openRetitle(item.id, typedTitle.title, true);
+      if (open.work !== undefined) openReword(item.id, open.work);
+      else if (typed && typeof typed.task === 'string' && typed.task !== item.task) openReword(item.id, typed.task, true);
+    }
+    // Edits for a SWMS no longer on the list are dropped.
+    for (const id of Object.keys(editing)) if (!kept.some((item) => item.id === id)) delete editing[id];
+    if (focus && $(focus.id)) {
+      const box = $(focus.id);
+      box.focus({ preventScroll: true });
+      try { box.setSelectionRange(focus.start, focus.end); } catch { /* not a text box */ }
     }
   }
   const openGroups = { aside: false, removed: false };
@@ -1151,19 +1175,47 @@
     }
   }
 
+  // The buttons under a SWMS on the list, each naming it for a screen reader.
+  function itemButtons(item) {
+    const named = (verb) => `aria-label="${esc(`${verb} ${item.title}`)}"`;
+    return `<button type="button" class="light" data-reword="${esc(item.id)}" ${named('Change the work for')}>Change the work</button><button type="button" class="light" data-retitle="${esc(item.id)}" ${named('Change the title of')}>Change the title</button><button type="button" class="danger" data-remove-item="${esc(item.id)}" ${named('Remove')}>Remove</button>`;
+  }
+
+  // The boxes open to change a SWMS's work or title, kept open with what was typed through every
+  // redraw of the list (messy round 7: a Remove's redraw closed an open box before the lead typed).
+  // { [id]: { work?: text, title?: text } }
+  const editing = {};
+  function editButtons(id, item) {
+    const open = editing[id] || {};
+    const what = open.work !== undefined && open.title !== undefined ? 'the title and work' : open.title !== undefined ? 'the title' : 'the work';
+    return `<button type="button" data-save-work="${esc(id)}" aria-label="${esc(`Save ${what} for ${item.title}`)}">Save ${what.replace('the title and work', 'the changes')}</button><button type="button" class="light" data-cancel-work="${esc(id)}" aria-label="${esc(`Cancel changing ${what} for ${item.title}`)}">Cancel</button>`;
+  }
   // The box to reword a SWMS's work. typed: words kept on this device from before.
   function openReword(id, text, fromBefore = false) {
     const work = $(`item-${id}-work`);
     const buttons = $(`item-${id}-buttons`);
     const item = sub.items.find((one) => one.id === id);
     if (!work || !buttons || !item) return;
+    editing[id] = { ...(editing[id] || {}), work: text };
     work.outerHTML = `<div id="item-${esc(id)}-edit"><label for="work-${esc(id)}">The work this SWMS covers</label><textarea id="work-${esc(id)}" maxlength="1500" style="min-height:90px" data-work="${esc(id)}">${esc(text)}</textarea><p class="field-error hidden" id="work-${esc(id)}-error"></p>${fromBefore ? '<p class="meta">Your changes from before are back. They are not saved yet.</p>' : ''}</div>`;
-    buttons.innerHTML = `<button type="button" data-save-work="${esc(id)}" aria-label="${esc(`Save the work for ${item.title}`)}">Save the work</button><button type="button" class="light" data-cancel-work="${esc(id)}" aria-label="${esc(`Cancel changing the work for ${item.title}`)}">Cancel</button>`;
+    buttons.innerHTML = editButtons(id, item);
+  }
+  // The box to change a SWMS's title, with the same checks as a SWMS added: a capital first letter, no price.
+  function openRetitle(id, text, fromBefore = false) {
+    const title = $(`item-${id}-title`);
+    const buttons = $(`item-${id}-buttons`);
+    const item = sub.items.find((one) => one.id === id);
+    if (!title || !buttons || !item) return;
+    editing[id] = { ...(editing[id] || {}), title: text };
+    title.outerHTML = `<div id="item-${esc(id)}-title-edit"><label for="title-${esc(id)}">The SWMS title <span class="hint">As the subcontractor will see it, for example Mechanical installation: plant room.</span></label><input id="title-${esc(id)}" type="text" maxlength="160" autocomplete="off" data-title-edit="${esc(id)}" value="${esc(text)}"><p class="field-error hidden" id="title-${esc(id)}-error"></p>${fromBefore ? '<p class="meta">Your changes from before are back. They are not saved yet.</p>' : ''}</div>`;
+    buttons.innerHTML = editButtons(id, item);
   }
 
   $('s-list').addEventListener('input', (event) => {
     const id = event.target.dataset && event.target.dataset.work;
-    if (id) keepTyped(typedKey('work', sub.subcontract.id, id), { task: event.target.value });
+    if (id) { keepTyped(typedKey('work', sub.subcontract.id, id), { task: event.target.value }); if (editing[id]) editing[id].work = event.target.value; }
+    const titleId = event.target.dataset && event.target.dataset.titleEdit;
+    if (titleId) { keepTyped(typedKey('title', sub.subcontract.id, titleId), { title: event.target.value }); if (editing[titleId]) editing[titleId].title = event.target.value; }
   });
   $('s-list').addEventListener('toggle', (event) => {
     if (event.target.id === 's-aside') openGroups.aside = event.target.open;
@@ -1205,6 +1257,7 @@
     const remove = event.target.closest('[data-remove-item]');
     const restore = event.target.closest('[data-restore]');
     const reword = event.target.closest('[data-reword]');
+    const retitle = event.target.closest('[data-retitle]');
     const save = event.target.closest('[data-save-work]');
     const cancel = event.target.closest('[data-cancel-work]');
     try {
@@ -1220,21 +1273,45 @@
         const item = sub.items.find((one) => one.id === id);
         openReword(id, item.task);
         $(`work-${id}`).focus();
+      } else if (retitle) {
+        const id = retitle.dataset.retitle;
+        const item = sub.items.find((one) => one.id === id);
+        openRetitle(id, item.title);
+        $(`title-${id}`).focus();
       } else if (save) {
         const id = save.dataset.saveWork;
-        const task = $(`work-${id}`).value;
-        if (!task.trim()) { fieldError(`work-${id}`, 'Say what work this SWMS covers, in a sentence or two.'); return; }
+        const body = {};
+        if ($(`work-${id}`)) {
+          body.task = $(`work-${id}`).value;
+          if (!body.task.trim()) { fieldError(`work-${id}`, 'Say what work this SWMS covers, in a sentence or two.'); return; }
+        }
+        if ($(`title-${id}`)) {
+          body.title = $(`title-${id}`).value;
+          if (!body.title.trim()) { fieldError(`title-${id}`, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'); return; }
+        }
         save.disabled = true;
+        const was = editing[id];
+        // The words kept on this device go before the redraw, so the saved box does not open again.
+        const typedWork = readTyped(typedKey('work', sub.subcontract.id, id));
+        const typedTitle = readTyped(typedKey('title', sub.subcontract.id, id));
         try {
-          await changeItem(id, { task }, { anchor: save.closest('.swms-item'), targetId: `item-${id}` });
+          delete editing[id];
           keepTyped(typedKey('work', sub.subcontract.id, id), null);
+          keepTyped(typedKey('title', sub.subcontract.id, id), null);
+          await changeItem(id, body, { anchor: save.closest('.swms-item'), targetId: `item-${id}` });
         } catch (error) {
+          editing[id] = was;
+          keepTyped(typedKey('work', sub.subcontract.id, id), typedWork);
+          keepTyped(typedKey('title', sub.subcontract.id, id), typedTitle);
           save.disabled = false;
-          if (error.field === 'task') { fieldError(`work-${id}`, error.message); return; }
+          if (error.field === 'task' && $(`work-${id}`)) { fieldError(`work-${id}`, error.message); return; }
+          if (error.field === 'title' && $(`title-${id}`)) { fieldError(`title-${id}`, error.message); return; }
           throw error;
         }
       } else if (cancel) {
+        delete editing[cancel.dataset.cancelWork];
         keepTyped(typedKey('work', sub.subcontract.id, cancel.dataset.cancelWork), null);
+        keepTyped(typedKey('title', sub.subcontract.id, cancel.dataset.cancelWork), null);
         renderList();
       }
     } catch (error) {
@@ -1340,6 +1417,8 @@
       lines.push(`<p><strong>Sent to ${esc(sending.sent.to)}</strong> on ${esc(sending.sent.on)} by ${esc(sending.sent.by)}. Due ${esc(sending.sent.dueShown)}.</p>`);
       lines.push(sending.opened ? `<p>Opened on ${esc(sending.opened)}.</p>` : '<p class="meta">Not opened yet. It counts as opened when the link in the email is used.</p>');
       if (sending.claimed) lines.push(`<p>Taken up in SiteWrite by <strong>${esc(sending.claimed.name)}</strong> (ABN ${esc(sending.claimed.abn)}) on ${esc(sending.claimed.on)}.</p>`);
+      // A company whose name is not the subcontract's is flagged (messy round 7).
+      if (sending.claimed && sending.claimed.mismatch) lines.push(`<p class="warn" id="s-claim-mismatch"><strong>${esc(sending.claimed.name)} is not the name on this subcontract (${esc(sub.subcontract.name)}).</strong> Check it is the right company.${sending.release && sending.release.can ? ' If it is not, release the list from it below.' : ''}</p>`);
       else lines.push(`<p class="meta">${sending.abn ? `Only a company with ABN ${esc(sending.abnShown)} can take it up in SiteWrite.` : 'No ABN given, so the first company to take it up in SiteWrite gets it. You will see which company.'}</p>`);
       // Stage 6 (D311): a list taken up by the wrong company, where no ABN was given, can be released by the lead.
       const release = sending.release || {};
@@ -1358,20 +1437,26 @@
     const due = typed && typeof typed.due === 'string' ? typed.due : sending.dueDate;
     const to = sending.email ? `<p>To <strong>${esc(sending.email)}</strong>. <a href="#/sub/${esc(id)}/edit">Change details</a></p>` : `<p class="warn">No contact email yet. <a href="#/sub/${esc(id)}/edit">Add it under Change details</a>.</p>`;
     const checkLabel = !sending.sent || sending.emailChanged ? 'Check the email' : sending.changes ? 'Check the updated email' : 'Check the email with a new due date';
+    // Sent, and nothing changed since: the email goes again only with a new due date, so its button shows
+    // only once a new date is chosen (messy round 7: it showed straight after sending).
+    const sameAsSent = Boolean(sending.sent && !sending.emailChanged && !sending.changes);
+    const dueMoved = Boolean(due && sending.sent && due !== sending.sent.due);
     // An Unverified account sends nothing (D311): said at the top of the card, and the buttons wait.
     const blocked = sending.blocked;
     if (blocked) warn = `<div class="warn" id="s-unverified"><strong>${withMail(blocked.message, (/at (\S+@\S+?)\.?$/.exec(blocked.message) || [])[1])}</strong> <a href="#/account/${esc(blocked.orgId)}">Account settings</a></div>${warn}`;
     const off = blocked ? ' disabled' : '';
     // Reminders go to the address the list went to; after the address changes, the list goes first.
+    // The Remind button shows only when a reminder can go; otherwise the card says when the next can.
     const remind = sending.sent && !sending.emailChanged && !sending.stopped ? `<h3>Remind</h3><p class="meta">Sends ${esc(sending.sent.to)} the SWMS on the list with no file uploaded yet. At most once every ${esc(Math.round(sending.reminderHours / 24))} days, ${esc(sending.remind.max)} times after each list, so they are not flooded.${sending.remind.used ? ` ${esc(sending.remind.used)} sent so far.` : ''}</p>
-      ${sending.remind.why ? `<p class="meta"><strong>${esc(sending.remind.why)}</strong></p>` : ''}
-      <div class="actions"><button type="button" class="light" id="s-remind"${sending.remind.can && !blocked ? '' : ' disabled'}>Remind</button></div>` : '';
+      ${sending.remind.why ? `<p class="meta" id="s-remind-why"><strong>${esc(sending.remind.why)}</strong></p>` : ''}
+      ${sending.remind.can && !blocked ? '<div class="actions"><button type="button" class="light" id="s-remind">Remind</button></div>' : ''}` : '';
     card.innerHTML = `<h2>Send the list</h2><div class="send-state">${lines.join('')}</div>${warn}
       ${to}
       <label for="s-due">Submission due date <span class="hint">The date the SWMS are due back to you. It is in the email.</span></label>
       <input id="s-due" type="date" min="${esc(sending.today)}" value="${esc(due)}">
       <p class="field-error hidden" id="s-due-error"></p>
-      <div class="actions"><button type="button" id="s-check"${off}>${checkLabel}</button></div>
+      <div class="actions"><button type="button" id="s-check"${off}${sameAsSent && !dueMoved ? ' class="hidden"' : ''}>${checkLabel}</button></div>
+      <p class="meta${sameAsSent && !dueMoved ? '' : ' hidden'}" id="s-due-note">The list has not changed since it was sent. To move the due date, choose a new date above, then check the email.</p>
       <div id="s-confirm"></div>${remind}<div id="s-send-status" role="status"></div>`;
     if (checking && checking.id === id) showEmail(checking);
   }
@@ -1389,6 +1474,8 @@
     box('s-send-status', '');
     const id = sub.subcontract.id;
     const due = remind ? '' : $('s-due').value;
+    // Nothing on the list is said first, before the due date (messy round 7).
+    if (!remind && !sub.items.some((item) => item.group === 'list')) { box('s-send-status', 'No SWMS are on the list. Put one back or add one before sending it.', 'bad'); return; }
     if (!remind && !due) { fieldError('s-due', 'Choose the date the SWMS are due.'); return; }
     await busy(button, 'Checking...', async () => {
       try {
@@ -1399,6 +1486,8 @@
         checking = null;
         if (error.field === 'due') fieldError('s-due', error.message);
         else box('s-send-status', esc(error.message), 'bad');
+        // A SWMS with no job steps: its card is marked, and the first is brought into view.
+        if (error.noSteps) { const first = document.querySelector('.swms-item.no-steps'); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       }
     });
   }
@@ -1407,6 +1496,11 @@
     // A new date is a new email: the one shown is taken away until it is checked again.
     checking = null;
     $('s-confirm').innerHTML = '';
+    if (sub.sending.sent && !sub.sending.emailChanged && !sub.sending.changes) {
+      const moved = Boolean(event.target.value) && event.target.value !== sub.sending.sent.due;
+      $('s-check').classList.toggle('hidden', !moved);
+      $('s-due-note').classList.toggle('hidden', moved);
+    }
     keepTyped(SEND_TYPED(sub.subcontract.id), event.target.value && event.target.value !== sub.sending.dueDate ? { due: event.target.value } : null);
   });
   $('s-send').addEventListener('click', async (event) => {
@@ -1479,6 +1573,10 @@
   // ---- What the subcontractor sees ----
 
   async function showPreview(subId) {
+    // Said at once: the page takes a few seconds to gather the list (messy round 7).
+    view('preview');
+    $('pv-intro').textContent = '';
+    $('pv-body').innerHTML = '<p class="meta" role="status">Loading what the subcontractor sees...</p>';
     const data = await call('GET', `/api/hse/subcontracts/${encodeURIComponent(subId)}`);
     sub = data;
     const p = data.preview;
@@ -1488,7 +1586,7 @@
     $('pv-intro').textContent = `This is what ${p.to} sees on the page the list email links to. SWMS you removed and points you did not answer are left out. Prices, rates and amounts from the scope are never shown.`;
     $('pv-back').href = `#/sub/${subId}`;
     // Only the list, with the high risk work each SWMS holds: never that it may not need a SWMS.
-    const swms = p.swms.length ? `<ol>${p.swms.map((item) => `<li><strong>${esc(item.title)}</strong><div>${esc(item.task)}</div>${item.alsoCovers && item.alsoCovers.length ? `<div class="also">Also covers your own ${esc(item.alsoCovers.join(', ').toLowerCase())}.</div>` : ''}${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}${item.clauses.length ? `<span class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</span>` : ''}</li>`).join('')}</ol>`
+    const swms = p.swms.length ? `<ol>${p.swms.map((item) => `<li><strong>${esc(item.title)}</strong><div>${esc(item.task)}</div>${item.alsoCovers && item.alsoCovers.length ? `<div class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</div>` : ''}${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}${item.clauses.length ? `<span class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</span>` : ''}</li>`).join('')}</ol>`
       : '<p class="warn">No SWMS are on this list. Put one back or add one if this subcontract needs any.</p>';
     const answers = p.answers.length ? `<h3>Answers from ${esc(p.from)}</h3>${p.answers.map((item) => `<div class="qa"><p class="meta">${esc(item.activity)}${item.clause ? ` (${clauseWord([item.clause])} ${esc(item.clause)})` : ''}</p><p>${esc(item.question)}</p><p><strong>${esc(p.from)}:</strong> ${esc(item.answer)}</p></div>`).join('')}` : '';
     const details = p.siteDetails ? `<h3>Site details to use (version ${esc(p.siteDetails.rev)})</h3><dl class="details">${p.siteDetails.list.map((entry) => `<dt>${esc(entry.label)}</dt><dd>${Array.isArray(entry.value) ? `<ul>${entry.value.map((rule) => `<li>${esc(rule)}</li>`).join('')}</ul>` : esc(entry.value)}</dd>`).join('')}</dl>`

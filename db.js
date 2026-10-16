@@ -830,6 +830,17 @@ const SCHEMA = [
     removed_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS list_uploads_subcontract ON list_uploads (subcontract_id, created_at)',
+  // Messy round 7: a file that may not be a SWMS is flagged for the lead ('scope' or 'notSwms'), and the
+  // company signed in when it was uploaded, if any, is kept.
+  "ALTER TABLE list_uploads ADD COLUMN IF NOT EXISTS flag TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE list_uploads ADD COLUMN IF NOT EXISTS company_id TEXT NOT NULL DEFAULT ''",
+  // A list link whose builder's account was removed, kept as its hash and the builder's name only, so
+  // the link says the list was withdrawn.
+  `CREATE TABLE IF NOT EXISTS withdrawn_links (
+    token_hash TEXT PRIMARY KEY,
+    builder TEXT NOT NULL DEFAULT '',
+    withdrawn_at TIMESTAMPTZ NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS list_upload_data (
     upload_id TEXT PRIMARY KEY,
     data TEXT NOT NULL
