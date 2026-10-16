@@ -316,6 +316,8 @@ function draftBody(body) {
     // Clothing ids saved before one garment went to each tick box (D248) are read as the new ones.
     ppe: Array.isArray(body.ppe) ? currentPpeIds(body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40))) : undefined,
     ppeSteps: ppeSteps(body.ppeSteps),
+    // The PPE items the user unticked by hand, which plant they confirm or add does not tick again (messy round 6).
+    ppeOff: Array.isArray(body.ppeOff) ? [...new Set(body.ppeOff.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 40) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {
       craneChart: field(facts.craneChart, 2000),

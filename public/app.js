@@ -499,6 +499,8 @@ function payload() {
     // The PPE ticked for all work and for particular steps, and where the user put items (D247).
     ppe: document.querySelector('[data-ppe]') ? ppeTicked() : undefined,
     ppeSteps: Object.keys(ppePlaced).length ? ppePlaced : undefined,
+    // The items the user unticked by hand: plant they confirm or add does not tick them again.
+    ppeOff: ppeUnticked(),
     // The job steps picked, or none to use the ones SiteWrite finds in the task.
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
@@ -1200,6 +1202,10 @@ async function updateInPlace() {
 let ppePlaced = {};
 let ppeShown = { groups: [], steps: [] };
 const ppeTouched = new Set();
+function ppeUnticked() {
+  const off = [...ppeTouched].filter((id) => !document.querySelector(`[data-ppe][value="${CSS.escape(id)}"]:checked, [data-ppe-step][value="${CSS.escape(id)}"]:checked`));
+  return off.length ? off : undefined;
+}
 // Every item ticked, for all work or for a step.
 function ppeTicked() {
   return [...new Set([...document.querySelectorAll('[data-ppe]:checked, [data-ppe-step]:checked')].map((el) => el.value))];
@@ -1854,6 +1860,9 @@ function fillStart(input) {
   stepRatings = input.stepRatings && typeof input.stepRatings === 'object' ? JSON.parse(JSON.stringify(input.stepRatings)) : null;
   ratingOpen.clear();
   ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
+  // PPE the user unticked by hand stays unticked when the plant changes (messy round 6).
+  ppeTouched.clear();
+  if (Array.isArray(input.ppeOff)) input.ppeOff.filter((id) => typeof id === 'string').forEach((id) => ppeTouched.add(id));
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
   if (window.SiteWriteSubstances) window.SiteWriteSubstances.load(input.substances, input.substancesNotUsed, input.substancesNotUsedWhy);
   designsFound = [];

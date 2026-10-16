@@ -158,7 +158,11 @@
   function ownWords(input) {
     const item = input && typeof input === 'object' ? input : {};
     const values = (value) => (value && typeof value === 'object' ? Object.values(value).filter((entry) => typeof entry === 'string') : []);
-    return [item.task, ...values(item.facts), ...values(item.site)].filter(Boolean).join('\n');
+    // The plant the user added is their own words too (messy round 6: fuel "Not required" was taken with
+    // no reason beside a petrol saw).
+    const choice = item.plantChoice && typeof item.plantChoice === 'object' ? item.plantChoice : {};
+    const plant = (Array.isArray(choice.added) ? choice.added.map((entry) => entry && entry.item) : []).filter((name) => typeof name === 'string');
+    return [item.task, ...values(item.facts), ...values(item.site), ...plant].filter(Boolean).join('\n');
   }
   // A short reason "Not required" is given for: a few words that say why, not "dont know". '' once given.
   function reasonNeed(reason) {
@@ -172,9 +176,25 @@
   // The job steps' own words: their names and hazards, not the general steps (messy round 5: "Not
   // required" was taken with no reason for the tile adhesive and grout the steps mix and spread, and for
   // cement in a pour).
+  // The cement, sealants and adhesives a step's control lines name by product name count too (messy round
+  // 6: cement "Not required" with no reason where the levelling compound step says "Cement-based
+  // compounds", and sealant and adhesive where the lines say the step uses them). Only the product words
+  // are taken, so a line's other words do not count.
+  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives'];
   function stepWords(draft) {
-    return ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step))
-      .flatMap((step) => [step.step, ...(step.hazards || []).filter((line) => typeof line === 'string')]).join('\n');
+    const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step));
+    const products = steps.flatMap((step) => (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line)).map(withoutSource))
+      .flatMap((line) => LINE_PRODUCTS.map((type) => (CONTROL_PRODUCTS[type].exec(line) || [])[0]).filter(Boolean));
+    return [...steps.flatMap((step) => [step.step, ...(step.hazards || []).filter((line) => typeof line === 'string')]), ...products].join('\n');
+  }
+  // A type ticked "Not required" that the user's own safety data sheet answer names as a product used
+  // ("The products used are Sikaflex 11FC sealant"): a reason does not settle it (messy round 6).
+  // Only a sentence that lists the products used counts ("The products used are ..."), not one that says
+  // where an SDS is kept.
+  function sdsConflict(type, sds) {
+    const used = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => /\b(?:products? (?:used|in use)|products? we use|we use|we are using|used on (?:this|the) job)\b/i.test(sentence)).join('\n');
+    const named = namedIn(type, used);
+    return named ? `${SHORT.get(type)}: your safety data sheet answer names "${named}" as a product used, but it is ticked "Not required". Add the product, or take it out of that answer.` : '';
   }
   // Where "Not required" needs a reason: the word in the user's own task or answers, else in the job steps.
   function reasonAsked(type, words, steps = '') {
@@ -183,7 +203,9 @@
     const used = namedIn(type, steps);
     return used ? { word: used, said: `the job steps name "${used}"`, hint: `The job steps name "${used}".` } : null;
   }
-  function notUsedNeed(type, reason, words, steps = '') {
+  function notUsedNeed(type, reason, words, steps = '', sds = '') {
+    const conflict = sdsConflict(type, sds);
+    if (conflict) return conflict;
     const asked = reasonAsked(type, words, steps);
     if (!asked) return '';
     const named = asked.word;
@@ -261,7 +283,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked };
+  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

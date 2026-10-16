@@ -167,6 +167,14 @@ const KINDS = [
     id: 'gantry', label: 'Gantry design',
     lines: [/^Gantries are engineer designed for an imposed load\b/, /\bSheds on a gantry go only where the engineer's design allows\b/],
   },
+  // The hoarding line applies only to hoardings over 2.4 m high or carrying signs or shade cloth, so it
+  // counts where the task says so (messy round 6: the builder check said no step relies on a design
+  // beside "built to an engineer's design for wind load" for hoardings with shade cloth).
+  {
+    id: 'hoarding', label: 'Hoarding design',
+    when: /\b(?:shade ?cloth|signboards?|signs?|banners?|mesh)\b[^.]{0,60}\bhoardings?\b|\bhoardings?\b[^.]{0,60}\b(?:shade ?cloth|signboards?|signs?|banners?|mesh)\b|\bhoardings?\b[^.]{0,30}?\b(?:2\.(?:[5-9]|4\d*[1-9])|[3-9](?:\.\d+)?)\s?m\b(?!\s+(?:wide|long|apart))/i,
+    lines: [/^Hoardings over 2\.4 m high, or carrying signboards or shade cloth, are built to an engineer's design for wind load\b/],
+  },
   {
     id: 'screens', label: 'Safety screen design',
     lines: [/\bto the supplier's design and instructions\b/, /\bthe concrete strength the screen design sets\b/],
@@ -234,6 +242,7 @@ function designsNeeded(draft) {
     if (step.own) continue;
     for (const kind of KINDS) {
       if (kind.steps && !kind.steps.test(step.step || '')) continue;
+      if (kind.when && !kind.when.test(task)) continue;
       const at = (step.controls || []).findIndex((line) => typeof line === 'string' && !isHoldPoint(line) && kind.lines.some((pattern) => pattern.test(withoutCitation(line))));
       if (at < 0) continue;
       if (!found.has(kind.id)) found.set(kind.id, { id: kind.id, label: kind.mast && /\bmast[- ]climb\w*|\bmcwps?\b/i.test(task) ? kind.mast : kind.label, steps: [] });

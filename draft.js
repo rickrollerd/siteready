@@ -521,6 +521,14 @@ const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|ac
 // So is "a traffic management plan (TMP) applies", which can be the site's own plan.
 // So is a site's own traffic management plan (TMP) for plant and people inside the site.
 const CONDITIONAL_TRAFFIC = /\b(?:any|such)\s+(?:required\s+|necessary\s+)?traffic\s+(?:control|management)(?:\s*\/\s*(?:control|management))?|\b(?:site\s+)?traffic\s+management\s+plans?\s+appl(?:y|ies)\b|\btraffic\s+(?:control|management)\s+(?:if|where|when|as)\s+(?:required|necessary|needed)\b|\b(?:the\s+)?site(?:'s)?\s+traffic\s+management\s+plans?(?:\s*\(tmps?\))?/gi;
+// Roads inside the site are not a traffic corridor in use by traffic: where the words say the work is on
+// the site's own roads, or never on the public road, "the road" is the site road (messy round 6: the
+// traffic corridor listed for sweeping the internal site roads, "never on the public road").
+function onSiteRoads(text) {
+  const words = String(text || '');
+  if (!/\b(?:internal|site|haul|access|construction)\s+(?:site\s+)?roads?\b|\broads? (?:inside|within) the (?:site|hoarding|fence)\b|\b(?:never|not) on (?:the |a )?public roads?\b/i.test(words)) return words;
+  return words.replace(/\b(?:never|not) on (?:the |a )?public roads?\b/gi, ' ').replace(/\b(?:on|along|across) the road(?! reserve)\b/gi, 'on the site road');
+}
 // Work in a road reserve is beside the road. A footpath, verge or nature strip carries
 // only pedestrians, so work on one is beside a road in use only where the text also
 // names the road, its traffic or kerb, or the council's road reserve.
@@ -877,6 +885,10 @@ function inDeepExcavation(task, flags) {
 }
 
 function deepExcavation(text) {
+  // A sentence about a built pit (a lift, service or stormwater pit) that does not dig it gives no dig
+  // depth (messy round 6: "Lift pit is dry and 1.6 m deep" read a lift shaft as an excavated shaft,
+  // with trench rescue, an excavation permit and shoring).
+  text = String(text || '').replace(new RegExp(`[^.\\n]*\\b${BUILT_PIT}\\s+pits?\\b[^.\\n]*`, 'gi'), (sentence) => (/\b(?:excavat\w*|dig\w*|dug|trench\w*)\b/i.test(sentence) ? sentence : ' '));
   // A shaft void is an opening through a building's floors, not a dig.
   text = String(text || '').replace(/\b(?:lift|risers?|services?|ventilation|stair|air)\s+shafts?\b|\bin the shafts\b|\bshaft ?walls?\b|\bshaft voids?\b/gi, ' ');
   if (LIFT_WORK.test(text)) text = text.replace(/\bshafts?\b/gi, ' ');
@@ -930,8 +942,11 @@ const SILICA_POWER = /\b(grind\w*|grinder|drill\w*|polish\w*|sand(?:s|ing|er)\b|
 
 // The material and the power tool are read from the same sentence or line: "substrate for stone"
 // in the task and a "Use power tools" step for the timber is not processing stone.
+// Polishing as cleaning ("mop and polish tile surfaces") is not processing the tile (messy round 6: silica
+// processing listed for a builders clean).
 function silicaProcessing(text) {
-  return String(text || '').split(/\n+/).flatMap(sentences).some((line) => SILICA_MATERIAL.test(line) && SILICA_POWER.test(line));
+  const source = String(text || '').replace(/\b(?:mop\w*|wip\w*|clean\w*|dust\w*|wash\w*|buff\w*)\s+(?:and\s+)?polish\w*/gi, ' ');
+  return source.split(/\n+/).flatMap(sentences).some((line) => SILICA_MATERIAL.test(line) && SILICA_POWER.test(line));
 }
 
 // Demolishing a whole building or structure, as opposed to strip-out of linings, partitions or
@@ -1039,7 +1054,7 @@ function highRiskMatches(raw, answer, state) {
     // "Tilt up", "tilt panels" and "tilt slabs" are tilt-up work as much as "tilt-up".
     precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast)\b/i),
     // Work in a footpath or verge is next to the road it runs beside.
-    road: mentioned(String(text || '').replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || /\b(?:adjacent to|next to|alongside|near) (?:an? |the )?(?:existing |live |busy |public |operating )?(?:roads?|roadways?|streets?|highways?|motorways?|freeways?)\b/i.test(String(text || '')) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || besideRoad(text),
+    road: mentioned(onSiteRoads(String(text || '').replace(CONDITIONAL_TRAFFIC, ' ')), ROAD) || /\b(?:adjacent to|next to|alongside|near) (?:an? |the )?(?:existing |live |busy |public |operating )?(?:roads?|roadways?|streets?|highways?|motorways?|freeways?)\b/i.test(String(text || '')) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || besideRoad(text),
     // Trenches and site excavation are dug by machine unless the task says by hand.
     plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+|and\s+\w+\s+(?:a\s+|the\s+)?(?:new\s+)?)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?|sewer|line|drains?|stormwater|services?|pipes?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(withoutServicedPlant(text), /\b((?:piling|cfa|bored pil\w*|drill(?:ing)?|hdd) rigs?|moving plant|(?:road|street|mechanical|ride-on) (?:sweepers?|sweeping machines?|cleaning machines?)|sweeper trucks?|directional(?:ly)? (?:drill|bor)\w*|(?:excavator[- ]mounted )?pile croppers?|rock break(?:ers?|ing)|hydraulic hammers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete (?:boom )?pump(?:ing| trucks?|s)?|pump trucks?|boom pump(?:ing|s)?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower |overhead |gantry |bridge |arm )cranes?(?!\s+(?:company|companies|crew|operators?|platforms?|pads?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i)
       // Concrete trucks come into the work area for every slab, path or driveway pour.
@@ -1125,7 +1140,10 @@ function pressureMedium(task) {
   return { pressureAir: air, pressureWater: water, pressureAirOnly: air && !water, pressureDuct: duct && !/\b(pipe\w*|lines?)\b/i.test(text) };
 }
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?|(?:concrete )?core samples?)\b/i;
-const SILICA_WORK = /\b(hammer drill\w*|grind\w*[^.]{0,40}\b(?:concrete|footpaths?|paths?|slabs?|pavers?|trip hazards?)\b|drill\w*[^.]{0,40}\b(?:concrete|masonry|blockwork|brick\w*)\b|(?:fram|fix|batten|anchor)\w*[^.]{0,120}\b(?:over|to|into|onto) (?:the )?(?:existing )?(?:blockwork|masonry|brickwork|block walls?|concrete walls?)|cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
+const SILICA_WORK_RAW = /\b(hammer drill\w*|grind\w*[^.]{0,40}\b(?:concrete|footpaths?|paths?|slabs?|pavers?|trip hazards?)\b|drill\w*[^.]{0,40}\b(?:concrete|masonry|blockwork|brick\w*)\b|(?:fram|fix|batten|anchor)\w*[^.]{0,120}\b(?:over|to|into|onto) (?:the )?(?:existing )?(?:blockwork|masonry|brickwork|block walls?|concrete walls?)|cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
+// Cutting concrete sleepers is cutting concrete, wherever the task names the sleepers as concrete (messy
+// round 6: "cut sleepers with quick cut saw" for a concrete sleeper wall had no silica controls).
+const SILICA_WORK = { test: (text) => SILICA_WORK_RAW.test(String(text || '')) || (/\bconcrete sleepers?\b/i.test(String(text || '')) && /\b(?:cut\w*|saw\w*)\s+(?:the\s+)?(?:concrete\s+)?sleepers?\b/i.test(String(text || ''))) };
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply|electrical (?:distribution|supply|boards?|installations?))|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 // Construction power is live once connected, so installing, connecting, relocating or maintaining it is
@@ -1237,6 +1255,12 @@ const REFRIGERANT = /\b(refrigerant|refrigeration|split systems?|condensing unit
 // Air conditioning plant taken out: the refrigerant in it is recovered by a licence holder first, whatever
 // the units are called ("remove aircon units", "Remove the condensers from the roof").
 const AC_PLANT_REMOVAL = /\b(?:remov|decommission|disconnect|strip)\w*\b[^.]{0,30}\b(?:condensers?|condensing units?|condenser units?|air ?con\w*(?! ?ducts?| ?ductwork| grilles?| diffusers?| registers?)(?: units?| plant)?|a\/?c units?|split systems?|rooftop units?|packaged? units?)\b/i;
+// Fittings and fixtures that are cleaned, wiped, dusted or polished are not installed, wired or plumbed
+// (messy round 6: electrical and plumbing licensing and backflow lines for a builders clean of light
+// fittings, toilets and basins). The clause from the cleaning word to the end of the sentence, or to new
+// work ("and install"), is left out.
+const CLEANED_CLAUSE = /\b(?:clean\w*|wip(?:e|es|ed|ing)|dust(?:s|ed|ing)?|polish\w*|mop(?:s|ped|ping)?|wash\w*|vacuum\w*|scrub\w*|degreas\w*|sanitis\w*|disinfect\w*)\b(?:(?!(?:\b(?:and|then)\s+|,\s*)(?:install|replac|connect|fit|repair|lay|run|wire|terminat|rough)\w*)[^.;\n])*/gi;
+const withoutCleaned = (text) => String(text || '').replace(CLEANED_CLAUSE, ' ');
 const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
 function isPlumbing(text) {
   // Subsoil drains on a sports field carry groundwater, not sewage, so they are not drainage under the plumbing law.
@@ -2920,6 +2944,21 @@ function standDownNotice(why, around, chosen) {
   return `SiteWrite has no job steps for ${work} yet, so it will not draft this SWMS.${found}${ticked} To go on, add the job steps that cover the work itself under Job steps, or write your own step for the work with "Write a step for this".`;
 }
 
+// "No welding" or "no hot work" in the task's own words: the welding the rest of the task names is not
+// done, and is read as joining (messy round 6: a water main from the pick list says "butt and
+// electrofusion weld the pipe", and the person added "300 DICL ... rubber ring joints, no welding"; the
+// hot work permit, the Welding code, the welder and the brazing step stayed). The task prints as written.
+// A rule with a condition ("no hot works without a permit", "no welding from ladders") is not a denial.
+const DENIED_WELDING = /,?\s*\bno (?:welding|welds|hot works?)\b(?!\s+(?:without|unless|until|except|before|after|outside|from|on|in|near|above|over|within|during|where|when|if|at)\b)/gi;
+function withoutDeniedWelding(text) {
+  const words = String(text || '');
+  if (!words.match(DENIED_WELDING)) return words;
+  // The denial itself goes too, since its own words name welding.
+  return words.replace(DENIED_WELDING, '')
+    .replace(/\b(?:butt\s+(?:and\s+)?)?(?:electro-?fusion\s+|fusion\s+)?weld(?:s|ed|ing)?\b/gi, 'join')
+    .replace(/\b(?:braz\w*|solder\w*)\b/gi, 'join');
+}
+
 function askQuestions(input) {
   const state = stateFor(input);
   if (!state) {
@@ -2934,7 +2973,7 @@ function askQuestions(input) {
   }
   // Typos are fixed, then site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
   const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
-  const task = readSlang(spelling.text);
+  const task = withoutDeniedWelding(readSlang(spelling.text));
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
   // removing, repairing, making minor modifications to or disposing of installed stone.
@@ -3763,7 +3802,7 @@ function buildDraft(input, screen) {
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
   // The SWMS keeps the task as typed, with typos fixed but slang left as written.
   const typed = fixSpelling(taskLine(input.task || input.jobDescription)).text;
-  const task = readSlang(typed);
+  const task = withoutDeniedWelding(readSlang(typed));
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   // A fall control answer the questions no longer ask (the fall answer changed to No after it was
   // filled across) does not print or bring a harness (messy round 4, run 5).
@@ -3892,7 +3931,7 @@ function buildDraft(input, screen) {
     ...header,
     // Electrical work of the user's own (the emergency questions on isolation and rescue are asked only
     // for it, emergency.js), not work near overhead lines or other live services.
-    electricalWork: Boolean(tradeFlags(task, facts, state).electricalWork || ELECTRICAL_WORK.test(riskTask) || choiceAnswer('energisedWork', facts.energisedWork) === 'testing' || choiceAnswer('mainsConnection', facts.mainsConnection) === 'yes'),
+    electricalWork: Boolean(tradeFlags(task, facts, state).electricalWork || ELECTRICAL_WORK.test(withoutCleaned(riskTask)) || choiceAnswer('energisedWork', facts.energisedWork) === 'testing' || choiceAnswer('mainsConnection', facts.mainsConnection) === 'yes'),
     ...stepsAndPpe(task, facts, hazards, finalControls, state, input),
     references: referencesFor(facts, state.id),
     missing: [],
@@ -4086,7 +4125,7 @@ function buildDraft(input, screen) {
   // The steps the user wrote for work SiteWrite does not cover go in once the registers and ratings
   // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
-  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input), input);
+  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
@@ -4127,7 +4166,32 @@ function withHarnessTraining(draft) {
 
 // Gloves for the substances listed, and hearing protection where a step names noise,
 // unless the user chose the PPE list.
-const NOISY_PLANT = /\b(drop saws?|circular saws?|mitre saws?|nail guns?|concrete saws?|cut-?off saws?|tile saws?|masonry or paver saw|demolition saws?|road saws?|wall saws?|generators?|(?:air )?compressors?|jackhammers?|rock breakers?|breakers?|chainsaws?|stump grinders?|mulchers?|post drivers?|pile driving|tampers?|track maintenance machine|ballast regulators?|plate compactors?|roller or plate compactor|power trowels?|floor grinders?|angle grinders?|grinders?|concrete vibrators?|wire saws?|hydro demolition)\b/i;
+const NOISY_PLANT = /\b(hammer drills?|rotary hammers?|demolition hammers?|kangos?|water blaster|pressure (?:washers?|cleaners?)|post hole auger|augers?|drop saws?|circular saws?|mitre saws?|nail guns?|concrete saws?|cut-?off saws?|tile saws?|masonry or paver saw|demolition saws?|road saws?|wall saws?|generators?|(?:air )?compressors?|jackhammers?|rock breakers?|breakers?|chainsaws?|stump grinders?|mulchers?|post drivers?|pile driving|tampers?|track maintenance machine|ballast regulators?|plate compactors?|roller or plate compactor|power trowels?|floor grinders?|angle grinders?|grinders?|concrete vibrators?|wire saws?|hydro demolition)\b/i;
+// The PPE that plant the user confirmed or added brings, also where the page sends the list as ticked
+// (messy round 6: a floor grinder confirmed, a MIG welder and a petrol pressure washer added, and the
+// draft updated with no ear muffs or welding PPE, since the page always sends its ticks and the plant's
+// PPE was only added to SiteWrite's own suggestion). Loud plant brings ear muffs, and plant the user added
+// brings the PPE of the step it brings (addedPlantSteps). An item the user unticked by hand
+// (input.ppeOff) stays off.
+function plantPpe(ppe, registers, input = {}, task = '') {
+  const off = new Set(Array.isArray(input.ppeOff) ? input.ppeOff : []);
+  const add = new Set();
+  if ((registers.plant || []).some((item) => NOISY_PLANT.test(`${item.known || ''} ${item.item}`))) add.add('earMuffs');
+  const choice = input.plantChoice && typeof input.plantChoice === 'object' ? input.plantChoice : null;
+  if (choice) {
+    const kinds = addedPlantSteps(choice, task);
+    for (const activity of ACTIVITIES) if (kinds[activity.when]) for (const id of activity.ppe || []) add.add(id);
+  }
+  const ticked = new Set(ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id)));
+  // One of a kind where one is ticked already: hearing protection, a respirator, safety glasses, gloves, hi-vis.
+  const kindTicked = (id) => (/^ear(?:Muffs|Plugs)$/.test(id) && (ticked.has('earMuffs') || ticked.has('earPlugs')))
+    || (id === 'p2' && ticked.has('halfFace')) || (/^glasses/.test(id) && [...ticked].some((other) => /^glasses/.test(other)))
+    || (id === 'gloveGeneral' && [...ticked].some((other) => /^glove/.test(other))) || (id === 'hivis' && ticked.has('hivisNight'));
+  const fresh = [...add].filter((id) => !ticked.has(id) && !off.has(id) && !kindTicked(id));
+  if (!fresh.length) return ppe;
+  return ppe.map((group) => ({ ...group, items: group.items.map((item) => (fresh.includes(item.id) ? { ...item, ticked: true } : item)) }));
+}
+
 function ppeFromRegisters(ppe, registers) {
   const add = new Set();
   if (registers.substances.items.some((item) => /^(Cement|Epoxy|Adhesives|Solvents|Cleaning chemicals|Herbicides|Waterproofing|Curing|PVC primer|Bitumen)/.test(item.product))) add.add('gloveChemical');
@@ -4169,7 +4233,7 @@ function ppeList(task, facts, state, chosen) {
 }
 
 // The steps for plant the user confirmed using: an EWP, a mobile scaffold, and an airless sprayer for painting.
-function confirmedPlantSteps(input, flags) {
+function confirmedPlantSteps(input, flags, task = '') {
   const choice = input && input.plantChoice && typeof input.plantChoice === 'object' ? input.plantChoice : null;
   if (!choice) return {};
   const names = [...(Array.isArray(choice.used) ? choice.used : []), ...(Array.isArray(choice.added) ? choice.added.map((item) => item && item.item) : [])].filter((name) => typeof name === 'string').join('\n');
@@ -4184,6 +4248,32 @@ function confirmedPlantSteps(input, flags) {
   if (joinery && /\b(drop saws?|circular saws?|mitre saws?|nail guns?|routers?|planers?|jig ?saws?|power tools?)\b/i.test(names)) out.carpentryWork = true;
   // A placing boom the user said is not used (a line pump only) takes its boom lines with it.
   if (Array.isArray(choice.notUsed) && choice.notUsed.includes('Concrete placing boom') && !/\bboom\b/i.test(names)) out.noBoom = true;
+  return { ...out, ...addedPlantSteps(choice, task, flags) };
+}
+
+// Plant the user added is read as the plant SiteWrite knows by that name, and brings the step for using
+// it (messy round 6: a HIAB added with no HIAB step, a MIG welder with no hot work permit or welding PPE,
+// a hammer drill or floor grinder with no silica controls or hearing protection, a petrol pressure washer
+// with no step). Only plant the user added: plant SiteWrite listed came from the steps already.
+const MASONRY_WORDS = /\b(concrete|slabs?|masonry|brick\w*|block\w*|stone|pavers?|anchors?|core holes?|render)\b/i;
+function addedPlantSteps(choice, task = '', flags = {}) {
+  const { plantFor } = require('./register');
+  const out = {};
+  const added = (Array.isArray(choice.added) ? choice.added : []).map((item) => String((item && item.item) || '').trim()).filter(Boolean);
+  for (const name of added) {
+    const known = plantFor(name).map((item) => item.item);
+    if (known.includes('Vehicle loading crane (hiab)')) out.loaderCrane = true;
+    if (known.includes('Welder') && !/\bno (?:welding|hot work)\b/i.test(task)) out.steelWeld = true;
+    if (known.includes('Floor grinder with H class extraction') && !flags.wpPrep) out.floorGrind = true;
+    if (known.includes('Water blaster')) out.pressureClean = true;
+    // An auger digs holes, where no step of the task digs them already.
+    if (known.includes('Post hole auger') && !['fenceBuild', 'deckBuild', 'footingHoles', 'pilingRig', 'openBore', 'cfaCage'].some((id) => flags[id])) out.footingHoles = true;
+    // A hammer drill works concrete and masonry; another drill or a cut-off saw only where the item or
+    // the task names concrete, masonry or stone.
+    const drill = /\b(hammer drills?|rotary hammers?|sds drills?|masonry drills?|kangos?|demolition hammers?|jackhammers?)\b/i.test(name)
+      || (/\b(drills?|cut-?off saws?|quick ?cut\w*|demo saws?|concrete saws?|grinders?)\b/i.test(name) && MASONRY_WORDS.test(`${name}\n${task}`));
+    if (drill && !flags.coreDrill) out.silicaDrill = true;
+  }
   return out;
 }
 
@@ -4210,7 +4300,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // The way up to work at height the user chose, where no job step of the task stops a fall.
   // Plant the user confirmed brings the steps for using it (messy round 4: painting from a confirmed EWP
   // and mobile scaffold, with an airless sprayer added, had no height step and no spray step).
-  const access = { ...fallAccessFlags(task, facts, state, fallAnswer(input.fallRisk)), ...confirmedPlantSteps(input, tradeFlags(task, facts, state)) };
+  const access = { ...fallAccessFlags(task, facts, state, fallAnswer(input.fallRisk)), ...confirmedPlantSteps(input, tradeFlags(task, facts, state), task) };
   let jobSteps = withoutEdgeWork(jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']), ...access }, setting), input);
   // PPE the job steps call for is ticked, so the PPE section and the steps agree.
   // A list the user chose is left as they chose it.
@@ -4481,7 +4571,8 @@ const STEP_POSITIONS = [
   [/\b(sewer|water supply|plumbing|backflow|water meters?|hot water|water heater|rainwater tank|sprinkler|hydrant|floor wastes|grey water|pump-out|risers|solder|pvc pipe|butt fuse|the pipe\b|pipe section|pipework in the ceiling|clear the drain|drainage under the slab|medical gas|gas cylinders|pneumatic tube)\b/i, 'Licensed plumber'],
   [/\b(isolate and prove|energised|switchboards?|construction power|temporary (?:lighting|power)|cabl\w*|rough-in|fit off|electrical|sub-board|sub-mains|meter box|consumer mains|supply disconnected|solar (?:array|panels)|inverter|battery system|earthing|earth stakes|high voltage|light fittings|lightning|smoke alarms|control panel|test the new work|connect and commission|unfinished work safe|test and tag|generators?|substation|fire detection|heating cables|sports lighting|pool light|event power)\b/i, 'Licensed electrician'],
   [/\b(charge and fire|blast holes)\b/i, 'Licensed shotfirer'],
-  [/\b(scaffolds? |erect the scaffold|dismantle the scaffold|safety screens|temporary stair|gantry|hoardings)\b|^Inspect and hand over/i, 'Licensed scaffolder'],
+  // A hoarding is not scaffolding work (messy round 6: "Licensed scaffolder" for hoardings).
+  [/\b(scaffolds? |erect the scaffold|dismantle the scaffold|safety screens|temporary stair|gantry)\b|^Inspect and hand over/i, 'Licensed scaffolder'],
   [/\b(crane|cranes|hiab|rig and lift|rig, lift|land and release|heavy lift|dual lift|tower sections|land steel)\b/i, 'Crane operator and dogger'],
   [/\b(precast|tilt-up|hoist mast|install and dismantle the hoist)\b/i, 'Licensed rigger'],
   [/\b(forklifts?|elevating work platform|excavate|excavator|earthmoving|road plant|compactor|drill rig|piling rig|the rig\b|piles\b|mulcher|dredge|ground improvement|transporters|vacuum truck|hydraulic hammer|concrete pump|placing boom|bore under|conveyors?|processing plant|refuel plant|mobile plant|barge|haul|cart away|floor crane|monorail|operate the hoist)\b/i, 'Plant operator'],
@@ -5691,7 +5782,7 @@ function plainWordings(t, short, plain, on) {
   on(P(/\bstation platforms?\b|\bplatform works?\b|\brail protection\b/i), 'railCorridor');
   on(P(/^gabions?(?: walls?| baskets?)?\b|\bgabion baskets?\b/i), 'retainingWall', 'gabion');
   on(P(/\bsleeper (?:retaining )?walls?\b|^retaining walls?$|\bretaining walls? blocks?\b|\bblock retaining walls?\b/i), 'retainingWall');
-  on(P(/\b(?:in situ|in-situ|cast in situ|concrete|form\w* and pour\w*|pour\w*)\b[^.]{0,20}\bretaining walls?\b/i), 'retainingWall', 'concreteWall');
+  on(P(/\b(?:in situ|in-situ|cast in situ|concrete|form\w* and pour\w*|pour\w*)\b(?:(?!\b(?:sleepers?|blocks?|segmental|crib)\b)[^.]){0,20}\bretaining walls?\b/i), 'retainingWall', 'concreteWall');
   on(P(/\breinforced earth\b|\bprecast retaining (?:walls?|panels?)\b/i), 'precast', 'retainingWall');
   on(P(/\bground anchors?\b|\brock bolt\w*|\brock anchors?\b/i), 'anchorsProps');
   on(P(/\brock (?:walling|armour|revetment|beaching)\b/i), 'rockLining');
@@ -6719,7 +6810,13 @@ function settleFlags(flags, task, facts = {}) {
   if (T(/\b(sub-?mains?|consumer mains)\b/i) && T(/\b(install\w*|run\w*|pull\w*)\b/i)) out.cablePull = true;
   if (T(/\b(detention|retention|storage|fire(?: water)?|fire service) tanks?\b/i) && T(/\b(construct\w*|install\w*|build\w*)\b/i)) out.tankPlace = true;
   if (T(/\bpodium\b/i) && out.shallowTrench) out.shallowTrench = false;
-  out.concreteWall = Boolean(out.retainingWall && T(/\b(concrete|reinforced|in[- ]?situ)\b[^.]{0,20}\bretaining walls?\b/i));
+  // A concrete sleeper or block wall is not a formed wall (messy round 6: form, reo and pour steps for a
+  // concrete sleeper wall on steel posts).
+  out.concreteWall = Boolean(out.retainingWall && T(/\b(concrete|reinforced|in[- ]?situ)\b(?:(?!\b(?:sleepers?|blocks?|segmental|crib)\b)[^.]){0,20}\bretaining walls?\b/i));
+  // The cut dug for a retaining wall is the wall's own excavation, whose step covers the cut face; with no
+  // pipes, pits or services laid, it is not trenching (messy round 6: the trench steps, with "Break out
+  // the damaged pit", offered for a sleeper wall's cut).
+  if ((out.retainingWall || out.wallDrainage) && out.trench && T(/\b(?:excavat\w*|dig\w*|cut\w*)\b[^.]{0,20}\b(?:the |a )?cut\b|\bcut and fill\b/i) && !T(/\b(pipes?|pipework|pits?|stormwater|sewer\w*|conduits?|cables?|services?|mains?|trench\w*)\b/i)) out.trench = false;
   if (out.concreteWall) { out.timberOnlyWall = true; out.formwork = false; }
   out.noWallBackfill = Boolean(out.masonryLay || out.concreteWall);
   // Commercial bank rules.
@@ -7167,6 +7264,10 @@ function namedWorkFlags(task, flags = {}) {
   // manholes and pits, headwalls), vibration monitoring where the engineer requires it, the profiler's
   // operator, and stabilisation that is not assumed to be next to traffic.
   out.castInGround = /\bthrust blocks?\b|\b(?:form|pour)\w*\b[^.]{0,30}\b(?:manholes?|chambers?)\b[^.]{0,15}\bin (?:place|situ)\b|\bcast (?:in situ|in place)\b[^.]{0,40}\b(?:manholes?|pits?|chambers?|headwalls?)\b|\b(?:manholes?|pits?|chambers?)\b[^.]{0,30}\bcast (?:in situ|in place)\b|\b(?:head ?walls?|wing ?walls?)\b/i.test(task);
+  // Thrust blocks poured in the trench are the in-ground pour's own work: the pump, placing and finishing
+  // steps are for slabs and walls (messy round 6: a water main's thrust blocks brought "Pump and place
+  // concrete" and "Finish concrete", and with them the pump and boom).
+  if (out.castInGround && /\bthrust blocks?\b/i.test(task) && !/\b(?:slabs?|footpaths?|driveways?|kerbs?|pavements?|walls?|columns?|footings?|pump\w*|boom)\b/i.test(task.replace(/\bthrust blocks?\b/gi, ' '))) out.concrete = false;
   out.vibrationMonitoring = /\bvibration monitor\w*|\bmonitor\w* (?:the )?vibration\b/i.test(task);
   out.profiler = /\b(?:profil(?:er|ing|e the)|milling machines?|cold mill\w*|mill\w* the (?:road|asphalt|surface|pavement))\b/i.test(task);
   out.awayFromTraffic = /\b(?:stabilis\w*|lime|cement treat\w*)\b/i.test(task) && !/\b(?:traffic|roads?|streets?|lanes?|highways?|carriageways?|motorways?|intersections?)\b/i.test(task);
@@ -7258,9 +7359,9 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing|stress\w*\b[^.]{0,60}\btendons?|stress\w* and grout\w*\b[^.]{0,60}\b(?:tendons?|strands?|ducts?))\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
-    // Painting or masking around electrical fittings is not electrical work.
-    electricalWork: ELECTRICAL_WORK.test(withoutOtherTrades(task)),
-    plumbingWork: isPlumbing(withoutOtherTrades(task)),
+    // Painting or masking around electrical fittings is not electrical work, and nor is cleaning them.
+    electricalWork: ELECTRICAL_WORK.test(withoutCleaned(withoutOtherTrades(task))),
+    plumbingWork: isPlumbing(withoutCleaned(withoutOtherTrades(task))),
     // Water supply plumbing, where backflow and temperature control devices are found.
     waterSupplyWork: /\b(water (?:supply|services?|mains?|meters?|lines?|pipes?|heaters?|tanks?|reticulation)|potable|cold water|hot water|backflow|temper\w* valves?|tmvs?|thermostatic|taps?|tapware|fixtures?|basins?|sinks?|showers?|baths?|toilets?|cisterns?|urinals?|irrigation|hose reels?|hydrants?|plumbing fit[- ]?off)\b/i.test(task),
     sewerConnection: /\b(sewer (?:junctions?|connections?|jump-?ups?)|sewer connection|connect\w*[^.]{0,40}\bsewer\b|connect\w* (?:to )?(?:(?:the|a|new) )*(?:council |existing |live )?sewer\w*|connect\w*[^.]{0,40}\b(?:council|sewer) mains?|live sewer|(?<!\b(?:lay\w*|install\w*|construct\w*|build\w*|new|gravity|pressure|rising)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:gravity\s+|pressure\s+)?)sewer mains?|(?<!\b(?:build\w*|construct\w*|install\w*|new|precast|lay\w*)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:precast\s+)?)(?:manholes?|maintenance holes?))\b/i.test(task),
@@ -7445,7 +7546,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     beamInstall: (/\b(?:install\w*|fit\w*|insert\w*|put in|replac\w*)\b[^.]{0,30}\b(?:new )?(?:steel |lvl |timber |glulam )?(?:beams?|lintels?)\b/i.test(task) && (LOAD_BEARING_REMOVAL.test(task) || /\b(existing|old|brick\w*|openings?|walls?)\b/i.test(task))) || MASONRY_OPENING.test(task),
     underslabDrainage: /\b(sewer\w*|drainage|drains?|waste|stormwater|plumbing)\b[^.]{0,40}\bunder (?:a |the )?(?:new )?(?:house |building )?slabs?\b|\bunder[- ]?slab (?:drainage|plumbing|sewer\w*|pipes?)\b|\b(sewer\w*|drain\w*|waste|plumbing|pipes?)\b[^.]{0,30}\bunder (?:an? |the )?(?:existing )?(?:house |building )?floors?\b/i.test(task),
     trafficSignals: /\btraffic (?:lights|signals?|signal poles?)\b/i.test(task) && /\b(install\w*|replac\w*|erect\w*|new)\b/i.test(task),
-    footingHoles: /\b(dig\w*|excavat\w*|auger\w*)\b[^.]{0,20}\b(?:the |new )?(?:footings?|footing holes?|post holes?|pier holes?|holes)\b/i.test(task) && !/\btrench\w*\b/i.test(task),
+    // An auger named for posts digs their holes ("bobcat auger for posts", messy round 6: no step for it).
+    footingHoles: (/\b(dig\w*|excavat\w*|auger\w*)\b[^.]{0,20}\b(?:the |new )?(?:footings?|footing holes?|post holes?|pier holes?|holes)\b/i.test(task) || /\baugers?\b[^.]{0,20}\b(?:for|to dig|to set)\b[^.]{0,20}\b(?:the |new |fence |hoarding )?(?:posts?|piers?|footings?)\b/i.test(task)) && !/\btrench\w*\b/i.test(task),
     tileRoofStrip: /\b(strip\w*|remov\w*|replac\w*)\b[^.]{0,30}\b(?:the )?(?:old )?tiled? roofs?\b|\bre-?(?:tile|batten)\w* (?:the |a )?(?:tiled |slate )?roof\b|\bstrip\w*\b[^.]{0,20}\broof tiles\b/i.test(task),
     treeOnRoof: /\btrees?\b[^.]{0,40}\b(?:on|onto|through|across) (?:a |the )?(?:house |building |shed |garage )?roofs?\b/i.test(task),
     flyScreens: /\b(fly ?screens?|insect screens?|security (?:doors?|screens?)|screen doors?)\b/i.test(task),
@@ -7467,7 +7569,10 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     floodClean: /\bflood\w*\b/i.test(task) && /\b(clean\w*|strip\w*|remov\w*|gut\w*)\b/i.test(task),
     wallpaperStrip: /\b(strip\w*|remov\w*|steam\w*)\b[^.]{0,20}\bwall ?paper\b/i.test(task),
     underfloorHeating: /\bunderfloor heating\b|\bheating (?:cables?|mats?)\b|\bheated floors?\b/i.test(task),
-    wallDrainage: /\b(drainage|ag(?:ricultural)? (?:drains?|pipes?)|subsoil (?:drains?|drainage|pipes?)|backfill\w*)\b[^.]{0,40}\bbehind (?:a |the )?(?:new |existing )?(?:\w+ )?(?:retaining )?walls?\b|\bretaining wall drainage\b/i.test(task),
+    wallDrainage: /\b(drainage|ag(?:ricultural)? (?:drains?|pipes?)|subsoil (?:drains?|drainage|pipes?)|backfill\w*)\b[^.]{0,40}\bbehind (?:a |the )?(?:new |existing )?(?:\w+ )?(?:retaining )?walls?\b|\bretaining wall drainage\b/i.test(task)
+      // A retaining wall task that names its ag drain or drainage gravel (messy round 6: "ag drain and gravel
+      // backfill" for a sleeper wall was listed as work with no job steps).
+      || (/\bretaining walls?\b/i.test(task) && /\b(?:ag(?:ricultural)? (?:drains?|pipes?|lines?)|subsoil (?:drains?|pipes?)|drainage (?:gravel|aggregate|metal|stone))\b/i.test(task)),
     // Temporary barriers set out for a road works zone or closure, or temporary concrete or water-filled
     // barriers, which are traffic barriers, are placed as the traffic management plan (TMP) sets out
     // ("Install the temporary concrete barriers ... for the road works zone").
@@ -7818,6 +7923,9 @@ function transformerFlags(facts = {}) {
 
 // Job steps, each with its hazards and controls. Work the library does not know
 // gets one middle step built from the task, its hazards and its controls.
+const ACCESS_KIT = '(?:mobile scaffolds?|scaffold(?:s|ing)?|(?:scaffold |aluminium |mobile )towers?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|(?:platform )?ladders?|access equipment)';
+const ACCESS_ONLY = new RegExp(`^\\s*(?:work(?:ing)?|access|use|using) (?:from|on|off|with|using)? ?(?:the )?${ACCESS_KIT}(?:,? (?:and|or) (?:the )?${ACCESS_KIT})*\\.?\\s*$`, 'i');
+const AT_HEIGHT_WORK = { cleaning: 'cleaningHeight', painting: 'paintAccess' };
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, setting = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
@@ -7839,6 +7947,16 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
   // Work near live parts that someone else isolates gets the step to confirm their isolation.
   const isolationByOthers = ['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts.liveElectrical));
   const trade = { ...tradeFlags(task, facts, state), ...extra };
+  // A package that is only the access equipment ("Work from mobile scaffolds"), from a cleaning or painting
+  // scope, is that trade's work at height (messy round 6: a cleaning scope's access equipment SWMS had no
+  // cleaning step).
+  if (ACCESS_ONLY.test(String(task).replace(/\s*\([^()]*\)/g, ''))) for (const id of state.trades || []) if (AT_HEIGHT_WORK[id]) trade[AT_HEIGHT_WORK[id]] = true;
+  // Thrust blocks poured in a trench have small forms, not wall forms with a platform along the top
+  // (messy round 6: wall-form lines for a water main's thrust blocks).
+  if (trade.castInGround && /\bthrust blocks?\b/i.test(task) && !/\b(?:form\w*|pour\w*|cast\w*|build\w*)\b(?:\s+(?:and|in|the|a|new|concrete|in-?situ|situ|reinforced|pour\w*|form\w*)){0,4}\s+(?:walls?|manholes?|pits?|chambers?|headwalls?|culverts?|tanks?)\b/i.test(task)) trade.thrustBlocksOnly = true;
+  // Materials handled for a doors and frames package are doors and frames, not sheets and studs (messy
+  // round 6: "sheets, studs", "Wind catches large sheets" and "balconies" for doors).
+  if (trade.carpLoad && !trade.unitsOnly && !/\b(sheets?|studs?|plasterboard|cladding|linings?|framing|panels?|roofing|glass|glazing)\b/i.test(task) && (/\bdoors?\b/i.test(task) || ((state.trades || []).length > 0 && state.trades.every((id) => id === 'doors')))) trade.doorsOnly = true;
   // Work only on suspended slabs and above: no footing, pit or trench lines.
   const aboveGroundOnly = suspendedOnly(task) && !/\b(footings?|thickenings?|pits?|pile caps?|ground beams?|trench\w*|excavat\w*|lift pits?)\b/i.test(task);
   // Work in a hospital or other health care building, for the infection control lines.
@@ -7875,6 +7993,13 @@ const WORK_SEQUENCE = [
   // The old structure comes out before the new one goes in (messy round 5: the old bridge deck was
   // demolished after the new planks were landed and the stitch pour placed).
   [/^(?:Demolish|Demolish the bridge|Demolish the structure)$/, /^(?:Set up the crane|Land and fix the precast floor units|Stand and brace the precast elements|Erect falsework and shores|Lay the formwork deck|Set edge forms and prepare the base|Place and tie reo|Set up the concrete pump and placing boom|Place concrete|Pump and place concrete|Install road safety barrier)$/],
+  // Concrete poured in the excavation (thrust blocks, pits) goes in before the trench is backfilled, and
+  // a retaining wall is built before the drainage and backfill behind it (messy round 6: the thrust
+  // block pour after the backfill; drainage and backfill before the sleeper wall).
+  [/^Form, fix reo and pour concrete in the excavation$/, /^Backfill the trench$/],
+  [/^Build the retaining wall$/, /^(?:Install drainage behind the retaining wall|Backfill behind the retaining wall)$/],
+  // Access to the lift shaft is made safe before the work in it: drilling anchors, welding brackets.
+  [/^Work at open lift shafts and landing doors$/, /^(?:Drill or cut concrete, masonry or stone|Weld steel)$/],
   // Trees are lifted in and planted before their pits are backfilled (no trench work: tree pits).
   [/^(?:Unload with the truck loading crane \(hiab\)|Plant)$/, /^(?:Backfill the (?:trench|tree pits)|Reinstate the surface)$/, (steps) => steps.some((step) => step.step === 'Plant') && !steps.some((step) => /^(?:Work in the trench|Lay pipes|Install pits|Lay conduits)$/.test(step.step))],
 ];
@@ -7988,6 +8113,9 @@ const TASK_ONLY = [
   [/^Fire rated sealants and mastics/, /\bfire[- ]?(?:rat\w*|stop\w*|seal\w*)\b/i],
   [/^Adhesives, sealants and sealers are used/, /\b(adhesives?|glue\w*|seal\w*|silicone|mastic)\b/i],
   [/^Silica dust from cutting fibre cement/, /\b(fibre cement|fc sheet\w*|villaboard|cement sheet\w*|compressed sheet)\b/i],
+  // The compactor's hearing line only where the work compacts (messy round 6: a plate compactor line in
+  // a fencing SWMS with a bobcat and auger and no compactor).
+  [/^Plate compactor operators wear personal hearing protectors\b/, /\b(compact\w*|wackers?|rammers?|rollers?|backfill\w*|bases? course|sub-?base|pavers?|paving)\b/i],
   [/^Drop saws have a self-adjusting guard/, /\b(timber|saw\w*|cut\w*|mdf|joinery|fram\w*|skirting|architraves?|decking|cladding)\b/i],
   [/^Nail guns?\b/, /\b(nail\w*|fram\w*|timber|skirting|architraves?|joinery|decking|cladding|battens?|trusses?)\b/i],
   // Power line lines for plant, cranes and trucks, and for cutting or sanding tools, only where the work

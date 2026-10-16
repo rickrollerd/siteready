@@ -67,7 +67,8 @@ const NEEDS = {
 //   gumboots: wet concrete work (placing, pumping, screeding, washing out, slurry) or wet ground work
 //     (sewage, wet wells, standing water, water blasting).
 // "Never on concrete dust", "no one is under the deck while it is poured", "not reasonably practicable".
-const NOT_DONE = /\b(?:never|rather than|instead of|avoid\w*|no one|nobody|no faster|not reasonably practicable|(?:do|does|is|are|must|should|can) not|cannot|don't)\b/i;
+// "No harness is used" says it is not worn (messy round 6: that answer ticked a harness for all work).
+const NOT_DONE = /\b(?:never|rather than|instead of|avoid\w*|no one|nobody|no faster|not reasonably practicable|(?:do|does|is|are|must|should|can) not|cannot|don't)\b|^\s*no\s+(?:[\w-]+\s+){0,3}(?:is|are)\s+(?:used|worn|needed|required)\b/i;
 // A P2 respirator filters dust, fibres and fume, not vapours or gases: those need a respirator with filters.
 const AIRBORNE = /\bsilica\b|\bdust\w*|\bfibres?\b|\basbestos\b|\bmould\w*|\blead (?:paint|dust|fume)|\bfumes?\b|\bisocyanate\w*|\bspray mist\b|\bcontaminat\w*/i;
 const VAPOUR = /\bvapours?\b|\bsewer gas\b|\bisocyanate\w*|\bsolvents?\b/i;
