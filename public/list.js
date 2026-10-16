@@ -163,7 +163,9 @@
     let html = '<h2>Work on these SWMS in SiteWrite</h2>';
     if (!claimNote && l.mine && me) claimNote = { kind: 'ok', message: `This list is linked to ${me.company.name} in SiteWrite. ${l.builder.name} can see that you have it.` };
     if (claimNote && claimNote.kind === 'ok') {
-      html += `<div class="ok"><strong>${esc(claimNote.message)}</strong></div><div class="actions"><a class="button" href="/">Open SiteWrite</a></div>`;
+      // Stage 6: the SWMS are drafted and waiting under From main contractors in SiteWrite.
+      const id = claimNote.listId || l.listId || '';
+      html += `<div class="ok"><strong>${esc(claimNote.message)}</strong></div><p>Its SWMS are drafted and waiting in SiteWrite, under From main contractors, with the site details ${esc(l.builder.name)} set filled in. You check each one and fill in what only you know.</p><div class="actions"><a class="button" href="/${id ? `?list=${encodeURIComponent(id)}` : '#from-builders'}">Open the SWMS in SiteWrite</a></div>`;
     } else if (!me) {
       html += `<p>Sign in, or start an account, to take up this list. It is then linked to your company, and ${esc(l.builder.name)} can see that you have it.${abnLine}</p>
         <form id="signin" novalidate><label for="signin-email">Your work email</label><input id="signin-email" type="email" autocomplete="email" inputmode="email" maxlength="200">
@@ -199,7 +201,7 @@
     await busy(button, 'Taking it up...', async () => {
       try {
         const data = await call('POST', `/api/list/${encodeURIComponent(token)}/claim`, null, { signedIn: true });
-        claimNote = { kind: 'ok', message: data.message };
+        claimNote = { kind: 'ok', message: data.message, listId: data.listId || '' };
       } catch (error) {
         if (error.status === 401) claimNote = { kind: 'warn', message: 'You have been signed out. Sign in again to take up the list.' };
         else if (error.field === 'company') claimNote = { kind: 'warn', message: error.message };

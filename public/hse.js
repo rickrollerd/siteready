@@ -1210,6 +1210,14 @@
       lines.push(sending.opened ? `<p>Opened on ${esc(sending.opened)}.</p>` : '<p class="meta">Not opened yet. It counts as opened when the link in the email is used.</p>');
       if (sending.claimed) lines.push(`<p>Taken up in SiteWrite by <strong>${esc(sending.claimed.name)}</strong> (ABN ${esc(sending.claimed.abn)}) on ${esc(sending.claimed.on)}.</p>`);
       else lines.push(`<p class="meta">${sending.abn ? `Only a company with ABN ${esc(sending.abnShown)} can take it up in SiteWrite.` : 'No ABN given, so the first company to take it up in SiteWrite gets it. You will see which company.'}</p>`);
+      // Stage 6 (D311): a list taken up by the wrong company, where no ABN was given, can be released by the lead.
+      const release = sending.release || {};
+      if (sending.claimed && release.can) {
+        lines.push(release.lead
+          ? `<p class="meta">Not the right company? Release the list from it. ${esc(sending.claimed.name)} then loses the list and its work on it, and cannot take it up again.</p><div class="actions"><button type="button" class="light" id="s-release">Release the list from ${esc(sending.claimed.name)}</button></div>`
+          : `<p class="meta">Not the right company? The lead of your account can release the list from it.</p>`);
+      }
+      for (const done of release.released || []) lines.push(`<p class="meta">${esc(done.by)} released the list from ${esc(done.name)}${done.abn ? ` (ABN ${esc(done.abn)})` : ''} on ${esc(done.on)}.</p>`);
     }
     let warn = '';
     if (sending.stopped) warn += `<div class="warn"><strong>${esc(sending.stopped.email)} asked on ${esc(sending.stopped.on)} for no more list emails from you.</strong> SiteLink will not email them. Contact them yourself, or change the contact email to another person.</div>`;
@@ -1275,6 +1283,22 @@
     const id = sub.subcontract.id;
     if (event.target.closest('#s-check')) { await checkEmail(event.target.closest('#s-check'), false); return; }
     if (event.target.closest('#s-remind')) { await checkEmail(event.target.closest('#s-remind'), true); return; }
+    const release = event.target.closest('#s-release');
+    if (release) {
+      const company = sub.sending.claimed && sub.sending.claimed.name;
+      if (!window.confirm(`Release the list from ${company}? ${company} loses the list and its work on it in SiteWrite, and cannot take it up again. The list stays as it is, and its link still works.`)) return;
+      await busy(release, 'Releasing...', async () => {
+        try {
+          const data = await call('POST', `/api/hse/subcontracts/${encodeURIComponent(id)}/release`, { check: sub.sending.release.check });
+          renderSub(data);
+          box('s-send-status', `<strong>${esc(data.message)}</strong>`, 'ok');
+          $('s-send').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          box('s-send-status', esc(error.message), 'bad');
+        }
+      });
+      return;
+    }
     if (event.target.closest('#s-send-cancel')) { checking = null; $('s-confirm').innerHTML = ''; ($('s-due') || $('s-send')).focus(); return; }
     const go = event.target.closest('#s-send-go');
     if (!go || !checking) return;

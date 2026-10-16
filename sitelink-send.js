@@ -301,6 +301,8 @@ async function sendingFor(ctx) {
     opened: sub.opened_at ? when(sub.opened_at, project.state) : '',
     claimed: sub.claimed_at ? { name: sub.claimed_name, abn: formatAbn(sub.claimed_abn || ''), on: when(sub.claimed_at, project.state) } : null,
     stopped: stop ? { email: stop.email, on: when(stop.stopped_at, project.state) } : null,
+    // Stage 6 (D311): whether the list can be released from the company that took it up, and by whom.
+    release: await subbie().releaseFor(ctx),
     changes: last && anyChange(changes) ? changes : null,
     emailChanged: Boolean(last && sub.contact_email && sub.contact_email !== last.email),
     remind,
@@ -325,7 +327,7 @@ async function summaryFor(sub, project) {
     lastContact: last ? { text: LAST_CONTACT[last.kind] || last.summary, on: shortDate(last.created_at, project.state) } : null,
   };
 }
-const LAST_CONTACT = { list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', stopped: 'Asked to stop emails', restarted: 'Emails started again' };
+const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', stopped: 'Asked to stop emails', restarted: 'Emails started again' };
 function shortDate(date, state) {
   return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', timeZone: ZONE(state) }).format(new Date(date));
 }
@@ -469,14 +471,17 @@ async function linkFor(token) {
 // Why a company cannot take up the list (D308), said the same way on the page and when it presses.
 const ABN_REFUSED = (name, contact) => `This list is for a company with a different ABN, so it has not been added to ${name}. If the list should be yours, contact ${contact}.`;
 const TAKEN = (name, contact) => `Another company has already taken up this list in SiteWrite, so it has not been added to ${name}. If the list should be yours, contact ${contact}.`;
-function refusalFor(sub, company, contact) {
+// A company the lead released the list from (stage 6, D311) is told so.
+async function refusalFor(sub, company, contact, builder) {
   const name = String((company && company.name) || '').trim();
   const abn = abnDigits(company && company.abn);
   if (!company || !name || abn.length !== 11 || sub.company_id === company.id) return '';
   if (sub.abn && sub.abn !== abn) return ABN_REFUSED(name, contact);
+  if (await subbie().releasedFrom(sub, company)) return subbie().RELEASED(name, builder, contact);
   if (sub.company_id) return TAKEN(name, contact);
   return '';
 }
+const subbie = () => require('./sitelink-subbie');
 
 // viewer: the signed-in company, if any, so the page knows the list is already theirs, or why that
 // company cannot take it up.
@@ -506,7 +511,9 @@ async function listView(found, viewer = null) {
     abnSet: Boolean(sub.abn),
     claimed: Boolean(sub.claimed_at),
     mine: Boolean(viewer && sub.company_id && sub.company_id === viewer.id),
-    refusal: refusalFor(sub, viewer, found.contact),
+    // The list in the company's SiteWrite, under From main contractors (stage 6).
+    listId: viewer && sub.company_id && sub.company_id === viewer.id ? sub.id : '',
+    refusal: await refusalFor(sub, viewer, found.contact, org.name),
     uploadsOn: designFiles.enabled(),
     uploadMaxMb: UPLOAD_MAX_MB,
   };
@@ -552,11 +559,15 @@ publicRouter.post('/list/:token/claim', auth.requireUser, route(async (req, res)
     throw Object.assign(fail(409, message), { field: 'claim' });
   };
   if (sub.company_id && sub.company_id === company.id) {
-    res.json({ ok: true, already: true, company: name, message: `This list is already linked to ${name} in SiteWrite.` });
+    res.json({ ok: true, already: true, company: name, listId: sub.id, message: `This list is already linked to ${name} in SiteWrite.` });
     return;
   }
   if (sub.abn && sub.abn !== abn) {
     await refused(ABN_REFUSED(name, contact), 'A company whose ABN does not match the ABN you gave tried to take up the list in SiteWrite. It was not linked to them.');
+  }
+  // Released from this company by the lead (stage 6, D311): it cannot take the list up again.
+  if (await subbie().releasedFrom(sub, company)) {
+    await refused(subbie().RELEASED(name, org.name, contact), `${name}, which you released the list from, tried to take it up again in SiteWrite. It was not linked to them.`);
   }
   if (sub.company_id) {
     await refused(TAKEN(name, contact), 'A second company tried to take up the list in SiteWrite. It stays with the company that took it up first.');
@@ -567,12 +578,12 @@ publicRouter.post('/list/:token/claim', auth.requireUser, route(async (req, res)
     [company.id, req.user.id, now, name, abn, sub.id]);
   if (!taken.length) {
     const again = await db.one('SELECT company_id FROM subcontracts WHERE id = $1', [sub.id]);
-    if (again && again.company_id === company.id) { res.json({ ok: true, already: true, company: name, message: `This list is already linked to ${name} in SiteWrite.` }); return; }
+    if (again && again.company_id === company.id) { res.json({ ok: true, already: true, company: name, listId: sub.id, message: `This list is already linked to ${name} in SiteWrite.` }); return; }
     await refused(TAKEN(name, contact), 'A second company tried to take up the list in SiteWrite. It stays with the company that took it up first.');
   }
   await logEntry({ projectId: project.id, subId: sub.id, kind: 'claimed', actorKind: 'sub', actorName: name, summary: `${name} (ABN ${formatAbn(abn)}) took up the list for ${sub.name} in SiteWrite.`, refs: {} });
   record('list_claimed', company.id);
-  res.json({ ok: true, company: name, message: `The list is now linked to ${name} in SiteWrite. ${org.name} can see that you have it.` });
+  res.json({ ok: true, company: name, listId: sub.id, message: `The list is now linked to ${name} in SiteWrite. ${org.name} can see that you have it.` });
 }));
 
 // A SWMS the subcontractor already has, for one SWMS on the list.

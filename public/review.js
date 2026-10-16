@@ -75,7 +75,7 @@
     const stepPpe = tables.stepPpe || [];
     return `${pairs([['State', draft.state], ['SWMS reference number', draft.swmsRef], ['Revision', revisionText(draft)], ['Principal contractor', draft.principalContractor], ['Subcontractor', draft.subcontractor],
       ['Workplace', draft.workplace], ['Site manager', draft.siteManager], ['Scaffold supervisor', draft.scaffoldSupervisor], ['Hospital', draft.hospital], ['First aider', draft.firstAider],
-      ['Muster point', draft.musterPoint], ['Task', draft.task], ['Crane operated by', draft.craneOperator], ['Residential construction work', draft.residential],
+      ['First aid location', draft.firstAidLocation], ['Muster point', draft.musterPoint], ['Site rules', (draft.siteRules || []).join('\n')], ['Task', draft.task], ['Crane operated by', draft.craneOperator], ['Residential construction work', draft.residential],
       [`Fall of more than ${draft.fallMetres || 2} metres`, draft.fallRisk], ['Date', draft.date]])}
       <h3>Responsibilities</h3>${pairs([['Works manager', draft.worksManager], ['Contact phone', draft.worksManagerPhone], ['Person responsible for ensuring compliance with this SWMS', draft.complianceResponsible],
         ['Person responsible for reviewing the control measures', draft.reviewer], ['Review date', draft.reviewDate]])}

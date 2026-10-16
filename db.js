@@ -853,6 +853,40 @@ const SCHEMA = [
   // ('project-invite:{projectId}'), so sign-ups from the review loop can be counted.
   "ALTER TABLE login_tokens ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE companies ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT ''",
+  // Goal 12 stage 6: the subcontractor's work on a list it took up, kept on the server so the office can
+  // start on a desktop and the foreman finish on a phone. One row for each list and company: the
+  // project page as the company left it (body), the builder's details as it last saw them (seen), the
+  // builder's details it changed (overrides), and a version that counts up with each save, so a save
+  // from a device that is behind is refused. The company's own details are never kept here; they come
+  // from its profile. Only that company reads it: the main contractor never does (submission is
+  // stage 7).
+  `CREATE TABLE IF NOT EXISTS sub_progress (
+    subcontract_id TEXT NOT NULL,
+    company_id TEXT NOT NULL,
+    body JSONB NOT NULL,
+    seen JSONB NOT NULL,
+    overrides JSONB NOT NULL,
+    version INTEGER NOT NULL,
+    updated_by TEXT NOT NULL DEFAULT '',
+    updated_by_name TEXT NOT NULL DEFAULT '',
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (subcontract_id, company_id)
+  )`,
+  // A list the lead released from the company that took it up (D311: the wrong company, where no ABN
+  // was given). The released company loses the list and cannot take it up again. The main
+  // contractor's record: the company's name as it was, and no link to the company once it is deleted.
+  `CREATE TABLE IF NOT EXISTS subcontract_releases (
+    id TEXT PRIMARY KEY,
+    subcontract_id TEXT NOT NULL,
+    company_id TEXT NOT NULL DEFAULT '',
+    company_name TEXT NOT NULL DEFAULT '',
+    company_abn TEXT NOT NULL DEFAULT '',
+    released_by TEXT NOT NULL DEFAULT '',
+    released_by_name TEXT NOT NULL DEFAULT '',
+    released_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS subcontract_releases_subcontract ON subcontract_releases (subcontract_id)',
+  'CREATE INDEX IF NOT EXISTS subcontracts_company ON subcontracts (company_id)',
 ];
 
 async function migrate() {

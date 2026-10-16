@@ -239,6 +239,19 @@ function emergencyAnswers(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// The site rules a main contractor set (Goal 12 stage 6): a list, or lines of text, each rule once, with
+// any bullet or number at the start taken off. Up to 40 rules.
+function siteRules(value) {
+  const lines = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/\r?\n/) : [];
+  const out = [];
+  for (const line of lines) {
+    if (typeof line !== 'string') continue;
+    const text = textField(line, 300).replace(/^\s*(?:[-*\u2022\u00b7]|\d{1,2}[.)])\s+/, '').replace(/\s+/g, ' ').trim();
+    if (text && !out.includes(text)) out.push(text);
+  }
+  return out.length ? out.slice(0, 40) : undefined;
+}
+
 function draftBody(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
@@ -264,6 +277,10 @@ function draftBody(body) {
     hospital: field(body.hospital, 500),
     firstAider: field(body.firstAider, 300),
     musterPoint: field(body.musterPoint, 300),
+    // From a main contractor's site details (Goal 12 stage 6): where first aid is, and the site rules,
+    // one to a line. Both print in the site details when given.
+    firstAidLocation: field(body.firstAidLocation, 300) || undefined,
+    siteRules: siteRules(body.siteRules),
     worksManager: field(body.worksManager, 300),
     worksManagerPhone: field(body.worksManagerPhone, 60),
     complianceResponsible: field(body.complianceResponsible, 300),

@@ -182,9 +182,11 @@ function metaRows(draft) {
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor]);
   rows.push(['Workplace', draft.workplace]);
-  for (const [label, key] of [['Site manager', 'siteManager'], ['Scaffold supervisor', 'scaffoldSupervisor'], ['Hospital', 'hospital'], ['First aider', 'firstAider'], ['Muster point', 'musterPoint']]) {
+  for (const [label, key] of [['Site manager', 'siteManager'], ['Scaffold supervisor', 'scaffoldSupervisor'], ['Hospital', 'hospital'], ['First aider', 'firstAider'], ['First aid location', 'firstAidLocation'], ['Muster point', 'musterPoint']]) {
     if (draft[key]) rows.push([label, draft[key]]);
   }
+  // The main contractor's site rules (Goal 12 stage 6), one to a line.
+  if ((draft.siteRules || []).length) rows.push(['Site rules', draft.siteRules.join('\n')]);
   rows.push(['Task', draft.task]);
   if (draft.craneOperator) rows.push(['Crane operated by', draft.craneOperator]);
   if (draft.residential) rows.push(['Residential construction work', draft.residential]);

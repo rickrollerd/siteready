@@ -479,7 +479,10 @@ function metaRows(draft) {
   if (draft.scaffoldSupervisor) rows.push(['Scaffold supervisor', draft.scaffoldSupervisor]);
   if (draft.hospital) rows.push(['Hospital', draft.hospital]);
   if (draft.firstAider) rows.push(['First aider', draft.firstAider]);
+  if (draft.firstAidLocation) rows.push(['First aid location', draft.firstAidLocation]);
   if (draft.musterPoint) rows.push(['Muster point', draft.musterPoint]);
+  // The main contractor's site rules (Goal 12 stage 6), one to a line.
+  if ((draft.siteRules || []).length) rows.push(['Site rules', draft.siteRules.join('\n')]);
   rows.push(['Task', draft.task]);
   if (draft.craneOperator) rows.push(['Crane operated by', draft.craneOperator]);
   if (draft.residential) rows.push(['Residential construction work', draft.residential]);
@@ -697,4 +700,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { notApplyLines, sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines, draftToDocx, draftedNote, revisionText };
+module.exports = { notApplyLines, sharedNote, preparedFor, workingCopy, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines, draftToDocx, draftedNote, revisionText, metaRows };

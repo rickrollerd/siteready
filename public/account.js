@@ -36,7 +36,7 @@
     if (!response.ok) {
       const data = await response.json().catch(() => null);
       // The box a refusal is about, and the parts of the check to tick again (D286).
-      throw Object.assign(new Error((data && data.message) || (!data || response.status >= 500 ? SERVER_DOWN : 'Something went wrong. Try again.')), { status: response.status, field: data && data.field, stale: data && data.stale });
+      throw Object.assign(new Error((data && data.message) || (!data || response.status >= 500 ? SERVER_DOWN : 'Something went wrong. Try again.')), { status: response.status, field: data && data.field, stale: data && data.stale, data });
     }
     const type = response.headers.get('content-type') || '';
     return type.includes('application/json') ? response.json() : response;
@@ -194,7 +194,9 @@
     await refresh();
     $('signin').classList.add('hidden');
     if (passkeysWork() && me && !me.user.hasPasskey) $('faceid-offer').classList.remove('hidden');
-    showPanel('my-swms');
+    // A company with lists from main contractors sees them first (Goal 12 stage 6).
+    const lists = me && S.builderListsReady ? await S.builderListsReady().catch(() => 0) : 0;
+    showPanel(lists ? 'from-builders' : 'my-swms');
     scopeWaiting();
   }
 
@@ -212,6 +214,8 @@
     status('faceid-status', '');
     reviewsBackNote([]);
     renderBar();
+    // The lists from main contractors are the company's: they go with the session (from-builders.js).
+    if (S.builderListsSignedOut) S.builderListsSignedOut();
   }
 
   async function refresh() {
@@ -231,6 +235,8 @@
     renderSitePicker();
     if (me && S.redrawActions) S.redrawActions();
     if (me && !mineOpen()) checkReviewsBack();
+    // The lists the company took up from main contractors (Goal 12 stage 6, from-builders.js).
+    if (me && S.builderListsSignedIn) S.builderListsSignedIn();
   }
 
   function trialText(company) {
@@ -257,6 +263,7 @@
     bar.innerHTML = `<span class="bar-note"><strong>${esc(me.company.name || me.user.email)}</strong> · ${esc(trialText(me.company))}</span>
       <span class="bar-links">
         ${billingLink}
+        ${S.builderBarLink ? S.builderBarLink() : ''}
         <button type="button" class="link" data-panel="my-swms">My SWMS</button>
         <button type="button" class="link" data-panel="sites-panel">Sites</button>
         <button type="button" class="link" data-panel="team-panel">Team</button>
@@ -276,8 +283,9 @@
   }
 
   function showPanel(id) {
-    ['my-swms', 'sites-panel', 'team-panel'].forEach((panel) => $(panel).classList.toggle('hidden', panel !== id));
+    ['my-swms', 'sites-panel', 'team-panel', 'from-builders'].forEach((panel) => { if ($(panel)) $(panel).classList.toggle('hidden', panel !== id); });
     if (id === 'my-swms') loadSwms();
+    if (id === 'from-builders' && S.loadBuilderLists) S.loadBuilderLists();
     if (id === 'sites-panel') renderSites();
     if (id === 'team-panel') loadTeam();
     $(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -317,7 +325,7 @@
       // Work not saved is not left on a shared phone for the next person. An expired session
       // keeps it, so the user can sign in again and carry on.
       if (S.clearUnsaved) S.clearUnsaved();
-      ['my-swms', 'sites-panel', 'team-panel'].forEach((id) => $(id).classList.add('hidden'));
+      ['my-swms', 'sites-panel', 'team-panel', 'from-builders'].forEach((id) => { if ($(id)) $(id).classList.add('hidden'); });
     }
   });
 
@@ -962,6 +970,8 @@
   });
 
   S.signedIn = () => Boolean(me);
+  S.showPanel = (id) => showPanel(id);
+  S.renderBar = () => renderBar();
   // For the project download: whether downloads are open, the review box, and the download itself.
   S.canDownload = () => !config.accounts || Boolean(me && me.company.hasAccess);
   S.accountsOn = () => Boolean(config.accounts);

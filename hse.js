@@ -778,4 +778,8 @@ const scopes = require('./sitelink-scopes').install(router, { projectFor, needNa
 
 require('./sitelink-send').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, versionsOf, detailsView, FIELDS, dateTime, zones: ZONES, supportEmail });
 
+// ---- The subcontractor's drafts, and the lead's Release button (stage 6, sitelink-subbie.js) ----
+
+require('./sitelink-subbie').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, personName, supportEmail, FIELDS, EMPTY, dateTime });
+
 module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey, tidyAddress, supportEmail };

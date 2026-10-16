@@ -62,7 +62,8 @@
         substances: d.substances || null,
       },
       plant: { plant: list(d.plant), qualifications: list(d.qualifications) },
-      emergency: { emergency: list(d.emergency), hospital: text(d.hospital), firstAider: text(d.firstAider), musterPoint: text(d.musterPoint) },
+      // First aid location (Goal 12 stage 6) only when given, so a SWMS without it keeps its fingerprint.
+      emergency: { emergency: list(d.emergency), hospital: text(d.hospital), firstAider: text(d.firstAider), musterPoint: text(d.musterPoint), ...(text(d.firstAidLocation) ? { firstAidLocation: text(d.firstAidLocation) } : {}) },
       site: {
         principalContractor: text(d.principalContractor), workplace: text(d.workplace), siteManager: text(d.siteManager), scaffoldSupervisor: text(d.scaffoldSupervisor),
         craneOperator: text(d.craneOperator), task: text(d.task), residential: text(d.residential), fallRisk: text(d.fallRisk), swmsRef: text(d.swmsRef),

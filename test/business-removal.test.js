@@ -98,6 +98,8 @@ const TIED = {
   // The principal contractor's response to its SWMS, and the reviewer's looks at its reference (goal 3).
   swms_reviews: ['SELECT id FROM swms_reviews WHERE swms_id = $1', (b) => [b.swmsId]],
   review_access_log: ['SELECT id FROM review_access_log WHERE ref = $1', (b) => [b.reviewRef]],
+  // Its own work on a builder's list it took up (Goal 12 stage 6).
+  sub_progress: ['SELECT subcontract_id FROM sub_progress WHERE company_id = $1', ID],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
 const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations', 'review_learning', 'list_edit_events'];
@@ -111,7 +113,10 @@ const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_m
 // loses its link to the business (sitelink-send.test.js). Asks to a lead to be added to its team are the
 // main contractor's too (lead_asks).
 const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions', 'orgs', 'org_members', 'projects', 'project_site_details', 'subcontracts', 'required_swms', 'subcontract_points', 'project_events',
-  'list_links', 'mail_messages', 'mail_stops', 'list_uploads', 'list_upload_data', 'project_log', 'lead_asks'];
+  'list_links', 'mail_messages', 'mail_stops', 'list_uploads', 'list_upload_data', 'project_log', 'lead_asks',
+  // A list the lead released from a company (stage 6) is the main contractor's record: it loses its
+  // link to a deleted business.
+  'subcontract_releases'];
 
 async function tiedCounts(business) {
   const out = {};
@@ -182,6 +187,9 @@ async function seedBusiness(key) {
   await db.query('INSERT INTO sign_translations (id, swms_id, content_hash, language, translation, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [`tr-${key}`, swms.id, 'h', 'vi', '{}', now]);
   await db.query('INSERT INTO swms_review_flags (swms_id, notice_id, revision, reason, flagged_at) VALUES ($1, $2, $3, $4, $5)', [swms.id, 'notice-1', 2, 'A code changed.', now]);
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, status, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [`ai-${key}`, companyId, 'doc', 'v1', 'done', now]);
+  // Its work on a builder's list, as the list's page keeps it (sitelink-subbie.test.js makes it through the app).
+  await db.query('INSERT INTO sub_progress (subcontract_id, company_id, body, seen, overrides, version, updated_by, updated_by_name, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+    [`sub-${key}`, companyId, JSON.stringify({ project: { items: [{ title: `${key} hangers` }] }, page: { worksManager: `${key} Supervisor` } }), '{}', '[]', 1, '', `${key} Supervisor`, now]);
   // A subcontractor's SWMS checked with the builder check and kept, read by the stand-in model.
   const checkedId = await keepACheck(key, token, companyId);
   // The owner looks at the account, a reference and searches for it: all in the access log.

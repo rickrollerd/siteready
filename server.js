@@ -94,7 +94,9 @@ const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
 // A main contractor's subcontract scope (Goal 12 stage 4) is sent the same way.
 const HSE_SCOPE = /^\/api\/hse\/subcontracts\/[^/]+\/scope$/;
-app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+// A subcontractor's work on a builder's list (stage 6) is the whole project page, like the project zip.
+const LIST_PROGRESS = /^\/api\/from-builders\/[^/]+\/progress$/;
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' || LIST_PROGRESS.test(req.path) ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 // SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
 app.get(['/sitelink', '/sitelink/'], (req, res, next) => {
@@ -699,6 +701,8 @@ app.use('/api', admin.router);
 app.use('/api', reviews.router);
 app.use('/api', hse.router);
 app.use('/api', require('./sitelink-send').publicRouter);
+// Stage 6: the lists a company took up, under From main contractors, and its work on them.
+app.use('/api', require('./sitelink-subbie').router);
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {
@@ -734,7 +738,9 @@ app.use((error, req, res, _next) => {
   const tradeMismatch = error.publicMessage && error.tradeMismatch === true ? { tradeMismatch: true } : {};
   // Stage 5: the email as it now stands, when it changed after the lead checked it.
   const preview = error.publicMessage && error.preview && typeof error.preview === 'object' ? { preview: error.preview } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...support, ...unverified, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview });
+  // Stage 6: the company's newer work on a list, when a save came from a device that was behind.
+  const progress = error.publicMessage && error.progress && typeof error.progress === 'object' ? { progress: error.progress } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...support, ...unverified, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview, ...progress });
 });
 
 // One worker per processor core, as many as the memory allows. A worker holds the step library, the word
