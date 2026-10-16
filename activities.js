@@ -2667,13 +2667,14 @@ const ACTIVITIES = [
     when: 'carpLoad',
     steps: [{
       step: 'Move materials into place',
-      hazards: [{ unless: 'unitsOnly', text: 'Back and shoulder strain carrying sheets, studs and other materials.' }, { only: 'unitsOnly', text: 'Back and shoulder strain carrying cabinets, benchtops and appliances.' }, { unless: 'unitsOnly', text: 'Wind catches large sheets.' }],
+      // Doors and frames only: the door hanging step's own strain hazard, and no sheet lines (messy round 6).
+      hazards: [{ unless: ['unitsOnly', 'doorsOnly'], text: 'Back and shoulder strain carrying sheets, studs and other materials.' }, { only: 'unitsOnly', text: 'Back and shoulder strain carrying cabinets, benchtops and appliances.' }, { only: 'doorsOnly', text: 'Strain handling heavy doors.' }, { unless: ['unitsOnly', 'doorsOnly'], text: 'Wind catches large sheets.' }],
       controls: [
         src('Where there is a materials hoist, move materials between levels with it, not by hand.', QCODE('Hazardous manual tasks', 's 4.1, s 4.4')),
         src('Have materials delivered as close as possible to where they are used.', MODEL('Hazardous manual tasks', 's 4.7')),
         src('Use trolleys, lift trolleys, panel lifters, and hooks or suction pads for sheets. Keep trolleys maintained.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')),
         src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
-        { unless: 'unitsOnly', ...src('Handle large sheets in low wind, especially on balconies and at hoist landings.', MODEL('Hazardous manual tasks', 's 4.8')) },
+        { unless: ['unitsOnly', 'doorsOnly'], ...src('Handle large sheets in low wind, especially on balconies and at hoist landings.', MODEL('Hazardous manual tasks', 's 4.8')) },
         'Where a hoist is used, unload only inside the hoist landing gates. Gates stay closed except while the hoist is at the landing.',
         'In a shopping centre or other occupied building, deliveries use the centre\'s loading dock and delivery times, and goods are unloaded in a set area closed off from the public.',
       ],
@@ -3553,7 +3554,9 @@ const ACTIVITIES = [
         { only: 'carpet', unless: 'carpetTiles', ...src('Use a power stretcher instead of a knee kicker to reduce the force needed.', `${QCODE('Hazardous manual tasks', 's 4.1, s 4.4')}; ${NSWC('NSW Manual tasks', 's 4.1, s 4.4')}`) },
         { only: 'carpet', unless: 'carpetTiles', text: 'Keep the knee kicker to small areas and edges a power stretcher cannot reach.' },
         { only: 'carpetTiles', ...src('Carpet tiles are moved in cartons on trolleys.', QCODE('Hazardous manual tasks', 's 4.4')) },
-        { only: 'carpetTiles', text: 'Tile adhesive is used as its safety data sheet sets out.' },
+        // Where the sheet floor line already covers the adhesives, the carpet tile line is not repeated (messy
+        // round 6: "Tile adhesive" read as ceramic tile adhesive in a vinyl and carpet tile SWMS).
+        { only: 'carpetTiles', unless: 'sheetFloor', text: 'Tile adhesive is used as its safety data sheet sets out.' },
         { only: 'vinylWeld', text: 'Weld vinyl seams with the hot air gun, and rest it on its stand when it is not in use. Keep the work area ventilated, weld only once solvent adhesive vapour has cleared, and wear heat resistant gloves.' },
         'Use retractable or safety knives, cut away from the body, and put used blades in a blade container.',
         { unless: 'carpetTiles', ...src('Move rolls with trolleys or hand trucks, pushing rather than pulling, and order smaller loads or move large rolls mechanically.', `${QCODE('Hazardous manual tasks', 's 4.4')}; ${NSWC('NSW Manual tasks', 's 4.4')}`) },
@@ -13138,7 +13141,8 @@ addAfter('handTrim', {
     unless: 'manholePrecast',
     hazards: ['The excavation side collapses onto workers between the forms and the face.', 'Forms fall or burst during the pour.', 'Impalement on exposed starter bars.', 'Cement burns to the skin and eyes.', 'A reversing agitator truck or the pump hose strikes a worker.'],
     controls: [
-      reuse('Wall forms are built and braced to their design, with a work platform and edge protection along the top for fixing reo and placing concrete.'),
+      // Not for thrust blocks alone, which have no wall forms to stand on (messy round 6).
+      { unless: 'thrustBlocksOnly', ...reuse('Wall forms are built and braced to their design, with a work platform and edge protection along the top for fixing reo and placing concrete.') },
       reuse('No one works between the wall forms and an unsupported excavation face. The face is battered, benched or shored as the excavation plan sets out.'),
       reuse('Exposed starter bars are capped or covered.'),
       reuse('Concrete is placed at the rate the form design allows, and a person watches the forms during the pour.'),

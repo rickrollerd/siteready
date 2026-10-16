@@ -341,7 +341,7 @@ const PERMITS = [
   // Work in the rail corridor goes ahead only under the rail manager's access authority (messy round 5: the
   // check said "No work needing a permit" for resleepering in a track possession).
   { label: 'work in the rail corridor', name: 'the rail manager\'s access authority (a track possession or worksite protection)',
-    work: /\b(rail corridors?|track possessions?|(?:during|in|under|inside) (?:a |the )?(?:track )?possession|resleeper\w*|sleepers?\b[^.\n]{0,30}\btracks?|ballast|tamp\w* (?:the )?(?:track|ballast)|on-?track plant|work in the rail corridor)\b/i,
+    work: /\b(rail corridors?|track possessions?|(?:during|in|under|inside) (?:a |the )?(?:track )?possession|resleeper\w*|sleepers?\b[^.\n]{0,30}\btracks?|(?:re-?)?ballast\w*(?=[^.\n]{0,60}\b(?:rail\w*|tracks?|sleepers?|trains?|tamp\w*)\b)|(?<=\b(?:rail\w*|tracks?|sleepers?|trains?|tamp\w*)\b[^.\n]{0,60})(?:re-?)?ballast\w*|tamp\w* (?:the )?(?:track|ballast)|on-?track plant|work in the rail corridor)\b/i,
     permit: /\b(access authority|possessions?|track (?:access|closure|occupancy)|worksite protection|protection officer|rail access)\b/i },
   { label: 'confined space entry', name: 'a confined space entry permit',
     work: /\bconfined spaces?\b/i,
@@ -375,6 +375,11 @@ const PERMITS = [
 // from a ladder".
 const NO_SPARKS = /\b(?:not|no|never|avoid\w*|without|instead of)\b[^.]{0,20}\b(?:(?:angle )?grind\w*|sparks?)\b/i;
 const NO_HOT_WORK = /\b(?:not|no|never|avoid\w*|without|instead of|prohibit\w*)\b[^.]{0,40}\b(?:oxy\w*|(?:gas|thermal) cutting|cutting torch\w*|hot works?)\b/i;
+// "No welding" in the task: the welding its other words name is not done (messy round 6: a pick list
+// water main says "butt and electrofusion weld the pipe", and the person added "no welding"). A rule
+// with a condition ("no hot works without a permit") is not a denial. As draft.js reads it.
+const DENIED_WELDING = /,?\s*\bno (?:welding|welds|hot works?)\b(?!\s+(?:without|unless|until|except|before|after|outside|from|on|in|near|above|over|within|during|where|when|if|at)\b)/gi;
+const withoutDeniedWelding = (text) => (String(text || '').match(DENIED_WELDING) ? String(text).replace(DENIED_WELDING, '').replace(/\b(?:butt\s+(?:and\s+)?)?(?:electro-?fusion\s+|fusion\s+)?weld(?:s|ed|ing)?\b/gi, 'join').replace(/\b(?:braz\w*|solder\w*)\b/gi, 'join') : String(text || ''));
 const sentencesOf = (lines) => lines.join('\n').split(/(?<=[.;!?])\s+|\n/);
 
 // What a builder looks for beside the hot work permit (W12).
@@ -1220,7 +1225,7 @@ function weighted(swms, state, context) {
     const domestic = domesticWork(swms.task, /^yes$/i.test(swms.residential) ? true : /^no$/i.test(swms.residential) ? false : undefined)
       || (!/^no$/i.test(swms.residential) && /\b(domestic dwellings?|householders?|home ?owners?)\b/i.test(allText));
     const needed = PERMITS.filter((item) => !(item.notDomestic && domestic)
-      && (item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) || (item.sparks && sentencesOf([ownWork, ...allControls]).some((line) => item.sparks.test(line) && !NO_SPARKS.test(line)))
+      && (item.work.test((item.label === 'hot work' ? withoutDeniedWelding : (text) => text)((item.notFromCategory ? ownWork : work)).replace(item.ignore || /$^/g, ' ')) || (item.sparks && sentencesOf([ownWork, ...allControls]).some((line) => item.sparks.test(line) && !NO_SPARKS.test(line)))
         || (item.process && sentencesOf(allControls).some((line) => item.process.test(line) && !NO_HOT_WORK.test(line))))
       && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.outside || !item.outside.test(controls)) && (!item.exempt || !item.exempt.test(controls)) && (!item.onlyWithSitePermits || sitePermits));
     // Hand digging or a hand auger, or a rural greenfield site, with the services located first

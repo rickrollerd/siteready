@@ -189,6 +189,13 @@ module.exports = {
     'roof-space-existing': { task: 'Install insulation in the roof space of an existing occupied building: power isolated before entry, walk only on joists or boards, heat stress limits, and lay or blow in the insulation.' },
     'spray-insulation': { task: 'Spray polyurethane foam insulation to soffits and walls from an EWP, with isocyanate controls, ventilation and respirators. Spray cementitious and fibre coatings to the soffits.', fallRisk: 'yes' },
   },
+  // Fencing (messy round 6, run 8: no Fencing trade in the pick list). The temporary fencing task has the
+  // site establishment task's own words.
+  fencing: {
+    'fencing-temporary': { task: 'Erect temporary fencing, hoardings and gates: set out, deliver and erect fence panels, shade cloth and solid hoardings, ballast them for wind, and move them as the work stages change.' },
+    'fencing-permanent': { task: 'Fencing and gates: set out the fence line, dig the post holes, set the posts in concrete, and build the fence and hang the gates.' },
+    'fencing-replace': { task: 'Replace the old fence: take down the old fence, dig the post holes, set the posts in concrete, and build the new fence and gates.' },
+  },
   landscaping: {
     'soft-landscaping': { task: 'Soft landscaping: spread topsoil, plant shrubs and groundcovers, mulch and lay turf, with skid steers and small earthmoving plant.' },
     'hard-landscaping': { task: 'Hard landscaping: lay and cut pavers, build garden beds and edging, and build landscape and stone retaining walls.' },

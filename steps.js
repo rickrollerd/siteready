@@ -9,10 +9,14 @@ function stepLibrary() {
   const kinds = new Map();
   for (const activity of ACTIVITIES) {
     if (!activity.when || !activity.steps || !activity.steps.length) continue;
-    const steps = activity.steps.map((step) => step.step);
+    // A step that prints only for one variant of the work ("Build and fill gabion baskets") is not named
+    // beside the kind, so a ticked kind does not seem to bring it (messy round 6: gabions shown for a
+    // sleeper wall). It still prints where its variant is in the task.
+    const steps = activity.steps.filter((step) => !step.only).map((step) => step.step);
+    const first = activity.steps[0].step;
     const entry = kinds.get(activity.when);
     if (entry) entry.steps.push(...steps.filter((name) => !entry.steps.includes(name)));
-    else kinds.set(activity.when, { id: activity.when, label: TITLES[activity.when] || steps[0], steps });
+    else kinds.set(activity.when, { id: activity.when, label: TITLES[activity.when] || steps[0] || first, steps: steps.length ? steps : [first] });
   }
   const used = new Set();
   const groups = TRADES.map((trade) => {

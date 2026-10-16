@@ -86,6 +86,9 @@ function plantNeed(input, draft) {
   // A licence that does not say which ("crane ticket", messy round 4) is changed under the plant.
   const vague = (draft.plant || []).filter((row) => row.own).map((row) => licenceNeed(row.item, row.licence)).find(Boolean);
   if (vague) return `${vague} Change it under Plant and equipment (Remove, then add it again with the licence), then press Confirm the plant.`;
+  // "No" for plant that needs a licence by its size or use (messy round 6: a HIAB with licence "No").
+  const asked = (draft.plant || []).find((row) => row.own && row.licenceAsked);
+  if (asked) return `${asked.item}: "${clean(asked.licenceAsked)}" is not enough for this plant. ${asked.licence.replace(/^Yes,?\s*/, 'A high risk work licence is needed: ')}${/\.$/.test(asked.licence) ? '' : '.'} Give the licence, or say in a few words why none is needed (for example "No, it is under 10 metre-tonnes"). Change it under Plant and equipment (Remove, then add it again), then press Confirm the plant.`;
   return '';
 }
 

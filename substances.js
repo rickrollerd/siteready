@@ -152,6 +152,8 @@ function gateItems(draft) {
 // has its own item.
 const TYPE_NEED = (short) => `${short}: add the product you use, or tick "Not required".`;
 // "Not required" for a type the user's own task or answers name needs a short reason (owner, D292 item 3).
+// The old safety data sheet answer, while no product is listed (D277 item 3).
+const sdsAnswer = (input) => (input && input.facts && typeof input.facts.safetyDataSheet === 'string' && !listed(input).some((row) => row.product) ? input.facts.safetyDataSheet : '');
 function typeItems(draft, input) {
   if (!draft || draft.kind !== 'draft' || !draft.substances) return [];
   const notUsed = new Set(Array.isArray(input && input.substancesNotUsed) ? input.substancesNotUsed : []);
@@ -159,7 +161,7 @@ function typeItems(draft, input) {
   const words = rules.ownWords(input);
   const covered = new Set(listed(input).map((row) => row.type).filter(Boolean));
   return (draft.substances.items || []).map((item) => item.product).filter((type) => rules.TYPES.includes(type))
-    .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) ? '' : notUsed.has(type) ? rules.notUsedNeed(type, why[type], words, rules.stepWords(draft)) : TYPE_NEED(rules.SHORT.get(type)) }));
+    .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) ? '' : notUsed.has(type) ? rules.notUsedNeed(type, why[type], words, rules.stepWords(draft), sdsAnswer(input)) : TYPE_NEED(rules.SHORT.get(type)) }));
 }
 
 // The SDS files a SWMS input refers to, kept with the saved SWMS as design files are (design-files.js).

@@ -20,7 +20,7 @@ const DEFAULT_CATALOGUE = '/home/user/siteready-data/scratchpad/catalogue/trades
 // catalogue adds that is not listed here goes at the end of its own group, "Other trades".
 const GROUPS = [
   ['Site and plant', ['site-establishment-traffic', 'demolition-stripout', 'asbestos-removal', 'scaffolding', 'cranes-rigging']],
-  ['Civil and infrastructure', ['civil-earthworks', 'basement-excavation', 'pipelines-drainage', 'roads-pavements', 'line-marking', 'retaining-walls', 'bridges', 'rail', 'landscaping']],
+  ['Civil and infrastructure', ['civil-earthworks', 'basement-excavation', 'pipelines-drainage', 'roads-pavements', 'line-marking', 'retaining-walls', 'bridges', 'rail', 'landscaping', 'fencing']],
   ['Structure', ['piling', 'formwork', 'steel-fixing-pt', 'concreting', 'precast', 'structural-steel', 'concrete-cutting', 'masonry']],
   // ICT and security are two trades (D197). Passive fire is a trade of its own as well as each
   // services trade's own penetrations task (D198).

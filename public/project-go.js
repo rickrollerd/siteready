@@ -392,7 +392,9 @@
       const own = Boolean(item.siteOwn);
       parts.push(`<div class="go-site-own">${own ? `<p class="meta">This SWMS has its own site answers. <button type="button" class="link" data-go-site-same="${index}">Use the answers for every SWMS</button></p>${siteBoxes(`go-site-${index}`, item.siteOwn, `data-go-own-site="${index}"`)}` : `<p class="meta">Site questions: the answers for every SWMS, above. <button type="button" class="link" data-go-site-own="${index}">Change them for this SWMS</button></p>`}</div>`);
       parts.push(typesHtml(index, got.substanceTypes || []));
-      if ((item.plant || []).length) parts.push(`<p class="meta">Plant the scope names: ${esc(item.plant.join(', '))}. You confirm the plant when you check this SWMS.</p>`);
+      // Fixings the scope lists with its plant are not plant (messy round 6: "Dyna-bolts, masonry bolts").
+      const scopePlant = (item.plant || []).filter((name) => !/\b(bolts?|dyna-?bolts?|screws?|anchors?|fixings?|nails?|rivets?|plugs?)\b/i.test(String(name)));
+      if (scopePlant.length) parts.push(`<p class="meta">Plant the scope names: ${esc(scopePlant.join(', '))}. You confirm the plant when you check this SWMS.</p>`);
     }
     return parts.join('');
   }

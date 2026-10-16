@@ -44,10 +44,10 @@ test('work a ticked step\'s own lines already cover is not listed as having no j
 test('the match stays tight: what the work is done with or where is not what it is done to', () => {
   const steps = draftOf({ state: 'qld', task: 'Install the generator and hang the artwork from the scissor lift.' });
   assert.deepEqual(steps.notCovered, ['hang the artwork from the scissor lift']);
-  const wall = draftOf({ state: 'qld', task: 'Build the concrete sleeper retaining wall. cut sleepers with a quick cut saw' });
+  const wall = draftOf({ state: 'qld', facts: { ...ANSWERED.facts, silicaControls: 'Cutting is done wet with a water-fed saw; P2 respirators fit tested; the silica assessment is kept in the site folder.' }, task: 'Build the concrete sleeper retaining wall. cut sleepers with a quick cut saw' });
   assert.equal(stepCoveringPart('cut sleepers with a quick cut saw', wall.jobSteps), '');
   // A part of several pieces is named by the pieces no step covers.
-  const sleepers = draftOf({ state: 'qld', task: 'Build the concrete sleeper retaining wall. lift sleepers in with the excavator and chains, cut sleepers with quick cut saw, flush the stormwater pits' });
+  const sleepers = draftOf({ state: 'qld', facts: { ...ANSWERED.facts, silicaControls: 'Cutting is done wet with a water-fed saw; P2 respirators fit tested; the silica assessment is kept in the site folder.' }, task: 'Build the concrete sleeper retaining wall. lift sleepers in with the excavator and chains, cut sleepers with quick cut saw, flush the stormwater pits' });
   assert.ok(!sleepers.notCovered.some((part) => /lift sleepers/.test(part)), sleepers.notCovered.join('; '));
 });
 
@@ -175,7 +175,8 @@ test('unticking plant never brings its alternative back ticked, and the plant ca
   const next = JSON.parse(p.run(`JSON.stringify(confirmedPlant({ 'Excavator': true, 'Concrete line pump': false }, []))`));
   assert.deepEqual(next, { used: ['Excavator'], notUsed: ['Concrete line pump', 'Concrete placing boom'], added: [] });
   // The server takes that as confirmed: nothing else is asked.
-  const base = { ...ANSWERED, state: 'tas', fallRisk: 'no', residential: 'no', crane: 'none', task: 'Water mains: excavate the trench, lay PE and PVC mains, form and pour the concrete thrust blocks in the trench, and pressure test the main.', facts: { trenchSupport: 'Trench shield rated for 2.4 m, as designed by the supplier\'s engineer.', pressureTesting: 'Tested with water to 1200 kPa behind barricades.' } };
+  // An encasement slab is poured with the pump (content6: thrust blocks alone no longer bring the pump and boom).
+  const base = { ...ANSWERED, state: 'tas', fallRisk: 'no', residential: 'no', crane: 'none', task: 'Water mains: excavate the trench, lay PE and PVC mains, form and pour the concrete thrust blocks and the concrete encasement slab in the trench, and pressure test the main.', facts: { trenchSupport: 'Trench shield rated for 2.4 m, as designed by the supplier\'s engineer.', pressureTesting: 'Tested with water to 1200 kPa behind barricades.' } };
   const listed = prepareDraft(draftBody(base)).plantInferred.map((item) => item.item);
   assert.ok(listed.includes('Concrete placing boom'));
   const others = listed.filter((item) => !/boom|pump/i.test(item));

@@ -1877,6 +1877,56 @@
    ]
   },
   {
+   "id": "fencing",
+   "name": "Fencing and gates",
+   "group": "Civil and infrastructure",
+   "tasks": [
+    {
+     "id": "fencing-temporary",
+     "title": "Temporary fencing, hoardings and gates",
+     "task": "Erect temporary fencing, hoardings and gates: set out, deliver and erect fence panels, shade cloth and solid hoardings, ballast them for wind, and move them as the work stages change.",
+     "fallRisk": "no",
+     "crane": "company",
+     "kinds": [
+      "siteEstablish"
+     ],
+     "leaveOut": [],
+     "gaps": [],
+     "coverage": "full",
+     "basis": "inferred"
+    },
+    {
+     "id": "fencing-permanent",
+     "title": "Permanent fencing and gates",
+     "task": "Fencing and gates: set out the fence line, dig the post holes, set the posts in concrete, and build the fence and hang the gates.",
+     "fallRisk": "no",
+     "crane": "company",
+     "kinds": [
+      "fenceBuild"
+     ],
+     "leaveOut": [],
+     "gaps": [],
+     "coverage": "full",
+     "basis": "inferred"
+    },
+    {
+     "id": "fencing-replace",
+     "title": "Take down and replace old fencing",
+     "task": "Replace the old fence: take down the old fence, dig the post holes, set the posts in concrete, and build the new fence and gates.",
+     "fallRisk": "no",
+     "crane": "company",
+     "kinds": [
+      "fenceRemove",
+      "fenceBuild"
+     ],
+     "leaveOut": [],
+     "gaps": [],
+     "coverage": "full",
+     "basis": "inferred"
+    }
+   ]
+  },
+  {
    "id": "piling",
    "name": "Piling",
    "group": "Structure",

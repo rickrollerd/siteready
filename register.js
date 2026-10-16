@@ -49,7 +49,7 @@ const PLANT = [
   { item: 'Vacuum excavation unit', pattern: /\b(vacuum excavat\w*|vacuum system|non-destructive digging|hydro ?vac\w*)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Tipper or dump truck', pattern: /\b(tippers?|tip trucks?|dump trucks?|haul trucks?|trucks? (?:cart|haul)\w*|carted by truck|cart\w* (?:away |off (?:site )?)?(?:the )?(?:excavated )?(?:spoil|topsoil|soil|fill|mulch)\w*)\b/i, skipIf: /\barticulated dump trucks?\b/i, inspection: PRESTART, licence: 'Truck driver\'s licence' },
   { item: 'Gas detector', pattern: /\b(gas detectors?|gas monitor\w*|atmospheric? (?:testing|monitor\w*)|test(?:ed)? (?:the )?atmosphere|monitor the atmosphere)\b/i, inspection: 'Calibrated to the manufacturer\'s instructions and bump tested before use.', licence: 'No. User trained' },
-  { item: 'Lifting gear (slings, chains, shackles)', pattern: /\b(slings?|slung|shackles?|lifting gear|lifting chains?)\b/i, inspection: 'Tagged with its working load limit, inspected before each use and periodically by a competent person. Damaged gear is withdrawn.', licence: 'None for the gear itself. Slinging loads with it needs a dogging or rigging licence.' },
+  { item: 'Lifting gear (slings, chains, shackles)', pattern: /\b(slings?|slung|shackles?|lifting gear|lifting chains?|lift\w*\b[^.]{0,50}\b(?:on|with|by)\b[^.]{0,30}\bchains?\b(?! ?(?:blocks?|saws?|wire|link|hoists?|mesh)))\b/i, inspection: 'Tagged with its working load limit, inspected before each use and periodically by a competent person. Damaged gear is withdrawn.', licence: 'None for the gear itself. Slinging loads with it needs a dogging or rigging licence.' },
   { item: 'Stump grinder', pattern: /\bstump(?:s)? (?:grind\w*|removal)|stump grinders?\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No. Operator competent' },
   { item: 'Post hole auger', pattern: /\b(augers?|post holes?)\b/i, skipIf: /\b(paver'?s augers?|drum, augers?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
   { item: 'Cable winch or puller', pattern: /\b(winch\w*|cable pull\w*|pull cables?)\b/i, inspection: `${PRESTART} Guards and stop control working.`, licence: 'No' },
@@ -125,9 +125,9 @@ const PLANT = [
   { item: 'Variable message sign trailer', pattern: /\b(variable message (?:boards?|signs?)|vms boards?)\b/i, inspection: PRESTART, licence: 'No. Placed under the traffic management plan (TMP)' },
   { item: 'Jacking and skidding system', pattern: /\b(skid(?:ding)? (?:systems?|tracks?|beams?)|jack(?:ing)? and skid\w*)\b/i, inspection: 'Set up and checked by its supplier to the engineered procedure before the move.', licence: 'No. Operated by the supplier\'s trained crew' },
   { item: 'Concrete conveyor', pattern: /\b(concrete conveyors?|conveyor and pump|by conveyor)\b/i, inspection: `${PRESTART} Guards, belt and emergency stops checked.`, licence: 'No. Operator trained' },
-  { item: 'Trolley or panel lifter', pattern: /\b(trolleys?|panel lifters?|lift trolleys?|pallet trolleys?)\b/i, skipIf: /\bglass trolleys?\b/i, inspection: 'Checked before use: wheels, brakes and handles, and loaded only to its rated load.', licence: 'No, where one is used' },
+  { item: 'Trolley or panel lifter', pattern: /\b(trolleys?|panel lifters?|door lifters?|lift trolleys?|pallet trolleys?)\b/i, skipIf: /\bglass trolleys?\b/i, inspection: 'Checked before use: wheels, brakes and handles, and loaded only to its rated load.', licence: 'No, where one is used' },
   { item: 'Ladders', pattern: /\bladders?\b/i, inspection: 'Industrial rated, at least 120 kg. Checked before each use.', licence: 'No' },
-  { item: 'Electric power tools and leads', pattern: /\b(power tools?|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|hole saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Electric power tools and leads', pattern: /\b(power tools?|(?<!\b(?:network|wi-?fi|wireless|internet|nbn|modem|4g|5g|edge|core)\s)routers?(?!\s+and\s+switch)|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|hole saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
 ];
 
 // Hazardous substances that commonly come with the work: the types, which the page offers as
@@ -408,7 +408,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   if (/\nConnect, leak test and commission the gas appliance\n/.test(`\n${allText}\n`) && !needed.some((name) => /^Gas work licence/.test(name))) needed.push('Gas work licence');
   for (const item of plant) {
     if (item.item === 'Mobile scaffold') needed.push('Scaffolding licence (SB), only where a person or object could fall more than 4 m from the mobile scaffold');
-    if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '').replace(/^\(([^()]*)\)(.*)$/, '$1$2')})`);
+    if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${(item.own && item.known ? item.known : item.item).toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '').replace(/^\(([^()]*)\)(.*)$/, '$1$2')})`);
   }
   if (/\bWhere the grandstand is built from scaffolding\b/.test(allText)) needed.push('Scaffolding licence (SB, or SI or SA as the scaffold needs), where the grandstand is built from scaffolding and a person or object could fall more than 4 m');
   if (/\bGantries and covered ways in tube and coupler are erected by licensed intermediate scaffolders\b/.test(allText)) needed.push('Scaffolding licence (SI or SA), for gantries and covered ways in tube and coupler');
@@ -436,7 +436,12 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: input.musterPoint || '' });
   rows.push({ type: 'Fire', equipment: /\b(hot work|weld\w*|torch\w*|brazing|grinding|oxy|lpg|electric\w*)\b/i.test(text) ? 'Fire extinguisher suited to the hazard (dry powder or CO2 near electrical equipment)' : 'Fire extinguisher', detail: '' });
   rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${input.firstAider}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${input.hospital}` : '' });
-  if (highRisk.some((item) => /falling more than/i.test(item)) || /\b(harness|elevating work platforms?|ewps?|boom lifts?)\b/i.test(text)) {
+  // With falls answered No, a line that only names a harness or EWP as one way up does not bring the row:
+  // an EWP in the plant does, and so does a harness the lines say is used (messy round 6: a "Work at
+  // height" row with falls No for cleaning).
+  const fallsNo = /^\s*no\s*$/i.test(String(input.fallRisk || ''));
+  const harnessUsed = /\b(use (?:a )?(?:harness|travel restraint)|fall arrest is used|harness is attached|travel restraint is installed)\b/i.test(String(text).replace(/\b(?:where|if|when)\b[^.]*/gi, ''));
+  if (highRisk.some((item) => /falling more than/i.test(item)) || ewp || harnessUsed || (!fallsNo && /\b(harness|elevating work platforms?|ewps?|boom lifts?)\b/i.test(text))) {
     rows.push({ type: 'Work at height', equipment: ewp ? 'Rescue plan for a person stuck or suspended at height, including the EWP\'s ground controls and rescue equipment' : 'Rescue plan for a person who falls or is injured at height, including from an edge, opening or scaffold, and for a person suspended in a harness where harnesses are used', detail: '' });
   }
   // Power lines named in the task or a hazard, not the general check-for-lines control.
@@ -481,27 +486,67 @@ function legislationFor(lines) {
   };
 }
 
-// Queensland codes and Acts that apply because of the work itself, whether or
-// not a step cites them.
-const QLD_SOURCES = [
-  [(d) => d.highRisk.some((item) => /falling more than/i.test(item)), 'Managing the risk of falls at workplaces Code of Practice 2021 (Qld)'],
-  [(d) => d.highRisk.some((item) => /trench|shaft/i.test(item)) || d.plant.some((p) => /Excavator|Trench shield/.test(p.item)), 'Excavation work Code of Practice 2021 (Qld)'],
-  [(d) => d.plant.some((p) => /Concrete (?:placing boom|line pump)/.test(p.item)), 'Concrete pumping Code of Practice 2019 (Qld)'],
-  [(d) => d.plant.some((p) => !/Ladders|Electric power tools/.test(p.item)), 'Managing risks of plant in the workplace Code of Practice 2021 (Qld)'],
-  [(d) => d.hazardText.match(/\b(strain|manual|lifting|carry\w*|kneel\w*|repetit\w*|awkward)\b/i), 'Hazardous manual tasks Code of Practice 2021 (Qld)'],
-  [(d) => d.hazardText.match(/\bnoise\b/i), 'Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)'],
-  [(d) => d.substances.items.length, 'Managing risks of hazardous chemicals in the workplace Code of Practice 2021 (Qld)'],
-  [(d) => d.hazardText.match(/\bsilica\b/i), 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)'],
-  [(d) => d.highRisk.some((item) => /confined space/i.test(item)), 'Confined spaces Code of Practice 2021 (Qld)'],
-  [(d) => d.plant.some((p) => /Scaffold/.test(p.item)), 'Scaffolding Code of Practice 2021 (Qld)'],
-  [(d) => d.highRisk.some((item) => /traffic corridor/i.test(item)), 'Traffic management for construction or maintenance work Code of Practice 2008 (Qld)'],
-  [(d) => d.plant.some((p) => /^Welder|Oxy-acetylene/.test(p.item)), 'Welding processes Code of Practice 2021 (Qld)'],
-  [(d) => d.highRisk.some((item) => /energised electrical/i.test(item)) || /\b(electrical work|electricians?|switchboards?|wiring)\b/i.test(ownWork(d.text)), 'Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace (Qld)'],
+// Codes of practice that apply because of the work itself, whether or not a step cites them, by topic.
+// Plant the user added is read as the plant SiteWrite knows by that name (messy round 6: a MIG welder).
+const plantName = (p) => p.known || p.item;
+const WORK_CODES = [
+  ['falls', (d) => d.highRisk.some((item) => /falling more than/i.test(item))],
+  ['excavation', (d) => d.highRisk.some((item) => /trench|shaft/i.test(item)) || d.plant.some((p) => /Excavator|Trench shield/.test(plantName(p)))],
+  ['pumping', (d) => d.plant.some((p) => /Concrete (?:placing boom|line pump)/.test(plantName(p)))],
+  ['plant', (d) => d.plant.some((p) => !/Ladders|Electric power tools/.test(plantName(p)))],
+  ['manual', (d) => d.hazardText.match(/\b(strain|manual|lifting|carry\w*|kneel\w*|repetit\w*|awkward)\b/i)],
+  ['noise', (d) => d.hazardText.match(/\bnoise\b/i)],
+  ['chemicals', (d) => d.substances.items.length],
+  ['silica', (d) => d.hazardText.match(/\bsilica\b/i)],
+  ['confined', (d) => d.highRisk.some((item) => /confined space/i.test(item))],
+  ['scaffolding', (d) => d.plant.some((p) => /Scaffold/.test(plantName(p)))],
+  ['traffic', (d) => d.highRisk.some((item) => /traffic corridor/i.test(item))],
+  ['welding', (d) => d.plant.some((p) => /^Welder|Oxy-acetylene/.test(plantName(p)))],
+  ['electrical', (d) => d.highRisk.some((item) => /energised electrical/i.test(item)) || /\b(electrical work|electricians?|switchboards?|wiring)\b/i.test(ownWork(d.text))],
 ];
+// Each state's own code for a topic, from the codes we hold: Queensland's, the SafeWork NSW codes
+// (scenarios/nsw-code-titles.json), Victoria's compliance codes (scenarios/vic-lines.json) and the codes
+// the other states have approved (scenarios/state-codes.json). A topic the state has no code for that we
+// hold lists none. Messy round 6: NSW and Victorian SWMS for kitchens and flooring listed no code at
+// all, since only Queensland listed the codes the work itself brings; the other states listed only the
+// codes a printed line cites.
+const QLD_WORK_CODES = {
+  falls: 'Managing the risk of falls at workplaces Code of Practice 2021 (Qld)',
+  excavation: 'Excavation work Code of Practice 2021 (Qld)',
+  pumping: 'Concrete pumping Code of Practice 2019 (Qld)',
+  plant: 'Managing risks of plant in the workplace Code of Practice 2021 (Qld)',
+  manual: 'Hazardous manual tasks Code of Practice 2021 (Qld)',
+  noise: 'Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)',
+  chemicals: 'Managing risks of hazardous chemicals in the workplace Code of Practice 2021 (Qld)',
+  silica: 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)',
+  confined: 'Confined spaces Code of Practice 2021 (Qld)',
+  scaffolding: 'Scaffolding Code of Practice 2021 (Qld)',
+  traffic: 'Traffic management for construction or maintenance work Code of Practice 2008 (Qld)',
+  welding: 'Welding processes Code of Practice 2021 (Qld)',
+  electrical: 'Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace (Qld)',
+};
+const NSW_CODE_TITLES = require('./scenarios/nsw-code-titles.json');
+const NSW_WORK_CODES = Object.fromEntries(Object.entries({ falls: 'NSW Falls', excavation: 'NSW Excavation', plant: 'NSW Plant', manual: 'NSW Manual tasks', chemicals: 'NSW Hazardous chemicals', silica: 'NSW Silica', confined: 'NSW Confined spaces', welding: 'NSW Welding', electrical: 'NSW Electrical risks' })
+  .map(([topic, code]) => [topic, `SafeWork NSW Code of practice: ${NSW_CODE_TITLES[code]}`]));
+const VIC_CODES = require('./scenarios/vic-lines.json').codes;
+const VIC_WORK_CODES = { falls: VIC_CODES.falls, excavation: VIC_CODES.excavation, plant: VIC_CODES.plant, manual: VIC_CODES.manual, noise: VIC_CODES.noise, chemicals: VIC_CODES.chemicals, confined: VIC_CODES.confined };
+const STATE_CODE_LIST = require('./scenarios/state-codes.json');
+function workCodesFor(stateId) {
+  if (stateId === 'qld') return QLD_WORK_CODES;
+  if (stateId === 'nsw') return NSW_WORK_CODES;
+  if (stateId === 'vic') return VIC_WORK_CODES;
+  const held = (STATE_CODE_LIST[stateId] && STATE_CODE_LIST[stateId].codes) || {};
+  return { falls: held.falls, excavation: held.excavation, plant: held.plant, manual: held.manual, noise: held.noise, chemicals: held.chemicals, silica: held.silica, confined: held.confined, welding: held.welding, electrical: held.electrical };
+}
+function addWorkCodes(sources, stateId, d) {
+  const titles = workCodesFor(stateId);
+  const codes = new Set(sources.codes);
+  for (const [topic, applies] of WORK_CODES) if (titles[topic] && applies(d)) codes.add(titles[topic]);
+  return { ...sources, codes: [...codes].sort() };
+}
 
 function addQldSources(sources, d) {
-  const codes = new Set(sources.codes);
-  for (const [applies, title] of QLD_SOURCES) if (applies(d)) codes.add(title);
+  const codes = new Set(addWorkCodes(sources, 'qld', d).codes);
   const legislation = new Set(['Work Health and Safety Act 2011 (Qld)', ...sources.legislation]);
   // The crew's own electrical work, from the task and the step names, not a hazard line about nearby circuits.
   if (/\b(electrical work|electricians?|energised|switchboards?|wiring)\b/i.test(ownWork(d.workText || d.text))) legislation.add('Electrical Safety Act 2002 (Qld)');
@@ -642,6 +687,8 @@ function tradeLicences(trade, list, stepText = '') {
 
 // A licence for plant that is one of several options: needed only where that plant is used.
 function whereUsed(licence) {
+  // Said once (the trolley's own note already says it: "No, where one is used, where one is used" printed).
+  if (/, where one is used\b/.test(licence)) return licence;
   const [first, ...rest] = licence.split('. ');
   return [`${first}, where one is used`, ...rest].join('. ');
 }
@@ -664,7 +711,13 @@ function confirmedPlant(plant, choice, stateId) {
     const licence = String((own && own.licence) || '').trim();
     // The plant SiteWrite knows by that name (a "tamper" is a track maintenance machine) is kept with it, so
     // the high risk work and licences read it as that plant (messy round 5).
-    kept.push({ item: name, inspection: known ? known.inspection : PRESTART, licence: licence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}) });
+    // A bare "No" for plant whose high risk work licence depends on its size or use (a HIAB of 10
+    // metre-tonnes or more) is not taken as the answer: the plant's own licence note prints, so the
+    // licence is listed, and the download gate asks the user to give the licence or say why none is
+    // needed (messy round 6: a HIAB with licence "No" printed no CV licence and no dogging).
+    const needs = known && /^Yes\b/.test(known.licence) ? known.licence.replace(WHERE_USED, '') : '';
+    const bareNo = /^(?:no|nope|none|nil|not needed|not required|n\/?a)\.?$/i.test(licence);
+    kept.push({ item: name, inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : licence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) });
   }
   return kept;
 }
@@ -697,7 +750,10 @@ function registersFor(draft, input = {}) {
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
   const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Nail guns?:|Line marking machines?|Sanders?\b|Mixers?\b|Mixer guards|Lifting beams?\b|Cut and trim bars|A trencher|Trenchers?\b)/.test(line) || /^(?:Use|Using|Cut)\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b|\bcut with\b|\b(?:is|are) mixed\b[^.]{0,40}\bwith an? \w+ mixers?\b/i.test(line) && !/\b(?:\w+ )or (?:an? )?(?:forklift|crane|telehandler|ewp|hoist)\b/i.test(line) && !/\b(keep (?:clear|away|out|back|well clear|people|everyone|workers|others)|clear of|away from|others|crane company|pumping company)\b/i.test(line));
   // Lines naming the plant a step is done from or lifted with: definite when one item is named, otherwise each is used where chosen.
-  const accessLines = steps.flatMap((step) => step.controls).filter((line) => /^Access is (?:from|by)\b|\b(?:are|is) lifted to (?:the )?\w+ by\b|\b(?:is|are) (?:reached|changed) from (?:an? |the )\b|\b(?:is|are) (?:done|fixed|installed|removed) from (?:an? |the )\b|\b(?:are|is) delivered by (?:crane|hoist)\b|\blifted by crane\b|\b(?:lifted|stood|lifted and stood|lifted in|lifted into place|moved|compacted(?: in layers)?)(?: onto (?:it|the \w+))? with (?:an? |the )\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b[^.]*\bor\b/i.test(line) && !/\b(keep|clear of|away from|others|crane company|pumping company|considered|reasonably practicable)\b/i.test(line));
+  const accessLines = steps.flatMap((step) => step.controls).filter((line) => (/^Access is (?:from|by)\b|\b(?:are|is) lifted to (?:the )?\w+ by\b|\b(?:is|are) (?:reached|changed) from (?:an? |the )\b|\b(?:is|are) (?:done|fixed|installed|removed) from (?:an? |the )\b|\b(?:are|is) delivered by (?:crane|hoist)\b|\blifted by crane\b|\b(?:lifted|stood|lifted and stood|lifted in|lifted into place|moved|compacted(?: in layers)?)(?: onto (?:it|the \w+))? with (?:an? |the )\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b[^.]*\bor\b/i.test(line)
+    // Handling aids and the platform a step's method names (messy round 6: door trolleys and a door lifter,
+    // panel lifters and "a worker in an EWP" for coolroom panels, none of them offered as plant).
+    || /\b(?:moved|carried|hung|lifted|stood) (?:on|with) (?:an? |the )?(?:door |panel |lift )?(?:trolleys?|lifters?)\b|\ba worker in an? (?:EWP|elevating work platform)\b/i.test(line)) && !/\b(keep|clear of|away from|others|crane company|pumping company|considered|reasonably practicable)\b/i.test(line));
   const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near|separat\w*|barricad\w*)\b/i.test(line));
   // A forklift or telehandler named only in a control line may or may not be used, so its licence is conditional.
   const named = plantFor(`${useText}\n${usedInControls.join('\n')}`).map((item) => item.item);
@@ -710,6 +766,8 @@ function registersFor(draft, input = {}) {
   const examples = steps.flatMap((step) => step.controls).map((line) => (String(line).match(/\bsuch as (?:an? |the )?([^.;]{3,60})/i) || [])[1]).filter(Boolean);
   for (const item of plantFor(examples.join('\n')).filter((found) => /^Water cart$/.test(found.item))) fromAccess.push({ ...item, licence: whereUsed(item.licence) });
   const accessExtra = [];
+  // Plant a line names for certain comes before the same plant named as one choice ("from a platform or EWP").
+  fromAccess.sort((a, b) => Number(WHERE_USED.test(a.licence)) - Number(WHERE_USED.test(b.licence)));
   for (const item of fromAccess) if (!named.includes(item.item) && !maybe.some((other) => other.item === item.item) && !accessExtra.some((other) => other.item === item.item)) accessExtra.push(item);
   const ownCrane = /^(own|ours?|us|we|our company|yes)$/i.test(String(input.crane || '').trim());
   const noCrane = /^(none|no|no crane|not used)$/i.test(String(input.crane || '').trim());
@@ -739,7 +797,22 @@ function registersFor(draft, input = {}) {
   if (/\b(mobile scaffolds?|swing stages?)\b/i.test(task) && !/(?<!mobile )\bscaffold(?:s|ing)?\b(?! tower)/i.test(task.replace(/\bmobile scaffolds?\b/gi, ''))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Scaffold'));
   // A piling rig's auger is part of the rig, not a post hole auger.
   if (plant.some((item) => item.item === 'Piling rig')) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Post hole auger'));
+  // Plant a scope names in its notes ("plant: Vacuum cleaners, Wheelie bins") that SiteWrite has no entry
+  // for is listed as plant SiteWrite is not sure of, for the user to tick (messy round 6: the vacuums and
+  // wheelie bins the scope named never reached the plant list). Fixings and materials are not plant.
+  const SCOPE_NOT_PLANT = /\b(bolts?|dyna-?bolts?|screws?|anchors?|fixings?|nails?|rivets?|plugs?|brackets?|sealants?|adhesives?|silicone|materials?|consumables?|chemicals?|products?)\b/i;
+  // Only the scope's own note ("(...; plant: ...)") is read, and only names of tools or equipment.
+  const SCOPE_TOOL = /\b(vacuums?|vacuum cleaners?|wheelie bins?|bins?|brooms?|mops?|scrubbers?|polishers?|blowers?|barrows?|wheelbarrows?|buckets?|squeegees?|sweepers?|hoses?|carts?|dollies|dolly|extractors?|dehumidifiers?|fans?|heaters?|steamers?|sprayers?)$/i;
+  for (const name of [...ownTask.matchAll(/(?:\(|;\s*)plant:\s*([^;)\n]+)/gi)].flatMap((match) => match[1].split(/,\s*|\s+and\s+/)).map((part) => part.trim().replace(/\.$/, '')).filter((part) => part && part.length <= 40 && SCOPE_TOOL.test(part))) {
+    if (plantFor(name).length || SCOPE_NOT_PLANT.test(name) || plant.some((item) => item.item.toLowerCase() === name.toLowerCase())) continue;
+    plant.push({ item: `${name.charAt(0).toUpperCase()}${name.slice(1)}`, inspection: /\b(vacuums?|scrubbers?|polishers?|blowers?|electric\w*|battery)\b/i.test(name) ? TEST_TAG : 'Checked before each use.', licence: whereUsed('No') });
+  }
   if (buildingGenerator) plant.push({ item: 'Standby generator (building plant)', inspection: 'Serviced and tested to the manufacturer\'s instructions. Guards, exhaust and fuel system checked before each run.', licence: 'No. Switching by licensed electricians' });
+  // Plant the user added stands for the plant SiteWrite knows by that name, which is not listed again
+  // (messy round 6: an added floor grinder brought the grinding step, whose own "Floor grinder with H
+  // class extraction" was then asked about as well).
+  const addedKnown = new Set((input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added : []).flatMap((own) => plantFor(String((own && own.item) || '')).slice(0, 1).map((item) => item.item)));
+  if (addedKnown.size) plant.splice(0, plant.length, ...plant.filter((item) => !addedKnown.has(item.item)));
   // Register notes cite the state's own regulation.
   const stateId = (findState(draft.state) || { id: 'qld' }).id;
   // The plant SiteWrite lists, for the user to confirm (goal 2), and the plant that prints: only
@@ -755,7 +828,7 @@ function registersFor(draft, input = {}) {
   if (input.plantChoice && typeof input.plantChoice === 'object') {
     const kept = listed.map((item) => item.item).join('\n');
     const dropGas = !/\b(torch|oxy|acetylene|weld|brazing|gas)\w*/i.test(kept) && !/\b(lpg|acetylene|oxygen|gas cylinders?|gas bottles?)\b/i.test(ownTask);
-    const dropFuel = !/\b(generator|chainsaw|excavator|truck|tipper|roller|paver|profiler|loader|dozer|grader|compressor|mixer|skid steer|crane|pump|plant)\w*/i.test(kept) && !/\b(diesel|petrol|fuel\w*|refuel\w*)\b/i.test(ownTask);
+    const dropFuel = !/\b(generator|chainsaw|excavator|truck|tipper|roller|paver|profiler|loader|dozer|grader|compressor|mixer|skid steer|crane|pump|plant|petrol|diesel)\w*/i.test(kept) && !/\b(diesel|petrol|fuel\w*|refuel\w*)\b/i.test(ownTask);
     substances.items = substances.items.filter((item) => !(dropGas && /^Gases/.test(item.product)) && !(dropFuel && /^Fuels/.test(item.product)));
   }
   let sources = legislationFor([...printedSteps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
@@ -769,7 +842,8 @@ function registersFor(draft, input = {}) {
     const at = qualifications.findIndex((name) => !/induction/i.test(name));
     qualifications.splice(at < 0 ? qualifications.length : at, 0, localLicences(draft.state, '', ['Electrical work licence (electrical mechanic)'], '')[0]);
   }
-  if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant: listed, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
+  const codeWork = { highRisk: draft.highRisk || [], plant: listed, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` };
+  sources = /Queensland/.test(draft.state || '') ? addQldSources(sources, codeWork) : addWorkCodes(sources, stateId, codeWork);
   // D258: with a crane company's crane, the dogging or rigging licence prints only where our crew slings
   // the loads and directs the crane; where the crane company's dogman does, the licence is theirs.
   const crane = String(input.crane || '').trim().toLowerCase();
@@ -782,11 +856,14 @@ function registersFor(draft, input = {}) {
   // licensed dogger direct a lift names the licence too (messy round 5: lifting gear and "a licensed dogger
   // directs the lift" for pipes lifted by the excavator, with no dogging licence). Not where the crane
   // company's crew does the slinging.
-  const slings = listed.some((item) => /^Lifting gear\b/.test(item.known || item.item)) || /\ba licensed dogger directs\b/i.test(allText);
+  // So does a line that has a licensed dogger sling the loads, unless only "where" the work needs it
+  // (messy round 6: a HIAB step whose lines have a licensed dogger sling, with no dogging licence).
+  const slings = listed.some((item) => /^Lifting gear\b/.test(item.known || item.item)) || /\ba licensed dogger directs\b/i.test(allText)
+    || /\b(?:slung|slinging\b[^.]{0,60}\bis done) by (?:a )?licensed doggers?\b(?:(?! where)[^.])*\./i.test(allText);
   if (slings && !(craneCompany && !ourSlinging) && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging|advanced rigging)/.test(name))) qualifications.push(DOGGING);
   // A licence or ticket the user gave for their own plant item is listed with the licences too, not only in
   // the plant table (messy round 5: HR and MR truck licences printed only in the plant table).
-  for (const item of listed.filter((entry) => entry.own)) {
+  for (const item of listed.filter((entry) => entry.own && !entry.licenceAsked)) {
     const licence = String(item.licence || '').trim().replace(/[.\s]+$/, '');
     if (!licence || /^(?:no\b|nil|none|n\/?a|tb[acd]|not (?:needed|required)|-+)/i.test(licence) || /_{3,}/.test(licence)) continue;
     const line = `${item.item}: ${licence}`;
@@ -806,9 +883,12 @@ function registersFor(draft, input = {}) {
     }
     if (listed.some((item) => /crane/i.test(item.item)) && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging|advanced rigging)/.test(name))) qualifications.push(DOGGING);
   }
+  // A step whose line has refrigeration connections made only by a refrigerant licence holder names the
+  // licence (messy round 6: the coolroom step said so, and the licence was not listed).
+  if (/\b(?:made|done|carried out) only by (?:the |a )?holder of a refrigerant handling licen[cs]e\b/i.test(allText) && !qualifications.some((name) => /^Refrigerant handling/.test(name))) qualifications.push('Refrigerant handling licence (ARC), where our crew makes the refrigeration connections');
   // Work that needs the refrigerant handling licence handles refrigerant (messy round 3 and 4: no
   // refrigerant row for commissioning split systems).
-  if (qualifications.some((name) => /^Refrigerant handling/.test(name)) && !substances.items.some((item) => item.product === 'Refrigerants')) substances.items.push({ product: 'Refrigerants', sds: '', quantity: '' });
+  if (qualifications.some((name) => /^Refrigerant handling/.test(name) && !/, where our crew\b/.test(name)) && !substances.items.some((item) => item.product === 'Refrigerants')) substances.items.push({ product: 'Refrigerants', sds: '', quantity: '' });
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Plumbing and drainage licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Plumbing and Drainage Act 2018 (Qld)'])].sort() };
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Gas work licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'])].sort() };
   return {
@@ -826,4 +906,4 @@ function registersFor(draft, input = {}) {
   };
 }
 
-module.exports = { commsOrUps, MAINS_SAID, registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor, PLANT, withoutOtherTrades, RAIL_WORK };
+module.exports = { plantFor, commsOrUps, MAINS_SAID, registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor, PLANT, withoutOtherTrades, RAIL_WORK };
