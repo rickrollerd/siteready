@@ -336,6 +336,10 @@
     const now = S.payload();
     return Object.fromEntries(PAGE_KEYS.map((key) => [key, now[key]]));
   }
+  // The details on the page that are given (not empty).
+  function pageGiven() {
+    return Object.fromEntries(Object.entries(pageBase()).filter(([, value]) => (Array.isArray(value) ? value.length : String(value == null ? '' : value).trim())));
+  }
   const questionDesign = (id) => { const rules = fill(); return (rules && rules.QUESTION_DESIGNS[id]) || null; };
   // The designs a SWMS uses: those asked at its questions and those its steps rely on, given once for
   // the project and used wherever the same design applies.
@@ -503,8 +507,10 @@
   async function coverEarly(index) {
     if (!document.querySelector('input[name="state"]:checked')) { setTimeout(() => coverEarly(index), 400); return; }
     try {
-      const response = await fetch(api('/api/draft/questions'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payloadFor(index), fallRisk: 'no', residential: payloadFor(index).residential || 'no' }) });
-      const data = await response.json();
+      // Asked again on a host's error, as the questions are (messy round 7, run 6: a 502 here went unsaid).
+      const body = { ...payloadFor(index), fallRisk: 'no', residential: payloadFor(index).residential || 'no' };
+      const { response, data } = S.postJson ? await S.postJson('/api/draft/questions', body)
+        : await fetch(api('/api/draft/questions'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (got) => ({ response: got, data: await got.json() }));
       const now = asked.get(index);
       if (!response.ok || !now || !now.needsFall) return;
       asked.set(index, { ...now, notCovered: data.notCovered || [], notCoveredLeft: data.notCoveredLeft || [], notCoveredMain: data.notCoveredMain || [] });
@@ -559,13 +565,16 @@
       const scaffold = $('scaffold-supervisor-field');
       if (scaffold && scaffoldNeeded()) scaffold.classList.remove('hidden');
       sharedNotes();
-      // Details given since the SWMS were prepared (brought back after a reload) are put into them.
-      const now = JSON.stringify(pageBase());
+      // Details given since the SWMS were prepared (brought back after a reload) are put into them. Only
+      // details on the page count: one not brought back yet as the page loads (the state, the company)
+      // never empties what a SWMS holds, and nothing is asked before the state is set (messy round 7, run
+      // 1: a silent HTTP 400 on POST /api/draft at page load, "Choose a state.").
+      const given = pageGiven();
       // So are emergency answers given in another SWMS of the project (D239: filled across).
       const across = Object.keys(shared().emergency);
-      const stale = project.items.some((item) => item.body && (JSON.stringify(Object.fromEntries(PAGE_KEYS.map((key) => [key, item.body[key]]))) !== now
+      const stale = Boolean(given.state) && project.items.some((item) => item.body && (Object.entries(given).some(([key, value]) => JSON.stringify(item.body[key]) !== JSON.stringify(value))
         || across.some((id) => (!item.emergencyAsked || item.emergencyAsked.includes(id)) && !((item.body.emergency || {})[id] || '').trim())));
-      if (stale && !refreshing) { clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshAll, 300); }
+      if (stale && !refreshing) { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => refreshAll({ given: true }), 300); }
       return;
     }
     const site = sharedSite();
@@ -911,7 +920,7 @@
     }
     if (changed) { save(); drawKept(); }
   }
-  const CHECK_CLEARED = 'Its ticks were cleared because an answer it uses changed.';
+  const CHECK_CLEARED = 'An answer it uses changed since it was checked.';
   function uncheck(item) {
     if (!item.check) return;
     // Kept aside, so an answer typed back as it was gives the check back (messy round 6, run 4).
@@ -945,7 +954,7 @@
     const stale = staleItems();
     return `<div class="note go-kept" id="go-kept" role="status"><p><strong>Your ${kept.length === 1 ? 'prepared SWMS is' : `${kept.length} prepared SWMS are`} kept.</strong> ${stale.length
       ? `You changed an answer ${stale.length === 1 ? 'one of them uses, so it needs' : `${stale.length} of them use, so they need`} preparing again: ${esc(stale.map((entry) => `SWMS ${entry.index + 1} (${entry.item.title})`).join('; '))}.`
-      : 'Change what you need here, then go back to the list.'}${stale.some((entry) => entry.item.checkNote === CHECK_CLEARED) ? ` ${stale.length === 1 ? 'Its ticks are cleared, so check it' : 'Their ticks are cleared, so check them'} again once prepared.` : ''}</p>
+      : 'Change what you need here, then go back to the list.'}${stale.some((entry) => entry.item.checkNote === CHECK_CLEARED) ? ' Once prepared, the list names any ticked part that changed, to tick again.' : ''}</p>
       <div class="actions"><button type="button" class="small" id="go-to-review">Back to the list of prepared SWMS</button>${stale.length ? `<button type="button" class="small secondary" id="go-prepare-stale">Prepare ${stale.length === 1 ? 'it' : 'them'} again</button>` : ''}</div></div>`;
   }
   // What "Prepare it again" did, said where the user is (messy round 4: it changed nothing visible).
@@ -1238,7 +1247,11 @@
       const box = $(`go-${index}-${pick.dataset.q}`);
       if (!answer || !box) return;
       // A refused or thin answer is replaced, not added to (messy round 3: "as per supplier The ____ system").
-      box.value = !box.value.trim() || weakAnswer(box) ? answer.text : `${box.value.trim()} ${answer.text}`;
+      // Another standard answer to the same question already in the box gives way to this one (app.js pickSwap).
+      const fresh = !box.value.trim() || weakAnswer(box);
+      const swap = !fresh && S.pickSwap ? S.pickSwap(box, question.suggestions || [], Number(pick.dataset.n)) : null;
+      box.value = fresh ? answer.text : swap ? swap.value : `${box.value.trim()} ${answer.text}`;
+      if (swap && S.pickSwapNote) S.pickSwapNote(box, swap, () => { setFact(index, pick.dataset.q, box.value); notesFor(index); save(); askSoon(index); });
       if (S.pickedAgain) S.pickedAgain(box.id);
       setFact(index, pick.dataset.q, box.value);
       const design = questionDesign(pick.dataset.q);
@@ -1555,6 +1568,7 @@
     const { response, data: draft } = S.postJson ? await S.postJson('/api/draft', body) : await fetch(api('/api/draft'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (got) => ({ response: got, data: await got.json() }));
     if (!response.ok) throw new Error(draft.message || `SWMS ${index + 1} could not be prepared.`);
     const item = project.items[index];
+    const kept = item.checkKept;
     delete item.stale;
     delete item.checkKept;
     // Only the emergency answers this SWMS's draft asks are kept with it (scope.js keptEmergency).
@@ -1577,6 +1591,12 @@
     if (item.check && parts && draft.checkParts) {
       const cleared = parts.staleParts(item.check.partHashes, draft.checkParts);
       if (cleared.length) { delete item.check; item.checkNote = parts.staleMessage(cleared); }
+    } else if (kept && parts && draft.checkParts) {
+      // Ticks put aside when an answer it uses changed: once prepared, only the parts that now print
+      // differently are named, and with none changed the check comes back (messy round 7, run 6: "Its
+      // ticks were cleared" when only the parts that changed were).
+      const cleared = parts.staleParts(kept.partHashes, draft.checkParts);
+      if (!cleared.length) { item.check = kept; delete item.checkNote; } else item.checkNote = parts.staleMessage(cleared);
     }
   }
 
@@ -1620,14 +1640,20 @@
   // company) is put into each SWMS, and the list says again what each still needs.
   let refreshTimer = null;
   let refreshing = false;
-  async function refreshAll() {
+  // given: only the details given on the page are put in (as the page loads); otherwise all of them, as
+  // the person typed them.
+  async function refreshAll({ given = false } = {}) {
     if (!project || project.stage !== 'review' || refreshing) return;
+    const base = given ? pageGiven() : pageBase();
+    if (!base.state) return;
     refreshing = true;
     try {
       for (let index = 0; index < project.items.length; index += 1) {
         const item = project.items[index];
         // One marked as needing preparing again takes this page's answers too.
-        if (item.body) await prepareOne(index, { ...item.body, ...(item.stale ? payloadFor(index) : {}), ...pageBase(), emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
+        const own = item.stale ? payloadFor(index) : {};
+        if (given) for (const key of PAGE_KEYS) if (!(key in base)) delete own[key];
+        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
       }
       save();
       if (project.stage === 'review') hooks.render();
@@ -1674,7 +1700,7 @@
     const own = (item.needs || []).filter((label) => !SHARED_LABELS.has(label) && !(SITE_LABEL.test(label) && !item.siteOwn));
     // Prepared before an answer it uses changed: kept, but prepared again before download. Its check
     // is cleared with it (D286): it is checked again once prepared.
-    if (item.stale) return { ready: false, stale: true, text: `Needs preparing again: ${String(item.stale).replace(/\.$/, '').replace(/^[A-Z]/, (letter) => letter.toLowerCase())}.${item.checkNote === CHECK_CLEARED ? ' Its ticks are cleared.' : ''}` };
+    if (item.stale) return { ready: false, stale: true, text: `Needs preparing again: ${String(item.stale).replace(/\.$/, '').replace(/^[A-Z]/, (letter) => letter.toLowerCase())}.${item.checkNote === CHECK_CLEARED ? ' Any ticked part that changes is named once it is prepared.' : ''}` };
     if (item.status === 'ready') {
       const check = checkOf(item);
       if (check) return { ready: true, text: `Ready to download. Checked by ${check.name}, ${check.role}.` };

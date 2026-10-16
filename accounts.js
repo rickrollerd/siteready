@@ -270,7 +270,7 @@ function titleFor(body, input) {
   // was named "dismantel ... scafold" though the SWMS said "dismantle ... scaffold").
   // Pasted scope lines lose their clause numbers first, and a title is never a bare number (messy round 6,
   // run 2: "1. Installation of vinyl..." named the SWMS and its files "1").
-  const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000))).text;
+  const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), { places: textField(input.workplace, 300) }).text;
   const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '');
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;

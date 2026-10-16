@@ -85,6 +85,9 @@ function distance(a, b, max) {
 // Common misspellings that happen to be old or rare dictionary words.
 const KNOWN = { cieling: 'ceiling', cielings: 'ceilings', guage: 'gauge', seperate: 'separate', recieve: 'receive', recieved: 'received', accross: 'across', untill: 'until', occured: 'occurred', aluminum: 'aluminium', guttters: 'gutters', plasterbaord: 'plasterboard', scaffolf: 'scaffold',
   // Slips typed on site that land on the wrong word or on none ("tower crain", "hydrolic").
+  // Plant typed with -er for -or (messy round 7, run 8: "13t excavater", "plate compacter"). "compacter"
+  // is also an old word for more compact, which a task never means.
+  excavater: 'excavator', excavaters: 'excavators', compacter: 'compactor', compacters: 'compactors',
   crain: 'crane', crains: 'cranes', rendring: 'rendering', hydrolic: 'hydraulic', hydralic: 'hydraulic', hydrualic: 'hydraulic', sheating: 'sheeting', vynil: 'vinyl', acess: 'access', removel: 'removal', landscapping: 'landscaping', assembley: 'assembly', trimimg: 'trimming', operater: 'operator', tileing: 'tiling', seting: 'setting', laders: 'ladders', hording: 'hoarding', hordings: 'hoardings', sewar: 'sewer', formate: 'format' };
 
 function correction(word) {
@@ -101,6 +104,9 @@ function correction(word) {
   }
   // A plural or singular of a known word is not a typo.
   if (known(lower.replace(/s$/, '')) || known(lower.replace(/ies$/, 'y')) || known(lower.replace(/es$/, '')) || known(`${lower}s`)) return null;
+  // -er typed for the -or of a word SiteWrite knows ("excavater", "elevater"): that word is meant.
+  const asOr = lower.replace(/er(s?)$/, 'or$1');
+  if (asOr !== lower && vocab.has(asOr.replace(/s$/, ''))) return word[0] === word[0].toUpperCase() ? asOr[0].toUpperCase() + asOr.slice(1) : asOr;
   const max = lower.length >= 8 ? 2 : 1;
   let bestDistance = max + 1;
   let closest = [];
@@ -159,10 +165,28 @@ function englishCorrection(lower, word) {
   return word[0] === word[0].toUpperCase() ? pick[0].toUpperCase() + pick.slice(1) : pick;
 }
 
-// { text, fixes: [{ from, to }] }
-function fixSpelling(text) {
+// The place names in the job address picked from its list ("45 Mitchell St, Darwin City NT"), so a
+// street or suburb typed one letter out in the task ("along mitchel st") prints as the address spells
+// it (messy round 7, run 8). Street types and states are left out.
+const NOT_PLACE = /^(?:street|road|avenue|drive|parade|terrace|crescent|place|court|close|lane|highway|boulevard|circuit|esplanade|city|north|south|east|west|upper|lower)$/i;
+function placeWords(address) {
+  return [...new Set((String(address || '').match(/\b[A-Z][a-z]{3,}\b/g) || []).filter((word) => !NOT_PLACE.test(word)))];
+}
+function placeCorrection(word, places) {
+  const lower = word.toLowerCase();
+  if (!places.length || lower.length < 4 || englishWords().has(lower) || vocabularyWords().has(lower)) return null;
+  const near = places.filter((place) => place.toLowerCase() !== lower && distance(lower, place.toLowerCase(), 1) === 1);
+  return near.length === 1 ? near[0] : null;
+}
+
+// { text, fixes: [{ from, to }] }. places: the job address, whose place names are spelt as it spells them.
+function fixSpelling(text, { places = '' } = {}) {
   const fixes = [];
-  const out = String(text || '').replace(/[A-Za-z]{5,}/g, (word, at, whole) => {
+  const named = placeWords(places);
+  const out = String(text || '').replace(/[A-Za-z]{4,}/g, (word, at, whole) => {
+    const place = placeCorrection(word, named);
+    if (place) { fixes.push({ from: word, to: place }); return place; }
+    if (word.length < 5) return word;
     // Words in capitals are names or codes, and a capital inside a sentence is a name or brand.
     if (word === word.toUpperCase()) return word;
     const sentenceStart = /(?:^|[.!?]\s+)$/.test(whole.slice(0, at));

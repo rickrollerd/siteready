@@ -719,7 +719,8 @@
         <label for="profile-abn">ABN
           <span class="hint">Your 11 digit ABN. Needed to save or download a SWMS. One free trial per ABN.</span>
         </label>
-        <input id="profile-abn" type="text" inputmode="numeric" autocomplete="off" required>
+        <input id="profile-abn" type="text" inputmode="numeric" autocomplete="off" required aria-describedby="abn-error">
+        <p id="abn-error" class="error hidden" role="alert"></p>
         <div id="abn-found" class="meta hidden" aria-live="polite"></div>
       </div>
       <div class="field">
