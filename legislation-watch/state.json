@@ -169,7 +169,7 @@
       "Work health and safety consultation, cooperation and coordination Code of Practice 2021 changes | /laws-and-compliance/codes-of-practice/work-health-and-safety-consultation-cooperation-and-coordination-code-of-practice-2021-changes"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nsw-codes": {
     "items": [
@@ -396,7 +396,7 @@
       "Work health and safety consultation, cooperation and coordination | /topics/laws-and-compliance/codes-of-practice/cop-folder/work-health-and-safety-consultation,-cooperation-and-coordination"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:act-codes": {
     "items": [
@@ -413,7 +413,7 @@
       "Notice issued 29/07/2024: sexual and gender-based harassment code approval | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-codes": {
     "items": [
@@ -450,7 +450,7 @@
       "Work health and safety consultation, cooperation and coordination | /forms-and-resources/codes-of-practice/work-health-and-safety-consultation,-cooperation-and-coordination"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "news:seen": [
     "f0c5d7bc8e",
@@ -492,7 +492,10 @@
     "fd7f21acf1",
     "6c05b6d980",
     "279cbb3820",
-    "bde102dd2f"
+    "bde102dd2f",
+    "01b46c8824",
+    "ecd16d6693",
+    "3adbec6e9a"
   ],
   "alerts:nsw-construction-alerts": {
     "seen": [
@@ -1313,7 +1316,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-asbestos-manage": {
     "items": [
@@ -1322,7 +1325,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-chemicals": {
     "items": [
@@ -1331,7 +1334,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-confined": {
     "items": [
@@ -1340,7 +1343,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-construction": {
     "items": [
@@ -1349,7 +1352,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-demolition": {
     "items": [
@@ -1358,7 +1361,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-electrical": {
     "items": [
@@ -1367,7 +1370,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-excavation": {
     "items": [
@@ -1376,7 +1379,7 @@
       "Effective in Tasmania on and from 26 Feb 2020 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-falls": {
     "items": [
@@ -1385,7 +1388,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-manual": {
     "items": [
@@ -1394,7 +1397,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-noise": {
     "items": [
@@ -1403,7 +1406,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-plant": {
     "items": [
@@ -1412,7 +1415,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-spray": {
     "items": [
@@ -1421,7 +1424,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-tower": {
     "items": [
@@ -1430,7 +1433,7 @@
       "Effective in Tasmania on and from 14 Feb 2024 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:tas-code-welding": {
     "items": [
@@ -1439,7 +1442,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-abrasive": {
     "items": [
@@ -1448,7 +1451,7 @@
       "This Code of Practice was varied on 14 September 2023 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-asbestos-manage": {
     "items": [
@@ -1457,7 +1460,7 @@
       "This Code of Practice was varied on 14 September 2023 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-chemicals": {
     "items": [
@@ -1466,7 +1469,7 @@
       "This Code of Practice was varied on 14 September 2023 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-confined": {
     "items": [
@@ -1475,7 +1478,7 @@
       "This Code of Practice was varied on 12 March 2026 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-construction": {
     "items": [
@@ -1484,7 +1487,7 @@
       "This Code of Practice was varied on 12 March 2026 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-electrical": {
     "items": [
@@ -1492,7 +1495,7 @@
       "(2.0 MB) Managing electrical risks in the workplace | /_resources/documents/pdf/codes-of-practice/code-of-practice-managing-electrical-risks-in-the-workplace.pdf"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-excavation": {
     "items": [
@@ -1500,7 +1503,7 @@
       "(3.6 MB) Excavation work | /_resources/documents/word/codes-of-practice/code-of-practice-excavation-work.docx"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-falls": {
     "items": [
@@ -1508,7 +1511,7 @@
       "(7.0 MB) Managing the risk of falls at workplaces | /_resources/documents/pdf/codes-of-practice/code-of-practice-managing-the-risk-of-falls-at-workplaces.pdf"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-manual": {
     "items": [
@@ -1516,7 +1519,7 @@
       "(2.4 MB) Hazardous manual tasks | /_resources/documents/pdf/codes-of-practice/code-of-practice-hazardous-manual-tasks.pdf"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-noise": {
     "items": [
@@ -1525,7 +1528,7 @@
       "This Code of Practice was varied on 12 March 2026 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-plant": {
     "items": [
@@ -1534,14 +1537,14 @@
       "This Code of Practice was varied on 12 March 2026 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-precast": {
     "items": [
       "(1.6 MB) Precast, tiltup and concrete elements in building construction | /_resources/documents/pdf/codes-of-practice/precast-tiltup-concrete-elements-in-building-construction-cop.pdf"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-silica": {
     "items": [
@@ -1549,7 +1552,7 @@
       "(2.4 MB) Managing risks of respirable crystalline silica in the workplace | /__data/assets/word_doc/0008/1603790/managing-risks-of-respirable-crystalline-silica-in-the-workplace.docx"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-spray": {
     "items": [
@@ -1558,7 +1561,7 @@
       "This Code of Practice was varied on 14 September 2023 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-tower": {
     "items": [
@@ -1566,7 +1569,7 @@
       "(2.4 MB) Tower cranes | /_resources/documents/pdf/codes-of-practice/Tower-cranes.pdf"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:nt-code-welding": {
     "items": [
@@ -1575,7 +1578,7 @@
       "This Code of Practice was varied on 14 September 2023 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-15"
+    "readOn": "2026-10-16"
   },
   "code:arc-refrigerant-code": {
     "items": [
