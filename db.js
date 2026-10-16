@@ -676,6 +676,8 @@ const SCHEMA = [
     removed_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS subcontracts_project ON subcontracts (project_id)',
+  // A scope whose title names another trade than the subcontract's (messy round 6), said on its page.
+  "ALTER TABLE subcontracts ADD COLUMN IF NOT EXISTS trade_warning TEXT NOT NULL DEFAULT ''",
   // The SWMS a subcontract needs, in the shape the one-go page opens (scope-choice.js projectItems),
   // with prices taken out (handover.js). source is 'reading' or 'added'. A removed SWMS keeps its row
   // (removed_at), so the lead can put it back; removed_why says why one started removed.
@@ -711,6 +713,18 @@ const SCHEMA = [
     answered_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS subcontract_points_subcontract ON subcontract_points (subcontract_id, position)',
+  // A SiteLink project's log (messy round 6): subcontracts added, scopes read, list changes and
+  // invitations, with who and when. An entry with no project (an invitation) shows on every project of
+  // the account. The site details versions are logged from their own table.
+  `CREATE TABLE IF NOT EXISTS project_events (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL,
+    project_id TEXT NOT NULL DEFAULT '',
+    who TEXT NOT NULL DEFAULT '',
+    text TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS project_events_org ON project_events (org_id, created_at)',
   // The HSE lead's changes to a SWMS list, kept to improve how SiteWrite reads scopes (Goal 12): the
   // month, state, brief version, the package's name and wording with names taken out, the kind of
   // change, and the reading by a keyed fingerprint. No project, account, subcontract or person.

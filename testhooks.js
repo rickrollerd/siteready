@@ -94,9 +94,49 @@ function install(app, { sendReviewReminders, removeExpired }) {
       return res.json({ ok: true, results: await runLibraryNotices({ notices: [notice] }) });
     } catch (error) { return next(error); }
   });
+  // SiteLink (messy round 6): removes a test SiteLink account, with its team, projects, site details,
+  // log, subcontracts, SWMS lists, points and project readings, so testers can set up again. Named by
+  // a test address in the team ({ email }) or by its ABN ({ abn }). Only an account whose every member
+  // and invitation, and whose maker, is a test address is removed; any other is left as it is.
+  router.post('/sitelink/remove', async (req, res, next) => {
+    try {
+      const body = req.body || {};
+      const email = String(body.email || '').trim().toLowerCase();
+      const abn = String(body.abn || '').replace(/\D/g, '');
+      if (email && !isTestAddress(email)) return res.status(400).json({ kind: 'error', message: `Only addresses at ${DOMAIN()}.` });
+      if (!email && abn.length !== 11) return res.status(400).json({ kind: 'error', message: 'Give the email of a test address in the team, or the account\'s 11 digit ABN.' });
+      const orgs = email
+        ? await db.query('SELECT orgs.* FROM orgs JOIN org_members ON org_members.org_id = orgs.id WHERE org_members.email = $1', [email])
+        : await db.query('SELECT * FROM orgs WHERE abn = $1', [abn]);
+      const removed = [];
+      const kept = [];
+      for (const org of orgs) {
+        const people = await db.query('SELECT email FROM org_members WHERE org_id = $1', [org.id]);
+        const maker = await db.one('SELECT email FROM reviewers WHERE id = $1', [org.created_by]);
+        if (!people.length || !people.every((person) => isTestAddress(person.email)) || (maker && !isTestAddress(maker.email))) { kept.push(org.id); continue; }
+        const projects = await db.query('SELECT id FROM projects WHERE org_id = $1', [org.id]);
+        for (const project of projects) {
+          const subs = await db.query('SELECT id FROM subcontracts WHERE project_id = $1', [project.id]);
+          for (const sub of subs) {
+            await db.query('DELETE FROM required_swms WHERE subcontract_id = $1', [sub.id]);
+            await db.query('DELETE FROM subcontract_points WHERE subcontract_id = $1', [sub.id]);
+          }
+          await db.query('DELETE FROM subcontracts WHERE project_id = $1', [project.id]);
+          await db.query('DELETE FROM project_site_details WHERE project_id = $1', [project.id]);
+        }
+        await db.query('DELETE FROM project_events WHERE org_id = $1', [org.id]);
+        await db.query('DELETE FROM projects WHERE org_id = $1', [org.id]);
+        await db.query("DELETE FROM ai_readings WHERE org_id = $1 AND company_id = ''", [org.id]);
+        await db.query('DELETE FROM org_members WHERE org_id = $1', [org.id]);
+        await db.query('DELETE FROM orgs WHERE id = $1', [org.id]);
+        removed.push(org.id);
+      }
+      return res.json({ ok: true, removed: removed.length, notTestAccounts: kept.length });
+    } catch (error) { return next(error); }
+  });
   app.use('/api/test', router);
   console.log(`Staging test hooks are on. Mail to @${DOMAIN()} goes to the test inbox.`);
   return true;
 }
 
-module.exports = { install, enabled };
+module.exports = { install, enabled, isTestAddress };

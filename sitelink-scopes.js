@@ -19,6 +19,7 @@ const { textField } = require('./input');
 const { BRIEF_VERSION } = require('./ai-brief');
 const controlLearning = require('./control-learning');
 const { controlLearningKey } = require('./secret-keys');
+const answers = require('./sitelink-answers');
 
 const { fail } = auth;
 const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -69,12 +70,59 @@ async function fileText(body) {
   }
 }
 
+// ---- Does the scope fit the subcontract's trade? ----
+// A rushed lead can upload the wrong file (messy round 6: a mechanical scope for a hydraulics and an
+// electrical subcontract). The trade a scope is for is read from its title, at the top; the trade
+// typed for the subcontract is read the same way. They differ only when the title names other trades
+// and the trade typed is hardly mentioned in the whole scope. It warns; the lead can carry on.
+const TRADES = [
+  ['mechanical', 'mechanical', /\bmechanical\b|\bhvac\b|\bair[- ]?condition\w*/gi],
+  ['hydraulics', 'hydraulics', /\bhydraulic\w*|\bplumb\w*/gi],
+  ['electrical', 'electrical', /\belectrical\b|\belectricians?\b/gi],
+  ['fire', 'fire services', /\bfire (?:services|protection)\b|\bsprinklers?\b/gi],
+  ['formwork', 'formwork', /\bform ?work\b/gi],
+  ['reinforcement', 'reinforcement', /\breinforc\w*|\breo\b|\bsteel fix\w*/gi],
+  ['concrete', 'civil and concrete', /\bconcret\w*|\bcivil\b/gi],
+  ['steel', 'structural steel', /\bstructural steel\b|\bsteel erect\w*/gi],
+  ['roofing', 'roofing', /\broof\w*/gi],
+  ['painting', 'painting', /\bpaint\w*/gi],
+  ['tiling', 'tiling', /\btil(?:e|es|ing)\b/gi],
+  ['glazing', 'windows and glazing', /\bglaz\w*|\bwindows?\b/gi],
+  ['ceilings', 'ceilings and partitions', /\bceilings?\b|\bpartitions?\b|\bplasterboard\b/gi],
+  ['waterproofing', 'waterproofing', /\bwaterproof\w*/gi],
+  ['landscaping', 'landscaping', /\blandscap\w*/gi],
+  ['joinery', 'joinery', /\bjoinery\b|\bcabinet\w*/gi],
+  ['flooring', 'floor coverings', /\bcarpet\w*|\bvinyl\b|\bfloor ?coverings?\b/gi],
+  ['security', 'security', /\bsecurity\b|\bcctv\b|\baccess control\b/gi],
+  ['cleaning', 'cleaning', /\bclean(?:ing|ers?)?\b/gi],
+  ['pool', 'swimming pool', /\bswimming pools?\b/gi],
+  ['kitchens', 'commercial kitchens', /\bkitchens?\b/gi],
+  ['doors', 'doors', /\bdoors?\b|\bdoor hardware\b/gi],
+  ['fencing', 'fencing', /\bfenc\w*/gi],
+];
+const tradesNamed = (text) => TRADES.filter(([, , pattern]) => new RegExp(pattern.source, 'i').test(String(text || '')));
+const timesNamed = (text, trade) => (String(text || '').match(trade[2]) || []).length;
+function tradeMismatch(text, tradeTyped) {
+  const typedTrades = tradesNamed(tradeTyped);
+  const titled = tradesNamed(String(text || '').slice(0, 300));
+  if (!typedTrades.length || !titled.length || typedTrades.some((trade) => titled.includes(trade))) return '';
+  const top = Math.max(...titled.map((trade) => timesNamed(text, trade)));
+  const mine = Math.max(...typedTrades.map((trade) => timesNamed(text, trade)));
+  if (mine * 3 > top) return '';
+  // The trades the title names that the scope is mostly about.
+  const main = titled.filter((trade) => timesNamed(text, trade) * 2 >= top);
+  return `This scope reads as ${answers.listed(main.map((trade) => trade[1]))} work, but the subcontract's trade is ${String(tradeTyped).trim().toLowerCase()}. Check it is the right scope for this subcontract.`;
+}
+
 // ---- What the lead types ----
 
-function typed(value, max, label, field) {
+function typed(value, max, label, field, { answer = false } = {}) {
   const text = oneLine(value, max);
   if (PLACEHOLDER.test(text)) throw Object.assign(fail(400, `Leave ${label} empty until you know it. The subcontractor would see "${text}".`), { field });
   if (handover.hasPrice(text)) throw Object.assign(fail(400, 'Take the price out. The subcontractor sees this, and SiteLink never passes on prices, rates or amounts.'), { field });
+  // An answer the SWMS app would refuse ("me", "dont know", "check with dana") says nothing yet.
+  const weak = answer ? answers.notAnswer(text) : '';
+  if (weak) throw Object.assign(fail(400, weak), { field });
   return text;
 }
 
@@ -119,7 +167,8 @@ async function recordListEdit(ctx, { kind, pack, wording = '', original = '' }) 
 // ---- Views ----
 
 function install(router, deps) {
-  const { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS } = deps;
+  const { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS, logEvent } = deps;
+  const log = (ctx, req, text) => logEvent({ orgId: ctx.org.id, projectId: ctx.project.id, who: req.reviewer.id, text: `${personName(req.reviewer)} ${text}` });
 
   async function subcontractFor(req, id) {
     const sub = id && await db.one('SELECT * FROM subcontracts WHERE id = $1 AND removed_at IS NULL', [String(id || '')]);
@@ -134,24 +183,35 @@ function install(router, deps) {
   const itemsOf = (subId) => db.query('SELECT * FROM required_swms WHERE subcontract_id = $1 ORDER BY position, created_at', [subId]);
   const pointsOf = (subId) => db.query('SELECT * FROM subcontract_points WHERE subcontract_id = $1 ORDER BY position', [subId]);
 
-  function itemView(row) {
+  // Where each SWMS sits on the lead's page: on the list, set aside as work that may not need a SWMS
+  // by law, or removed (with why).
+  const groupOf = (row) => (!row.removed_at ? 'list' : row.removed_why === 'noLaw' ? 'aside' : 'removed');
+  function itemView(row, rows = []) {
     const item = row.item || {};
+    const into = row.removed_why === 'folded' ? rows.find((other) => other.package && other.package === item.foldedInto) : null;
     return {
       id: row.id,
       title: row.title,
       task: row.task,
       source: row.source,
       removed: Boolean(row.removed_at),
-      removedWhy: row.removed_at ? handover.REMOVED_WHY[row.removed_why] || '' : '',
+      group: groupOf(row),
+      removedWhy: !row.removed_at ? '' : row.removed_why === 'folded' ? handover.foldedWhy(into ? into.title : 'the main SWMS') : handover.REMOVED_WHY[row.removed_why] || '',
+      alsoCovers: rows.filter((other) => other.removed_at && other.removed_why === 'folded' && other.item && other.item.foldedInto && other.item.foldedInto === row.package).map((other) => other.title),
       taskChanged: row.task_changed,
       highRisk: item.highRisk || null,
       activities: (item.activities || []).length,
-      clauses: [...new Set((item.activities || []).map((entry) => entry.clause).filter(Boolean))].slice(0, 12),
+      clauses: handover.clauseList((item.activities || []).map((entry) => entry.clause)),
     };
   }
 
-  function pointView(row, state) {
-    return { id: row.id, activity: row.activity, clause: row.clause, question: row.question, answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '' };
+  function pointView(row, state, rows = []) {
+    const item = handover.pointItem(row, rows);
+    return {
+      id: row.id, activity: row.activity, clause: row.clause, question: handover.sentence(row.question), answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '',
+      // A point about a SWMS that is not on the list is not asked or sent (messy round 6).
+      inPlay: handover.pointInPlay(row, rows), swms: item ? item.title : '',
+    };
   }
 
   async function readingsLeft(project) {
@@ -216,10 +276,15 @@ function install(router, deps) {
     ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
   }
 
-  function subcontractView(sub, state) {
+  function subcontractView(sub, state, read) {
+    // When the scope was read: the reading's own time, which for a file read before is earlier than
+    // when it was chosen for this subcontract (messy round 6).
+    const readAt = read && (read.finished_at || read.created_at);
     return {
       id: sub.id, projectId: sub.project_id, name: sub.name, trade: sub.trade, email: sub.contact_email, status: sub.status,
       docName: sub.doc_name, scopeOn: sub.scope_at ? dateTime(sub.scope_at, state) : '', scopeBy: sub.scope_by_name, listRev: Number(sub.list_rev || 0),
+      readOn: readAt ? dateTime(readAt, state) : '', readBefore: Boolean(readAt && sub.scope_at && new Date(readAt) < new Date(sub.scope_at) - 60000),
+      tradeWarning: sub.trade_warning || '',
     };
   }
 
@@ -232,14 +297,15 @@ function install(router, deps) {
     const siteDetails = detailsView(versions[versions.length - 1], project.state);
     // A reading of the same file on another subcontract of this project, said so the lead knows it was not paid twice.
     const shared = sub.doc_hash ? await db.query('SELECT name, trade FROM subcontracts WHERE project_id = $1 AND doc_hash = $2 AND id <> $3 AND removed_at IS NULL', [project.id, sub.doc_hash, sub.id]) : [];
+    const read = sub.reading_id ? await db.one('SELECT created_at, finished_at FROM ai_readings WHERE id = $1', [sub.reading_id]) : null;
     return {
-      subcontract: subcontractView(sub, project.state),
+      subcontract: subcontractView(sub, project.state, read),
       project: { id: project.id, name: project.name, workplace: project.workplace, state: project.state, pcName: project.pc_name },
       org: { id: org.id, name: org.name, role },
       reading,
       sameFile: shared.map((row) => `${row.name}${row.trade ? ` (${row.trade})` : ''}`),
-      items: rows.map(itemView),
-      points: points.map((row) => pointView(row, project.state)),
+      items: rows.map((row) => itemView(row, rows)),
+      points: points.map((row) => pointView(row, project.state, rows)),
       readings: await readingsLeft(project),
       preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS }),
       ...extra,
@@ -254,8 +320,8 @@ function install(router, deps) {
     for (const sub of subs) {
       // A reading finished since anyone opened the subcontract becomes its list here, so the count is right.
       if (sub.reading_id && sub.list_reading_id !== sub.reading_id) await readingOf({ sub, org, project });
-      const items = await db.query('SELECT removed_at FROM required_swms WHERE subcontract_id = $1', [sub.id]);
-      const open = await db.one("SELECT COUNT(*) AS n FROM subcontract_points WHERE subcontract_id = $1 AND answer = ''", [sub.id]);
+      const items = await db.query('SELECT * FROM required_swms WHERE subcontract_id = $1', [sub.id]);
+      const open = (await db.query("SELECT * FROM subcontract_points WHERE subcontract_id = $1 AND answer = ''", [sub.id])).filter((point) => handover.pointInPlay(point, items));
       let scope = sub.reading_id ? 'reading' : 'none';
       if (sub.reading_id) {
         const row = await db.one('SELECT status FROM ai_readings WHERE id = $1', [sub.reading_id]);
@@ -263,8 +329,9 @@ function install(router, deps) {
       }
       out.push({
         id: sub.id, name: sub.name, trade: sub.trade, scope, status: sub.status,
-        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at).length,
-        pointsOpen: Number((open && open.n) || 0),
+        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && row.removed_why !== 'noLaw').length,
+        aside: items.filter((row) => row.removed_at && row.removed_why === 'noLaw').length,
+        pointsOpen: open.length,
       });
     }
     return { subcontracts: out, readings: await readingsLeft(project) };
@@ -282,6 +349,7 @@ function install(router, deps) {
       [id, project.id, fields.name, fields.trade, fields.email, req.reviewer.id, now]);
     record('subcontract_added', null);
     const sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [id]);
+    await log({ org, project }, req, `added the subcontract ${fields.name} (${fields.trade}).`);
     res.status(201).json(await subcontractPage({ sub, project, org, role }));
   }));
 
@@ -293,7 +361,9 @@ function install(router, deps) {
   router.put('/hse/subcontracts/:subId', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     const fields = cleanSubcontract(req.body);
-    await db.query('UPDATE subcontracts SET name = $1, trade = $2, contact_email = $3, updated_at = $4 WHERE id = $5', [fields.name, fields.trade, fields.email, new Date(), ctx.sub.id]);
+    // A new trade clears the warning that the scope is for another trade.
+    await db.query('UPDATE subcontracts SET name = $1, trade = $2, contact_email = $3, updated_at = $4, trade_warning = $6 WHERE id = $5',
+      [fields.name, fields.trade, fields.email, new Date(), ctx.sub.id, fields.trade === ctx.sub.trade ? ctx.sub.trade_warning || '' : '']);
     ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
     res.json(await subcontractPage(ctx, { message: 'The subcontract details are saved.' }));
   }));
@@ -301,6 +371,7 @@ function install(router, deps) {
   router.delete('/hse/subcontracts/:subId', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     await db.query('UPDATE subcontracts SET removed_at = $1 WHERE id = $2', [new Date(), ctx.sub.id]);
+    await log(ctx, req, `removed the subcontract ${ctx.sub.name}.`);
     res.json({ ok: true, message: `${ctx.sub.name} has been removed from the project.` });
   }));
 
@@ -317,6 +388,9 @@ function install(router, deps) {
     if (ctx.sub.list_reading_id && hash !== ctx.sub.doc_hash && !body.replace) {
       throw Object.assign(fail(409, 'This subcontract already has a SWMS list from its scope. Reading a new scope replaces that list and the answers you gave. SWMS you added yourself stay.'), { replace: true });
     }
+    // A scope for another trade is asked about before anything is read, so a wrong file costs nothing.
+    const mismatch = tradeMismatch(text, ctx.sub.trade);
+    if (mismatch && !body.tradeChecked) throw Object.assign(fail(409, mismatch), { field: 'scope', tradeMismatch: true });
     let started;
     try {
       started = await aiScope.startProjectReading(ctx, text, ctx.project.state, { clean: (reading, checks) => ({ reading: handover.scrubReading(reading), checks: handover.scrubChecks(checks) }) });
@@ -325,9 +399,10 @@ function install(router, deps) {
       throw error;
     }
     const name = String((body.file && body.file.name) || 'Pasted text').replace(/[\\/]/g, ' ').slice(0, 200);
-    await db.query('UPDATE subcontracts SET reading_id = $1, doc_name = $2, doc_hash = $3, scope_at = $4, scope_by_name = $5, updated_at = $4 WHERE id = $6',
-      [started.id, name, hash, new Date(), personName(req.reviewer), ctx.sub.id]);
+    await db.query('UPDATE subcontracts SET reading_id = $1, doc_name = $2, doc_hash = $3, scope_at = $4, scope_by_name = $5, updated_at = $4, trade_warning = $7 WHERE id = $6',
+      [started.id, name, hash, new Date(), personName(req.reviewer), ctx.sub.id, mismatch]);
     record(started.kept ? 'project_scope_kept' : 'project_scope', null);
+    await log(ctx, req, started.kept ? `used ${name} as the scope for ${ctx.sub.name}. It was read before, so it cost nothing.` : `uploaded ${name} as the scope for ${ctx.sub.name}, and SiteLink read it.`);
     ctx.sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [ctx.sub.id]);
     const message = started.kept ? 'This file was read before for your account, so it was not read again. It cost nothing and does not count toward the project\'s free readings.' : '';
     res.status(started.kept ? 200 : 202).json(await subcontractPage(ctx, { kept: Boolean(started.kept), message }));
@@ -337,17 +412,21 @@ function install(router, deps) {
   router.post('/hse/subcontracts/:subId/items', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     const body = req.body || {};
-    const title = typed(body.title, 160, 'the title', 'title');
-    const task = typed(body.task, 1500, 'the work', 'task');
+    const title = answers.capitalFirst(typed(body.title, 160, 'the title', 'title'));
+    const task = answers.capitalFirst(typed(body.task, 1500, 'the work', 'task'));
     if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
     if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
+    // The high risk work the lead's own words name, by the scope reading's rules (messy round 6: a
+    // 60 t mobile crane lift showed none).
+    const highRisk = handover.highRiskOf(`${title}. ${task}`, ctx.project.state);
     const rows = await itemsOf(ctx.sub.id);
     if (rows.length >= ITEM_LIMIT) throw fail(400, `A list holds up to ${ITEM_LIMIT} SWMS.`);
     const now = new Date();
     const rev = await bumpList(ctx);
     await db.query('INSERT INTO required_swms (id, subcontract_id, position, package, title, task, item, source, list_rev, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)',
-      [auth.newId(), ctx.sub.id, rows.length, '', title, task, JSON.stringify({ title, task, scopeTask: { plain: task, full: task, notes: '' }, kinds: null, leaveOut: null, unmatched: null, activities: [] }), 'added', rev, now]);
+      [auth.newId(), ctx.sub.id, rows.length, '', title, task, JSON.stringify({ title, task, scopeTask: { plain: task, full: task, notes: '' }, kinds: null, leaveOut: null, unmatched: null, activities: [], highRisk }), 'added', rev, now]);
     await recordListEdit(ctx, { kind: 'added', pack: title, wording: task });
+    await log(ctx, req, `added ${title} to the SWMS list for ${ctx.sub.name}.`);
     res.status(201).json(await subcontractPage(ctx, { message: `${title} is added to the list.` }));
   }));
 
@@ -369,16 +448,20 @@ function install(router, deps) {
       const rev = await bumpList(ctx);
       await db.query("UPDATE required_swms SET removed_at = $1, removed_why = '', list_rev = $2, updated_at = $3 WHERE id = $4", [body.removed ? now : null, rev, now, row.id]);
       await recordListEdit(ctx, { kind: body.removed ? 'removed' : 'restored', pack: row.package || row.title, wording: row.task });
-      message = body.removed ? `${row.title} is removed from the list.` : `${row.title} is back on the list.`;
+      const moved = !body.removed && row.removed_why === 'noLaw';
+      message = body.removed ? `${row.title} is removed from the list.` : moved ? `${row.title} is moved to the list.` : `${row.title} is back on the list.`;
+      await log(ctx, req, body.removed ? `removed ${row.title} from the SWMS list for ${ctx.sub.name}.` : `put ${row.title} on the SWMS list for ${ctx.sub.name}.`);
     }
     if (typeof body.task === 'string') {
       const task = typed(body.task, 1500, 'the work', 'task');
       if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
       if (task !== row.task) {
         const rev = await bumpList(ctx);
-        const item = { ...(row.item || {}), task };
+        // The high risk work is read again from the lead's own words, with the package's step groups.
+        const item = { ...(row.item || {}), task, highRisk: handover.highRiskOf(`${row.title}. ${task}`, ctx.project.state, row.item || {}) };
         await db.query('UPDATE required_swms SET task = $1, item = $2, task_changed = TRUE, list_rev = $3, updated_at = $4 WHERE id = $5', [task, JSON.stringify(item), rev, now, row.id]);
         await recordListEdit(ctx, { kind: 'taskChanged', pack: row.package || row.title, wording: task, original: row.task });
+        await log(ctx, req, `changed the work for ${row.title} on the SWMS list for ${ctx.sub.name}.`);
         message = `The work for ${row.title} is saved.`;
       }
     }
@@ -391,7 +474,7 @@ function install(router, deps) {
     needName(req);
     const row = await db.one('SELECT * FROM subcontract_points WHERE id = $1 AND subcontract_id = $2', [String(req.params.pointId || ''), ctx.sub.id]);
     if (!row) throw fail(404, 'That point is not on this subcontract.');
-    const answer = typed(req.body && req.body.answer, 1000, 'the answer', 'answer');
+    const answer = answers.capitalFirst(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }));
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));
@@ -400,4 +483,4 @@ function install(router, deps) {
   return { projectSubcontracts };
 }
 
-module.exports = { install, notAScope, DRAWING, PRICE_SCHEDULE };
+module.exports = { install, notAScope, tradeMismatch, DRAWING, PRICE_SCHEDULE };

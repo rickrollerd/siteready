@@ -12,6 +12,9 @@ const { record } = require('./events');
 const { textField } = require('./input');
 const { validAbn } = require('./accounts');
 const abnRegister = require('./abn');
+const answers = require('./sitelink-answers');
+const testHooks = require('./testhooks');
+const { stateFromTyped } = require('./public/address');
 
 const router = express.Router();
 const { fail } = auth;
@@ -49,9 +52,30 @@ function dateTime(date, state) {
 }
 
 // The details as typed: each box one line, the site rules one per line (a list or lines of text),
-// with any bullet or number at the start taken off. A placeholder such as "TBC" is refused at its box.
+// with any bullet or number at the start taken off. A placeholder such as "TBC" is refused at its box,
+// and so is an answer the SWMS app would refuse ("me", "carpark", a first name only, a short phone):
+// every problem is named at once, each at its own box (messy round 6: five saves for five problems).
+const PEOPLE = { firstAider: { firstAider: true }, siteManager: {}, scaffoldSupervisor: { example: 'Pat Doyle, Tallow Scaffolding, 0412 345 678' } };
+const PLACES = ['musterPoint', 'firstAidLocation'];
+function detailProblem(field, value) {
+  if (PEOPLE[field.key]) return answers.personProblem(value, PEOPLE[field.key]);
+  if (PLACES.includes(field.key)) return answers.placeProblem(value);
+  if (field.key === 'hospital') return answers.hospitalProblem(value);
+  return answers.notAnswer(value);
+}
+
+// Several problems at once: one message for the top of the form, and each box's own (fields).
+function problems(found, fieldsList) {
+  const keys = Object.keys(found);
+  if (!keys.length) return;
+  if (keys.length === 1) throw Object.assign(fail(400, found[keys[0]]), { field: keys[0], fields: found });
+  const names = keys.map((key) => ((fieldsList || []).find((field) => field.key === key) || { label: key }).label.toLowerCase());
+  throw Object.assign(fail(400, `${keys.length} details need changing before they can be saved: ${answers.listed(names)}. Each box says why.`), { field: keys[0], fields: found });
+}
+
 function cleanDetails(body) {
   const out = {};
+  const found = {};
   for (const field of FIELDS) {
     const raw = body ? body[field.key] : undefined;
     if (field.list) {
@@ -60,12 +84,19 @@ function cleanDetails(body) {
         .map((line) => oneLine(line.replace(/^\s*(?:[-*•·]|\d{1,2}[.)])\s+/, ''), FIELD_LIMIT))
         .filter(Boolean).slice(0, RULES_LIMIT);
       const bad = out[field.key].find((line) => PLACEHOLDER.test(line));
-      if (bad) throw Object.assign(fail(400, `Take out the rule "${bad}". Add the site rules once you know them.`), { field: field.key });
+      const weak = bad ? '' : out[field.key].map((line) => answers.notAnswer(line)).find(Boolean);
+      if (bad) found[field.key] = `Take out the rule "${bad}". Add the site rules once you know them.`;
+      else if (weak) found[field.key] = `${weak} Write the rule in full, or take it out.`;
     } else {
       out[field.key] = oneLine(raw, FIELD_LIMIT);
-      if (PLACEHOLDER.test(out[field.key])) throw Object.assign(fail(400, `Leave ${field.label.toLowerCase()} empty until you know it. Contractors would see "${out[field.key]}" on their SWMS.`), { field: field.key });
+      if (PLACEHOLDER.test(out[field.key])) found[field.key] = `Leave ${field.label.toLowerCase()} empty until you know it. Contractors would see "${out[field.key]}" on their SWMS.`;
+      else {
+        const weak = detailProblem(field, out[field.key]);
+        if (weak) found[field.key] = weak;
+      }
     }
   }
+  problems(found, FIELDS);
   return out;
 }
 
@@ -121,6 +152,9 @@ async function joinInvites(reviewer) {
 
 const abnDigits = (value) => String(value || '').replace(/\D/g, '');
 const formatAbn = (abn) => (abn.length === 11 ? `${abn.slice(0, 2)} ${abn.slice(2, 5)} ${abn.slice(5, 8)} ${abn.slice(8)}` : abn);
+// Where people write to SiteWrite: SUPPORT_EMAIL, else the address the app's privacy policy and terms
+// already give.
+const supportEmail = () => String(process.env.SUPPORT_EMAIL || 'sitereadyaus@gmail.com').trim();
 const ABN_FIXED = 'The ABN links this account and cannot be changed. If it is wrong, contact SiteWrite.';
 const ABN_TAKEN = 'An account with this ABN is already on SiteLink. Ask that account\'s lead to add you to its team, then sign in with the email they used. You do not need a second account.';
 
@@ -163,16 +197,26 @@ async function refuseTakenAbn(abn) {
   if (await db.one('SELECT id FROM orgs WHERE abn = $1', [abn])) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
 }
 
+// Staging testers (messy round 6): with the test hooks on (testhooks.js), an account set up by a test
+// address does not ask the live ABN register, so a made-up ABN with the right check digits is set up
+// Unverified, never refused. Production never has the hooks on, so nothing changes there.
+const testSetUp = (reviewer) => Boolean(reviewer) && testHooks.enabled() && testHooks.isTestAddress(reviewer.email);
+
+// What to do about an ABN the register does not list. The check digits are right, so the digits may
+// be too: a company registered in the last few days may not be listed yet.
+const notListed = (abn) => `The ABN register does not list ABN ${formatAbn(abn)}. Check it against the company's records. A company registered in the last few days may not be listed yet: try again in a few days, or contact SiteWrite at ${supportEmail()}.`;
+
 // A new ABN for an account (when it is set up): valid, not held by another account, and on the
 // register. When the register lists another name, the person is asked before the account is set up
 // unverified, because the ABN cannot be changed afterwards.
-async function newAbn(body, name) {
+async function newAbn(body, name, reviewer) {
   const abn = abnDigits(body.abn);
   if (!abn) throw Object.assign(fail(400, 'Enter the company\'s ABN. It links this account to your company.'), { field: 'abn' });
   if (!validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits.'), { field: 'abn' });
   await refuseTakenAbn(abn);
+  if (testSetUp(reviewer)) return { abn, check: 'unavailable', names: [] };
   const result = await checkAbn(abn, name);
-  if (result.check === 'missing') throw Object.assign(fail(400, 'That ABN is not on the ABN register. Check the 11 digits.'), { field: 'abn' });
+  if (result.check === 'missing') throw Object.assign(fail(400, notListed(abn)), { field: 'abn' });
   if (result.check === 'cancelled') throw Object.assign(fail(400, 'The ABN register shows that ABN as cancelled. Check the 11 digits, or enter the company\'s current ABN.'), { field: 'abn' });
   if (result.check === 'name' && !body.keepName) {
     const listedName = readableCompany(result.names[0]);
@@ -190,7 +234,9 @@ function abnNote(org) {
   const names = keptNames(org);
   if (!org.abn) return 'Add the company\'s ABN. The account shows Unverified until its ABN matches the ABN register.';
   if (org.abn_verified_at) return 'The ABN matches the ABN register.';
-  if (org.abn_check === 'name' && names.length) return `The ABN register lists this ABN under ${readableCompany(names[0])}. The account shows Unverified until its name matches the register.`;
+  // The register's name is shown, not offered: a lookalike account must not take another company's name
+  // in one click (messy round 6). The company itself writes to SiteWrite.
+  if (org.abn_check === 'name' && names.length) return `The ABN register lists this ABN under ${readableCompany(names[0])}. The account shows Unverified. If this account is for ${readableCompany(names[0])}, contact SiteWrite at ${supportEmail()} to have it checked.`;
   if (org.abn_check === 'cancelled') return 'The ABN register shows this ABN as cancelled. The account shows Unverified.';
   if (org.abn_check === 'missing') return 'This ABN is not on the ABN register. The account shows Unverified.';
   return 'The ABN register could not be checked yet. The account shows Unverified until it is.';
@@ -200,7 +246,7 @@ function orgView(org, role) {
   const names = keptNames(org);
   return {
     id: org.id, name: org.name, abn: org.abn, abnShown: formatAbn(org.abn || ''), role,
-    verified: Boolean(org.abn_verified_at), abnCheck: org.abn_check || '', registerName: org.abn_check === 'name' ? readableCompany(names[0]) : '', abnNote: abnNote(org),
+    verified: Boolean(org.abn_verified_at), abnCheck: org.abn_check || '', registerName: org.abn_check === 'name' ? readableCompany(names[0]) : '', abnNote: abnNote(org), support: supportEmail(),
   };
 }
 
@@ -249,21 +295,41 @@ function versionList(rows, state) {
   })).reverse();
 }
 
-// The project's log so far: when it was set up and each version of the site details. Later stages
-// add lists sent, submissions, reviews and plan notices.
-function logOf(project, creatorName, rows) {
+// One entry in a project's log (project_events): subcontracts added, scopes read, list changes and
+// invitations. projectId '' is the whole account (an invitation), shown on each of its projects.
+async function logEvent({ orgId, projectId = '', who = '', text }) {
+  if (!db.enabled()) return;
+  await db.query('INSERT INTO project_events (id, org_id, project_id, who, text, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [auth.newId(), orgId, projectId, who, String(text).slice(0, 500), new Date()]);
+}
+
+// The project's log: when it was set up, each version of the site details, and the other entries
+// (logEvent). Later stages add lists sent, submissions, reviews and plan notices.
+function logOf(project, creatorName, rows, events = []) {
   const entries = rows.map((row, i) => {
     const changed = changedKeys(i ? rows[i - 1].details : EMPTY, row.details).map((key) => labelOf(key).toLowerCase());
     return { at: row.set_at, when: dateTime(row.set_at, project.state), text: `${row.set_by_name} set site details version ${row.rev}${changed.length ? `: ${changed.join(', ')}` : ''}.` };
   });
+  for (const event of events) entries.push({ at: event.created_at, when: dateTime(event.created_at, project.state), text: event.text });
   entries.push({ at: project.created_at, when: dateTime(project.created_at, project.state), text: `${creatorName} set up the project.` });
   return entries.sort((a, b) => new Date(b.at) - new Date(a.at)).map(({ when, text }) => ({ when, text }));
 }
 
+// An address typed all in lower case is kept as an address reads: "120 kingsford smith dr hamilton
+// qld" becomes "120 Kingsford Smith Dr Hamilton QLD" (messy round 6: it reached the subcontractor's list
+// in lower case).
+const STATE_SHORT = /^(?:nsw|vic|qld|sa|wa|tas|nt|act)$/i;
+function tidyAddress(text) {
+  const value = oneLine(text, 300);
+  if (!value || /[A-Z]/.test(value)) return value;
+  return value.split(' ').map((word) => (STATE_SHORT.test(word.replace(/[,.]$/, '')) ? word.toUpperCase() : word.replace(/^([a-z])/, (letter) => letter.toUpperCase()))).join(' ');
+}
+
 function cleanProject(body, org) {
   const name = oneLine(body && body.name, 160);
-  const workplace = oneLine(body && body.workplace, 300);
-  const state = String((body && body.state) || '').toLowerCase();
+  const workplace = tidyAddress(body && body.workplace);
+  // The state chosen, else the state the address names, as the SWMS app reads a typed address
+  // ("hamilton qld", "qld", a postcode).
+  const state = String((body && body.state) || stateFromTyped(workplace).state || '').toLowerCase();
   if (!name) throw Object.assign(fail(400, 'Enter the project name.'), { field: 'name' });
   if (!workplace) throw Object.assign(fail(400, 'Enter the job address.'), { field: 'workplace' });
   if (!STATES.includes(state)) throw Object.assign(fail(400, 'Choose the state or territory the work is in.'), { field: 'state' });
@@ -305,12 +371,22 @@ router.get('/hse/me', route(async (req, res) => {
   res.json({ me: { email, name, position, phone }, orgs });
 }));
 
+// The lead's name heads every invitation and sits on the site details contractors use, and the phone
+// is the one they ring: both are judged as the SWMS app judges a person and a phone.
 router.put('/hse/me', route(async (req, res) => {
   const body = req.body || {};
-  const name = oneLine(body.name, 120);
+  const name = answers.tidyName(oneLine(body.name, 120));
   if (!name) throw Object.assign(fail(400, 'Enter your name.'), { field: 'name' });
   const position = oneLine(body.position, 120);
   const phone = oneLine(body.phone, 40);
+  const found = {};
+  const nameProblem = answers.personProblem(name, { example: 'Jo Park' });
+  if (nameProblem) found.name = nameProblem.replace('Give their full name', 'Give your full name').replace('Give the full name', 'Give your full name');
+  const positionProblem = answers.notAnswer(position);
+  if (positionProblem) found.position = positionProblem;
+  const phoneProblem = answers.phoneOnly(phone);
+  if (phoneProblem) found.phone = phoneProblem;
+  problems(found, [{ key: 'name', label: 'Your name' }, { key: 'position', label: 'Your role' }, { key: 'phone', label: 'Phone' }]);
   await db.query('UPDATE reviewers SET name = $1, position = $2, phone = $3 WHERE id = $4', [name, position, phone, req.reviewer.id]);
   res.json({ me: { email: req.reviewer.email, name, position, phone } });
 }));
@@ -329,7 +405,7 @@ router.post('/hse/orgs', route(async (req, res) => {
   const body = req.body || {};
   const name = oneLine(body.name, 200);
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
-  const checked = await newAbn(body, name);
+  const checked = await newAbn(body, name, req.reviewer);
   const id = auth.newId();
   const now = new Date();
   try {
@@ -367,9 +443,9 @@ router.put('/hse/orgs/:orgId', route(async (req, res) => {
   let checked;
   if (org.abn) {
     if (sent && sent !== org.abn) throw Object.assign(fail(400, ABN_FIXED), { field: 'abn' });
-    checked = { abn: org.abn, ...(await checkAbn(org.abn, name, keptNames(org))) };
+    checked = { abn: org.abn, ...(testSetUp(req.reviewer) ? { check: org.abn_check || 'unavailable', names: keptNames(org) } : await checkAbn(org.abn, name, keptNames(org))) };
   } else if (sent) {
-    checked = await newAbn(body, name);
+    checked = await newAbn(body, name, req.reviewer);
   } else {
     checked = { abn: '', check: '', names: [] };
   }
@@ -400,7 +476,7 @@ router.post('/hse/orgs/:orgId/abn-check', route(async (req, res) => {
   const { org, role } = await membership(req, req.params.orgId);
   requireLead(role, 'Only the lead can change the account details.');
   if (!org.abn) throw Object.assign(fail(400, 'Add the company\'s ABN first.'), { field: 'abn' });
-  const checked = await checkAbn(org.abn, org.name, keptNames(org));
+  const checked = testSetUp(req.reviewer) ? { check: 'unavailable', names: [] } : await checkAbn(org.abn, org.name, keptNames(org));
   await db.query('UPDATE orgs SET abn_check = $1, abn_names = $2, abn_checked_at = $3, abn_verified_at = $4 WHERE id = $5', [...checkColumns(checked, org, new Date()), org.id]);
   const saved = await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]);
   res.json({
@@ -457,6 +533,7 @@ router.post('/hse/orgs/:orgId/members', route(async (req, res) => {
   }
   await auth.sendHseLink(req, email, { invitedBy: personName(req.reviewer), orgName: org.name });
   record('org_invite', null);
+  await logEvent({ orgId: org.id, who: req.reviewer.id, text: existing ? `${personName(req.reviewer)} sent the invitation to ${email} again.` : `${personName(req.reviewer)} invited ${email} to the team.` });
   res.status(existing ? 200 : 201).json({ ok: true, message: existing ? `The invitation to ${email} has been sent again.` : `An invitation has been sent to ${email}.`, team: await teamOf(org.id) });
 }));
 
@@ -473,7 +550,23 @@ router.delete('/hse/orgs/:orgId/members/:memberId', route(async (req, res) => {
     await tx.query("DELETE FROM org_members WHERE id = $1 AND role <> 'lead'", [found.id]);
     return found;
   });
+  await logEvent({ orgId: org.id, who: req.reviewer.id, text: row.joined_at ? `${personName(req.reviewer)} removed ${row.email} from the team.` : `${personName(req.reviewer)} cancelled the invitation to ${row.email}.` });
   res.json({ ok: true, message: row.joined_at ? `${row.email} has been removed from the team.` : `The invitation to ${row.email} has been cancelled.`, team: await teamOf(org.id) });
+}));
+
+// A member leaves the team. The lead cannot leave, as an account always has a lead: they hand the
+// lead role to someone first.
+router.post('/hse/orgs/:orgId/leave', route(async (req, res) => {
+  const { org, member } = await membership(req, req.params.orgId);
+  await db.transaction(async (tx) => {
+    await tx.query('SELECT id FROM orgs WHERE id = $1 FOR UPDATE', [org.id]);
+    const me = await tx.one('SELECT role FROM org_members WHERE id = $1', [member.id]);
+    if (!me) throw fail(404, 'That account was not found, or you are not in its team.');
+    if (me.role === 'lead') throw fail(403, 'The lead cannot leave the team. Make someone else lead first, in Account settings.');
+    await tx.query("DELETE FROM org_members WHERE id = $1 AND role <> 'lead'", [member.id]);
+  });
+  await logEvent({ orgId: org.id, who: req.reviewer.id, text: `${personName(req.reviewer)} left the team.` });
+  res.json({ ok: true, message: `You have left ${org.name}. You no longer see its projects.` });
 }));
 
 // ---- Projects ----
@@ -496,9 +589,26 @@ router.post('/hse/orgs/:orgId/projects', route(async (req, res) => {
   res.status(201).json({ project: projectView(await db.one('SELECT * FROM projects WHERE id = $1', [id])) });
 }));
 
-async function projectPage(project, org, role) {
+// Details this person set that a teammate's newer version changed (messy round 6: the lead learned only
+// from the log that Sam's version 5 replaced her muster point). Said on the project screen while that
+// version is the current one.
+function replacedFor(rows, viewerId) {
+  const latest = rows[rows.length - 1];
+  if (!latest || !viewerId || latest.set_by === viewerId || rows.length < 2) return null;
+  const keys = changedKeys(rows[rows.length - 2].details, latest.details).filter((key) => {
+    for (let i = rows.length - 2; i >= 0; i -= 1) {
+      if (changedKeys(i ? rows[i - 1].details : EMPTY, rows[i].details).includes(key)) return rows[i].set_by === viewerId;
+    }
+    return false;
+  });
+  if (!keys.length) return null;
+  return { by: latest.set_by_name, rev: Number(latest.rev), details: keys.map((key) => labelOf(key).toLowerCase()) };
+}
+
+async function projectPage(project, org, role, viewerId = '') {
   const rows = await versionsOf(project.id);
   const creator = await db.one('SELECT name, email FROM reviewers WHERE id = $1', [project.created_by]);
+  const events = await db.query("SELECT * FROM project_events WHERE org_id = $1 AND (project_id = $2 OR (project_id = '' AND created_at >= $3)) ORDER BY created_at DESC LIMIT 200", [org.id, project.id, project.created_at]);
   return {
     project: projectView(project),
     org: orgView(org, role),
@@ -507,7 +617,8 @@ async function projectPage(project, org, role) {
     siteDetails: detailsView(rows[rows.length - 1], project.state),
     versions: versionList(rows, project.state),
     team: await teamOf(org.id),
-    log: logOf(project, creator ? personName(creator) : 'Someone', rows),
+    log: logOf(project, creator ? personName(creator) : 'Someone', rows, events),
+    replaced: replacedFor(rows, viewerId),
     fields: FIELDS,
   };
 }
@@ -515,7 +626,7 @@ async function projectPage(project, org, role) {
 router.get('/hse/projects/:projectId', route(async (req, res) => {
   res.set('Cache-Control', 'no-store');
   const { project, org, role } = await projectFor(req, req.params.projectId);
-  res.json(await projectPage(project, org, role));
+  res.json(await projectPage(project, org, role, req.reviewer.id));
 }));
 
 router.put('/hse/projects/:projectId', route(async (req, res) => {
@@ -523,7 +634,7 @@ router.put('/hse/projects/:projectId', route(async (req, res) => {
   const fields = cleanProject(req.body, org);
   await db.query('UPDATE projects SET name = $1, workplace = $2, state = $3, postcode = $4, pc_name = $5 WHERE id = $6',
     [fields.name, fields.workplace, fields.state, fields.postcode, fields.pcName, project.id]);
-  res.json(await projectPage(await db.one('SELECT * FROM projects WHERE id = $1', [project.id]), org, role));
+  res.json(await projectPage(await db.one('SELECT * FROM projects WHERE id = $1', [project.id]), org, role, req.reviewer.id));
 }));
 
 router.get('/hse/projects/:projectId/site-details/:rev', route(async (req, res) => {
@@ -567,7 +678,7 @@ router.put('/hse/projects/:projectId/site-details', route(async (req, res) => {
     for (const key of changedByMe) next[key] = mine[key];
   }
   if (same(filled(next), current)) {
-    res.json({ saved: false, message: 'Nothing has changed, so no new version was made.', ...(await projectPage(project, org, role)) });
+    res.json({ saved: false, message: 'Nothing has changed, so no new version was made.', ...(await projectPage(project, org, role, req.reviewer.id)) });
     return;
   }
   const rev = currentRev + 1;
@@ -586,12 +697,12 @@ router.put('/hse/projects/:projectId/site-details', route(async (req, res) => {
   res.json({
     saved: true,
     message: merged.length ? `Saved as version ${rev}. ${latest.set_by_name} had also changed ${merged.map((key) => labelOf(key).toLowerCase()).join(', ')}. Both changes are kept.` : `Saved as version ${rev}.`,
-    ...(await projectPage(project, org, role)),
+    ...(await projectPage(project, org, role, req.reviewer.id)),
   });
 }));
 
 // ---- Subcontracts and their scopes (stage 4, sitelink-scopes.js) ----
 
-const scopes = require('./sitelink-scopes').install(router, { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS });
+const scopes = require('./sitelink-scopes').install(router, { projectFor, needName, personName, dateTime, detailsView, versionsOf, FIELDS, logEvent, supportEmail });
 
-module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey };
+module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey, tidyAddress, supportEmail };

@@ -77,7 +77,8 @@
     }
     table.subs { width: 100%; border-collapse: collapse; font-size: 14px; }
     table.subs th, table.subs td { border-bottom: 1px solid #e3e7ec; padding: 8px 6px; text-align: left; vertical-align: top; }
-    table.subs th { color: #5c6773; font-weight: 600; }
+    /* A heading breaks only between words (messy round 6: "Subcontracto / r" on an empty table). */
+    table.subs th { color: #5c6773; font-weight: 600; overflow-wrap: normal; word-break: normal; hyphens: manual; }
     table.subs td.empty { color: #5c6773; padding: 18px 6px; }
     @media (max-width: 979px) { table.subs thead { display: none; } table.subs, table.subs tbody, table.subs tr, table.subs td { display: block; } table.subs td.empty { padding: 4px 0; border: 0; } }
     .log li { font-size: 14px; }
@@ -85,7 +86,12 @@
     details.version { border-top: 1px solid #e3e7ec; padding: 10px 0; }
     details.version:first-child { border-top: 0; padding-top: 0; }
     details.version summary { cursor: pointer; min-height: 44px; padding: 4px 0; }
-    details.version summary > span { display: inline-block; vertical-align: top; }
+    /* The triangle sits beside "Version n", not alone on a line above it. */
+    details.version summary { display: flex; gap: 8px; align-items: flex-start; list-style: none; }
+    details.version summary::-webkit-details-marker { display: none; }
+    details.version summary::before { content: "\25B8"; flex: 0 0 auto; line-height: 1.45; color: #1f4e3d; }
+    details.version[open] summary::before { content: "\25BE"; }
+    details.version summary > span { display: block; flex: 1 1 auto; min-width: 0; }
     .crumbs { font-size: 14px; margin: 4px 0 0; }
     .crumbs a { color: #1f4e3d; }
     /* Stage 4: the subcontractors table, a subcontract's SWMS list, its points to confirm and the preview. */
@@ -104,11 +110,35 @@
     .swms-item h3 { margin: 0 0 4px; font-size: 17px; }
     .swms-item .work { margin: 6px 0 0; }
     .swms-item .actions { margin-top: 10px; }
+    .also { font-size: 14px; color: #3d4a59; margin: 6px 0 0; }
+    /* Where a SWMS was removed, so the next button is where it was (messy round 6). */
+    .swms-gone { border: 1px dashed #9cc9b3; background: #e8f3ee; border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
+    .swms-gone p { margin: 0; }
+    .swms-gone .actions { margin-top: 8px; }
+    details.aside-group { border: 1px solid #e6c77a; background: #fffaf0; border-radius: 8px; padding: 8px 12px; margin-top: 14px; }
+    details.aside-group > summary, details.removed-group > summary { cursor: pointer; font-weight: 600; min-height: 44px; padding: 10px 0; }
+    details.removed-group { margin-top: 14px; }
+    .point.out { color: #5c6773; }
+    .suggest { list-style: none; margin: 4px 0 0; padding: 0; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .suggest li { padding: 10px 12px; min-height: 44px; cursor: pointer; border-top: 1px solid #eef1f4; }
+    .suggest li:first-child { border-top: 0; }
+    .suggest li[aria-selected="true"], .suggest li:hover { background: #e8f3ee; }
+    .state-note { font-size: 14px; color: #3d4a59; margin: 6px 0 0; }
+    /* A subcontract on a computer: the list in the wide column, the scope and points beside it. */
+    .sub-cols { display: flex; flex-direction: column; }
+    .sub-cols > .sub-side { display: contents; }
+    #s-scope { order: 1; } #s-list-card { order: 2; } #s-points-card { order: 3; } #s-preview-actions { order: 4; }
+    @media (min-width: 980px) {
+      .sub-cols { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 14px; align-items: start; }
+      .sub-cols > .sub-side { display: flex; flex-direction: column; gap: 14px; grid-column: 2; grid-row: 1; }
+      .sub-cols #s-list-card { grid-column: 1; grid-row: 1; }
+      .sub-cols .panel { margin-top: 0; max-width: none; }
+    }
     .hrcw { display: block; font-size: 14px; margin-top: 4px; }
     .hrcw-yes { color: #8a2b2b; } .hrcw-likely, .hrcw-depends { color: #7a4d00; } .hrcw-none { color: #5c6773; }
     .point { border-top: 1px solid #e3e7ec; padding: 12px 0; }
     .point:first-of-type { border-top: 0; }
-    .point textarea { min-height: 70px; }
+    .point textarea { min-height: 52px; }
     .preview { background: #fff; border: 2px solid #1f4e3d; border-radius: 8px; padding: 16px; margin-top: 14px; }
     .preview ol { padding-left: 22px; margin: 6px 0 0; }
     .preview ol > li { margin-top: 10px; }
@@ -192,13 +222,15 @@
       <h1>Your details</h1>
       <p class="meta short">Contractors see your name on the site details you set.</p>
       <form class="panel short" id="you" novalidate>
-        <label for="you-name">Your name</label>
+        <label for="you-name">Your name <span class="hint">Your full name, as contractors will see it.</span></label>
         <input id="you-name" type="text" autocomplete="name" maxlength="120">
         <p class="field-error hidden" id="you-name-error"></p>
         <label for="you-position">Your role <span class="hint">For example HSE manager or Site manager.</span></label>
         <input id="you-position" type="text" autocomplete="organization-title" maxlength="120">
-        <label for="you-phone">Phone <span class="hint">Optional.</span></label>
+        <p class="field-error hidden" id="you-position-error"></p>
+        <label for="you-phone">Phone <span class="hint">Optional. A number contractors can ring, for example 0412 345 678.</span></label>
         <input id="you-phone" type="tel" autocomplete="tel" maxlength="40">
+        <p class="field-error hidden" id="you-phone-error"></p>
         <div class="actions"><button type="submit">Save and continue</button></div>
         <div id="you-status" role="status"></div>
       </form>
@@ -240,6 +272,12 @@
       <p class="meta"><a id="team-settings" href="#">Account settings</a></p>
       <p class="meta short" id="team-intro"></p>
       <div class="panel short"><ul class="plain" id="team-list"></ul></div>
+      <div class="panel short hidden" id="team-leave">
+        <h2>Leave this team</h2>
+        <p class="meta">You will no longer see this account's projects. The lead can add you again.</p>
+        <div class="actions"><button type="button" class="danger" id="team-leave-go">Leave this team</button></div>
+        <div id="team-leave-status" role="status"></div>
+      </div>
       <form class="panel short hidden" id="invite" novalidate>
         <h2>Add a person</h2>
         <p class="meta">They sign in free with this email. They can see every project and change its site details. Only you can add or remove people.</p>
@@ -260,8 +298,10 @@
         <label for="pf-name">Project name</label>
         <input id="pf-name" type="text" maxlength="160">
         <p class="field-error hidden" id="pf-name-error"></p>
-        <label for="pf-workplace">Job address <span class="hint">The street address of the site. The state is read from it.</span></label>
-        <input id="pf-workplace" type="text" autocomplete="off" maxlength="300">
+        <label for="pf-workplace">Job address <span class="hint">The street address of the site. Pick it from the list as you type. The state is read from it.</span></label>
+        <input id="pf-workplace" type="text" autocomplete="off" maxlength="300" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="pf-workplace-list">
+        <ul class="suggest hidden" id="pf-workplace-list" role="listbox" aria-label="Addresses"></ul>
+        <p class="state-note" id="pf-state-note" aria-live="polite"></p>
         <p class="field-error hidden" id="pf-workplace-error"></p>
         <label for="pf-state">State or territory <span class="hint">The law where the work is done applies.</span></label>
         <select id="pf-state">
@@ -290,6 +330,7 @@
       <p class="meta" id="p-meta"></p>
       <p class="meta"><a id="p-edit" href="#">Change project details</a></p>
       <div id="p-draft"></div>
+      <div id="p-replaced"></div>
       <div class="cols">
         <div class="main">
           <div class="panel" id="card-subs">
@@ -352,10 +393,16 @@
       <p class="meta" id="s-meta"></p>
       <p class="meta"><a id="s-edit" href="#">Change details</a> · <button type="button" class="link" id="s-remove">Remove this subcontract</button></p>
       <div id="s-flash" aria-live="polite"></div>
+      <div id="s-trade"></div>
+      <div class="sub-cols">
+      <div class="sub-side">
       <div class="panel short" id="s-scope"></div>
+      <div class="panel short" id="s-points-card"></div>
+      <div class="actions short" id="s-preview-actions"><a class="button" id="s-preview-go" href="#">What the subcontractor sees</a></div>
+      </div>
       <div class="panel short" id="s-list-card">
         <div class="card-head"><h2 id="s-list-title">SWMS this subcontract needs</h2><a class="button light" id="s-preview-link" href="#">What the subcontractor sees</a></div>
-        <p class="meta">Keep the SWMS this subcontractor must give you, remove the ones it does not need to, and add any that are missing.</p>
+        <p class="meta">These are the SWMS this subcontractor must give you. Remove any it does not need to, and add any that are missing. Only this list is sent.</p>
         <div id="s-list"></div>
         <form id="s-add" novalidate>
           <h3>Add a SWMS</h3>
@@ -368,8 +415,7 @@
           <div class="actions"><button type="submit" class="light" id="s-add-go">Add to the list</button></div>
         </form>
       </div>
-      <div class="panel short" id="s-points-card"></div>
-      <div class="actions short"><a class="button" id="s-preview-go" href="#">What the subcontractor sees</a></div>
+      </div>
     </section>
 
     <!-- What the subcontractor sees (stage 4) -->
@@ -388,6 +434,7 @@
       <p class="meta short">Contractors on this project use these on their SWMS. Each time you save, SiteLink keeps a new version with your name and the date.</p>
       <div id="d-note" class="short"></div>
       <form class="panel short" id="details" novalidate>
+        <div id="d-problems" role="alert"></div>
         <div id="d-fields"></div>
         <div class="actions"><button type="submit" id="d-save">Save</button><button type="button" class="light" id="d-cancel">Cancel</button></div>
         <div id="d-status" role="status"></div>
