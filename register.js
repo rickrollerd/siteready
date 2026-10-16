@@ -15,8 +15,9 @@ const TEST_TAG = 'Inspected, tested and tagged to AS/NZS 3012. Checked for damag
 const PRESTART = 'Pre-start check each shift. Serviced to the manufacturer\'s instructions.';
 const PLANT = [
   { item: 'Boom-type elevating work platform', pattern: /\b(boom lifts?|boom ewps?|knuckle booms?|cherry pickers?|articulating booms?)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Yes, where the boom length is 11 m or more, measured as the greater of platform height and horizontal reach (WP)' },
-  { item: 'Scissor lift', pattern: /\bscissor lifts?\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'No. Operator trained in the model used' },
-  { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(scissor|boom|considered)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
+  // "scisor lifts" as typed in a fall control answer is a scissor lift too (messy round 8, run 3).
+  { item: 'Scissor lift', pattern: /\bsciss?ors? lifts?\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'No. Operator trained in the model used' },
+  { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(sciss?ors?|boom|considered)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
   { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
   { item: 'Vehicle loading crane (hiab)', pattern: /\b(vehicle loading cranes?|loader cranes?|hiabs?|truck loading crane|truck[- ]mounted cranes?|knuckle boom cranes?)\b/i, inspection: 'Pre-start check and log book. Inspected and maintained to the manufacturer\'s instructions (WHS Reg s 213).', licence: 'Yes (CV) where the crane is rated at 10 metre-tonnes or more. Under 10 metre-tonnes no licence, the operator is trained and competent on it' },
   { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane or lifting gear|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes|used as a crane)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
@@ -227,7 +228,7 @@ const ANSWERED_BY = [
   { hazard: (words) => /\b(energi[sz]\w*|live (?:cables?|parts?|electrical|conductors?|ups|outputs?|boards?)|electric\w* shock|electrocut\w*|arc flash)\b/i.test(words),
     control: /\b(isolat\w*|de-?energi[sz]\w*|prevent\w* re-?energi[sz]\w*|lock\w* (?:out|off)|lockout|locks?|tag(?:ged)? out|danger tags?|switch\w* off|covers?|covered|shroud\w*|insulat\w*|rcds?|residual current|safety switch|non-conductive|approach distances?|exclusion zones?|no[- ]go zones?|barriers?|guards?|enclos\w*)\b/i },
   { hazard: (words) => /\b(?:struck|strikes?|run over|hit)\b[^.]{0,40}\b(?:trucks?|plant|vehicles?|traffic|forklifts?|excavators?|machines?|machinery|sprayers?|spreaders?|rollers?|cars?)\b|\btraffic\b|\bvehicle strike\b|\bcrushed by (?:plant|a vehicle|a truck|a forklift|mobile plant)\b/i.test(words),
-    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?)\b/i },
+    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?|(?:truck[- ]mounted |impact )?attenuators?|tmas?|crash cushions?)\b/i },
   // A load or object that falls, swings, tips or crushes: no one under or beside it, the load secured or guided.
   { hazard: (words) => FALLING_THING.test(words) || /\b(crush\w*|loads? (?:falls?|drops?|swings?|shifts?)|falling objects?|objects? fall\w*|dropped|swings? into|tips? (?:over|or falls)|topple\w*|rolls? down)\b/i.test(words),
     control: /\b(no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|beside|below|downhill)|tag lines?|exclusion zones?|drop zones?|barricad\w*|chock\w*|brac\w*|secured|restrained|tied|tethered|lanyards?|toe ?boards?|kept apart|separat\w*|guards?|catch (?:nets?|platforms?)|screens?)\b/i },
@@ -310,7 +311,11 @@ function othersLicenceOf(item, allText, task, ownCrane, chart = '') {
 // other articulated crane is non-slewing, and a stated capacity sets the slewing class.
 function craneClass(item, task, chart = '') {
   const sized = String(task || '').match(/\b(\d+(?:\.\d+)?) ?(?:t|tonnes?)\b\s+(?:\w+\s+)?(?:(crawler|mobile|slewing|all terrain|truck) )?cranes?\b/i);
-  const crawler = /\bcrawler cranes?\b/i.test(task);
+  // "Mobile and crawler crane lifting" (the pick list's title) names both kinds: a crane the task names
+  // with its size sets which one this is (messy round 8, run 7: a 60 t all terrain crane printed as
+  // "Crawler crane (60 t)").
+  const either = /\b(?:mobile|all terrain|truck)\s+(?:and|or)\s+crawler cranes?\b|\bcrawler\s+(?:and|or)\s+mobile cranes?\b/gi;
+  const crawler = sized && sized[2] ? /^crawler$/i.test(sized[2]) : /\bcrawler cranes?\b/i.test(String(task || '').replace(either, ' '));
   const name = crawler ? 'Crawler crane' : 'Mobile crane';
   const crew = ', with licensed doggers or riggers';
   // A Franna or other pick and carry crane is non-slewing whatever its capacity (WHS Reg schedule 3).
@@ -431,7 +436,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   if (/\bby workers holding the fire protection licence or accreditation the state requires\b/.test(allText)) needed.push('Fire protection licence or accreditation, as the state requires');
   if (/\bTraffic controllers who hold\b|\bholding a traffic control work training card\b/.test(allText) && !needed.some((name) => /^Traffic controller/.test(name))) needed.push('Traffic controller accreditation, for anyone on our crew who directs traffic');
   // Dogging or rigging by this crew; where the crane company's crew slings, it holds the licences.
-  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging|slung by licensed (?:doggers|riggers))\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\n(?:Erect and connect steel at height|Lift and land steel with the crane company)\n/.test(`\n${allText}\n`) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : /\bhoist\w* is rigging work\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for setting up the hoist (intermediate rigging (RI) for hoists with jibs and self-climbing hoists)' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
+  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging|slung by licensed (?:doggers|riggers))\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\n(?:Erect and connect steel at height|Lift and land steel with the crane(?: company)?)\n/.test(`\n${allText}\n`) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : /\bhoist\w* is rigging work\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for setting up the hoist (intermediate rigging (RI) for hoists with jibs and self-climbing hoists)' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   // Precast members need basic rigging, and tilt slabs intermediate rigging (WHS Reg schedule 3 items 5 and 6).
   const ownRigging = !/\bcrane company\b/i.test(allText) || /\b(our (?:licensed )?riggers?|slung by licensed (?:doggers or )?riggers)\b/i.test(allText);
   if (/\nLand and fix the precast floor units\n/.test(`\n${allText}\n`) && ownRigging) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: dogging or rigging/.test(needed[i])) needed.splice(i, 1); if (!needed.some((name) => /rigging \(R[BIA]\)/.test(name))) needed.push('High risk work licence: basic rigging (RB) or higher, for precast concrete members'); }
@@ -477,6 +482,9 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   if (highRisk.some((item) => /drowning/i.test(item))) rows.push({ type: 'Person in the water', equipment: 'Raise the alarm and reach with the rescue pole or throw the life ring. No one enters the water to rescue unless trained and equipped. Call 000', detail: '' });
   if (highRisk.some((item) => /confined space/i.test(item))) rows.push({ type: 'Confined space', equipment: 'Rescue plan and equipment, started from outside the space', detail: '' });
   if (/\bstrik\w* [^.]{0,40}\b(?:underground|buried|hidden)?\s?(?:services?|cables?|gas|electrical)/i.test(text) && !rows.some((row) => /Electric shock/.test(row.type))) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical: do not touch the person or plant until the supply is isolated; CPR and defibrillator (AED). Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
+  // Buried cables or pits the live services answer names, where the work cuts, digs or drills the ground or
+  // the slab (messy round 8, run 8: street light cables and Telstra pits with saw cutting, and no row).
+  else if (!noLive && /\b(?:cables?|pits?|conduits?|underground|buried|telstra|nbn|optic\w*|gas mains?|water mains?|sewer)\b/i.test(live.replace(NO_LINES, ' ')) && !/^\s*(?:no|none|nil)\b/i.test(live) && /\b(?:saw[- ]?cut\w*|excavat\w*|dig\w*|trench\w*|drill\w*|core[- ]?drill\w*|coring|mill\w*|profil\w*|break\w* out|jackhammer\w*|auger\w*|post holes?|bor(?:e|ing))\b/i.test(`${input.task || ''}\n${coreText}`)) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
   else if (/\bstrik\w* [^.]{0,40}\b(?:services?|gas)/i.test(text)) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
   if (/\b(gas work|gas fitting|gasfitt\w*|gas appliances?|gas (?:lines?|supply|hot water)|lpg)\b/i.test(text)) rows.push({ type: 'Gas leak', equipment: 'Turn off the gas at the meter or cylinder, no ignition sources, ventilate, keep people away. Call 000 for a major leak', detail: '' });
   if (/\brefrigerants?\b/i.test(text)) rows.push({ type: 'Refrigerant release', equipment: 'Ventilate and leave the area. Frostbite (cold burn): flush with lukewarm water and get medical help', detail: '' });
@@ -769,7 +777,11 @@ function registersFor(draft, input = {}) {
   // A scope row's conditions ("conditions: anti-tamper fixings") describe the site, not the crew's plant
   // (messy round 4: "anti-tamper" listed a rail track machine for fire sprinklers).
   const ownTask = withoutConditions(task);
-  const useText = `${withoutServicedPlant(ownTask)}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}`;
+  // The user's own steps name the plant they use too (messy round 8, run 1: an own step drilling with a
+  // "hilti hammer drill" offered no drill or power tools). Their hazards are read as SiteWrite's are.
+  const ownStepText = (Array.isArray(input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name)
+    .flatMap((item) => [item.name, ...(Array.isArray(item.controls) ? item.controls : []), ...(Array.isArray(item.hazards) ? item.hazards : []).map((line) => String(line).replace(/\b(?:forklifts?|telehandlers?)\b/gi, ''))]).filter((line) => typeof line === 'string').join('\n');
+  const useText = `${withoutServicedPlant(ownTask)}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}\n${ownStepText}`;
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
   const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Nail guns?:|Line marking machines?|Sanders?\b|Mixers?\b|Mixer guards|Lifting beams?\b|Cut and trim bars|A trencher|Trenchers?\b)/.test(line) || /^(?:Use|Using|Cut)\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b|\bcut with\b|\b(?:is|are) mixed\b[^.]{0,40}\bwith an? \w+ mixers?\b/i.test(line) && !/\b(?:\w+ )or (?:an? )?(?:forklift|crane|telehandler|ewp|hoist)\b/i.test(line) && !/\b(keep (?:clear|away|out|back|well clear|people|everyone|workers|others)|clear of|away from|others|crane company|pumping company)\b/i.test(line));
   // Lines naming the plant a step is done from or lifted with: definite when one item is named, otherwise each is used where chosen.
@@ -777,7 +789,9 @@ function registersFor(draft, input = {}) {
     // Handling aids and the platform a step's method names (messy round 6: door trolleys and a door lifter,
     // panel lifters and "a worker in an EWP" for coolroom panels, none of them offered as plant).
     || /\b(?:moved|carried|hung|lifted|stood) (?:on|with) (?:an? |the )?(?:door |panel |lift )?(?:trolleys?|lifters?)\b|\ba worker in an? (?:EWP|elevating work platform)\b/i.test(line)) && !/\b(keep|clear of|away from|others|crane company|pumping company|considered|reasonably practicable)\b/i.test(line));
-  const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near|separat\w*|barricad\w*)\b/i.test(line));
+  // A line on using one as a work platform, from the EWP step a confirmed EWP brings, is not the crew's
+  // telehandler (messy round 8, runs 1 and 2: "SiteWrite now also lists Telehandler" after the first Confirm).
+  const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near|separat\w*|barricad\w*)\b/i.test(line) && !/\bas an? (?:EWP|elevating work platform|work platform)\b/i.test(line));
   // A forklift or telehandler named only in a control line may or may not be used, so its licence is conditional.
   const named = plantFor(`${useText}\n${usedInControls.join('\n')}`).map((item) => item.item);
   const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: whereUsed(item.licence) }));
@@ -843,7 +857,10 @@ function registersFor(draft, input = {}) {
   // Plant the user added stands for the plant SiteWrite knows by that name, which is not listed again
   // (messy round 6: an added floor grinder brought the grinding step, whose own "Floor grinder with H
   // class extraction" was then asked about as well).
-  const addedKnown = new Set((input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added : []).flatMap((own) => plantFor(String((own && own.item) || '')).slice(0, 1).map((item) => item.item)));
+  // A tool added by name ("Hilti rotary hammer drill") stands for that tool, not for all the power tools
+  // the work uses (messy round 8, run 2: the nibbler and tek gun lost "Electric power tools and leads").
+  const GENERAL_PLANT = new Set(['Electric power tools and leads']);
+  const addedKnown = new Set((input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added : []).flatMap((own) => plantFor(String((own && own.item) || '')).slice(0, 1).filter((item) => !GENERAL_PLANT.has(item.item) || /\b(?:power tools?|leads?)\b/i.test(String(own.item))).map((item) => item.item)));
   if (addedKnown.size) plant.splice(0, plant.length, ...plant.filter((item) => !addedKnown.has(item.item)));
   // Register notes cite the state's own regulation.
   const stateId = (findState(draft.state) || { id: 'qld' }).id;
@@ -869,7 +886,10 @@ function registersFor(draft, input = {}) {
   if (input.plantChoice && typeof input.plantChoice === 'object') {
     const kept = listed.map((item) => item.item).join('\n');
     const dropGas = !/\b(torch|oxy|acetylene|weld|brazing|gas)\w*/i.test(kept) && !/\b(lpg|acetylene|oxygen|gas cylinders?|gas bottles?)\b/i.test(ownTask);
-    const dropFuel = !/\b(generator|chainsaw|excavator|truck|tipper|roller|paver|profiler|loader|dozer|grader|compressor|mixer|skid steer|crane|pump|plant|petrol|diesel)\w*/i.test(kept) && !/\b(diesel|petrol|fuel\w*|refuel\w*)\b/i.test(ownTask);
+    const dropFuel = !/\b(generator|chainsaw|excavator|truck|tipper|roller|paver|profiler|loader|dozer|grader|compressor|mixer|skid steer|crane|pump|plant|petrol|diesel|light(?:ing)? tower)\w*/i.test(kept) && !/\b(diesel|petrol|fuel\w*|refuel\w*)\b/i.test(ownTask);
+    // A lighting tower the user added runs on fuel, as a generator does (D282; messy round 8, run 8: an added
+    // lighting tower brought no fuel). The fuel is asked as a product, with its own safety data sheet.
+    if (/\blight(?:ing)? towers?\b/i.test(kept) && !substances.items.some((item) => /^Fuels/.test(item.product))) substances.items.push({ product: 'Fuels (diesel, petrol)', sds: '', quantity: '' });
     substances.items = substances.items.filter((item) => !(dropGas && /^Gases/.test(item.product)) && !(dropFuel && /^Fuels/.test(item.product)));
   }
   let sources = legislationFor([...printedSteps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
@@ -924,6 +944,8 @@ function registersFor(draft, input = {}) {
     for (const item of listed) {
       const known = /crane/i.test(item.item) ? (plantFor(item.item)[0] || null) : null;
       if (!known || !/crane/i.test(known.item) || /^Lifting/.test(known.item)) continue;
+      // The user's own crane with the crane licence they gave is listed with that licence already.
+      if (item.own && qualifications.some((name) => name.toLowerCase().startsWith(`${item.item.toLowerCase()}: `) && /\b(?:C[0-9N]|crane)\b/i.test(name.slice(item.item.length)))) continue;
       const classed = known.item === 'Mobile crane or crane truck' ? craneClass({ ...known }, `${task}\n${item.item}`, (input.facts || {}).craneChart) : known;
       if (!/^Yes/.test(classed.licence)) continue;
       const line = `High risk work licence: ${classed.item.toLowerCase()} (${classed.licence.split('. ')[0].replace(/^Yes,?\s*/, '').replace(/^\(([^()]*)\)(.*)$/, '$1$2')})`;

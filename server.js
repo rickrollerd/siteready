@@ -269,7 +269,13 @@ function designsAsked(input) {
     // The types of hazardous substance the work usually uses (substances.js, D277), for the one-go
     // project page's "Not required" ticks (owner, D287).
     const types = ((draft.substances && draft.substances.items) || []).map((item) => item.product);
-    return { ...said, ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types } : {}) };
+    // The steps that use each type and the step that cuts concrete, so the page refuses "Not required"
+    // beside them before Prepare all, as the SWMS does (messy round 8, run 3: silica and paint were
+    // taken there and refused only inside the SWMS).
+    const rules = require('./public/substance-rules');
+    const uses = types.length ? rules.stepUses(draft) : {};
+    const silica = types.length ? rules.silicaStep(draft) : '';
+    return { ...said, ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types, substanceUses: uses, ...(silica ? { silicaStep: silica } : {}) } : {}) };
   } catch (error) {
     return {};
   }

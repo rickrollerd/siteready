@@ -262,8 +262,10 @@ test('"Not required" needs a reason where the job steps use the product, and pro
   const draft = draftOf({ state: 'nsw', fallRisk: 'no', crane: 'none', task: 'supply and lay floor and wall tiles to bathrooms' });
   const input = { task: 'supply and lay floor and wall tiles to bathrooms', substancesNotUsed: ['Adhesives'], substancesNotUsedWhy: {} };
   const adhesive = typeItems(draft, input).find((item) => item.type === 'Adhesives');
-  assert.ok(adhesive && /job steps name/.test(adhesive.need), JSON.stringify(adhesive));
-  assert.equal(typeItems(draft, { ...input, substancesNotUsedWhy: { Adhesives: 'supplied and applied by others' } }).find((item) => item.type === 'Adhesives').need, '');
+  // The step "Mix and spread the tile adhesive" names the product, so no reason settles it (content7
+  // decision 1, option A, built in content8).
+  assert.ok(adhesive && /"Mix and spread the tile adhesive" in this SWMS uses "adhesive", so it cannot be "Not required"/.test(adhesive.need), JSON.stringify(adhesive));
+  assert.match(typeItems(draft, { ...input, substancesNotUsedWhy: { Adhesives: 'supplied and applied by others' } }).find((item) => item.type === 'Adhesives').need, /cannot be "Not required"/);
   assert.equal(rules.matchStep('Cement, concrete, grout and mortar', [{ step: 'Core fill blockwork', hazards: ['Cement burns.'], controls: [] }, { step: 'Pump and place concrete', hazards: [], controls: [] }]), 'Pump and place concrete');
   assert.equal(rules.matchStep('Fuels (diesel, petrol)', [{ step: 'Excavate', hazards: [], controls: [] }, { step: 'Run earthmoving plant', hazards: [], controls: [] }]), 'Run earthmoving plant');
 });

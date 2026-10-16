@@ -75,7 +75,11 @@ test('our company\'s crane: the operator\'s licence class and dogging, the opera
   const crawler = draftOf({ ...SITE, fallRisk: 'no', crane: 'own', kinds: ['crane', 'craneInterface'], facts, task: 'Mobile and crawler crane lifting: travel and set up the mobile crane, check the ground and outriggers, plan and rig the lifts, lift, dog and land loads, and pack up.' });
   assert.ok(!names(crawler).includes('Work with the crane crew during lifts'), names(crawler).join('; '));
   assert.ok(names(crawler).includes('Rig and lift the load'));
-  assert.ok(crawler.qualifications.some((line) => /^High risk work licence: crawler crane \(slewing mobile crane class for its capacity/.test(line)), crawler.qualifications.join(' | '));
+  // The pick list's title names both kinds, so it is a mobile crane classed from its chart (messy round 8,
+  // run 7); a crawler crane named on its own is a crawler crane.
+  assert.ok(crawler.qualifications.some((line) => /^High risk work licence: mobile crane or crane truck \(slewing mobile crane at least C6/.test(line)), crawler.qualifications.join(' | '));
+  const tracked = draftOf({ ...SITE, fallRisk: 'no', crane: 'own', kinds: ['crane'], facts, task: 'Lift the steel with our crawler crane.' });
+  assert.ok(tracked.qualifications.some((line) => /^High risk work licence: crawler crane/.test(line)), tracked.qualifications.join(' | '));
   assert.ok(crawler.qualifications.includes('High risk work licence: dogging or rigging (DG, RB, RI or RA)'));
   assert.ok(!crawler.plant.some((row) => /crane company/i.test(`${row.licence} ${row.inspection}`)), JSON.stringify(crawler.plant));
   // A Franna is non-slewing whatever its capacity; a slewing crane's capacity sets its class.

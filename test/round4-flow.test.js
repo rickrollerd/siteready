@@ -91,17 +91,28 @@ test('"Not required" for a product the task names needs a short reason, which pr
   assert.equal(first.kind, 'draft', (first.missing || []).join('; '));
   const types = first.substances.items.map((item) => item.product);
   assert.ok(types.includes('Waterproofing membranes and primers'), types.join('; '));
-  const ticked = { ...ready(MEMBRANE), substancesNotUsed: types, substancesNotUsedWhy: undefined };
+  const ticked = { ...ready(MEMBRANE), substancesNotUsed: types, substancesNotUsedWhy: undefined, substances: undefined };
   const body = draftBody(ticked);
   const gaps = downloadGaps(body, prepareDraft(body)).filter((gap) => gap.kind === 'substanceType');
-  assert.ok(gaps.some((gap) => /Waterproofing product: your task or answers name/.test(gap.need)), gaps.map((gap) => gap.need).join('\n'));
-  // With a reason, it passes and prints in the substances section.
-  const why = Object.fromEntries(types.map((type) => [type, 'Supplied and applied by others']));
-  const withWhy = draftBody({ ...ticked, substancesNotUsedWhy: why });
+  // The membrane steps use it, so no reason settles it (content8); a type only the task names asks a reason.
+  assert.ok(gaps.some((gap) => /Waterproofing product: the job step "Apply primers and liquid membranes" in this SWMS uses/.test(gap.need)), gaps.map((gap) => gap.need).join('\n'));
+  assert.ok(gaps.some((gap) => /the job steps name "solvent"\. Add the product you use, or give a short reason/.test(gap.need)), gaps.map((gap) => gap.need).join('\n'));
+  // With a reason, it passes and prints in the substances section. A type a step of SiteWrite's own uses
+  // ("Apply primers and liquid membranes") is not one a reason settles (content7 decision 1, option A): its
+  // product is listed instead.
+  const used = types.filter((type) => rules.usedByStep(type, first) || (type === rules.SILICA && rules.cutStep(first)));
+  const listed = used.map((type, n) => ({ id: `sub-${n + 80}`, type, product: `${rules.SHORT.get(type)} used on this job`, controls: ['Wear gloves and eye protection'], sdsDate: '2026-01-15', step: '', confirmed: true }));
+  const why = Object.fromEntries(types.filter((type) => !used.includes(type)).map((type) => [type, 'Supplied and applied by others']));
+  const withWhy = draftBody({ ...ticked, substancesNotUsed: types.filter((type) => !used.includes(type)), substancesNotUsedWhy: why, substances: listed });
   const draft = prepareDraft(withWhy);
   assert.deepEqual(downloadGaps(withWhy, draft).filter((gap) => gap.kind === 'substanceType'), []);
-  assert.ok(draft.substances.notRequired.some((item) => item.type === 'Waterproofing membranes and primers' && item.reason === 'Supplied and applied by others'));
-  assert.match(require('../substances').notRequiredLine(draft), /^Not required on this job: .*Waterproofing membranes and primers \(Supplied and applied by others\)/);
+  // The membrane steps use the membrane, so it is listed, not "Not required"; a type no step uses prints its reason.
+  assert.ok(used.includes('Waterproofing membranes and primers'), used.join('; '));
+  const other = types.find((type) => !used.includes(type));
+  if (other) {
+    assert.ok(draft.substances.notRequired.some((item) => item.type === other && item.reason === 'Supplied and applied by others'));
+    assert.match(require('../substances').notRequiredLine(draft), new RegExp(`^Not required on this job: .*${other.replace(/[()]/g, '\\$&')} \\(Supplied and applied by others\\)`));
+  }
 });
 
 test('the reason prints in the Word file and the PDF', async () => {

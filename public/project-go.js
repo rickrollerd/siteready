@@ -440,10 +440,17 @@
     return rules ? rules.ownWords({ task: item.goTask !== undefined ? item.goTask : item.task, facts: item.facts, site: item.siteOwn || sharedSite() }) : '';
   };
   // What a type ticked "Not required" still needs: a reason where the SWMS's own words name it.
+  // The step that cuts or drills concrete and the steps that use each type, from the prepared draft, or
+  // from the questions asked before it (messy round 8, run 3): "Not required" is refused beside them here
+  // as in the SWMS, and so is a type the SWMS's own safety data sheet answer names.
   function notUsedNeed(index, type) {
     const rules = window.SiteWriteSubstanceRules;
-    // The step that cuts or drills concrete, kept from its prepared draft: silica cannot be "Not required" beside it.
-    return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(project.items[index])[type], wordsOf(index), '', '', project.items[index].silicaStep || '') : '';
+    const item = project.items[index];
+    const got = asked.get(index) || {};
+    const silica = item.silicaStep || got.silicaStep || '';
+    const uses = item.substanceUses || got.substanceUses || {};
+    const sds = item.facts && typeof item.facts.safetyDataSheet === 'string' ? item.facts.safetyDataSheet : '';
+    return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(item)[type], wordsOf(index), '', sds, silica, null, uses[type] || null) : '';
   }
   function setNotUsed(index, type, ticked) {
     const item = project.items[index];
@@ -489,7 +496,11 @@
       const added = products.filter((row) => row.type === type).map((row) => row.product);
       const named = rules.namedIn ? rules.namedIn(type, wordsOf(index)) : '';
       const n = rules.TYPES.indexOf(type);
-      const why = ticked.has(type) && named && !added.length ? `<div class="field go-why"><label for="go-why-${index}-${n}">Why is it not required?<span class="hint">This SWMS's task or answers name "${esc(named)}". Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="go-why-${index}-${n}" type="text" maxlength="200" data-go-why="${index}" data-type="${esc(type)}" value="${esc(whyOf(item)[type] || '')}"><p class="answer-note" id="go-why-need-${index}-${n}"${notUsedNeed(index, type) ? '' : ' hidden'}>${esc(notUsedNeed(index, type))}</p></div>` : '';
+      // A tick refused whatever the reason (a step uses it, the SDS answer names it, a step cuts concrete)
+      // says so under the tick, with or without a reason box.
+      const need = ticked.has(type) && !added.length ? notUsedNeed(index, type) : '';
+      const refused = need && !named ? `<p class="answer-note" id="go-why-need-${index}-${n}">${esc(need)}</p>` : '';
+      const why = refused || (ticked.has(type) && named && !added.length ? `<div class="field go-why"><label for="go-why-${index}-${n}">Why is it not required?<span class="hint">This SWMS's task or answers name "${esc(named)}". Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="go-why-${index}-${n}" type="text" maxlength="200" data-go-why="${index}" data-type="${esc(type)}" value="${esc(whyOf(item)[type] || '')}"><p class="answer-note" id="go-why-need-${index}-${n}"${notUsedNeed(index, type) ? '' : ' hidden'}>${esc(notUsedNeed(index, type))}</p></div>` : '');
       return `<li>${esc(type)}${added.length ? ` <span class="meta">Added: ${esc(added.join('; '))}.</span>` : `<label class="check go-notused"><input type="checkbox" data-go-notused="${index}" data-type="${esc(type)}"${ticked.has(type) ? ' checked' : ''}> Not required</label>`}${why}</li>`;
     }).join('');
     const open = item.kind === 'draft' ? ` <button type="button" class="link" data-project-open="${index}">Open this SWMS to add a product</button>` : ' After Prepare all, open this SWMS with Check this SWMS to add one.';
@@ -1190,7 +1201,7 @@
       setNotUsed(index, target.dataset.type, target.checked);
       // A type this SWMS's own words name asks why, under the tick (D292 item 3).
       const rules = window.SiteWriteSubstanceRules;
-      if (rules && rules.namedIn && rules.namedIn(target.dataset.type, wordsOf(index))) {
+      if (rules && rules.namedIn && (rules.namedIn(target.dataset.type, wordsOf(index)) || notUsedNeed(index, target.dataset.type) || $(`go-why-need-${index}-${rules.TYPES.indexOf(target.dataset.type)}`))) {
         drawItem(index);
         const box = $(`go-why-${index}-${rules.TYPES.indexOf(target.dataset.type)}`);
         if (box && box.focus && target.checked) box.focus();
@@ -1610,6 +1621,7 @@
     item.kind = draft.kind;
     const rules = window.SiteWriteSubstanceRules;
     item.silicaStep = draft.kind === 'draft' && rules && rules.silicaStep ? rules.silicaStep(draft) : '';
+    item.substanceUses = draft.kind === 'draft' && rules && rules.stepUses ? rules.stepUses(draft) : {};
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];

@@ -300,9 +300,22 @@ function designNeed(row) {
 // given (kind "method"). A method not yet given in full does not print.
 function designRows(draft, input) {
   const answers = answersOf(input);
+  // The number and revision the answer to the design's own question already gives fill its card, so it is
+  // not asked twice (messy round 8, run 1: the erection sequence given in the answer, then asked again).
+  const { QUESTION_DESIGNS: ASKED_AT } = require('./public/design-fill');
+  const givenFacts = (input && input.facts) || {};
+  const fromQuestion = (id) => {
+    const question = Object.keys(ASKED_AT).find((key) => ASKED_AT[key].id === id);
+    const text = question && typeof givenFacts[question] === 'string' ? givenFacts[question] : '';
+    // A drawing number in capitals, with each part of it ("ABC-S-101 (revision C)").
+    const found = /\b((?:[A-Z]{1,6}[- ]?){1,3}\d{1,5}[A-Z]?(?:[-/]\d{1,4})?)\s*,?\s*\(?\s*[Rr]ev(?:ision)?\.?\s*([A-Za-z0-9]{1,3})\b/.exec(text);
+    return found ? { number: found[1], revision: found[2] } : null;
+  };
   const needed = designsNeeded(draft).map((item) => {
     const answer = answers.get(item.id) || {};
-    return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: item.steps.map((entry) => entry.step), held: item.steps.filter((entry) => entry.holds).map((entry) => entry.step), needed: true };
+    // Only a card not yet answered: a card the user is filling in keeps what they typed.
+    const prefill = !answer.status && !clean(answer.number) && fromQuestion(item.id);
+    return { ...answerFields(prefill ? { ...answer, ...prefill } : answer), ...(prefill ? { fromAnswer: true } : {}), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: item.steps.map((entry) => entry.step), held: item.steps.filter((entry) => entry.holds).map((entry) => entry.step), needed: true };
   });
   // A design given at the question that asks for it (D243), where no step relies on it: it prints
   // once given in full, or as not issued yet.
@@ -380,6 +393,18 @@ function withDesigns(draft, input) {
       jobSteps[at] = { ...step, controls: [hold, ...step.controls], designLines: [hold, ...(step.designLines || [])] };
     }
   }
+  // A design given at its question (D243) with no step relying on it is used where that answer prints
+  // (messy round 8, run 4: "Hold point" named no step, while the load line cited the drawing).
+  const { QUESTION_DESIGNS } = require('./public/design-fill');
+  const facts = (input && input.facts) || {};
+  for (const row of rows) {
+    if (row.steps.length || row.kind === 'method') continue;
+    const question = Object.keys(QUESTION_DESIGNS).find((key) => QUESTION_DESIGNS[key].id === row.id);
+    const said = question && typeof facts[question] === 'string' ? clean(facts[question]).replace(/\.$/, '') : '';
+    if (!said) continue;
+    const using = jobSteps.filter((step) => !step.own && (step.controls || []).some((line) => typeof line === 'string' && clean(line).includes(said.slice(0, 60))));
+    if (using.length) row.steps = using.map((step) => step.step);
+  }
   return {
     ...draft,
     jobSteps,
@@ -391,7 +416,7 @@ function withDesigns(draft, input) {
 function statusText(row) {
   if (row.kind === 'method') return `The work follows this methodology.${row.file ? ` A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''}`;
   // A design whose steps only keep loads within it (the pour crew's formwork design) holds no step.
-  if (row.status === 'notIssued' && Array.isArray(row.held) && !row.held.length) return 'Not issued yet. Update this SWMS when it is issued.';
+  if (row.status === 'notIssued' && ((Array.isArray(row.held) && !row.held.length) || !(row.steps || []).length)) return 'Not issued yet. Update this SWMS when it is issued.';
   if (row.status === 'notIssued') return 'Not issued yet. Hold point: the steps that rely on it do not start until it is issued and this SWMS is updated.';
   if (row.status === 'notNeeded') return 'Not needed for this work (the business\'s choice when preparing this SWMS).';
   if (row.status === 'given' && designNeed(row) === '') return row.file ? `Issued. A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : 'Issued.';

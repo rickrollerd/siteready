@@ -176,7 +176,12 @@ const NOT_EMERGENCY = /\b(day (?:hospital|surgery|procedure)|rehab\w*|mental hea
 // The nearest public emergency department matters most: hospitals Google returns for an
 // emergency department search come first, then other public hospitals, then private ones.
 const EMERGENCY_NAME = /\bemergency (?:room|department|dept)\b/i;
-const hospitalRank = (item) => (EMERGENCY_NAME.test(item.name) ? 0 : /\bprivate\b/i.test(item.name) ? 3 : item.ed ? 1 : 2);
+// Every hospital named as an emergency department or returned by an emergency department search ranks
+// first, nearest first (messy round 8, run 7: Queanbeyan at 11.5 km was listed before a hospital at 7.3 km
+// because only one of the two ED searches returned the nearer one). Other public hospitals follow, then
+// private ones.
+const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || Boolean(item.ed);
+const hospitalRank = (item) => (hasEmergency(item) ? 0 : /\bprivate\b/i.test(item.name) ? 3 : 2);
 // General practices and medical centres before other practices.
 const clinicRank = (item) => (/\b(medical (?:centre|center|clinic|practice|group)|family (?:medical|practice|doctors)|general practice|GP|doctors)\b/i.test(item.name) ? 0 : 1);
 // A listing named as an emergency department is kept whatever Google types it (often "service").

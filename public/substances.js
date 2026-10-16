@@ -74,7 +74,8 @@
   }
   function stepChoice(row) {
     const id = `sub-${esc(row.id)}-step`;
-    const matched = R.matchStep(row.type, steps());
+    // As the server places it (stepOf): a pipe cement goes with the pipe step (messy round 8, run 3).
+    const matched = R.stepOf ? R.stepOf({ ...row, step: '' }, steps()) : R.matchStep(row.type, steps());
     const chosen = row.step && steps().some((step) => step.step === row.step) ? row.step : '';
     const first = matched ? `SiteWrite's match: ${matched}` : 'Choose the step';
     const options = [`<option value=""${chosen ? '' : ' selected'}>${esc(first)}</option>`, ...steps().map((step) => `<option value="${esc(step.step)}"${chosen === step.step ? ' selected' : ''}>${esc(step.step)}</option>`)].join('');
@@ -163,7 +164,8 @@
     // Silica beside SiteWrite's own step that cuts or drills concrete cannot be "Not required" (D311): no
     // reason is asked for, as none settles it. The note under the tick (the list before download) says
     // so at once, and asks for what is cut.
-    const cut = type === R.SILICA && R.cutStep ? R.cutStep(shown) : '';
+    // The same for any type SiteWrite's own step uses (messy round 8): the list says which step.
+    const cut = type === R.SILICA ? (R.cutStep ? R.cutStep(shown) : '') : (R.usedByStep ? ((R.usedByStep(type, shown) || {}).step || '') : '');
     const reason = cut ? '' : (notUsed.has(type) && asked ? `<div class="field sub-reason"><label for="sub-why-${n}">Why is it not required?<span class="hint">${esc(asked.hint)} Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="sub-why-${n}" type="text" maxlength="200" data-sub-why="${esc(type)}" value="${esc(notUsedWhy[type] || '')}"></div>` : '');
     const offers = offered().filter(({ row }) => row.type === type);
     const body = added.length

@@ -117,7 +117,9 @@ function categoriesFor(draft = {}) {
   const highRisk = Array.isArray(draft.highRisk) ? draft.highRisk : [];
   const plant = plantInUse(draft);
   const ewp = plant.some((item) => EWP.test(String(item && item.item)));
-  const mobile = plant.some((item) => MOBILE_PLANT.test(String(item && item.item)));
+  // The user's own plant counts as the plant SiteWrite knows it as (messy round 8, run 7: an added "All
+  // terrain mobile crane" in place of an unticked crawler crane lost the plant stop question and row).
+  const mobile = plant.some((item) => MOBILE_PLANT.test(String(item && item.item)) || MOBILE_PLANT.test(String((item && item.known) || '')));
   const has = (pattern) => highRisk.some((item) => pattern.test(String(item)));
   return [
     ewp ? 'ewp' : '',

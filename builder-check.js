@@ -1366,7 +1366,13 @@ function weighted(swms, state, context) {
     // (messy round 7: "Not required (saw cutting done by others)" beside the SWMS's own saw cutting step).
     const silicaCut = (swms.notRequired || []).some((type) => /crystalline silica/i.test(type)) ? require('./public/substance-rules').silicaStep({ jobSteps: steps }) : '';
     if (silicaCut) fixes.push(`Silica is marked "Not required", but the step "${silicaCut}" cuts, drills or grinds concrete, masonry or stone. List the product cut, with its safety data sheet.`);
-    points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0) - (silicaCut ? 2 : 0));
+    // Any other type marked "Not required" beside a step whose name or exposure hazard says it uses that
+    // product (messy round 8: paint "Not required" beside four paint steps; a reviewer caught it, the check
+    // did not).
+    const rules = require('./public/substance-rules');
+    const usedAnyway = (swms.notRequired || []).filter((type) => rules.TYPES.includes(type) && type !== rules.SILICA).map((type) => ({ type, used: rules.usedByStep(type, { jobSteps: steps }) })).filter((item) => item.used);
+    for (const item of usedAnyway) fixes.push(`${item.type} is marked "Not required", but the step "${item.used.step}" uses "${item.used.word.toLowerCase()}". List the product used, with its safety data sheet, or take the step off.`);
+    points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0) - (silicaCut || usedAnyway.length ? 2 : 0));
     add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length || products.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
   }
 
