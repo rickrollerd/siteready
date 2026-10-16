@@ -340,7 +340,8 @@ function stripUnits(units) {
     // A line made only of text found elsewhere in the document (the task, the site, the revision).
     const knownIn = (other) => (text) => {
       const parts = text.split(/\s+·\s+|\t/).map((part) => clean(part).toLowerCase()).filter((part) => part.length >= 3);
-      return parts.length > 0 && parts.every((part) => other.includes(part));
+      // Whole words only: a worker's "6 October 2026" is not the "16 October 2026" printed on every page.
+      return parts.length > 0 && parts.every((part) => new RegExp(`(?<![\\p{L}\\p{N}])${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(other));
     };
     const contentWith = (known) => (index) => !running(lines[index]) && texts[index] && swmsLine(texts[index]) && !SHEET_WORDING.test(texts[index]) && !READING.test(texts[index]) && !known(texts[index]);
     const content = contentWith(knownIn(elsewhere));
