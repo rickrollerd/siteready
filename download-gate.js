@@ -40,7 +40,7 @@ const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
-const { clean, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST, ownLineProblem } = require('./public/gate-rules');
+const { clean, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST, ownLineProblem, phoneNumber, fieldWeak } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 const { designNeed } = require('./designs');
 const substances = require('./substances');
@@ -143,6 +143,13 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   const unwritten = uncovered ? notCoveredUnwritten(draft) : [];
   if (unwritten.length) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Your own step for work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.`, message: uncovered });
   else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it.`, message: uncovered });
+  // Falls answered No while a step rates a fall from height High (draft.js withFallCheck): the person
+  // checks the answer (messy round 8, run 5).
+  const fall = draft.fallConflict;
+  if (fall && !fall.kept) {
+    const named = fall.steps.slice(0, 2).map((name) => `"${name}"`).join(' and ');
+    add({ id: 'fallCheck', kind: 'fall', field: 'fall-check', label: 'Fall from height', need: `You answered No to a fall of more than ${fall.metres} metres, but ${fall.steps.length === 1 ? 'the step' : 'the steps'} ${named} ${fall.steps.length === 1 ? 'rates' : 'rate'} a fall from height High. Answer Yes if anyone could fall more than ${fall.metres} metres. If the step is not part of this job, untick it. If no one can fall that far, press Keep No.` });
+  }
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     const rule = fieldRule(item);
@@ -158,6 +165,10 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, rule, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
   }
   for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true }, input[item.id]);
+  // The company phone prints in every SWMS's header: a number the site cannot ring is asked about before
+  // download (messy round 8, runs 3 and 6: "0412 555 81" printed). Fixed in the Company profile.
+  const companyPhone = clean(input.companyPhone);
+  if (companyPhone) add({ id: 'companyPhone', kind: 'field', field: 'profile-phone', label: 'Company phone', need: phoneNumber(companyPhone) ? '' : `${fieldWeak('phone', companyPhone)} Fix it in the Company profile at the top, then press Save profile.` });
   // The plant to be used, confirmed by the user, and the emergency response for the work (goal 2).
   add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};

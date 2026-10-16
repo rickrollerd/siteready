@@ -49,7 +49,9 @@ function answered(input) {
   }
   return { ...input, facts };
 }
-const base = (task, extra = {}) => answered({ ...ANSWERED, state: 'qld', fallRisk: task === SCAFFOLD ? 'yes' : 'no', residential: 'no', task, date: '11 October 2026', ...extra });
+// Falls answered No beside a step that rates a fall High (the basement edge) are kept as No, as the person
+// would on the page (messy round 8, run 5).
+const base = (task, extra = {}) => answered({ ...ANSWERED, state: 'qld', fallRisk: task === SCAFFOLD ? 'yes' : 'no', fallNoKept: task === SCAFFOLD ? undefined : true, residential: 'no', task, date: '11 October 2026', ...extra });
 const draft = (task, extra = {}) => prepareDraft(draftBody({ ...base(task), ...extra }));
 const stepsWith = (d, text) => d.jobSteps.filter((step) => step.controls.includes(text)).map((step) => step.step);
 

@@ -147,7 +147,7 @@ test('an old revision prints as it was saved after the library changes, and upda
     const row = await db.one('SELECT draft FROM swms_revisions WHERE swms_id = $1 AND revision = $2', [swms.id, revision]);
     const draft = typeof row.draft === 'string' ? JSON.parse(row.draft) : row.draft;
     draft.jobSteps[0].controls[0] = `Old wording of the first control, revision ${revision}.`;
-    await db.query('UPDATE swms_revisions SET draft = $1 WHERE swms_id = $2 AND revision = $3', [JSON.stringify(draft), swms.id, revision]);
+    await db.query('UPDATE swms_revisions SET draft = $1, library_version = \'older\' WHERE swms_id = $2 AND revision = $3', [JSON.stringify(draft), swms.id, revision]);
   }
   const first = await wordParts(await call('GET', `/api/swms/${swms.id}/docx?revision=1`, { token }));
   assert.match(first.body, /Old wording of the first control, revision 1\./);

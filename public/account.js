@@ -223,7 +223,7 @@
     try {
       me = await call('GET', '/api/me');
       // Company details typed before signing in fill the company's empty ones and are saved to it.
-      const kept = S.signedInProfile ? await S.signedInProfile(me.company) : (S.setProfile(me.company), null);
+      const kept = S.signedInProfile ? await S.signedInProfile(me.company, me.user && me.user.email) : (S.setProfile(me.company), null);
       if (kept) me.company = { ...me.company, ...kept };
       sites = (await call('GET', '/api/sites')).sites;
       S.addPrincipals(sites.map((site) => site.principalContractor), false);
@@ -665,6 +665,7 @@
   function reviewsBackNote(list) {
     let note = $('reviews-back');
     if (!list.length) { if (note) note.remove(); return; }
+    const fresh = !note;
     if (!note) {
       note = document.createElement('div');
       note.id = 'reviews-back';
@@ -672,9 +673,16 @@
       note.setAttribute('role', 'status');
       $('account-bar').after(note);
     }
+    // Where the page has brought work back further down ("Your work is back"), the note goes just above
+    // it, where the page is scrolled to, and is scrolled into view with it (messy round 8, run 1: on the
+    // phone the note loaded above the screen).
+    const back = document.getElementById('unsaved-note');
+    if (back && note.nextElementSibling !== back) back.before(note);
+    else if (!back && note.previousElementSibling !== $('account-bar')) $('account-bar').after(note);
     const shown = list.slice(0, 3).map((item) => `${esc(item.title)} (${esc(item.review.label)}, ${esc(item.review.date)})`).join('; ');
     const html = `<p><strong>${list.length === 1 ? 'A principal contractor\'s review is back' : `${list.length} principal contractor reviews are back`}:</strong> ${shown}${list.length > 3 ? `; and ${list.length - 3} more` : ''}.</p><div class="actions"><button type="button" class="small" data-panel="my-swms">Open My SWMS</button></div>`;
     if (note.innerHTML !== html) note.innerHTML = html;
+    if (fresh && back && note.getBoundingClientRect && note.getBoundingClientRect().top < 0) note.scrollIntoView({ block: 'start' });
   }
   async function checkReviewsBack() {
     if (!me || !config.accounts) return;

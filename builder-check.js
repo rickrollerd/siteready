@@ -71,6 +71,37 @@ const { isHoldPoint } = require('./designs');
 
 const BANDS = { accepted: 'Accepted', changes: 'Accepted with changes', rejected: 'Not accepted' };
 
+// The street types of an address, each read as one word ("Hwy" is a highway, "Rd" a road).
+const STREET_TYPES = { st: 'street', street: 'street', rd: 'road', road: 'road', hwy: 'highway', highway: 'highway', ave: 'avenue', av: 'avenue', avenue: 'avenue', dr: 'drive', drive: 'drive', pde: 'parade', parade: 'parade', tce: 'terrace', terrace: 'terrace', cres: 'crescent', cr: 'crescent', crescent: 'crescent', pl: 'place', place: 'place', ct: 'court', court: 'court', cl: 'close', close: 'close', ln: 'lane', lane: 'lane', blvd: 'boulevard', bvd: 'boulevard', boulevard: 'boulevard', cct: 'circuit', circuit: 'circuit', esp: 'esplanade', esplanade: 'esplanade', way: 'way', fwy: 'freeway', freeway: 'freeway', mwy: 'motorway', motorway: 'motorway' };
+const STREET_TYPE = new RegExp(`^(?:${Object.keys(STREET_TYPES).join('|')})$`, 'i');
+// Each street a task names that is one or two letters off the job address's street of the same type:
+// [{ typed: 'start hwy', street: 'Stuart Hwy' }]. A street spelt as the address spells it, in any case,
+// and a different street altogether, are not listed.
+function streetSlips(task, address) {
+  const near = (a, b) => require('./spelling').distance(a, b, 2) <= 2;
+  const words = (text) => String(text || '').match(/[A-Za-z']+|\d+[A-Za-z]?/g) || [];
+  const at = words(String(address || '').split(',')[0]);
+  const streets = [];
+  for (let i = 1; i < at.length; i += 1) {
+    if (!STREET_TYPE.test(at[i])) continue;
+    let start = i;
+    while (start > 0 && /^[A-Za-z']+$/.test(at[start - 1]) && i - start < 3) start -= 1;
+    if (start < i) streets.push({ name: at.slice(start, i), type: STREET_TYPES[at[i].toLowerCase()], street: at.slice(start, i + 1).join(' ') });
+  }
+  const said = words(task);
+  const out = [];
+  for (const street of streets) {
+    for (let i = street.name.length; i < said.length; i += 1) {
+      if (!STREET_TYPE.test(said[i]) || STREET_TYPES[said[i].toLowerCase()] !== street.type) continue;
+      const name = said.slice(i - street.name.length, i);
+      const typed = name.join(' ').toLowerCase();
+      const meant = street.name.join(' ').toLowerCase();
+      if (typed !== meant && near(typed, meant) && !out.some((item) => item.typed === `${name.join(' ')} ${said[i]}`)) out.push({ typed: `${name.join(' ')} ${said[i]}`, street: street.street });
+    }
+  }
+  return out;
+}
+
 const SOURCES = {
   H1: 'WHS Regulations s 299 and s 300; tier 1 review checklists check each high risk category',
   H2: 'WHS Regulations s 299(3)',
@@ -1161,6 +1192,12 @@ function weighted(swms, state, context) {
       if (pattern.test(conditions) || (id === 'exclusion' && pattern.test(controls))) points += 8 / checks.length;
       else if (sited && pattern.test(controls)) { points += 4 / checks.length; fixes.push(`Say in the site conditions how this site handles ${label}.`); } else fixes.push(`Say how the site handles ${label}.`);
     }
+    // A street the task names a letter or two off the job address's own street ("start hwy" for 400 Stuart
+    // Hwy) is most likely a slip, and names the wrong place on the SWMS (messy round 8, run 8).
+    for (const slip of streetSlips(swms.task, swms.site.address)) {
+      points = Math.max(0, points - 1);
+      fixes.push(`The task names "${slip.typed}", but the job address is on ${slip.street}. Check the street name in the task.`);
+    }
     add('W7', 'Site specific details', 8, points, fixes, 'Access, exclusion zones, other trades, the public and services are covered.');
   }
 
@@ -1569,4 +1606,4 @@ function fallsControlled(lines) {
   return kept.some((line) => ANSWERS.fall.test(line)) && kept.some(stopsFall);
 }
 
-module.exports = { checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, fallsControlled, BANDS, SOURCES, VAGUE };
+module.exports = { streetSlips, checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, fallsControlled, BANDS, SOURCES, VAGUE };

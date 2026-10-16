@@ -260,6 +260,8 @@ function draftBody(body) {
     state: field(body.state, 80),
     task: field(body.task || body.jobDescription, 5000),
     fallRisk: field(body.fallRisk, 10),
+    // Falls answered No, kept after the page asked to check it against a step that rates a fall High.
+    fallNoKept: body.fallNoKept === true ? true : undefined,
     residential: field(body.residential, 10),
     crane: field(body.crane, 20),
     // D258: with a crane company, who slings the loads and directs the crane ('crane' or 'ours').

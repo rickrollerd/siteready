@@ -321,7 +321,10 @@
     const name = item.product && !isOpen(item.product) ? item.product : item.type ? `this ${(SHORT.get(item.type) || 'product').toLowerCase()}` : 'this product';
     const missing = [];
     if (!item.product || isOpen(item.product)) missing.push('its product name');
+    // One word ("gloves") does not say which PPE or how the product is handled (messy round 8, run 5).
+    const thin = item.controls.length && item.controls.join(' ').split(/\s+/).filter((word) => /\w/.test(word)).length < 2;
     if (!item.controls.length || item.controls.some(isOpen)) missing.push('the PPE and controls its safety data sheet sets out, one a line');
+    else if (thin) missing.push(`the PPE and controls its safety data sheet sets out in a few words ("${clean(item.controls.join(' ')).slice(0, 40)}" is too short to act on, for example "Nitrile gloves and safety glasses")`);
     if (!dateOf(item.sdsDate)) missing.push('the issue date on its safety data sheet');
     if (!step) missing.push('the job step that uses it');
     const lists = [['hazards', 'hazard statements'], ['firstAid', 'first aid'], ['storage', 'storage and spills']].filter(([key]) => item[key].some(isOpen)).map(([, words]) => words);
