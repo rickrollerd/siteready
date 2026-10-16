@@ -1078,7 +1078,7 @@ function weighted(swms, state, context) {
     // dogger direct a lift lists the licence (messy round 5: no dogging licence beside "a licensed dogger
     // directs the lift"). Not where the crane company's crew slings. The plant table's own licence column
     // ("where one is used") already says it for the item, so it is not read here.
-    const slinging = /\ba licensed dogger directs\b|\b(?:our|the crew'?s?) (?:licensed )?(?:doggers?|riggers?)\b|\bSlinging loads is dogging or rigging work\b/i.test(allControls.join('\n'));
+    const slinging = /\ba licensed dogger directs\b|\b(?:our|the crew'?s?) (?:licensed )?(?:doggers?|riggers?)\b|\bSlinging loads (?:is dogging or rigging work|with it needs a dogging or rigging licence)\b/i.test(allControls.join('\n'));
     if (slinging && !/\b(dogg\w*|rigg\w*|DG|RB|RI|RA)\b/.test(swms.licences.join('\n'))) {
       points -= 2;
       fixes.push('The steps or plant list have loads slung or a dogger directing lifts: list the dogging (DG) or rigging licence of the crew who does it.');

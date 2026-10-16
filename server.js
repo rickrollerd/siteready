@@ -627,7 +627,9 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     let buffer;
     // With pdf set (the project page, D240), each SWMS goes in the zip as Word and as PDF.
     let pdf = null;
-    const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '', confirmation }) : null;
+    // Pressed again after a host's error, each SWMS finds the one the first press saved (accounts.js).
+    const key = typeof body.requestKey === 'string' && body.requestKey ? `${body.requestKey}:${index}` : undefined;
+    const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, requestKey: key }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '', confirmation }) : null;
     if (saved) {
       savedItems.push({ index, id: saved.row.id, revision: saved.row.revision || 1 });
       const parts = await accounts.documentParts(req.company, saved.row, saved.row.revision || 1, auth.appUrl(req));
@@ -720,10 +722,22 @@ app.use((error, req, res, _next) => {
   res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...limit, ...replace, ...fields, ...tradeMismatch });
 });
 
-// One worker per processor core. A worker that stops is replaced.
+// One worker per processor core, as many as the memory allows. A worker holds the step library, the word
+// list and its drafts: about 290 MB after its first draft and 400 MB after a few downloads (measured 16
+// October 2026). More workers than the memory holds are stopped by the host, and a request in flight on a
+// stopped worker comes back as a 502 (messy round 6). WEB_CONCURRENCY, when set, is used as it is.
+const WORKER_MB = 512;
+function workerCount() {
+  const set = Number(process.env.WEB_CONCURRENCY);
+  if (Number.isFinite(set) && set >= 1) return Math.floor(set);
+  const memory = Math.min(Number(process.constrainedMemory && process.constrainedMemory()) || Infinity, os.totalmem());
+  return Math.max(1, Math.min(os.availableParallelism(), Math.floor(memory / (WORKER_MB * 1024 * 1024))));
+}
+
+// A worker that stops is replaced.
 function start() {
   const PORT = process.env.PORT || 3849;
-  const workers = Math.floor(positiveNumber(process.env.WEB_CONCURRENCY, os.availableParallelism()));
+  const workers = workerCount();
   // In production, a feature whose secret key is missing stays off, and the log names the variable.
   if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
   // Keeping checked SWMS in production without its storage bucket keeps no originals, and says so.
@@ -774,6 +788,7 @@ if (require.main === module) start();
 module.exports = {
   app,
   start,
+  workerCount,
   prepareDraft,
   questionsFor,
 };

@@ -296,7 +296,22 @@
     // The types of hazardous substance ticked "Not required" (D277): read by the gate only.
     'substancesNotUsed', 'substancesNotUsedWhy'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
+  // A control line of the user's own step that only points to another step ("as per step 2") prints
+  // nothing a worker can follow; a short line that names a real control ("nitrile gloves") does (messy
+  // round 6, run 4: the first was taken and the second refused). Said the same on the page and before download.
+  const OWN_POINTER = /^\s*(?:as per|see|refer(?:\s+to)?|same as|as for|as in|as above|as below|ditto)\b|\b(?:as per|same as|see|refer to|as in|as for)\s+(?:the\s+)?(?:step|item|line|above|below|previous|other)\b/i;
+  const OWN_CONTROL_WORD = /\b(?:gloves?|glasses|goggles|face ?shields?|ear ?muffs?|ear ?plugs?|respirators?|masks?|P2|harness\w*|lanyards?|barri\w+|guards?|guardrails?|handrails?|extraction|vacuums?|shrouds?|spotters?|permits?|signs?|bunting|shoring|props?|scaffold\w*|platforms?|ladders?|lifters?|trolleys?|clamps?|tag ?lines?|isolat\w+|lock ?out|tag ?out|ventilat\w+|fans?|wet|covers?|screens?|boots|helmets?|hard ?hats?|hi-?vis|sunscreen|shade|water|exclusion|fire extinguishers?|spill kits?)\b/i;
+  // What is wrong with one line of the user's own step, or '': kind is 'hazard' or 'control'.
+  function ownLineProblem(text, kind) {
+    const line = clean(text);
+    const words = line ? line.split(' ').length : 0;
+    if (notAnswer(line)) return notAnswer(line);
+    if (kind === 'control' && OWN_POINTER.test(line)) return `"${line.slice(0, 60)}" points to another step. Write the control itself on this line, for example "Wear nitrile gloves while priming". Each step prints on its own.`;
+    const least = kind === 'control' ? (OWN_CONTROL_WORD.test(line) ? 2 : 3) : 2;
+    return words < least ? `"${line.slice(0, 60)}" is too short to act on.` : '';
+  }
+
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

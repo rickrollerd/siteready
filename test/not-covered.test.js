@@ -17,14 +17,14 @@ const { loadPage, settle, FakeEvent, checkAll } = require('./fake-dom');
 const FACTS = { safetyDataSheet: 'The diesel safety data sheet is kept at the work area.' };
 // The types of hazardous substance are ticked "Not required" (D277): these tests are about the tick above the draft.
 // The task names fuel, so "Not required" gives a reason (D292 item 3).
-const GENERATOR = { state: 'qld', task: 'Install the generator and leak test the fuel line.', fallRisk: 'no', residential: 'no', date: '6 October 2026', facts: FACTS, substancesNotUsed: require('../public/substance-rules').TYPES, substancesNotUsedWhy: { 'Fuels (diesel, petrol)': 'The hire company fuels the generator' } };
+const GENERATOR = { state: 'qld', task: 'Install the generator and flush the cooling system.', fallRisk: 'no', residential: 'no', date: '6 October 2026', facts: FACTS, substancesNotUsed: require('../public/substance-rules').TYPES, substancesNotUsedWhy: { 'Fuels (diesel, petrol)': 'The hire company fuels the generator' } };
 const draft = (task, extra = {}) => prepareDraft({ ...GENERATOR, task, ...extra });
 
 test('a part of the task with no job steps is listed in the user\'s words', () => {
   const d = draft(GENERATOR.task);
   assert.equal(d.kind, 'draft');
   assert.ok(d.jobSteps.some((step) => step.step === 'Install the generators'), 'the generator has its steps');
-  assert.deepEqual(d.notCovered, ['leak test the fuel line']);
+  assert.deepEqual(d.notCovered, ['flush the cooling system']);
 });
 
 test('work that has job steps is not listed', () => {
@@ -42,8 +42,8 @@ test('duties, paperwork, conditions, standards and work by others are not listed
   const d = draft('Install the generator. Attend the weekly site meetings, provide the test certificates and supply the fuel. The plant room is next to a live road. All work is to comply with AS 3000.');
   assert.equal(d.kind, 'draft');
   assert.deepEqual(d.notCovered, []);
-  assert.deepEqual(draft('Install the generator and leak test the fuel line (by others).').notCovered, []);
-  assert.deepEqual(draft('Install the generator. The fuel line is leak tested by others.').notCovered, []);
+  assert.deepEqual(draft('Install the generator and flush the cooling system (by others).').notCovered, []);
+  assert.deepEqual(draft('Install the generator. The cooling system is flushed by others.').notCovered, []);
 });
 
 test('access, lifting and cutting steps cover only what the draft\'s steps name', () => {
@@ -61,14 +61,14 @@ test('work the user took the steps off is not listed: SiteWrite has steps for it
 });
 
 test('a stood-down draft keeps its own message and lists nothing more', () => {
-  const d = prepareDraft({ ...GENERATOR, facts: {} });
+  const d = prepareDraft({ ...GENERATOR, task: 'Install the generator, fill its fuel tank and flush the cooling system.', facts: {} });
   assert.equal(d.kind, 'stand-down');
   assert.equal(d.notCovered, undefined);
 });
 
 test('a scope reading lists the rows the reader matched to no job steps', () => {
-  const rows = ['Leak test the fuel line (Plant room 2)', 'Attend the weekly site meetings', 'Install the generator'];
-  assert.deepEqual(draft(GENERATOR.task, { unmatched: rows }).notCovered, ['Leak test the fuel line']);
+  const rows = ['Flush the cooling system (Plant room 2)', 'Attend the weekly site meetings', 'Install the generator'];
+  assert.deepEqual(draft(GENERATOR.task, { unmatched: rows }).notCovered, ['Flush the cooling system']);
   // Every row matched: nothing is listed.
   assert.deepEqual(draft(GENERATOR.task, { unmatched: [] }).notCovered, []);
 });
@@ -93,7 +93,7 @@ test('the list is not printed in the Word or PDF file', async () => {
   assert.equal(d.notCovered.length, 1);
   const zip = await JSZip.loadAsync(await draftToDocx(d, { confirmation: { name: 'Sam Lee', date: '6 October 2026' } }));
   const word = (await Promise.all(Object.keys(zip.files).filter((name) => /^word\/.*\.xml$/.test(name)).map((name) => zip.file(name).async('string')))).join(' ').replace(/<[^>]+>/g, '');
-  assert.match(word, /leak test the fuel line/, 'the task itself is printed');
+  assert.match(word, /flush the cooling system/, 'the task itself is printed');
   assert.doesNotMatch(word, /no job steps|separate SWMS|have added steps/i);
   const pdf = pdfText(Buffer.from(await draftToPdf(d, {})));
   assert.ok(pdf.length > 1000, 'the PDF text was read');
@@ -140,15 +140,15 @@ async function signIn(email, tail) {
 }
 
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Sam Lee' };
-const COVERED = 'SiteWrite has no job steps for: leak test the fuel line. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.';
-const TICKED = { notCoveredConfirmed: ['leak test the fuel line'] };
+const COVERED = 'SiteWrite has no job steps for: flush the cooling system. Above the draft, write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it, before saving or downloading.';
+const TICKED = { notCoveredConfirmed: ['flush the cooling system'] };
 // The site questions answered (goal 2), so only the tick is outstanding.
 const READY = ready({ ...GENERATOR, ...ANSWERED });
 
 test('the preview lists the parts, and downloads are refused until the user ticks that they are covered', async () => {
   const token = await signIn('generator@notcovered.example', '512345678');
   const preview = await (await call('POST', '/api/draft', { body: READY })).json();
-  assert.deepEqual(preview.notCovered, ['leak test the fuel line']);
+  assert.deepEqual(preview.notCovered, ['flush the cooling system']);
   for (const route of ['/api/draft.docx', '/api/draft.pdf']) {
     const refused = await call('POST', route, { token, body: checked({ ...READY, ...CONFIRM }) });
     assert.equal(refused.status, 400, route);
@@ -193,12 +193,12 @@ test('saving is refused until ticked, and the sign-on page does not show the lis
   assert.equal(saved.status, 201);
   const { swms } = await saved.json();
   // Changes from the form need the tick again: a new part, ticked or not.
-  const changed = { ...READY, task: 'Install the generator, leak test the fuel line and hang the artwork.' };
+  const changed = { ...READY, task: 'Install the generator, flush the cooling system and hang the artwork.' };
   assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: { ...changed, ...TICKED }, ...CONFIRM }) })).status, 400);
-  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: { ...changed, notCoveredConfirmed: ['leak test the fuel line', 'hang the artwork'] }, ...CONFIRM }) })).status, 200);
+  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: { ...changed, notCoveredConfirmed: ['flush the cooling system', 'hang the artwork'] }, ...CONFIRM }) })).status, 200);
   const signToken = new URL(swms.signonPath, base).searchParams.get('t');
   const page = await (await call('GET', `/api/sign/${signToken}`)).text();
-  assert.match(page, /leak test the fuel line/, 'the task is shown');
+  assert.match(page, /flush the cooling system/, 'the task is shown');
   assert.doesNotMatch(page, /notCovered|no job steps|separate SWMS/);
 });
 
@@ -214,7 +214,7 @@ test('a project download leaves out a SWMS whose parts with no job steps are not
   assert.deepEqual(Object.keys(unticked.files).filter((name) => name.endsWith('.docx')), ['01 Fencing.docx']);
   const note = await unticked.file('Not included.txt').async('string');
   assert.match(note, /SiteWrite has no job steps for part of these SWMS, and it was not dealt with above the draft/);
-  assert.match(note, /2\. Generator: leak test the fuel line/);
+  assert.match(note, /2\. Generator: flush the cooling system/);
   assert.doesNotMatch(note, /Fencing/);
   const ticked = await download({ ...READY, ...TICKED });
   assert.equal(Object.keys(ticked.files).filter((name) => name.endsWith('.docx')).length, 2, 'both SWMS are in the download');
@@ -226,7 +226,7 @@ test('a project download leaves out a SWMS whose parts with no job steps are not
 const GENERATOR_DRAFT = {
   kind: 'draft', state: 'Queensland', task: GENERATOR.task, highRisk: [], controls: [], site: [], ppe: [], references: [], sources: { legislation: [], codes: [] },
   jobSteps: [{ step: 'Install the generators', hazards: ['Crush.'], controls: ['The generator is lifted by crane.'], responsible: 'Supervisor' }],
-  notCovered: ['leak test the fuel line'],
+  notCovered: ['flush the cooling system'],
 };
 
 function respond(extra = () => null) {
@@ -254,7 +254,7 @@ async function prepare(p) {
 // Says which SWMS covers the part above the draft, as the user does (messy-user testing, 13 October
 // 2026: the one tick became a choice of the SWMS that covers it), or takes it back.
 function tick(p, on = true) {
-  p.run(`coverElsewhere = ${on ? "{ 'leak test the fuel line': 'Fuel system SWMS' }" : '{}'}; syncCoverTicked(); showGate();`);
+  p.run(`coverElsewhere = ${on ? "{ 'flush the cooling system': 'Fuel system SWMS' }" : '{}'}; syncCoverTicked(); showGate();`);
 }
 
 test('the page names the parts above the draft, and saving waits until each is dealt with', async () => {
@@ -263,7 +263,7 @@ test('the page names the parts above the draft, and saving waits until each is d
   p.document.getElementById('task').value = GENERATOR.task;
   await prepare(p);
   const result = p.document.getElementById('result').innerHTML;
-  assert.ok(result.indexOf('SiteWrite has no job steps for: leak test the fuel line. Write your own step for it, or say which SWMS covers it.') >= 0);
+  assert.ok(result.indexOf('SiteWrite has no job steps for: flush the cooling system. Write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it.') >= 0);
   assert.ok(result.indexOf('data-cover-name="0"') < result.indexOf('class="sheet"'), 'the warning is above the draft');
   assert.equal(p.document.getElementById('new-save').disabled, true, 'not until the part is dealt with above the draft');
   assert.equal(p.document.getElementById('new-docx').disabled, true);
@@ -287,8 +287,8 @@ test('the page names the parts above the draft, and saving waits until each is d
   await settle();
   const saved = p.calls.filter((call) => call.route === '/api/swms' && call.method === 'POST');
   assert.equal(saved.length, 1);
-  assert.deepEqual(saved[0].body.input.notCoveredConfirmed, ['leak test the fuel line']);
-  assert.deepEqual(saved[0].body.input.notCoveredElsewhere, { 'leak test the fuel line': 'Fuel system SWMS' });
+  assert.deepEqual(saved[0].body.input.notCoveredConfirmed, ['flush the cooling system']);
+  assert.deepEqual(saved[0].body.input.notCoveredElsewhere, { 'flush the cooling system': 'Fuel system SWMS' });
   // Prepared again, the SWMS named for the same part stays.
   await prepare(p);
   assert.match(p.document.getElementById('result').innerHTML, /<span class="cover-done">Covered in: Fuel system SWMS<\/span>/);
@@ -306,26 +306,26 @@ test('a fully covered draft shows no warning', async () => {
 
 test('in a project, a SWMS with parts that have no job steps is ready once each is dealt with', async () => {
   // A scope package's task has one sentence to a line in the task box.
-  const task = 'Install the generator (Plant yard). Leak test the fuel line (Plant yard).';
-  const project = { current: 0, items: [{ title: 'Generator', task, trade: '', kinds: null, leaveOut: null, unmatched: ['Leak test the fuel line'], fallRisk: 'no', body: null, status: 'todo' }] };
+  const task = 'Install the generator (Plant yard). Flush the cooling system (Plant yard).';
+  const project = { current: 0, items: [{ title: 'Generator', task, trade: '', kinds: null, leaveOut: null, unmatched: ['Flush the cooling system'], fallRisk: 'no', body: null, status: 'todo' }] };
   const p = page({ 'sitewrite.project': JSON.stringify(project) });
   await settle();
   const typed = task.replace('. ', '.\n');
   p.document.getElementById('task').value = typed;
-  p.window.siteWriteScopeTask = { task: typed, unmatched: ['Leak test the fuel line'] };
+  p.window.siteWriteScopeTask = { task: typed, unmatched: ['Flush the cooling system'] };
   p.document.getElementById('start').dispatchEvent(new FakeEvent('submit'));
   await settle();
   await prepare(p);
   const drafts = p.calls.filter((call) => call.route === '/api/draft');
-  assert.deepEqual(drafts[drafts.length - 1].body.unmatched, ['Leak test the fuel line'], 'the scope reader\'s rows go with the task');
+  assert.deepEqual(drafts[drafts.length - 1].body.unmatched, ['Flush the cooling system'], 'the scope reader\'s rows go with the task');
   const stored = () => JSON.parse(p.window.localStorage.getItem('sitewrite.project')).items[0];
   assert.equal(stored().status, 'tick');
   assert.match(p.document.getElementById('project-panel').innerHTML, /Needs your step or a SWMS named/);
-  assert.match(p.document.getElementById('project-panel').innerHTML, /SWMS 1, Generator, has work SiteWrite has no job steps for\. Above its draft, write your own step for it, or say which SWMS covers it[^<]*<button type="button" class="link" data-cover-jump>Go to it/);
+  assert.match(p.document.getElementById('project-panel').innerHTML, /SWMS 1, Generator, has work SiteWrite has no job steps for\. Above its draft, write your own step for it, say which of its steps covers it, or say which SWMS covers it[^<]*<button type="button" class="link" data-cover-jump>Go to it/);
   tick(p);
   assert.equal(stored().status, 'ready');
   assert.doesNotMatch(p.document.getElementById('project-panel').innerHTML, /has work SiteWrite has no job steps for/);
-  assert.deepEqual(stored().body.notCoveredConfirmed, ['leak test the fuel line']);
+  assert.deepEqual(stored().body.notCoveredConfirmed, ['flush the cooling system']);
   tick(p, false);
   assert.equal(stored().status, 'tick');
 });

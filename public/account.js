@@ -81,9 +81,31 @@
   });
   S.isSignedIn = () => Boolean(me);
 
+  // A host's error (502, 503, 504) or no reply on a download is asked again once, a moment later
+  // (messy round 6, run 8: a 502 on the first Word press). It is safe: a saved SWMS that has not
+  // changed prints again as the same revision, and a new one is sent with the same key, so the server
+  // finds the SWMS the first try saved instead of saving it twice.
+  const HOST_ERROR = (error) => error && (error.status === 0 || [502, 503, 504].includes(error.status));
+  const DOWNLOAD_DOWN = 'SiteWrite could not reach the server, so the file was not downloaded. Your SWMS and your ticks are kept. Press the button again.';
+  async function callOnceMore(method, route, body) {
+    try {
+      return await call(method, route, body);
+    } catch (error) {
+      if (!HOST_ERROR(error)) throw error;
+      await new Promise((resolve) => { setTimeout(resolve, 1500); });
+      try {
+        return await call(method, route, body);
+      } catch (again) {
+        throw HOST_ERROR(again) ? Object.assign(new Error(DOWNLOAD_DOWN), { status: again.status }) : again;
+      }
+    }
+  }
+  // Each press of a download button has its own key, kept for its one retry.
+  const requestKey = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+
   // Returns the saved SWMS and revision the download was saved as, where it was saved.
   async function download(route, fallbackName, body) {
-    const response = await call(body ? 'POST' : 'GET', route, body);
+    const response = await callOnceMore(body ? 'POST' : 'GET', route, body ? { ...body, requestKey: body.requestKey || requestKey() } : body);
     const header = (name) => response.headers.get(name) || '';
     const saved = header('x-sitewrite-swms')
       ? { id: header('x-sitewrite-swms'), revision: Number(header('x-sitewrite-revision')) || 1, title: decodeURIComponent(header('x-sitewrite-title')) }
@@ -461,6 +483,9 @@
         key: `draft:${editing ? editing.id : ''}:${task}`,
         // A SWMS of a project brings back the check it was given (scope.js).
         seed: S.projectCheck ? S.projectCheck(input) : null,
+        // What each part of this draft prints, so a tick for a part that now prints differently comes off
+        // at once, before SiteWrite's check answers (messy round 6, run 8).
+        parts: draft.checkParts || null,
         body: () => ({ ...S.actionInput, ...answersNow(kind) }),
         lockedBy: () => { const held = holdNow(); return held.hold ? (held.html === redrawNote ? 'SiteWrite checks the draft once it is updated with your answers.' : 'SiteWrite checks the draft once everything listed above is answered.') : ''; },
         onChange: ready,

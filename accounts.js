@@ -267,8 +267,10 @@ function titleFor(body, input) {
   if (given) return given;
   // The task's words as the SWMS prints them, with the typing errors fixed (messy round 3: the file
   // was named "dismantel ... scafold" though the SWMS said "dismantle ... scaffold").
-  const task = require('./spelling').fixSpelling(textField(input.task, 5000)).text;
-  const sentence = task.split(/(?<=[.!?])\s/)[0].replace(/[.,;:]+$/, '');
+  // Pasted scope lines lose their clause numbers first, and a title is never a bare number (messy round 6,
+  // run 2: "1. Installation of vinyl..." named the SWMS and its files "1").
+  const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000))).text;
+  const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '');
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
@@ -470,8 +472,32 @@ router.post('/swms', requireAccess, route(async (req, res) => {
 // with the review confirmation, and swmsId when it is a SWMS already saved. Unchanged since its
 // last revision, that revision is printed again; changed, it is saved as the next revision.
 // Returns null for a SWMS that is stood down, which cannot be saved.
+// A download pressed again after a host's error (a 502) sends the key of the first press. Where the first
+// press saved a new SWMS before the error, the second finds it, so the SWMS is not saved twice (messy round
+// 6: the page asks again once by itself). Kept in memory for 15 minutes; a restart forgets them.
+const SAVED_BY_KEY = new Map();
+const KEY_MINUTES = 15;
+function savedByKey(company, key) {
+  const now = Date.now();
+  for (const [name, item] of SAVED_BY_KEY) if (now - item.at > KEY_MINUTES * 60000) SAVED_BY_KEY.delete(name);
+  const found = key ? SAVED_BY_KEY.get(`${company.id}:${key}`) : null;
+  return found ? found.id : '';
+}
+function keepSavedKey(company, key, id) {
+  if (key && id) SAVED_BY_KEY.set(`${company.id}:${key}`, { id, at: Date.now() });
+}
+const requestKeyOf = (body) => (typeof (body && body.requestKey) === 'string' && /^[A-Za-z0-9:_-]{6,80}$/.test(body.requestKey) ? body.requestKey : '');
+
 async function saveForDownload(req, body, options = {}) {
   needsCompany(req);
+  const key = requestKeyOf(body);
+  const earlier = !body.swmsId && savedByKey(req.company, key);
+  if (earlier) body = { ...body, swmsId: earlier };
+  const result = await saveOnce(req, body, options);
+  if (result && result.row) keepSavedKey(req.company, key, result.row.id);
+  return result;
+}
+async function saveOnce(req, body, options) {
   const input = cleanInput(body);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') return null;

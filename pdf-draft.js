@@ -58,6 +58,19 @@ function text(doc, value, options = {}) {
   if (options.after) doc.moveDown(options.after);
 }
 
+// The height a small table of pairs takes, and a block (a heading, a note and a table) kept on one page:
+// started on the next page when it does not fit here but fits on a page of its own (messy round 6, run 5:
+// a page held only the review block's last row, "Date").
+function tableHeight(doc, { widths, rows, size = 8.5 }) {
+  return rows.reduce((sum, row) => sum + Math.max(...row.cells.map((cell, i) => cell.reduce((total, p) => total + (p.image ? p.height + 2 : paragraphHeight(doc, p, widths[i] - PAD * 2, size)), 0)), size + 4) + PAD * 2, 0);
+}
+function keepBlock(doc, height) {
+  const page = bottom(doc) - MARGIN;
+  if (doc.y + height > bottom(doc) && height < page) doc.addPage();
+}
+const BLOCK_HEAD = 34;
+const BLOCK_NOTE = 16;
+
 function heading(doc, value) {
   if (doc.y > bottom(doc) - 60) doc.addPage();
   doc.moveDown(0.6);
@@ -337,35 +350,34 @@ function draftToPdf(draft, options = {}) {
       table(doc, { widths: pairWidths, rows: draft.references.map((item) => pair(item.label, item.text)) });
     }
 
-    heading(doc, 'Prepared by');
     const by = preparedFromCheck(draft, options.confirmation);
-    table(doc, { widths: pairWidths, rows: [pair('Name and position', by ? by.name : ''), pair('Signature', ''), pair('Date', by ? by.date : ''), pair('Date given to the principal contractor', '')] });
+    const preparedRows = [pair('Name and position', by ? by.name : ''), pair('Signature', ''), pair('Date', by ? by.date : ''), pair('Date given to the principal contractor', '')];
+    keepBlock(doc, BLOCK_HEAD + tableHeight(doc, { widths: pairWidths, rows: preparedRows }));
+    heading(doc, 'Prepared by');
+    table(doc, { widths: pairWidths, rows: preparedRows });
 
     // Who checked it part by part before it was downloaded or saved (D286).
     const checked = checkedRows(options.confirmation);
     if (checked.length) {
+      const checkedTable = checked.map(([label, value]) => pair(label, value));
+      keepBlock(doc, BLOCK_HEAD + tableHeight(doc, { widths: pairWidths, rows: checkedTable }));
       heading(doc, 'Checked by');
-      table(doc, { widths: pairWidths, rows: checked.map(([label, value]) => pair(label, value)) });
+      table(doc, { widths: pairWidths, rows: checkedTable });
     }
 
-    heading(doc, 'Principal contractor review');
+    // The review block is kept on one page, its heading with its rows.
     const review = options.pcReview;
-    if (review) {
-      // The response the reviewer returned on this revision in SiteWrite (D290).
-      text(doc, reviewedNote(review), { size: 9, color: MUTED, after: 0.3 });
-      table(doc, {
-        widths: pairWidths,
-        rows: [pair('Principal contractor', draft.principalContractor), pair('Reviewed by (name and company)', [review.name, review.company].filter(Boolean).join(', ')),
-          pair('Outcome', PC_OUTCOMES.map(([id, label]) => `${review.response === id ? '[x]' : '[ ]'} ${label}`).join('     ')), pair(PC_TEXT[review.response] || 'Comments', conditionLines(review.text) || 'None'), pair('Date', review.date || '')],
-      });
-    } else {
-      if (options.reviewLink) text(doc, reviewInvite(options.reviewLink), { size: 9, color: MUTED, after: 0.3 });
-      table(doc, {
-        widths: pairWidths,
-        rows: [pair('Principal contractor', draft.principalContractor), pair('Date SWMS received', ''), pair('Reviewed by (name and position)', ''),
-          pair('Outcome', '[ ] Accepted     [ ] Accepted with changes noted     [ ] Not accepted: revise and resubmit'), pair('Comments or changes', '\n\n\n'), pair('Signature', ''), pair('Date', '')],
-      });
-    }
+    const reviewRows = review
+      ? [pair('Principal contractor', draft.principalContractor), pair('Reviewed by (name and company)', [review.name, review.company].filter(Boolean).join(', ')),
+        pair('Outcome', PC_OUTCOMES.map(([id, label]) => `${review.response === id ? '[x]' : '[ ]'} ${label}`).join('     ')), pair(PC_TEXT[review.response] || 'Comments', conditionLines(review.text) || 'None'), pair('Date', review.date || '')]
+      : [pair('Principal contractor', draft.principalContractor), pair('Date SWMS received', ''), pair('Reviewed by (name and position)', ''),
+        pair('Outcome', '[ ] Accepted     [ ] Accepted with changes noted     [ ] Not accepted: revise and resubmit'), pair('Comments or changes', '\n\n\n'), pair('Signature', ''), pair('Date', '')];
+    const reviewNote = review ? reviewedNote(review) : options.reviewLink ? reviewInvite(options.reviewLink) : '';
+    keepBlock(doc, BLOCK_HEAD + (reviewNote ? BLOCK_NOTE * 2 : 0) + tableHeight(doc, { widths: pairWidths, rows: reviewRows }));
+    heading(doc, 'Principal contractor review');
+    // The response the reviewer returned on this revision in SiteWrite (D290), or the invitation to review.
+    if (reviewNote) text(doc, reviewNote, { size: 9, color: MUTED, after: 0.3 });
+    table(doc, { widths: pairWidths, rows: reviewRows });
 
     doc.addPage();
     text(doc, 'Worker sign-on', { bold: true, size: 16 });
