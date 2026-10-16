@@ -95,7 +95,7 @@ const projectJson = express.json({ limit: '5mb' });
 // A main contractor's subcontract scope (Goal 12 stage 4) is sent the same way.
 const HSE_SCOPE = /^\/api\/hse\/subcontracts\/[^/]+\/scope$/;
 // A subcontractor's work on a builder's list (stage 6) is the whole project page, like the project zip.
-const LIST_PROGRESS = /^\/api\/from-builders\/[^/]+\/progress$/;
+const LIST_PROGRESS = /^\/api\/from-builders\/[^/]+\/(?:progress|submit)$/;
 app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' || LIST_PROGRESS.test(req.path) ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 // SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
@@ -294,6 +294,8 @@ app.post('/api/draft/questions', (req, res) => {
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
 app.use('/api/project.zip', limiter('project-zip', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
+// Submitting a builder's list's SWMS (Goal 12 stage 7) prepares each one, as the project zip does.
+app.use(/^\/api\/from-builders\/[^/]+\/submit$/, limiter('list-submit', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
 const scopeLimit = limiter('scope', positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60));
 // The quick read has its own limit; the AI reading's routes (under /api/scope/ai) have theirs.
 app.use(SCOPE_ROUTE, (req, res, next) => (req.path.startsWith('/ai') ? next() : scopeLimit(req, res, next)));
@@ -703,6 +705,8 @@ app.use('/api', hse.router);
 app.use('/api', require('./sitelink-send').publicRouter);
 // Stage 6: the lists a company took up, under From main contractors, and its work on them.
 app.use('/api', require('./sitelink-subbie').router);
+// Stage 7: submitting a SWMS on a builder's list, and the company's side of conditions.
+app.use('/api', require('./sitelink-submit').router);
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {

@@ -782,4 +782,8 @@ require('./sitelink-send').install(router, { subcontractFor: scopes.subcontractF
 
 require('./sitelink-subbie').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, personName, supportEmail, FIELDS, EMPTY, dateTime });
 
+// ---- Submissions, reviews from the project screen, conditions and SWMS received outside SiteWrite (stage 7, sitelink-submit.js) ----
+
+require('./sitelink-submit').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, personName, needName, dateTime, supportEmail });
+
 module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey, tidyAddress, supportEmail };

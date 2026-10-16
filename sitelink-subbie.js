@@ -227,7 +227,7 @@ router.get('/from-builders', route(async (req, res) => {
       project: { name: project.name, workplace: project.workplace },
       subcontractor: { name: sub.name, trade: sub.trade },
       due: { date: due, shown: due ? listMail.longDue(due) : '', past: Boolean(due) && due < todayIn(project.state) },
-      progress: { ...progressSummary(row, kept), updatedOn: row ? when(row.updated_at, project.state) : '', updatedBy: row ? row.updated_by_name : '' },
+      progress: { ...progressSummary(row, kept), ...(await require('./sitelink-submit').companySummary(sub)), updatedOn: row ? when(row.updated_at, project.state) : '', updatedBy: row ? row.updated_by_name : '' },
     });
   }
   res.json({ lists, access: auth.hasAccess(req.company) });
@@ -241,7 +241,9 @@ router.get('/from-builders/:id', route(async (req, res) => {
   const list = await listView(found);
   const access = auth.hasAccess(req.company);
   record('builder_list_opened', req.company.id);
-  res.json({ list, access, progress: access ? await progressView(found, req.company, list) : null, message: access ? '' : 'Your free trial has ended. Subscribe to prepare these SWMS in SiteWrite. You can still upload a SWMS you already have from the page the list email links to.' });
+  // Stage 7: what the company has submitted on this list, the responses, conditions and the log.
+  const sent = await require('./sitelink-submit').forCompany(found);
+  res.json({ list, access, sent, progress: access ? await progressView(found, req.company, list) : null, message: access ? '' : 'Your free trial has ended. Subscribe to prepare these SWMS in SiteWrite. You can still upload a SWMS you already have from the page the list email links to.' });
 }));
 
 // The company's work on the list, kept. baseVersion is the version the page started from: a save from
@@ -336,10 +338,20 @@ function install(hseRouter, deps) {
   }));
 }
 
+// The SWMS on the list that the company took off its list (stage 6), by the builder's id for each: the
+// only thing the main contractor reads of the company's work (stage 7), so its screen can say each is
+// not submitted. Nothing else of the work is read.
+async function offListOf(sub) {
+  if (!sub || !sub.company_id) return [];
+  const row = await db.one('SELECT body FROM sub_progress WHERE subcontract_id = $1 AND company_id = $2', [sub.id, sub.company_id]);
+  const off = (row && row.body && row.body.project && Array.isArray(row.body.project.offList)) ? row.body.project.offList : [];
+  return [...new Set(off.map((item) => (item && typeof item.requiredId === 'string' ? item.requiredId : '')).filter(Boolean))];
+}
+
 // Everything stage 6 keeps for a subcontract, for the staging hook that removes a test account.
 async function removeForSubcontract(subId) {
   await db.query('DELETE FROM sub_progress WHERE subcontract_id = $1', [subId]);
   await db.query('DELETE FROM subcontract_releases WHERE subcontract_id = $1', [subId]);
 }
 
-module.exports = { router, install, releasedFrom, releaseFor, RELEASED, removeForSubcontract, cleanProgress, listView, listFor, progressView, NOT_FOUND };
+module.exports = { router, install, releasedFrom, releaseFor, RELEASED, removeForSubcontract, cleanProgress, listView, listFor, progressView, contactOf, offListOf, NOT_FOUND };

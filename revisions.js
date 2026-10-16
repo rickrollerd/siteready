@@ -168,9 +168,12 @@ async function keepRevision({ row, company, input, draft, userId = '', name = ''
 
 // A later check of a revision already kept (the business's own check, or the same revision downloaded
 // again with a new check): it is printed from now on, and the earlier ones are kept with it.
+// A revision submitted to a main contractor (Goal 12 stage 7) is frozen: its check stays as it was
+// submitted, so what the main contractor reviews never changes under it.
 async function recordCheck(swmsId, revision, confirmation) {
   const kept = await getRevision(swmsId, revision);
   if (!kept || !confirmation) return null;
+  if (await db.one("SELECT id FROM submissions WHERE swms_id = $1 AND revision = $2 AND channel = 'sitewrite' LIMIT 1", [String(swmsId), Number(revision)])) return kept.confirmation;
   const { earlier = [], ...before } = kept.confirmation || {};
   const next = { ...confirmation, earlier: [...earlier, ...(kept.confirmation ? [before] : [])].slice(-10) };
   await db.query('UPDATE swms_revisions SET confirmation = $1 WHERE swms_id = $2 AND revision = $3', [JSON.stringify(next), String(swmsId), Number(revision)]);

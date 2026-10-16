@@ -1225,6 +1225,8 @@
     return {
       id: list.id, builder: list.builder, project: list.project, subcontractor: list.subcontractor, due: list.due, contact: list.contact, answers: list.answers,
       siteDetails: list.siteDetails, builderSet: list.builderSet, seen: saved.seen || {}, listItems: list.items,
+      // Stage 7: what the company has submitted on the list, the responses, conditions and the log.
+      sent: data.sent || (before && before.sent) || null,
       version: saved.version || 0, savedOn: saved.updatedOn || '', savedBy: saved.updatedBy || '',
       dirty: false, page: saved.page || {}, note: (before && before.note) || '',
     };

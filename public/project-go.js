@@ -87,11 +87,11 @@
     return `<div class="project-head"><h2>SWMS for ${esc(name)}</h2><button type="button" class="small secondary" data-list-close>Close</button></div>
       <div class="from-builder-head">
         <p><strong>${esc(name)}</strong>${b.builder.verified ? '' : ' <span class="pill">Unverified</span>'} needs these SWMS from ${esc(b.subcontractor.name)} for <strong>${esc(b.project.name)}</strong>, ${esc(b.project.workplace)}.${due}</p>
-        <p class="meta">${required === 1 ? 'One SWMS is' : `${required} SWMS are`} on ${esc(name)}'s list${own ? `, and ${own === 1 ? 'one is' : `${own} are`} your own` : ''}. The site details ${esc(name)} set are filled in above, each marked "Set by ${esc(name)}". Your company's details come from your own company profile. ${esc(name)} does not see your drafts or how far you have got.</p>
+        <p class="meta">${required === 1 ? 'One SWMS is' : `${required} SWMS are`} on ${esc(name)}'s list${own ? `, and ${own === 1 ? 'one is' : `${own} are`} your own` : ''}. The site details ${esc(name)} set are filled in above, each marked "Set by ${esc(name)}". Your company's details come from your own company profile. ${esc(name)} sees only the SWMS you submit to it, and which ones you take off its list. It does not see your drafts.</p>
         <p class="meta" id="list-saved" role="status">${esc(S.listSavedLine ? S.listSavedLine() : '')}</p>
         <p class="${b.note ? 'warning' : 'note hidden'}" id="list-note" role="status">${esc(b.note || '')}</p>
         <div id="list-overrides"></div>
-        ${answers}${contact}
+        ${answers}${contact}${logHtml()}
       </div>
       ${stageLede}`;
   }
@@ -118,8 +118,158 @@
     const off = (b && project.offList) || [];
     if (!off.length) return '';
     const name = esc(b.builder.name);
-    return `<div class="warning go-off-list" id="go-off-list"><p><strong>Taken off your list (${off.length}).</strong> ${name} asked for ${off.length === 1 ? 'this SWMS, and still expects it' : 'these SWMS, and still expects them'}.</p><ul>${off.map((item, i) => `<li>${esc(item.title)} <button type="button" class="link" data-go-put-back="${i}">Put it back</button></li>`).join('')}</ul></div>`;
+    return `<div class="warning go-off-list" id="go-off-list"><p><strong>Taken off your list (${off.length}).</strong> ${name} asked for ${off.length === 1 ? 'this SWMS, and still expects it' : 'these SWMS, and still expects them'}. ${name} sees that you took ${off.length === 1 ? 'it' : 'them'} off, as not submitted.</p><ul>${off.map((item, i) => `<li>${esc(item.title)} <button type="button" class="link" data-go-put-back="${i}">Put it back</button></li>`).join('')}</ul></div>`;
   }
+  // ---- Submitting to the main contractor (Goal 12 stage 7) ----
+  // A SWMS on the builder's list is submitted once it has passed SiteWrite's check and been ticked part
+  // by part. Submitting saves it as its revision in My SWMS, as a download does, and the builder reviews
+  // that revision. The row says what was submitted, the response, and each condition, which the company
+  // marks done for the builder to confirm.
+  const sentOf = (item) => { const b = builder(); return b && b.sent && item && item.requiredId ? (b.sent.items || {})[item.requiredId] || null : null; };
+  const checkKey = (check) => (check && check.partHashes ? `${JSON.stringify(check.partHashes)}|${check.name}|${check.role}` : '');
+  function submitState(item) {
+    const check = checkOf(item);
+    const sent = sentOf(item);
+    const latest = sent && sent.latest && sent.latest.channel === 'sitewrite' ? sent.latest : null;
+    // Submitted from this page with this same check: nothing new to send.
+    const same = Boolean(latest && check && item.submittedKey && item.submittedKey === checkKey(check) && item.submittedRevision === latest.revision);
+    return { check, latest, same, can: Boolean(builder() && item.requiredId && check && item.status === 'ready' && item.body && !item.stale && !same) };
+  }
+  const CONDITION_STATE = { outstanding: 'To do', done: 'Marked done', closed: 'Confirmed done' };
+  function conditionHtml(entry) {
+    const name = esc(builderName());
+    const status = `<span class="pill cond-${esc(entry.status)}">${CONDITION_STATE[entry.status] || esc(entry.status)}</span>`;
+    let more = '';
+    if (entry.status === 'outstanding') {
+      more = `${entry.backNote ? `<span class="meta">Sent back by ${esc(entry.backBy)} on ${esc(entry.backOn)}: ${esc(entry.backNote)}</span>` : ''}
+        <span class="cond-do"><label class="meta" for="cond-note-${esc(entry.id)}">What you did (optional)</label><input type="text" id="cond-note-${esc(entry.id)}" maxlength="500" data-cond-note="${esc(entry.id)}" autocomplete="off">
+        <button type="button" class="small" data-cond-done="${esc(entry.id)}">Mark as done</button></span>`;
+    } else if (entry.status === 'done') {
+      more = `<span class="meta">Marked done by ${esc(entry.doneBy)} on ${esc(entry.doneOn)}${entry.doneNote ? `: ${esc(entry.doneNote.replace(/[.\s]+$/, ''))}` : ''}. Waiting for ${name} to confirm. <button type="button" class="link" data-cond-undo="${esc(entry.id)}">Not done after all</button></span>`;
+    } else if (entry.status === 'closed') {
+      more = `<span class="meta">${name} confirmed it on ${esc(entry.closedOn)}.</span>`;
+    }
+    return `<li class="cond" id="cond-${esc(entry.id)}"><span>${status} ${esc(entry.text)}${entry.revision ? ` <span class="meta cond-rev">(revision ${esc(entry.revision)})</span>` : ''}</span>${more}</li>`;
+  }
+  // What was submitted for a SWMS on the list, its response and its conditions, under its row.
+  function sentHtml(item) {
+    const b = builder();
+    if (!b || !item.requiredId) return '';
+    const name = esc(b.builder.name);
+    const sent = sentOf(item);
+    const state = submitState(item);
+    // A refusal shows until the next press; "already submitted" only while the SWMS is as it was then.
+    const noteShown = item.submitNote && (!item.submitNote.ok || item.submitNote.key === checkKey(state.check));
+    const note = noteShown ? `<span class="${item.submitNote.ok ? 'meta go-submit-ok' : 'error'}" role="status">${esc(item.submitNote.text)}</span>` : '';
+    if (!sent || !sent.latest) return `<span class="meta go-sent">Not submitted to ${name} yet.</span>${note}`;
+    const latest = sent.latest;
+    const what = latest.channel === 'outside'
+      ? `${name} recorded a SWMS it received for this outside SiteWrite (${esc(latest.file ? latest.file.name : 'a file')}) on ${esc(latest.on)}.`
+      : `Submitted to ${name} on ${esc(latest.on)}, revision ${esc(latest.revision)}.`;
+    const review = latest.review;
+    const earlier = (sent.earlier || []).find((one) => one.review);
+    const reviewText = review
+      ? `<b>${esc(review.label)}</b> by ${esc(review.name)}, ${esc(review.company)}, ${esc(review.date)}.${review.response === 'changes' && review.text ? `<span class="pre go-changes">${esc(review.text)}</span>` : ''}`
+      : `Not reviewed yet.${earlier ? ` Revision ${esc(earlier.revision)} was ${esc(earlier.review.label)}.` : ''}`;
+    const changed = latest.channel === 'sitewrite' && !state.same && state.check && item.submittedKey
+      ? ` <b>Changed since you submitted it.</b> Submit it again to send the new revision.` : '';
+    const overrides = (latest.overrides || []).length ? ` ${name} sees that it changes details it set: ${esc(latest.overrides.map((one) => one.label.toLowerCase()).join(', '))}.` : '';
+    const conditions = (sent.conditions || []).length ? `<ul class="go-conditions">${sent.conditions.map(conditionHtml).join('')}</ul>` : '';
+    return `<span class="go-sent"><span class="meta">${what}${overrides} ${reviewText}${changed}</span>${conditions}</span>${note}`;
+  }
+  // The log both sides see, at the top of the list.
+  function logHtml() {
+    const b = builder();
+    const log = (b && b.sent && b.sent.log) || [];
+    if (!log.length) return '';
+    return `<details class="go-log"><summary>Log with ${esc(b.builder.name)} (${log.length})</summary><ul class="plain">${log.map((entry) => `<li><span class="meta">${esc(entry.when)}</span> ${esc(entry.text)}</li>`).join('')}</ul></details>`;
+  }
+  // The button under the list: every SWMS checked and not yet submitted as it is now.
+  function submitHtml() {
+    const b = builder();
+    if (!b) return '';
+    const name = esc(b.builder.name);
+    const can = project.items.filter((item) => submitState(item).can);
+    const required = project.items.filter((item) => item.requiredId);
+    const sent = required.filter((item) => { const s = sentOf(item); return s && s.latest; }).length;
+    // Out of every SWMS on the builder's list, those taken off here too.
+    const total = (b.listItems || []).length || required.length;
+    const off = (project.offList || []).length;
+    const label = can.length === 1 ? `Submit the checked SWMS to ${name}` : `Submit the ${can.length} checked SWMS to ${name}`;
+    return `<div class="go-submit" id="go-submit">
+      <h3>Submit to ${name}</h3>
+      <p class="meta">${sent ? `${sent} of the ${total} SWMS on ${name}'s list ${sent === 1 ? 'is' : 'are'} submitted${off ? `, and ${off === 1 ? 'one is' : `${off} are`} taken off your list` : ''}. ` : ''}A SWMS on ${name}'s list can be submitted once it is checked part by part. Submitting saves it in My SWMS as its revision, and ${name} reviews that revision. Your own SWMS are not sent.</p>
+      ${submitSaid ? `<p class="${submitSaid.ok ? 'note' : 'error'}" role="status" id="go-submit-said">${esc(submitSaid.text)}</p>` : ''}
+      <div class="actions"><button type="button" id="go-submit-all"${can.length ? '' : ' disabled'}>${can.length ? label : `Submit to ${name}`}</button></div>
+      ${can.length ? '' : `<p class="meta">${sent === required.length && required.length ? `Each SWMS here from ${name}'s list is submitted. Change one and check it again to submit it again.` : 'Nothing to submit yet: check each SWMS first.'}</p>`}
+    </div>`;
+  }
+  // The row's buttons: Check, and Submit to {builder} on a builder's list once it is checked.
+  function rowButtons(item, index, firstToCheck) {
+    const check = `<button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${checkOf(item) ? 'Check it again' : 'Check this SWMS'}</button>`;
+    if (!builder()) return check;
+    return `<span class="go-row-buttons">${check}${submitState(item).can ? `<button type="button" class="small" data-go-submit="${index}">Submit to ${esc(builderName())}</button>` : ''}</span>`;
+  }
+  let submitSaid = null;
+  async function submitItems(indexes, button) {
+    const b = builder();
+    const items = indexes.map((index) => project.items[index]).filter((item) => item && submitState(item).can);
+    if (!b || !items.length) return;
+    const was = button ? button.textContent : '';
+    if (button) { button.disabled = true; button.textContent = 'Submitting...'; }
+    const apply = (data) => {
+      for (const done of data.submitted || []) {
+        const item = project.items.find((one) => one.requiredId === done.requiredId);
+        if (!item) continue;
+        item.swmsId = done.swmsId || item.swmsId;
+        item.submittedKey = checkKey(checkOf(item));
+        item.submittedRevision = done.revision;
+        if (done.repeated) item.submitNote = { ok: true, key: item.submittedKey, text: `Revision ${done.revision} was already submitted. Nothing has changed since.` };
+        else delete item.submitNote;
+      }
+      for (const refused of data.refused || []) {
+        const item = project.items.find((one) => one.requiredId === refused.requiredId);
+        if (item) item.submitNote = { ok: false, text: `Not submitted: ${refused.message}` };
+      }
+      if (data.sent) b.sent = data.sent;
+      submitSaid = data.message ? { ok: Boolean((data.submitted || []).length), text: data.message } : null;
+      save();
+      hooks.render();
+    };
+    try {
+      const data = await S.call('POST', `/api/from-builders/${encodeURIComponent(b.id)}/submit`, {
+        items: items.map((item) => ({ requiredId: item.requiredId, swms: { ...item.body, swmsTitle: item.title, swmsId: item.swmsId || undefined, check: checkOf(item) } })),
+      });
+      apply(data);
+    } catch (error) {
+      if (error.data && Array.isArray(error.data.refused)) apply(error.data);
+      else { submitSaid = { ok: false, text: error.message }; hooks.render(); }
+    } finally {
+      if (button && document.body.contains(button)) { button.disabled = false; button.textContent = was; }
+    }
+    const at = items.length === 1 ? $(`go-row-${project.items.indexOf(items[0])}`) : $('go-submit');
+    if (at && at.scrollIntoView) at.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  async function conditionAction(kind, id, button) {
+    const b = builder();
+    if (!b) return;
+    const box = $(`cond-note-${id}`);
+    button.disabled = true;
+    try {
+      const data = await S.call('POST', `/api/from-builders/${encodeURIComponent(b.id)}/conditions/${encodeURIComponent(id)}/${kind}`, kind === 'done' ? { note: box ? box.value : '' } : {});
+      b.sent = data.sent;
+      submitSaid = null;
+      save();
+      hooks.render();
+      const row = $(`cond-${id}`);
+      if (row && row.scrollIntoView) row.scrollIntoView({ block: 'center' });
+    } catch (error) {
+      button.disabled = false;
+      const row = $(`cond-${id}`);
+      if (row) row.insertAdjacentHTML('beforeend', `<span class="error" role="alert">${esc(error.message)}</span>`);
+    }
+  }
+
   function ownSwmsHtml() {
     const b = builder();
     if (!b) return '';
@@ -1036,6 +1186,13 @@
 
   function onClick(event) {
     if (!project) return;
+    const submitOne = event.target.closest('[data-go-submit]');
+    if (submitOne) { submitItems([Number(submitOne.dataset.goSubmit)], submitOne); return; }
+    if (event.target.closest('#go-submit-all')) { submitItems(project.items.map((_item, index) => index), event.target.closest('#go-submit-all')); return; }
+    const condDone = event.target.closest('[data-cond-done]');
+    if (condDone) { conditionAction('done', condDone.dataset.condDone, condDone); return; }
+    const condUndo = event.target.closest('[data-cond-undo]');
+    if (condUndo) { conditionAction('undo', condUndo.dataset.condUndo, condUndo); return; }
     const field = event.target.closest('[data-go-field]');
     if (field) {
       const el = $(field.dataset.goField);
@@ -1140,7 +1297,7 @@
       const index = Number(takeOff.dataset.goTakeOff);
       const item = project.items[index];
       const name = builderName();
-      if (!item || !window.confirm(`${name} asked for "${item.title}". Take it off your list here? ${name} still expects it. You can put it back.`)) return;
+      if (!item || !window.confirm(`${name} asked for "${item.title}". Take it off your list here? ${name} still expects it, and sees that you took it off. You can put it back.`)) return;
       const before = [...project.items];
       project.items.splice(index, 1);
       project.offList = [...(project.offList || []), item];
@@ -1556,7 +1713,8 @@
       <p class="error" id="project-error"></p>${said()}
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again and checked.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
-      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong>${isOwn(item) ? ` ${OWN_TAG}` : ''}<span class="meta">${esc(states[index].text)}${checkOf(item) || states[index].check || item.checkNote === CHECK_CLEARED ? '' : ' Not checked yet.'}</span>${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}</div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${checkOf(item) ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
+      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}" id="go-row-${index}"><div><strong>${esc(item.title)}</strong>${isOwn(item) ? ` ${OWN_TAG}` : ''}<span class="meta">${esc(states[index].text)}${checkOf(item) || states[index].check || item.checkNote === CHECK_CLEARED ? '' : ' Not checked yet.'}</span>${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}${sentHtml(item)}</div>${rowButtons(item, index, firstToCheck)}</li>`).join('')}</ol>
+      ${can ? submitHtml() : ''}
       <div id="project-download">${can ? downloadHtml(states, ready, n) : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>'}</div>
       <div class="actions"><button type="button" class="small secondary" id="go-back-questions">Back to the questions</button><button type="button" class="small secondary" id="project-close">${builder() ? 'Close the list' : 'Close project'}</button></div>`;
   }

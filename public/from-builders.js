@@ -39,7 +39,7 @@
   const progressLine = (list) => {
     const p = list.progress || {};
     if (!p.started) return `${p.total === 1 ? 'One SWMS' : `${p.total} SWMS`} on the list. Not started yet.`;
-    return `${p.total === 1 ? 'One SWMS' : `${p.total} SWMS`} on the list: ${p.prepared} prepared, ${p.checked} checked.${p.off ? ` ${p.off === 1 ? 'One' : p.off} taken off your list.` : ''}${p.own ? ` ${p.own === 1 ? 'One' : p.own} of your own.` : ''}${p.updatedOn ? ` Last saved on ${p.updatedOn}${p.updatedBy ? ` by ${p.updatedBy}` : ''}.` : ''}`;
+    return `${p.total === 1 ? 'One SWMS' : `${p.total} SWMS`} on the list: ${p.prepared} prepared, ${p.checked} checked${p.submitted ? `, ${p.submitted} submitted` : ''}.${p.conditionsToDo ? ` ${p.conditionsToDo === 1 ? 'One condition' : `${p.conditionsToDo} conditions`} to do.` : ''}${p.off ? ` ${p.off === 1 ? 'One' : p.off} taken off your list.` : ''}${p.own ? ` ${p.own === 1 ? 'One' : p.own} of your own.` : ''}${p.updatedOn ? ` Last saved on ${p.updatedOn}${p.updatedBy ? ` by ${p.updatedBy}` : ''}.` : ''}`;
   };
 
   function renderPanel() {
@@ -51,7 +51,7 @@
       return;
     }
     box.innerHTML = `${said}${access ? '' : '<p class="warning">Your free trial has ended. Subscribe to prepare these SWMS in SiteWrite. Seeing the lists stays free. <button type="button" class="small" data-subscribe>Subscribe</button></p>'}
-      <p class="meta">The SWMS main contractors need from your company. Each opens with its SWMS listed and the site details the main contractor set filled in. You check each one, change what you need, and download them.</p>
+      <p class="meta">The SWMS main contractors need from your company. Each opens with its SWMS listed and the site details the main contractor set filled in. You check each one, change what you need, and submit it to the main contractor or download it.</p>
       <ul class="builder-lists">${lists.map((list) => `<li><div><strong>${esc(list.builder.name)}</strong>${list.builder.verified ? '' : ' <span class="pill">Unverified</span>'}<br>${esc(list.project.name)}, ${esc(list.project.workplace)}
         <span class="meta" style="display:block">For ${esc(list.subcontractor.name)}${list.subcontractor.trade ? ` (${esc(list.subcontractor.trade)})` : ''}.${list.due.shown ? ` Due ${esc(list.due.shown)}${list.due.past ? ', which has passed' : ''}.` : ''}</span>
         <span class="meta" style="display:block">${esc(progressLine(list))}</span></div>
