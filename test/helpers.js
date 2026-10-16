@@ -61,9 +61,15 @@ function ready(input) {
     // A type the task, the answers or the job steps name gives a reason (D292 item 3, messy round 5), unless
     // the test gives its own.
     const rules = require('../public/substance-rules');
-    const named = (notUsed || []).filter((type) => rules.notUsedNeed(type, '', rules.ownWords(input), rules.stepWords(draft)));
+    // A type no reason settles (silica beside a step that cuts concrete, or a product a step uses, messy
+    // round 7) is listed as a product instead, checked against its safety data sheet.
+    const settled = (type) => !rules.notUsedNeed(type, 'Supplied and applied by others', rules.ownWords(input), rules.stepWords(draft), '', rules.cutStep(draft), draft);
+    const listedTypes = input.substancesNotUsed || input.substances ? [] : (notUsed || []).filter((type) => !settled(type));
+    const products = listedTypes.map((type, n) => ({ id: `sub-${n + 90}`, type, product: `${rules.SHORT.get(type)} used on this job`, controls: ['Wear the gloves and eye protection the safety data sheet sets out'], sdsDate: '2026-01-15', step: rules.matchStep(type, draft.jobSteps) ? '' : (type === rules.SILICA ? rules.cutStep(draft) : '') || ((draft.jobSteps || [])[1] || {}).step || '', confirmed: true }));
+    const left = (notUsed || []).filter((type) => !listedTypes.includes(type));
+    const named = left.filter((type) => rules.notUsedNeed(type, '', rules.ownWords(input), rules.stepWords(draft)));
     const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, 'Supplied and applied by others'])) : undefined);
-    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: notUsed } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
+    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: products.length ? left : notUsed } : {}), ...(products.length ? { substances: products } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
   }
   return out;
 }

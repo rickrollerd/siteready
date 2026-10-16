@@ -17,13 +17,14 @@
   // release agent (Product X): ...").
   const SUBSTANCES = [
     ['Paints and coatings', /(?<!once )\b(paint\w*|coatings?|enamels?)\b/i, 'Paint or coating'],
-    ['Solvents and thinners', /\b(solvents?|thinners?|turps)\b/i, 'Solvent or thinner'],
+    // "Solvent cement" is the PVC primer and solvent cement row, not a solvent and a cement (messy round 7).
+    ['Solvents and thinners', /\b(solvents?(?! cement| weld\w*)|thinners?|turps)\b/i, 'Solvent or thinner'],
     ['Adhesives', /\b(adhesives?|glues?|vinyl|carpet)\b/i, 'Adhesive'],
     ['Wood dust (MDF and hardwood)', /\b(mdf|particleboard|wood dust|sawdust|(?:cut|saw|sand|rout|machin)\w* [^.\n]{0,30}\b(?:timber|wood|hardwood|mdf|joinery))\b/i, 'Board or timber product'],
     ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone)\b/i, 'Sealant'],
     ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i, 'Waterproofing product'],
     ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack)\b/i, 'Epoxy or resin'],
-    ['Cement, concrete, grout and mortar', /\b(cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
+    ['Cement, concrete, grout and mortar', /\b((?<!solvent |pvc )cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
     // Plasterboard that is painted over, or swept up, is not plaster work: plasterboard brings the type
     // only where it is fixed, set or jointed (messy round 4).
     ['Plaster, jointing and setting compounds', /\b(plaster(?!board)\w*|jointing|setting compounds?|set(?:ting)? and sand\w*|(?:fix|hang|install|set|stop|joint|sheet)\w* [^.\n]{0,30}\bplasterboard|plasterboard (?:fix|hang|install|lining|setting|stopping|jointing)\w*)\b/i, 'Plaster or setting compound'],
@@ -49,6 +50,8 @@
     'Gases (LPG, acetylene, oxygen)': /\b(lpg|gas torch\w*|acetylene)\b/i,
     'Respirable crystalline silica (concrete, masonry, tile and stone dust)': /\b(?:respirable crystalline silica|silica dust)\b/i,
   };
+  // Fuel named in a step's lines, read only for a reason "Not required" needs (stepWords), not to list the type.
+  const LINE_ONLY = { 'Fuels (diesel, petrol)': /\b(?:petrol|diesel)(?:[- ](?:driven|powered|engined))?\b/i };
   const TYPES = SUBSTANCES.map(([label]) => label);
   const SHORT = new Map(SUBSTANCES.map(([label, , short]) => [label, short]));
 
@@ -129,13 +132,13 @@
   // product's own names count, not the work around it ("pour" or "excavator" name no product).
   const NAMED = {
     'Paints and coatings': /\b(?:paints?|painting|painted|coatings?|enamels?|undercoats?|top ?coats?)\b/i,
-    'Solvents and thinners': /\b(?:solvents?|thinners?|turps|acetone|mineral spirits?)\b/i,
+    'Solvents and thinners': /\b(?:solvents?(?! cement| weld\w*)|thinners?|turps|acetone|mineral spirits?)\b/i,
     'Adhesives': /\b(?:adhesives?|glues?|glued)\b/i,
     'Wood dust (MDF and hardwood)': /\b(?:mdf|particleboard|hardwood dust|wood dust)\b/i,
     'Sealants, mastics and silicone': /\b(?:sealants?|mastics?|silicone|caulk\w*)\b/i,
     'Waterproofing membranes and primers': /\b(?:membranes?|waterproof\w*)\b/i,
     'Epoxy, resins and two-part products': /\b(?:epoxy|epoxies|resins?|two[- ]part|two[- ]pack|2[- ]pack)\b/i,
-    'Cement, concrete, grout and mortar': /\b(?:cement\w*|grout\w*|mortar|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
+    'Cement, concrete, grout and mortar': /\b(?:(?<!solvent |pvc |fibre[- ])cement\w*|grout\w*|mortar|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
     'Plaster, jointing and setting compounds': /\b(?:plaster(?!board)\w*|setting compounds?|jointing compounds?|base coat)\b/i,
     'Synthetic mineral fibres (insulation)': /\b(?:insulation|insulaton|glass ?wool|batts|rock ?wool|mineral wool)\b/i,
     'Curing compounds and form release agents': /\b(?:curing compounds?|form oil|release agents?)\b/i,
@@ -180,12 +183,16 @@
   // 6: cement "Not required" with no reason where the levelling compound step says "Cement-based
   // compounds", and sealant and adhesive where the lines say the step uses them). Only the product words
   // are taken, so a line's other words do not count.
-  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives'];
+  // Fuel for the petrol-driven plant the lines name, and for a generator or petrol plant in the plant list (messy
+  // round 7: fuel "Not required" with no reason beside "Petrol-driven saws, trowels and generators").
+  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)'];
+  const FUELLED_PLANT = /\b(generators?|petrol|diesel)\b/i;
   function stepWords(draft) {
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step));
     const products = steps.flatMap((step) => (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line)).map(withoutSource))
-      .flatMap((line) => LINE_PRODUCTS.map((type) => (CONTROL_PRODUCTS[type].exec(line) || [])[0]).filter(Boolean));
-    return [...steps.flatMap((step) => [step.step, ...(step.hazards || []).filter((line) => typeof line === 'string')]), ...products].join('\n');
+      .flatMap((line) => LINE_PRODUCTS.map((type) => ((CONTROL_PRODUCTS[type] || LINE_ONLY[type]).exec(line) || [])[0]).filter(Boolean));
+    const plant = [...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || '')).filter((name) => FUELLED_PLANT.test(name)).map((name) => `${name} (diesel or petrol)`);
+    return [...steps.flatMap((step) => [step.step, ...(step.hazards || []).filter((line) => typeof line === 'string')]), ...products, ...plant].join('\n');
   }
   // A type ticked "Not required" that the user's own safety data sheet answer names as a product used
   // ("The products used are Sikaflex 11FC sealant"): a reason does not settle it (messy round 6).
@@ -208,17 +215,65 @@
   // supplied and applied by others" beside such a step). The step's name, or ''. Not the user's own
   // steps, nor the general steps at the start and end.
   const SILICA = 'Respirable crystalline silica (concrete, masonry, tile and stone dust)';
-  const CUTS_CONCRETE = /\b(?:cut\w*|saw\w*|drill\w*|core[- ]?drill\w*|coring|grind\w*|chas\w*|scabbl\w*|break\w* out|jackhammer\w*)\b[^.\n]{0,40}\b(?:concrete|masonry|stone|slabs?|blocks?|blockwork|bricks?|brickwork|pavers?|kerbs?|sleepers?)\b|^(?:Core drill|Saw cut)\b|\bgrind\w* (?:the )?(?:concrete )?floors?\b/i;
-  function cutStep(draft) {
-    const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step));
-    const found = steps.find((step) => CUTS_CONCRETE.test(String(step.step || '')));
+  const CUTS_CONCRETE = /\b(?:cut\w*|saw\w*|drill\w*|core[- ]?drill\w*|coring|grind\w*|chas\w*|scabbl\w*|break\w*(?: out)?|jackhammer\w*)\b[^.\n]{0,40}\b(?:concrete|masonry|stone|slabs?|soffits?|blocks?|blockwork|bricks?|brickwork|pavers?|kerbs?|sleepers?)\b|^(?:Core drill|Saw cut)\b|\bgrind\w* (?:the )?(?:concrete )?floors?\b/i;
+  // A line that names silica dust and the work that makes it ("Silica dust from drilling hanger anchors").
+  const SILICA_WORK = /\bsilica\b[^.\n]*\b(?:cut\w*|saw\w*|drill\w*|cor(?:e|ing)\w*|grind\w*|chas\w*|break\w*|jackhammer\w*|rout\w*|rak\w*|split\w*|polish\w*|crush\w*|mix\w*)\b|\b(?:cut\w*|saw\w*|drill\w*|cor(?:e|ing)\w*|grind\w*|chas\w*|break\w*|rout\w*)\b[^.\n]*\bsilica\b/i;
+  // A control line of SiteWrite's counts where it puts a dust control on that work ("Drill anchors with
+  // on-tool dust extraction"), not where it only names the work for another reason (a face shield for
+  // holes drilled through the formwork, ear muffs for hammer drilling).
+  const DRILLS_ANCHORS = /\bdrill\w* (?:\w+ )?(?:anchors?|fixings?)\b|\banchor holes?\b/i;
+  const DUST_CONTROL = /\b(?:on-tool (?:dust )?extraction|dust extraction|water suppression|wet (?:cutting|methods?)|done wet|water-fed|respirators?|silica)\b/i;
+  // A line that says where or if the work is done is a condition, not this step doing it ("Silica dust
+  // where products contain crystalline silica"), and a line that says a tool is not used is not its use.
+  const CONDITION = /\b(?:where|if|unless|whether)\b|\bnot (?:be )?used\b|\bnever\b/i;
+  const NOT_THIS_JOB = /\(Does not apply to this job\)$/;
+  const OWN_STEP = /\(Our own step\)$/;
+  const madeHere = (line) => {
+    const text = withoutSource(line);
+    return !NOT_THIS_JOB.test(String(line)) && !CONDITION.test(text) && (CUTS_CONCRETE.test(text) || SILICA_WORK.test(text));
+  };
+  const controlHere = (line) => {
+    const text = withoutSource(line);
+    return !CONDITION.test(text) && (CUTS_CONCRETE.test(text) || DRILLS_ANCHORS.test(text)) && DUST_CONTROL.test(text);
+  };
+  // The job step that cuts, drills, cores, grinds, chases or breaks out concrete, masonry, stone or slabs,
+  // or says it makes silica dust doing so: by its name, its hazards, its controls, or the user's own step
+  // (messy round 7: the check read only step names, so "Finish concrete" with its saw cutting and grinding
+  // lines, "Fix hangers and supports" and "Install suspended grid ceilings" drilling slab anchors, and an
+  // own step saw cutting the kerb were taken as not making silica dust). Not the general steps at the start
+  // and end. The step's name, or ''.
+  function silicaStep(draft) {
+    const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step));
+    const own = (step) => step.own || OWN_STEP.test(String(step.step || ''));
+    const lines = (step) => (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line));
+    const found = steps.find((step) => CUTS_CONCRETE.test(String(step.step || '').replace(OWN_STEP, '')))
+      || steps.find((step) => (step.hazards || []).some((line) => typeof line === 'string' && madeHere(line))
+        || lines(step).some((line) => (own(step) ? madeHere(line) : controlHere(line))));
     return found ? found.step : '';
   }
-  function notUsedNeed(type, reason, words, steps = '', sds = '', cut = '') {
+  const cutStep = silicaStep;
+  // A reason that says another trade or others do it ("painters do it", "by others") does not settle a type
+  // the user's own step uses (messy round 7: paint "painters do it" beside the user's own "Paint shadowline
+  // packers"). Beside SiteWrite's own steps a short reason still settles it (D292), silica apart.
+  const BY_OTHERS = /\b(?:by others|others? (?:do|does|will|supply|supplies|apply|applies|install)\w*|(?:by|done by) (?:the )?(?:builder|principal contractor|client|another trade|other trades|painters?|electricians?|plumbers?|fire stoppers?|sealant contractors?)|(?:painters?|electricians?|plumbers?|the builder|another trade|other trades|fire stoppers?)\b[^.]{0,20}\b(?:do|does|doing|will|supply|supplies|apply|applies|install)\w*|not (?:in )?our (?:work|scope))\b/i;
+  function usedByOwnSteps(type, draft) {
+    const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step));
+    for (const step of steps) {
+      if (!(step.own || OWN_STEP.test(String(step.step || '')))) continue;
+      const lines = (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line)).map(withoutSource);
+      // A fuel or gas line, pipe or tank the step works on is not the product used ("Leak test the fuel line").
+      const word = namedIn(type, [step.step, ...(step.hazards || []), ...lines].join('\n').replace(/\b(?:fuel|gas|refrigerant|diesel|petrol)\s+(?:lines?|pipes?|pipework|mains?|systems?|tanks?|meters?)\b/gi, ' '));
+      if (word) return { step: String(step.step || '').replace(OWN_STEP, '').trim(), word };
+    }
+    return null;
+  }
+  function notUsedNeed(type, reason, words, steps = '', sds = '', cut = '', draft = null) {
     const conflict = sdsConflict(type, sds);
     if (conflict) return conflict;
+    const used = draft && BY_OTHERS.test(clean(reason)) ? usedByOwnSteps(type, draft) : null;
+    if (used) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says others do it, but the job step "${used.step}" in this SWMS uses "${used.word.toLowerCase()}". Add the product you use, or take that step or line off.`;
     // While that step is in the SWMS, no reason settles it: the product being cut is asked for.
-    if (type === SILICA && cut) return `${SHORT.get(type)}: the job step "${cut}" cuts or drills concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that step, take the step off.`;
+    if (type === SILICA && cut) return `${SHORT.get(type)}: the job step "${cut}" cuts, drills or grinds concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
     const asked = reasonAsked(type, words, steps);
     if (!asked) return '';
     const named = asked.word;
@@ -296,7 +351,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, SILICA };
+  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

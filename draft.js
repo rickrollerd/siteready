@@ -191,7 +191,8 @@ const EARTHWORKS = /\b(cut and fill|bulk earthworks|earthworks|(?:bull)?dozers?|
 const SPORTS_LIGHTING = /\b(sports lighting|floodlights?|light towers?|lighting (?:towers?|frames?|rigs?)|big screens?|video screens?|led screens?(?! on (?:a |the )?(?:building|facade|shop))|scoreboards?)\b/i;
 const PRECAST_TIER = /\b(seating tiers?|tiers?|rakers?|seating units?|stadia units?|precast planks?|stair units?)\b/i;
 // Hospital work.
-const MEDICAL_GAS = /\b(medical gas\w*|medical air|oxygen (?:pipe\w*|lines?|outlets?|mains?)|nitrous oxide|medical suction|medical vacuum|gas manifolds?)\b/i;
+// Medical gas panels and alarm panels powered by the electrician are not the gas piping (messy round 7).
+const MEDICAL_GAS = /\b(medical gas(?!\w*\s+(?:alarm\s+|area\s+|zone\s+)?(?:panels?|alarms?))\w*|medical air|oxygen (?:pipe\w*|lines?|outlets?|mains?)|nitrous oxide|medical suction|medical vacuum|gas manifolds?)\b/i;
 const LEAD_SHIELDING = /\b(lead[- ]lined|lead sheet\w*|lead shielding|lead lining|radiation shielding)\b/i;
 const LIVE_HOSPITAL = /\b((?:live|existing|occupied|operating) hospital\w*|(?:live|existing|occupied) (?:wards?|hospital buildings?)|next to the hospital)\b/i;
 const HELIPAD = /\b(helipads?|helidecks?|heliports?|helicopter landing (?:sites?|pads?))\b/i;
@@ -201,9 +202,12 @@ const BOILER = /\b(boilers?|steam (?:plant|pipe\w*|mains?)|pressure vessels?|cal
 // similar, common before 1990) and work that would disturb them.
 const ASBESTOS_MATERIAL = /\b(fibro|fibre[- ]cement|ac sheets?|asbestos cement|super ?six|vinyl floor tiles|lino(?:leum)?|eaves linings?|zelemite)\b/i;
 const OLDER_BUILDING = /\b(19[0-8]\d'?s|built in 19[0-8]\d|pre[- ]?19(?:8\d|90)|older (?:house|home|building|school)s?|old (?:house|home|building)s?|heritage)\b/i;
-const DISTURB = /\b(strip\w*|remov\w*|demolish\w*|demolition|cut\w*|drill\w*|sand\w*|break\w*|renovat\w*|replac\w*|rip\w* out|knock\w*)\b/i;
+// "Removable panels" are panels that can be taken off later, not removal work.
+const DISTURB = /\b(strip\w*|remov(?!able\b)\w*|demolish\w*|demolition|cut\w*|drill\w*|sand\w*|break\w*|renovat\w*|replac\w*|rip\w* out|knock\w*)\b/i;
 // New fibre cement being installed is not asbestos: asbestos products have been banned in Australia since 2003.
-const withoutNewMaterial = (text) => String(text || '').replace(/\b(?:install\w*|supply\w*|new|fix\w*|lay\w*)\b[^.]{0,40}?\bfibre[- ]cement\b[^.]*/gi, '');
+// New fibre cement named well after the verb ("Install suspended grid, coffered and flush plasterboard or
+// fibre cement ceilings", messy round 7: asbestos asked for a new residential tower) is new material too.
+const withoutNewMaterial = (text) => String(text || '').replace(/\b(?:install\w*|supply\w*|new|fix\w*|lay\w*)\b[^.]{0,80}?\bfibre[- ]cement\b[^.]*/gi, '');
 // Old switchboards often have asbestos backing panels.
 // Demolition or strip-out in an existing building needs asbestos identified first (WHS Reg s 450 to s 452).
 const asbestosLikely = (text) => (/\b(?:paint\w*|clean\w*|pressure wash\w*|re-?coat\w*)\b[^.]{0,20}\b(?:a |the )?(?:house |existing |old )?roofs?\b/i.test(String(text || '')) && !/\b(colorbond|metal|iron|steel|new|tiled?|tiles)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || /\b(replac|remov|chang|upgrad)\w* (?:a |the )?(?:old |existing |residential )?(?:main )?(?:switchboards?|meter (?:box|board|panel)s?)\b/i.test(String(text || '')) || (/\brewir\w*\b/i.test(String(text || '')) && OLDER_BUILDING.test(String(text || ''))) || (/\b(strip[- ]?outs?|demolish\w*|demolition)\b/i.test(String(text || '')) && !servicesOnlyDemolition(text) && !/\b(temporary|formwork|falsework|scaffold\w*)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(withoutNewMaterial(text)) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || '')) && !(/\b(sandstone|stone|bricks?|brickwork|masonry|blockwork|bluestone|granite)\b/i.test(String(text || '')) && /\b(re-?point\w*|rak\w* out|mortar|clean\w*|repair\w*)\b/i.test(String(text || '')) && !/\b(ceilings?|eaves|sheets?|linings?|fibro|vinyl)\b/i.test(String(text || '')))));
@@ -493,7 +497,7 @@ const withoutConcreteScreed = (text) => String(text || '').replace(/[^.]+\.?/g, 
 const isTiling = (text) => TILING_WORK.test(withoutConcreteScreed(withoutStructuralGrout(text)).replace(/\broof(?:ing)? tiles?\b/gi, '').replace(/\b(?:carpet|vinyl|rubber|lino\w*|ceiling|acoustic|tactile) (?:\w+ )?tiles?\b/gi, '').replace(/\bgrout\w* (?:the )?(?:\w+ )?(?:ducts?|bases?|base ?plates?|anchors?|tendons?|cores?|bars?|piles?|sleeves?|connections?|dowels?|joints? between panels)\b|\b(?:duct|base|non-shrink|structural|anchor) grout\w*\b/gi, ''));
 
 // Carpentry fit-out: internal framing, doors and joinery, not formwork.
-const CARPENTRY_WORK = /\b(steel stud\w*|stud (?:walls?|framing)|wall framing|framing|bulkheads?|door frames?|(?<!landing\s)doors?(?!\s+(?:hubs?|controllers?|strikes?|closers?|handles?|hardware|furniture|locks?|stops?|seals?|holders?|sensors?|contacts?|operators?|readers?|release\w*|buttons?|monitoring|alarms?|access|entry|intercoms?))|architraves?|skirtings?|joinery|(?<!(?:comms|communications|data|server|equipment|electrical|racks,?|racks and)\s)cabinets?|vanities|wardrobes?|cabinetry|(?:new |install\w* (?:a |the )?(?:new )?)kitchens?|timber (?:handrails?|screens?|balustrades?)|(?:timber |wall )panelling|carpentry|carpenters?)\b/i;
+const CARPENTRY_WORK = /\b(steel stud\w*|stud (?:walls?|framing)|wall framing|framing|bulkheads?|door frames?|(?<!landing\s)doors?(?!\s+(?:grilles?|grills?|louvres?|vents?|hubs?|controllers?|strikes?|closers?|handles?|hardware|furniture|locks?|stops?|seals?|holders?|sensors?|contacts?|operators?|readers?|release\w*|buttons?|monitoring|alarms?|access|entry|intercoms?))|architraves?|skirtings?|joinery|(?<!(?:comms|communications|data|server|equipment|electrical|racks,?|racks and)\s)cabinets?|vanities|wardrobes?|cabinetry|(?:new |install\w* (?:a |the )?(?:new )?)kitchens?|timber (?:handrails?|screens?|balustrades?)|(?:timber |wall )panelling|carpentry|carpenters?)\b/i;
 
 // Piling and foundation work.
 const PILING_WORK = /\b(piling|piles?(?!\s+caps?\b)|pile rigs?|piling rigs?|cfa|bored piles?|bored piers?|secant|contiguous pil\w*|pile heads?|pile cages?)\b/i;
@@ -542,8 +546,10 @@ function onSiteRoads(text) {
 function besideRoad(raw) {
   const text = String(raw || '');
   if (/\b(in|on|along|across|under) (?:the |a )?(?:council |public )?road reserves?\b/i.test(text)) return true;
-  return /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|nature strips?)\b/i.test(text)
-    && /\b(roads?|roadways?|streets?|traffic|kerbs?|carriageways?|highways?|crossovers?|vehicles?|council)\b/i.test(text.replace(/\broad reserves?\b/gi, ' '));
+  // A verge named by its street, with the street shortened ("along mitchel st verge", messy round 7: a
+  // trench in a street verge with traffic controllers was not listed as next to the road).
+  return /\b(in|on|along|across|under) (?:the |a )?(?:[a-z]+ (?:st|street|rd|road|ave|avenue|hwy|highway|pde|parade|tce|terrace|dr|drive|cres|crescent|bvd|boulevard) )?(?:council |public )?(?:footpaths?|verges?|nature strips?)\b/i.test(text)
+    && /\b(roads?|roadways?|streets?|st|rd|ave|hwy|traffic|kerbs?|carriageways?|highways?|crossovers?|vehicles?|council)\b/i.test(text.replace(/\broad reserves?\b/gi, ' '));
 }
 // Track work and work beside running lines are in or next to a railway in use.
 // Ballast is track ballast only beside track words: roofs and planters have gravel ballast too.
@@ -785,9 +791,12 @@ function fallControlText(text) {
 // construction work for asbestos and brings no removal steps; the check before starting stays. A clause
 // that starts with the removal itself ("Remove the asbestos sheeting before our roofing") is own work.
 const ASBESTOS_NAMED = /\b(?:asbestos|hazardous (?:building )?materials?|hazmat)\b/i;
-const CLEARED_BEFORE = /\b(?:by others|by the (?:principal|builder|client|owner|head contractor|main contractor)|(?:before|prior to) (?:the )?(?:start of |commencement of )?(?:our|this|the subcontract\w*|any) (?:work|works|crew|demolition|strip[- ]?out)|(?:before|prior to) (?:commencement|we start|work start\w*)|before (?:work|works) (?:start|begin|commence)\w*|already removed|ha(?:s|ve) been removed|clearance certificates?)\b/i;
+const CLEARED_BEFORE = /\b(?:by others|by the (?:principal|builder|client|owner|head contractor|main contractor)|(?:before|prior to) (?:the )?(?:start of |commencement of )?(?:our|this|the subcontract\w*|any) (?:work|works|crew|demolition|strip[- ]?out)|(?:before|prior to) (?:commencement|we start|work start\w*)|before (?:work|works) (?:start|begin|commence)\w*|already removed|ha(?:s|ve) been removed|clearance certificates?|(?:nil|none|no asbestos|nothing) (?:found|present|identified|detected)|no asbestos(?: is)? (?:found|present|identified|in (?:the|this) (?:building|area|work))|asbestos[- ]free)\b/i;
 const OWN_REMOVAL = /^\W*(?:conditions:\s*)?(?:remov|strip|demolish|abat|encapsulat|seal|dispos|wrap|bag|cut|break)\w*/i;
-const clearedAsbestos = (clause) => ASBESTOS_NAMED.test(clause) && CLEARED_BEFORE.test(clause) && !OWN_REMOVAL.test(clause);
+// A register checked, with what it found read as a denial and taken off before this is read ("asbestos
+// register checked nil found" reads "asbestos register checked"), says none was found (messy round 7).
+const REGISTER_CHECKED = /\basbestos (?:register|survey|report|audit)s? (?:was |were |has been |have been )?(?:checked|reviewed|sighted)\W*$/i;
+const clearedAsbestos = (clause) => ASBESTOS_NAMED.test(clause) && (CLEARED_BEFORE.test(clause) || REGISTER_CHECKED.test(clause)) && !OWN_REMOVAL.test(clause);
 const ASBESTOS_CLAUSE = /[^.;\n()]+[.;)]?/g;
 const asbestosClearedBefore = (text) => (String(text || '').match(ASBESTOS_CLAUSE) || []).some(clearedAsbestos);
 const withoutClearedAsbestos = (text) => String(text || '').replace(ASBESTOS_CLAUSE, (clause) => (clearedAsbestos(clause) ? ' ' : clause));
@@ -902,7 +911,9 @@ function deepExcavation(text) {
   // with trench rescue, an excavation permit and shoring).
   text = String(text || '').replace(new RegExp(`[^.\\n]*\\b${BUILT_PIT}\\s+pits?\\b[^.\\n]*`, 'gi'), (sentence) => (/\b(?:excavat\w*|dig\w*|dug|trench\w*)\b/i.test(sentence) ? sentence : ' '));
   // A shaft void is an opening through a building's floors, not a dig.
-  text = String(text || '').replace(/\b(?:lift|risers?|services?|ventilation|stair|air)\s+shafts?\b|\bin the shafts\b|\bshaft ?walls?\b|\bshaft voids?\b/gi, ' ');
+  // So is a services shaft named by its trade, and risers or pipes run in shafts (messy round 7: the pick
+  // list's own "install risers in shafts" and "lvl 2-6 hydraulic shaft" were read as an excavated shaft).
+  text = String(text || '').replace(/\b(?:lift|risers?|services?|ventilation|stair|air|hydraulic|plumbing|electrical|mechanical|duct|pipe|cable|comms|communications|garbage|rubbish|smoke|exhaust|plant)\s+shafts?\b|\b(?:risers?|pipes?|pipework|stacks?|cables?|cabling|ducts?|ductwork|conduits?|services)\s+in\s+(?:the\s+|each\s+)?shafts?\b|\bin the shafts\b|\bshaft ?walls?\b|\bshaft voids?\b/gi, ' ');
   if (LIFT_WORK.test(text)) text = text.replace(/\bshafts?\b/gi, ' ');
   text = text.replace(NOT_DUG, ' ');
   if (/\btunnel\w*\b/i.test(text)) return true;
@@ -996,7 +1007,7 @@ function silicaProcessing(text) {
 // Bringing a chimney, stack, silo or other structure down with explosives is demolishing it.
 // A building named in brackets ("plant to be demolished (Visitor building)") is where the
 // work is, not what is demolished.
-const DEMOLISH_STRUCTURE = /\b(?:(?:demolish|implod)\w*|(?:knock|pull)(?:s|ed|ing)? down)\b(?:(?!\b(?:non[- ]load[- ]bearing|partitions?|internal|interior|fit-?outs?|linings?|ceilings?|kitchens?|bathrooms?|inside|within|in the)\b)[^.(]){0,60}\b(?:buildings?|warehouses?|car ?parks?|factor(?:y|ies)|towers?|structures?|grandstands?|chimneys?|(?:chimney )?stacks?|silos?|offices?|office blocks?|schools?|hospitals?|hotels?)\b/i;
+const DEMOLISH_STRUCTURE = /\b(?:(?:demolish|implod)\w*|(?:knock|pull)(?:s|ed|ing)? down)\b(?:(?!\b(?:non[- ]load[- ]bearing|partitions?|internal|interior|fit-?outs?|linings?|ceilings?|kitchens?|bathrooms?|inside|within|in the)\b)[^.(]){0,60}\b(?:buildings?|warehouses?|car ?parks?|factor(?:y|ies)|towers?|structures?|grandstands?|chimneys?|(?:chimney )?stacks?|silos?|offices?|office blocks?|schools?|hospitals?|hotels?)\b(?!\s+(?:fit-?outs?|interiors?|partitions?|ceilings?|linings?|carpets?|floor coverings?))/i;
 const WHOLE_DEMOLITION = new RegExp(`\\bdemolish\\w*\\b[^.(]{0,30}\\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?|bridges?)\\b|${DEMOLISH_STRUCTURE.source}`, 'i');
 
 // Removing old services (plant, pipework, cabling, ductwork) is not building demolition
@@ -1014,6 +1025,9 @@ function withoutMarkedForDemolition(text) {
 }
 
 function valveWiringOnly(text) {
+  // Cabling or metering run to the gas meters is electrical work at the meters, not work on the gas piping
+  // (messy round 7: "cabling to hydraulic water and gas meters" found gas mains work).
+  text = String(text || '').replace(/\b(?:cabl\w*|wir\w*|terminat\w*|metering|monitoring|data|controls?)\b[^.;]{0,40}?\b(?:to|into|for|at)\b[^.;]{0,40}?\bgas meters?\b/gi, ' ');
   return String(text || '').replace(/[^.]+\.?/g, (sentence) => (/\b(wir\w*|cabl\w*|signals?|interfac\w*|interlock\w*|fire (?:alarm |indicator )?panels?|fips?)\b/i.test(sentence) && !/\b(pipe\w*|gas ?fitt\w*|gas lines?|regulators?|meters?)\b/i.test(sentence) ? sentence.replace(/\bgas (?=(?:safety )?(?:shut[- ]?off|isolation|isolating|solenoid) valves?\b)/gi, '') : sentence));
 }
 
@@ -1066,7 +1080,7 @@ function highRiskMatches(raw, answer, state) {
     // Demolishing a whole building takes down its load-bearing parts.
     // Removing a wall's bracing takes out a load-bearing element (Safe Work Australia's example).
     // Temporary bracing, props, formwork and falsework are left out of demolition work (schedule 19).
-    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || structurePartRemoval(text) || sentences(text).some((line) => /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural )?bracing\b/i.test(line) && !/\b(temporary|temp|props?|falsework|formwork|tilt[- ]?up|precast)\b/i.test(line)) || mentioned(text, DEMOLITION) && !servicesOnlyDemolition(text) && (sentences(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, '')).some((line) => /\b(load-bearing|load bearing|structur\w*)\b/i.test(line) && !/\bnon[- ]structural\b/i.test(line)) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || structurePartRemoval(text) || sentences(text).some((line) => /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural )?bracing\b/i.test(line) && !/\b(temporary|temp|props?|falsework|formwork|tilt[- ]?up|precast)\b/i.test(line)) || mentioned(text, DEMOLITION) && !servicesOnlyDemolition(text) && (sentences(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, '').replace(/\b(?:leaving|leave|with|keeping)\s+(?:all\s+|the\s+)?structural (?:elements?|members?|parts?)\s+(?:untouched|intact|in place)\b|\bstructural (?:elements?|members?|parts?) (?:are |stay |remain )?(?:untouched|intact|left in place|not touched)\b/gi, '')).some((line) => /\b(load-bearing|load bearing|structur\w*)\b/i.test(line) && !/\bnon[- ]structural\b/i.test(line)) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     asbestos: mentioned(withoutClearedAsbestos(text), /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
@@ -1164,7 +1178,9 @@ const CONFINED_NAMED = /\bconfined\s+(?!(?:to|within|space)\b)(?:(?:and|or)\s+[\
 const ATMOSPHERE_CHECK = /\batmospher\w*\s+(?:monitor\w*|test\w*|check\w*)\b|\b(?:monitor\w*|test\w*|check\w*)\s+(?:of\s+)?(?:the\s+)?atmospher\w*/i;
 const confinedCue = (text) => CONFINED_NAMED.test(String(text || '')) || ATMOSPHERE_CHECK.test(String(text || ''));
 // Welds that are only painted over, touched up or sealed are not welding.
-const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|(?<!heat |hot air |plastic |poly |vinyl |seam )(?<!\b(?:paint\w*|touch\w* up|blend\w*|coat\w*|seal\w*)(?: (?!(?:and|then|or|weld\w*)\b)[\w']+){0,3} )weld(?:ing|s|ed)?(?! (?:the )?(?:vinyl|seams?|joins)))\b/i;
+// Plastic pipe fusion welding (butt or electrofusion) heats the pipe with a plate or coil: it is not hot work
+// (messy round 7: "PE fusion welding" kept the hot work question after "no brazing").
+const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|(?<!heat |hot air |plastic |poly |vinyl |seam |fusion |electrofusion |electro-fusion |pe |hdpe |polyethylene )(?<!\b(?:paint\w*|touch\w* up|blend\w*|coat\w*|seal\w*)(?: (?!(?:and|then|or|weld\w*)\b)[\w']+){0,3} )weld(?:ing|s|ed)?(?! (?:the )?(?:vinyl|seams?|joins)))\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 // The test medium. A test named as an air or water test is that test; otherwise ducts,
 // plenums and rooms are tested with air (a test fan) and water services with water.
@@ -1282,7 +1298,11 @@ const SECURITY_WORK = /\b(cctv|access control|electronic (?:door )?lock\w*|door 
 const POWER_WORDS = /\b(electrician|electrical|switchboards?|distribution boards?|consumer mains|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting)|mains power)\b/i;
 // Electronic door locking and intrusion detection cabling is extra low voltage security work too.
 const ELV_SECURITY = /\b(electronic (?:door )?lock\w*|door locking (?:systems?|cabling)|intrusion detect\w*|security alarms?|duress alarms?)\b/i;
-const ELECTRICAL_CORE = { test: (text) => ELECTRICAL_RAW.test(String(text || '')) && (!(ICT_WORK.test(String(text || '')) || ELV_SECURITY.test(String(text || ''))) || POWER_WORDS.test(String(text || ''))) };
+// Conduits cast in with the formwork's other cast-in items are formwork work, not electrical work (messy
+// round 7: "Install cast in items: cast in plates, ferrules, conduits" gave a formwork crew the electrical
+// licensing lines and low voltage rescue).
+const CAST_IN_ITEMS = /\bcast[- ]in (?:items?|plates?|ferrules?)\b[^.]*/gi;
+const ELECTRICAL_CORE = { test: (text) => ELECTRICAL_RAW.test(String(text || '').replace(CAST_IN_ITEMS, ' ')) && (!(ICT_WORK.test(String(text || '')) || ELV_SECURITY.test(String(text || ''))) || POWER_WORDS.test(String(text || ''))) };
 const ELECTRICAL_WORK = ELECTRICAL_CORE;
 const SWITCHBOARD_WORDS = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?|(?:replac\w*|upgrad\w*|chang\w*|install\w*) (?:the |a |new )?(?:main )?switchboards?)\b/i;
 // "Prior to the energisation of a building" is a point in time, not switchboard work.
@@ -1303,6 +1323,10 @@ const AC_PLANT_REMOVAL = /\b(?:remov|decommission|disconnect|strip)\w*\b[^.]{0,3
 const CLEANED_CLAUSE = /\b(?:clean\w*|wip(?:e|es|ed|ing)|dust(?:s|ed|ing)?|polish\w*|mop(?:s|ped|ping)?|wash\w*|vacuum\w*|scrub\w*|degreas\w*|sanitis\w*|disinfect\w*)\b(?:(?!(?:\b(?:and|then)\s+|,\s*)(?:install|replac|connect|fit|repair|lay|run|wire|terminat|rough)\w*)[^.;\n])*/gi;
 const withoutCleaned = (text) => String(text || '').replace(CLEANED_CLAUSE, ' ');
 const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
+// Cabling, power or controls run to gas meters, water meters or a sewer pump station is the electrician's
+// work, not gas or plumbing work (messy round 7: an electrical SWMS printed the plumbing licensing line).
+const SERVICE_CABLING = /\b(?:cabl\w*|wir\w*|terminat\w*|submains?|power(?: supply| supplies| points?)?|data|controls?|monitoring|metering|signage)\b[^.;]{0,60}?\b(?:to|into|for|of|at)\b[^.;]*?\b(?:gas|water|sewer\w*|hydraulic|pumping|pumps?)\b[^.,;]*/gi;
+const withoutServiceCabling = (text) => String(text || '').replace(SERVICE_CABLING, ' ');
 function isPlumbing(text) {
   // Subsoil drains on a sports field carry groundwater, not sewage, so they are not drainage under the plumbing law.
   let sub = false;
@@ -1530,7 +1554,8 @@ const CATEGORY_FACTS = [
     // Not mandatory for non-friable removal, so it starts on No and the user may choose Yes.
     default: 'no',
     level: 'Administrative',
-    applies: (text) => /\basbestos\b/i.test(String(text || '')) && /\bremov\w*/i.test(String(text || ''))
+    // Asbestos the task says is not there ("asbestos register checked nil found") is not removed (messy round 7).
+    applies: (text) => /\basbestos\b/i.test(withoutClearedAsbestos(text)) && /\bremov\w*/i.test(String(text || ''))
       && !/(?<!\bnon[- ]?)\bfriable\b|\b(class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(String(text || '')),
   },
   {
@@ -1545,7 +1570,8 @@ const CATEGORY_FACTS = [
     ],
     default: 'large',
     level: 'Administrative',
-    applies: (text) => /\basbestos\b/i.test(String(text || '')) && /\bremov\w*/i.test(String(text || ''))
+    // Asbestos the task says is not there ("asbestos register checked nil found") is not removed (messy round 7).
+    applies: (text) => /\basbestos\b/i.test(withoutClearedAsbestos(text)) && /\bremov\w*/i.test(String(text || ''))
       && !/(?<!\bnon[- ]?)\bfriable\b|\b(class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(String(text || '')),
   },
   {
@@ -2056,7 +2082,9 @@ function factPrompt(item, state) {
 }
 
 function requiredFactsFor(fullTask, answer, state) {
-  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state));
+  // The questions that exist only for high risk work the user marked "Does not apply" are not asked (D311).
+  const offFacts = new Set([...((state && state.offIds) || [])].flatMap((id) => (NOT_APPLY_PARTS[id] && NOT_APPLY_PARTS[id].facts) || []));
+  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id));
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
@@ -2935,7 +2963,8 @@ function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds) };
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input) };
+  if (state.noBrazing && state.kinds) state.kinds = state.kinds.filter((id) => id !== 'hotWork');
   if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
   return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
@@ -3005,8 +3034,14 @@ function standDownNotice(why, around, chosen) {
 // hot work permit, the Welding code, the welder and the brazing step stayed). The task prints as written.
 // A rule with a condition ("no hot works without a permit", "no welding from ladders") is not a denial.
 const DENIED_WELDING = /,?\s*\bno (?:welding|welds|hot works?)\b(?!\s+(?:without|unless|until|except|before|after|outside|from|on|in|near|above|over|within|during|where|when|if|at)\b)/gi;
+// "No brazing" takes off brazing and soldering the same way, and leaves any welding the task names
+// (messy round 7: "propress copper no brazing" kept the brazing step, the hot work question and the
+// brazing lines).
+const DENIED_BRAZING = /,?\s*\bno (?:brazing|brazed joints?|soldering|silver solder\w*)\b(?!\s+(?:without|unless|until|except|before|after|outside|from|on|in|near|above|over|within|during|where|when|if|at)\b)/gi;
+const deniedBrazing = (input) => new RegExp(DENIED_BRAZING.source, 'i').test(readSlang(fixSpelling(cleanLine((input && (input.task || input.jobDescription)) || '')).text));
 function withoutDeniedWelding(text) {
-  const words = String(text || '');
+  let words = String(text || '');
+  if (words.match(DENIED_BRAZING)) words = words.replace(DENIED_BRAZING, '').replace(/\b(?:braz\w*|solder\w*)\b/gi, 'join');
   if (!words.match(DENIED_WELDING)) return words;
   // The denial itself goes too, since its own words name welding.
   return words.replace(DENIED_WELDING, '')
@@ -3982,7 +4017,7 @@ function buildDraft(input, screen) {
   // Nor does what the task says is not there ("No overhead lines on site").
   const riskTask = namedInPassing(othersAndDenials(task).denied);
   // The text the high risk work categories are read from: the task, the answers and the work they imply.
-  const riskText = `${combinedFacts(riskTask, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${tempPowerWork(riskTask) ? '\nwork on or near energised electrical installations (construction power is live once connected)' : ''}${sentencesWith(riskTask.replace(/\([^)]*\)/g, ' '), /\b(refrigerat\w* (?:equipment|units?|cabinets?|display)|cool ?rooms?|freezer rooms?)\b/i).some((sentence) => /\b(install\w*|connect\w*|commission\w*)\b/i.test(sentence) && !(/\bpanel (?:cool ?rooms?|freezer rooms?)\b/i.test(sentence) && !/\b(refrigerat\w*|condens\w*|evaporators?|connect\w*|commission\w*)\b/i.test(sentence))) && !/\b(?:cool ?room|freezer|freezer room) doors?\b/i.test(riskTask) ? '\nwork on or near a refrigerant line (connecting refrigeration equipment)' : ''}${/\b(operation of (?:the )?generators?|load shed\w*|load bank\w*|generators? (?:testing|test runs?|load tests?)|load test\w* (?:the )?generators?)\b/i.test(riskTask) ? '\nwork on or near energised electrical installations (live switching during generator load tests)' : ''}${['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts.liveElectrical)) ? '\nwork on or near energised electrical installations or services (the user says the work is near live parts)' : ''}${/\b(spray\w*|airless)\b/i.test(riskTask) && /\b(solvent[- ]based|solvents?|two[- ]pack|2[- ]pack)\b/i.test(riskTask) ? '\nflammable atmosphere (spraying solvent-based paint)' : ''}${/\b(service stations?|petrol stations?|fuel sites?|fuel forecourts?|fuel bowsers?|fuel dispensers?|bowsers?)\b/i.test(riskTask) ? '\nwork on or near a fuel line (underground fuel lines and tanks at a fuel site)\ncontaminated or flammable atmosphere (fuel vapour)' : ''}${/\bmeter (?:box|board|panel)s?\b|\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbattery (?:storage|systems?)\b/i.test(riskTask) ? '\nwork on or near energised electrical installations (mains or battery terminals stay live)' : ''}${ELECTRICAL_CORE.test(riskTask) && /\b(?:terminat\w*|connect\w*)\b[^.]{0,60}\b(?:existing|main|live) (?:main )?(?:switchboards?|distribution boards?|boards?)\b|\bfrom the main switchboard\b/i.test(riskTask) ? '\nwork near energised electrical installations (existing switchboard)' : ''}${WATERPROOFING.test(riskTask) && /\b(solvent[- ]based|solvents?|two[- ]part|2[- ]part|two[- ]pack|2[- ]pack)\b/i.test(riskTask) ? '\nflammable atmosphere (solvent-based membrane products)' : ''}${BULK_EXCAVATION.test(riskTask) && /\b(contaminat\w*|unknown fill)\b/i.test(riskTask) ? '\nmay disturb asbestos\ncontaminated atmosphere' : ''}${!BULK_EXCAVATION.test(riskTask) && CONTAMINATED_GROUND.test(riskTask) ? '\ncontaminated atmosphere (contaminated ground)' : ''}${PILING_WORK.test(riskTask) && /\b(bored piles?|open (?:pile )?(?:bores?|holes?)|pile (?:bores?|holes?))\b/i.test(riskTask) ? '\nshaft excavation (open pile bores)' : ''}${PILING_WORK.test(riskTask) && /\b(slurry|bentonite|support fluid|water[- ]filled|groundwater)\b/i.test(riskTask) ? '\nwork in or near water or other liquid that involves a risk of drowning' : ''}${MECHANICAL_WORK.test(riskTask) && /\b(commission\w*|start[- ]?up)\b/i.test(riskTask) ? '\nwork near energised electrical installations (plant being commissioned)' : ''}${REFRIGERANT.test(riskTask) && /\b(pipe\w*|lines?|braz\w*|charg\w*|recover\w*|evacuat\w*|pressure test\w*)\b/i.test(riskTask) ? '\nrefrigerant line' : ''}${['a2l', 'a3'].includes(choiceAnswer('refrigerantClass', facts.refrigerantClass)) ? '\nflammable atmosphere' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(riskTask) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) !== 'notConfined' && /\b(?:enter\w*|go\w* into|work\w* in(?:side)?|clean\w* out)\b[^.]{0,30}\b(?:pits?|wet wells?|tanks?|pump stations?|silos?|vaults?|culverts?)\b/i.test(riskTask) ? '\nwork in a confined space' : ''}${asbestosLikely(riskTask) && !asbestosClearedBefore(riskTask) && !/\bno asbestos|asbestos[- ]free|tested negative\b/i.test(combinedFacts(riskTask, facts)) ? '\nlikely to involve the disturbance of asbestos' : ''}${/\b(?:remov\w*|decommission\w*|excavat\w*|pull\w* out|dig\w* (?:up|out))\b[^.]{0,30}\b(?:(?:in-?ground|underground|old|buried) )?(?:fuel|petrol|diesel|oil|heating oil) tanks?\b|\b(?:underground|buried) (?:fuel |petrol |diesel |oil )?tanks?\b/i.test(riskTask) ? '\ncontaminated or flammable atmosphere (fuel vapour)\nwork on or near a fuel line\npowered mobile plant (excavator)' : ''}${/\b(crash barriers?|guard ?rails?|safety barriers?|wire rope barriers?|w-?beam)\b/i.test(riskTask) && /\b(highways?|roads?|motorways?|freeways?)\b/i.test(riskTask) ? '\npowered mobile plant (post driver)' : ''}${/\b(spray seal\w*|bitumen seal\w*|chip seal\w*)\b/i.test(riskTask) ? '\npowered mobile plant (bitumen sprayer, aggregate spreader and roller)' : ''}${/\bgas\b/i.test(riskTask) && /\b(barbecues?|bbqs?|pizza ovens?|boilers?|cooktops?|ovens?|stoves?|appliances?|hot water|heaters?|heating|lines?|pipe\w*|fitting|meters?)\b/i.test(riskTask) && /\b(install\w*|replac\w*|relocat\w*|connect\w*|disconnect\w*|fit\w*)\b/i.test(riskTask) && !/\bwith (?:a |an )?(?:heat pump|electric|solar)\b/i.test(riskTask) ? '\nwork on or near pressurised gas piping (gas appliance connection)' : ''}${/\b(commercial (?:ranges?(?! hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?))\b/i.test(riskTask) && !/\bgas\b/i.test(riskTask) ? '\nwork on or near pressurised gas piping (gas appliance connection)' : ''}${/\b(?:sewer|sewage|waste ?water)\b[^.]{0,30}\bpumps?\b[^.]{0,40}\b(?:wells?|pits?|stations?)\b|\bpump wells?\b[^.]{0,30}\bsew/i.test(riskTask) ? '\nwork near a confined space (sewer pump well)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(termite|rotten|damaged|white ?ant)\w*\b[^.]{0,30}\b(?:wall )?(frames?|framing|studs?|top plates?|bottom plates?)\b/i.test(riskTask) && /\b(repair\w*|replac\w*)\b/i.test(riskTask) ? '\nstructural repair that needs temporary support (propping)' : ''}${/\b(?:replac\w*|restump\w*|re-stump\w*)\b[^.]{0,30}\bstumps?\b|\brestump\w*/i.test(riskTask) ? '\nstructural repair that needs temporary support (house jacked and propped)' : ''}${/\bpump (?:stations?|wells?)\b/i.test(riskTask) && /\b(install\w*|new|build(?!ings?\b)\w*)\b/i.test(riskTask) ? '\nshaft excavation deeper than 1.5 m (pump station wet well)' : ''}${/\bsubstations?\b/i.test(riskTask) && /\bfenc\w*\b/i.test(riskTask) ? '\nwork near energised electrical installations (substation)' : ''}${sentencesWith(riskTask, /\b(?:switch ?rooms?|main switch ?rooms?)\b/i).some((sentence) => /\b(existing|live|operating|in[- ]service)\b/i.test(sentence) && !/\bnew (?:main )?switch ?rooms?\b/i.test(sentence)) ? '\nwork near energised electrical installations (existing switchroom)' : ''}${/\b(?:remov\w*|fill\w* in|demolish\w*)\b[^.]{0,20}\b(?:a |the )?(?:swimming )?pools?\b/i.test(riskTask) ? '\npowered mobile plant (excavator)' : ''}${/\b(site (?:offices?|sheds?)|toilet blocks?|site amenities)\b/i.test(riskTask) && /\b(install\w*|deliver\w*|set up|plac\w*)\b/i.test(riskTask) ? '\npowered mobile plant (delivery truck and crane)' : ''}${MEDICAL_GAS.test(riskTask) && /\b(connect\w*|live|tie[- ]?ins?|commission\w*|pressure test\w*|manifolds?)\b/i.test(riskTask) ? '\nwork on or near pressurised gas distribution mains or piping (medical gases)' : ''}${sentencesWith(riskTask, /\b(generators?(?!\s+(?:master\s+)?(?:control\w*|panels?|switch\w*|monitor\w*|alarms?|interfaces?|cabl\w*|wiring)\b)|fuel (?:lines?|tanks?|systems?)|diesel tanks?)\b/i).some((sentence) => /\b(install\w*|connect\w*|commission\w*)\b/i.test(withoutConditions(sentence)) && !/^[^.]*\b(load test\w*|load banks?|load shed\w*|testing and commissioning|test and commission)\b/i.test(sentence) || /\b(fuel (?:lines?|tanks?|systems?)|diesel tanks?|day tanks?)\b/i.test(sentence) && /\b(install\w*|connect\w*|commission\w*)\b/i.test(sentence)) ? '\nwork on or near a fuel line' : ''}${/\b(alongside|next to|near) (?:an? |the )?operating boilers?\b/i.test(riskTask) || (BOILER.test(riskTask) && /\bcommission\w*\b/i.test(riskTask)) ? '\nartificial extremes of temperature' : ''}${(/\b(opening|break\w* through)\b/i.test(riskTask) && /\bwalls?\b/i.test(riskTask) && /\b(load[- ]bearing|propped|propping)\b/i.test(riskTask)) || (/\b(?:cut\w*|form\w*|mak\w*|creat\w*|new)\b[^.]{0,30}\b(?:doorways?|openings?|archways?|window openings?)\b/i.test(riskTask) && /\b(brick|block|masonry|load[- ]bearing|double brick)\b/i.test(riskTask) && !/\bnon[- ]load[- ]bearing\b/i.test(riskTask)) ? '\ndemolition of a load-bearing element of the structure' : ''}${FIRE_SERVICES.test(riskTask) && /\b(commission\w*|pump rooms?)\b/i.test(riskTask) ? '\nwork near energised electrical installations (fire pumps and controllers being commissioned)' : ''}${LIFT_WORK.test(riskTask) && /\b(commission\w*|car tops?)\b/i.test(riskTask) ? '\nwork near energised electrical installations (lift being commissioned)' : ''}${LIFT_WORK.test(riskTask) && /\bpits?\b/i.test(riskTask) && !/\b(reo|reinforc\w*|formwork|concrete)\b/i.test(riskTask) ? '\nwork in or near a confined space (lift pit)' : ''}${/\b(concrete cutt\w*|saw[- ]?cut\w*|wall saw\w*|core drill\w*)\b/i.test(riskTask) && /\bwalls?\b/i.test(riskTask) ? '\nwork near energised electrical installations (live wiring may be hidden in walls)' : ''}${/\b(solvent (?:cement|weld\w*)|primers?|solvent[- ]based)\b/i.test(riskTask) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?|plant rooms?)\b/i.test(riskTask) ? '\nflammable atmosphere' : ''}${gapFlags(riskTask).hvPoleRemove ? '\nwork near energised electrical installations (high voltage lines until the network operator isolates and earths them)' : ''}`;
+  const riskText = `${combinedFacts(riskTask, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${tempPowerWork(riskTask) ? '\nwork on or near energised electrical installations (construction power is live once connected)' : ''}${sentencesWith(riskTask.replace(/\([^)]*\)/g, ' '), /\b(refrigerat\w* (?:equipment|units?|cabinets?|display)|cool ?rooms?|freezer rooms?)\b/i).some((sentence) => /\b(install\w*|connect\w*|commission\w*)\b/i.test(sentence) && !(/\bpanel (?:cool ?rooms?|freezer rooms?)\b/i.test(sentence) && !/\b(refrigerat\w*|condens\w*|evaporators?|connect\w*|commission\w*)\b/i.test(sentence))) && !/\b(?:cool ?room|freezer|freezer room) doors?\b/i.test(riskTask) ? '\nwork on or near a refrigerant line (connecting refrigeration equipment)' : ''}${/\b(operation of (?:the )?generators?|load shed\w*|load bank\w*|generators? (?:testing|test runs?|load tests?)|load test\w* (?:the )?generators?)\b/i.test(riskTask) ? '\nwork on or near energised electrical installations (live switching during generator load tests)' : ''}${['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts.liveElectrical)) ? '\nwork on or near energised electrical installations or services (the user says the work is near live parts)' : ''}${/\b(spray\w*|airless)\b/i.test(riskTask) && /\b(solvent[- ]based|solvents?|two[- ]pack|2[- ]pack)\b/i.test(riskTask) ? '\nflammable atmosphere (spraying solvent-based paint)' : ''}${/\b(service stations?|petrol stations?|fuel sites?|fuel forecourts?|fuel bowsers?|fuel dispensers?|bowsers?)\b/i.test(riskTask) ? '\nwork on or near a fuel line (underground fuel lines and tanks at a fuel site)\ncontaminated or flammable atmosphere (fuel vapour)' : ''}${/\bmeter (?:box|board|panel)s?\b|\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbattery (?:storage|systems?)\b/i.test(riskTask) ? '\nwork on or near energised electrical installations (mains or battery terminals stay live)' : ''}${ELECTRICAL_CORE.test(riskTask) && /\b(?:terminat\w*|connect\w*)\b[^.]{0,60}\b(?:existing|main|live) (?:main )?(?:switchboards?|distribution boards?|boards?)\b|\bfrom the main switchboard\b/i.test(riskTask) ? '\nwork near energised electrical installations (existing switchboard)' : ''}${WATERPROOFING.test(riskTask) && /\b(solvent[- ]based|solvents?|two[- ]part|2[- ]part|two[- ]pack|2[- ]pack)\b/i.test(riskTask) ? '\nflammable atmosphere (solvent-based membrane products)' : ''}${BULK_EXCAVATION.test(riskTask) && /\b(contaminat\w*|unknown fill)\b/i.test(riskTask) ? '\nmay disturb asbestos\ncontaminated atmosphere' : ''}${!BULK_EXCAVATION.test(riskTask) && CONTAMINATED_GROUND.test(riskTask) ? '\ncontaminated atmosphere (contaminated ground)' : ''}${PILING_WORK.test(riskTask) && /\b(bored piles?|open (?:pile )?(?:bores?|holes?)|pile (?:bores?|holes?))\b/i.test(riskTask) ? '\nshaft excavation (open pile bores)' : ''}${PILING_WORK.test(riskTask) && /\b(slurry|bentonite|support fluid|water[- ]filled|groundwater)\b/i.test(riskTask) ? '\nwork in or near water or other liquid that involves a risk of drowning' : ''}${MECHANICAL_WORK.test(riskTask) && /\b(commission\w*|start[- ]?up)\b/i.test(riskTask) ? '\nwork near energised electrical installations (plant being commissioned)' : ''}${REFRIGERANT.test(riskTask) && /\b(pipe\w*|lines?|braz\w*|charg\w*|recover\w*|evacuat\w*|pressure test\w*)\b/i.test(riskTask) ? '\nrefrigerant line' : ''}${['a2l', 'a3'].includes(choiceAnswer('refrigerantClass', facts.refrigerantClass)) ? '\nflammable atmosphere' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(riskTask) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) !== 'notConfined' && /\b(?:enter\w*|go\w* into|work\w* in(?:side)?|clean\w* out)\b[^.]{0,30}\b(?:pits?|wet wells?|tanks?|pump stations?|silos?|vaults?|culverts?)\b/i.test(riskTask) ? '\nwork in a confined space' : ''}${asbestosLikely(riskTask) && !asbestosClearedBefore(riskTask) && !/\bno asbestos|asbestos[- ]free|tested negative\b/i.test(combinedFacts(riskTask, facts)) ? '\nlikely to involve the disturbance of asbestos' : ''}${/\b(?:remov\w*|decommission\w*|excavat\w*|pull\w* out|dig\w* (?:up|out))\b[^.]{0,30}\b(?:(?:in-?ground|underground|old|buried) )?(?:fuel|petrol|diesel|oil|heating oil) tanks?\b|\b(?:underground|buried) (?:fuel |petrol |diesel |oil )?tanks?\b/i.test(riskTask) ? '\ncontaminated or flammable atmosphere (fuel vapour)\nwork on or near a fuel line\npowered mobile plant (excavator)' : ''}${/\b(crash barriers?|guard ?rails?|safety barriers?|wire rope barriers?|w-?beam)\b/i.test(riskTask) && /\b(highways?|roads?|motorways?|freeways?)\b/i.test(riskTask) ? '\npowered mobile plant (post driver)' : ''}${/\b(spray seal\w*|bitumen seal\w*|chip seal\w*)\b/i.test(riskTask) ? '\npowered mobile plant (bitumen sprayer, aggregate spreader and roller)' : ''}${/\bgas\b/i.test(valveWiringOnly(riskTask).replace(/\bmedical gas\w*\s+(?:alarm\s+)?panels?\b/gi, ' ')) && /\b(barbecues?|bbqs?|pizza ovens?|boilers?|cooktops?|ovens?|stoves?|appliances?|hot water|heaters?|heating|lines?|pipe\w*|fitting|meters?)\b/i.test(riskTask) && /\b(install\w*|replac\w*|relocat\w*|connect\w*|disconnect\w*|fit\w*)\b/i.test(riskTask) && !/\bwith (?:a |an )?(?:heat pump|electric|solar)\b/i.test(riskTask) ? '\nwork on or near pressurised gas piping (gas appliance connection)' : ''}${/\b(commercial (?:ranges?(?! hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?))\b/i.test(riskTask) && !/\bgas\b/i.test(riskTask) ? '\nwork on or near pressurised gas piping (gas appliance connection)' : ''}${/\b(?:sewer|sewage|waste ?water)\b[^.]{0,30}\bpumps?\b[^.]{0,40}\b(?:wells?|pits?|stations?)\b|\bpump wells?\b[^.]{0,30}\bsew/i.test(riskTask) ? '\nwork near a confined space (sewer pump well)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(termite|rotten|damaged|white ?ant)\w*\b[^.]{0,30}\b(?:wall )?(frames?|framing|studs?|top plates?|bottom plates?)\b/i.test(riskTask) && /\b(repair\w*|replac\w*)\b/i.test(riskTask) ? '\nstructural repair that needs temporary support (propping)' : ''}${/\b(?:replac\w*|restump\w*|re-stump\w*)\b[^.]{0,30}\bstumps?\b|\brestump\w*/i.test(riskTask) ? '\nstructural repair that needs temporary support (house jacked and propped)' : ''}${/\bpump (?:stations?|wells?)\b/i.test(riskTask) && /\b(install\w*|new|build(?!ings?\b)\w*)\b/i.test(riskTask) ? '\nshaft excavation deeper than 1.5 m (pump station wet well)' : ''}${/\bsubstations?\b/i.test(riskTask) && /\bfenc\w*\b/i.test(riskTask) ? '\nwork near energised electrical installations (substation)' : ''}${sentencesWith(riskTask, /\b(?:switch ?rooms?|main switch ?rooms?)\b/i).some((sentence) => /\b(existing|live|operating|in[- ]service)\b/i.test(sentence) && !/\bnew (?:main )?switch ?rooms?\b/i.test(sentence)) ? '\nwork near energised electrical installations (existing switchroom)' : ''}${/\b(?:remov\w*|fill\w* in|demolish\w*)\b[^.]{0,20}\b(?:a |the )?(?:swimming )?pools?\b/i.test(riskTask) ? '\npowered mobile plant (excavator)' : ''}${/\b(site (?:offices?|sheds?)|toilet blocks?|site amenities)\b/i.test(riskTask) && /\b(install\w*|deliver\w*|set up|plac\w*)\b/i.test(riskTask) ? '\npowered mobile plant (delivery truck and crane)' : ''}${MEDICAL_GAS.test(riskTask) && /\b(connect\w*|live|tie[- ]?ins?|commission\w*|pressure test\w*|manifolds?)\b/i.test(riskTask) ? '\nwork on or near pressurised gas distribution mains or piping (medical gases)' : ''}${sentencesWith(riskTask, /\b(generators?(?!\s+(?:master\s+)?(?:control\w*|panels?|switch\w*|monitor\w*|alarms?|interfaces?|cabl\w*|wiring)\b)|fuel (?:lines?|tanks?|systems?)|diesel tanks?)\b/i).some((sentence) => /\b(install\w*|connect\w*|commission\w*)\b/i.test(withoutConditions(sentence)) && !/^[^.]*\b(load test\w*|load banks?|load shed\w*|testing and commissioning|test and commission)\b/i.test(sentence) || /\b(fuel (?:lines?|tanks?|systems?)|diesel tanks?|day tanks?)\b/i.test(sentence) && /\b(install\w*|connect\w*|commission\w*)\b/i.test(sentence)) ? '\nwork on or near a fuel line' : ''}${/\b(alongside|next to|near) (?:an? |the )?operating boilers?\b/i.test(riskTask) || (BOILER.test(riskTask) && /\bcommission\w*\b/i.test(riskTask)) ? '\nartificial extremes of temperature' : ''}${(/\b(opening|break\w* through)\b/i.test(riskTask) && /\bwalls?\b/i.test(riskTask) && /\b(load[- ]bearing|propped|propping)\b/i.test(riskTask)) || (/\b(?:cut\w*|form\w*|mak\w*|creat\w*|new)\b[^.]{0,30}\b(?:doorways?|openings?|archways?|window openings?)\b/i.test(riskTask) && /\b(brick|block|masonry|load[- ]bearing|double brick)\b/i.test(riskTask) && !/\bnon[- ]load[- ]bearing\b/i.test(riskTask)) ? '\ndemolition of a load-bearing element of the structure' : ''}${FIRE_SERVICES.test(riskTask) && /\b(commission\w*|pump rooms?)\b/i.test(riskTask) ? '\nwork near energised electrical installations (fire pumps and controllers being commissioned)' : ''}${LIFT_WORK.test(riskTask) && /\b(commission\w*|car tops?)\b/i.test(riskTask) ? '\nwork near energised electrical installations (lift being commissioned)' : ''}${LIFT_WORK.test(riskTask) && /\bpits?\b/i.test(riskTask) && !/\b(reo|reinforc\w*|formwork|concrete)\b/i.test(riskTask) ? '\nwork in or near a confined space (lift pit)' : ''}${/\b(concrete cutt\w*|saw[- ]?cut\w*|wall saw\w*|core drill\w*)\b/i.test(riskTask) && /\bwalls?\b/i.test(riskTask) ? '\nwork near energised electrical installations (live wiring may be hidden in walls)' : ''}${/\b(solvent (?:cement|weld\w*)|primers?|solvent[- ]based)\b/i.test(riskTask) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?|plant rooms?)\b/i.test(riskTask) ? '\nflammable atmosphere' : ''}${gapFlags(riskTask).hvPoleRemove ? '\nwork near energised electrical installations (high voltage lines until the network operator isolates and earths them)' : ''}`;
 
   const draft = {
     kind: 'draft',
@@ -4107,7 +4142,13 @@ function buildDraft(input, screen) {
     const off = new Set(notApply.filter((item) => offFound.has(item.label)).map((item) => item.id));
     // A permit put in for that work when the steps were drafted comes out too.
     if (off.size) draft.jobSteps = withoutPermits(draft.jobSteps, off, state.id);
-    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), { ...permitOptions(task, state, input), suppressed, off });
+    // An angle grinder or cut-off saw the user added, where the steps cut metal or make sparks, does hot
+    // work: its permit, with the fire watch the permit records, goes in (messy round 7: an added 9 inch
+    // grinder brought a sparks line but no hot work permit or fire watch).
+    const addedNames = ((input.plantChoice && Array.isArray(input.plantChoice.added)) ? input.plantChoice.added : []).map((item) => String((item && item.item) || '')).join('\n');
+    const grinderHotWork = /\b(?:angle )?grinders?\b|\bcut-?off saws?\b|\bdemo(?:lition)? saws?\b/i.test(addedNames)
+      && draft.jobSteps.some((step) => [...step.hazards, ...step.controls].some((line) => /\b(sparks?|swarf|cut\w*\b[^.]{0,30}\b(?:steel|metal|bolts?|tracks?|studs?|bars?|reo|pipes?))\b/i.test(line)));
+    const permitted = withPermits(draft.jobSteps, [stripOutPlant(riskTask), ...stepNames, ...draft.highRisk, grinderHotWork ? 'hot work (abrasive cutting with the angle grinder)' : ''].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), { ...permitOptions(task, state, input), suppressed, off });
     draft.jobSteps = permitted.map((step, index) => {
       const had = draft.jobSteps[index].controls;
       if (step.controls.length === had.length) return step;
@@ -4224,7 +4265,7 @@ function buildDraft(input, screen) {
   // Each hazardous product the user listed, in the substances table and in the step that uses it
   // (substances.js, owner D256, D257). A SWMS with no product listed is unchanged.
   // The PPE table agrees with every printed line, the products' lines and the user's own steps included.
-  return withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input), input)));
+  return withoutUntickedPlant(withoutNotApplying(withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input), input))), input), input);
 }
 
 // Wherever a harness is listed, harness training is listed too, also where falls is No (a boom EWP)
@@ -4338,6 +4379,8 @@ function addedPlantSteps(choice, task = '', flags = {}) {
   for (const name of added) {
     const known = plantFor(name).map((item) => item.item);
     if (known.includes('Vehicle loading crane (hiab)')) out.loaderCrane = true;
+    // A ramset or other powder-actuated tool brings its own step (messy round 7: a ramset added with nothing of its own).
+    if (known.includes('Powder-actuated tool')) out.pdtFixing = true;
     if (known.includes('Welder') && !/\bno (?:welding|hot work)\b/i.test(task)) out.steelWeld = true;
     if (known.includes('Floor grinder with H class extraction') && !flags.wpPrep) out.floorGrind = true;
     if (known.includes('Water blaster')) out.pressureClean = true;
@@ -4431,7 +4474,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   if (leaveOut.size) jobSteps = jobSteps.filter((step) => !leaveOut.has(step.step) || ['Before starting', 'Finish and clean up'].includes(step.step));
   // Permits and hierarchy order come before the user's own changes, so a line the user changes keeps its place.
   // A permit line the user removed goes in here, so their change removes it and is reported.
-  jobSteps = finishSteps(jobSteps, combinedFacts(task, facts), permitOptions(task, state));
+  jobSteps = finishSteps(jobSteps, stripOutPlant(combinedFacts(task, facts)), permitOptions(task, state));
   jobSteps = withOurSlinging(jobSteps, state);
   const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
   return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
@@ -4643,6 +4686,9 @@ function withCategoryLines(jobSteps, highRisk, state, removed = new Set(), suppr
 const STEP_POSITIONS = [
   [/^Before starting$/, 'Supervisor'],
   [/^Finish and clean up$/, 'Leading hand'],
+  // Checking for asbestos is the supervisor's check, not removal (messy round 7: "asbestos register checked nil
+  // found" printed an asbestos removal supervisor).
+  [/^Check for asbestos\b/i, 'Supervisor'],
   [/\basbestos\b/i, 'Asbestos removal supervisor'],
   [/\b(confined space|wet well|septic tank)\b|^(Enter and work|Leave and close up)$/i, 'Confined space supervisor and stand-by person'],
   [/\b(overhead power lines|overhead wiring)\b/i, 'Supervisor and safety observer'],
@@ -4674,6 +4720,13 @@ function positionFor(step) {
 
 // The permits the work needs, then each step's controls in hierarchy order (elimination,
 // substitution, isolation and engineering, administrative, PPE).
+// An excavator that breaks out walls in an internal strip-out does not dig (messy round 7: an excavation
+// permit and the Excavation code for a strip-out with a mini excavator): read as plant for the permits.
+function stripOutPlant(text) {
+  const words = String(text || '');
+  if (!/\b(strip[- ]?out|soft strip|fit-?outs?|internal|non[- ]load[- ]bearing)\b/i.test(words) || /\b(?:dig\w*|dug|trench\w*|excavat(?!ors?\b)\w*|earthworks?|bulk|footings?|pits?|piles?|rock|soil|ground (?:works?|level))\b/i.test(words)) return words;
+  return words.replace(/\b(?:\d+(?:\.\d+)?\s?t(?:onne)?\s+)?(?:mini\s+)?excavators?\b/gi, 'plant');
+}
 function finishSteps(jobSteps, work, options = {}) {
   return withPermits(jobSteps, [work, ...jobSteps.map((step) => step.step)].join('\n'), '', options)
     .map((step) => ({ ...step, controls: inHierarchyOrder(step.controls) }));
@@ -5143,6 +5196,86 @@ function highRiskAddedOf(input, state) {
 // High risk construction work the user marked "Does not apply" on the draft, each with the short reason
 // it needs (D311): [{ id, label, reason }]. One with no reason, or a reason that says nothing ("dont
 // know", "TBC", one word), does not count, and the item stays listed.
+// The ids of high risk work the user marked "Does not apply" with a reason that says why (D311).
+function highRiskOffIds(input) {
+  const { reasonNeed } = require('./public/substance-rules');
+  return new Set((Array.isArray(input && input.highRiskOff) ? input.highRiskOff : []).filter((item) => item && typeof item.id === 'string' && String(item.reason || '').trim() && !reasonNeed(item.reason)).map((item) => item.id));
+}
+
+// What exists in a SWMS only because of a high risk item, so it goes when the user marks the item "Does
+// not apply" (D311), unless the SWMS still does that work in its steps (still: a step name or hazard that
+// does it). Messy round 7 found these left behind: the licensed asbestos removalist and "Asbestos removal
+// supervisor" as Who; the gas and plumbing licences; the excavation permit, the Excavation code and the
+// Trench support question with its answer printed as a control; the asbestos answer and code; the
+// "Electric shock or arc flash" and power line rows.
+//   facts: the questions it asks, not asked and their answers not printed; licences, codes, rows (the
+//   emergency rows by type), lines (control lines) and who (the Who it names, and what it becomes).
+const NOT_APPLY_PARTS = {
+  asbestos: {
+    still: /(?:remov\w*|bag\w*|encapsulat\w*|enclos\w*|dispos\w*)\b[^.\n]*\basbestos\b|\basbestos (?:work area|waste|removal)\b/i,
+    facts: ['asbestosArrangement', 'asbestosAirMonitoring', 'asbestosQuantity'],
+    licences: /^Licensed asbestos removalist\b/, codes: /\basbestos\b/i, rows: /^Asbestos\b/,
+    who: [/^Asbestos removal supervisor$/, 'Supervisor'],
+  },
+  trench: {
+    still: /\b(?:excavat\w*|trench\w*|dig(?:s|ging)?|shafts?)\b/i,
+    facts: ['trenchSupport'], codes: /\bExcavation\b/, keepCode: /^(?:Excavator|Trench shield)/, rows: /^Trench$/,
+    lines: /^No digging starts until an excavation permit is issued\b/,
+  },
+  gas: { still: /\bgas\b/i, licences: /^Gas work licen[cs]e\b/, rows: /^Gas leak$/ },
+  electrical: {
+    still: /\b(?:energised|energized|live (?:parts?|cables?|electrical|switchboards?|boards?|work)|isolate and prove|switchboards?|power lines?|overhead lines?)\b/i,
+    licences: /^Rescue and resuscitation \(low voltage rescue/, rows: /^(?:Electric shock or arc flash|Contact with power lines)$/,
+    codes: /\b(?:electrical risks|electric lines|Electrical)\b/i,
+  },
+  demolition: { still: /\bdemoli\w*\b/i, codes: /\bDemolition\b/ },
+  confined: { still: /\bconfined spaces?\b/i, licences: /^Confined space entry\b/, rows: /^Confined space$/ },
+};
+// Lines only about plant the user unticked as not used go with it (messy round 7: "Electric shock from the
+// generator and leads" stayed in the fusion step after the generator was unticked). Only lines that name
+// that plant alone; a line that names it beside other plant stays.
+const UNTICKED_PLANT_LINES = [
+  [/\bgenerators?\b/i, /^(?:Electric shock from the generator and leads\.|The generator and leads are tested and tagged\b)/],
+];
+function withoutUntickedPlant(draft, input) {
+  const choice = input && input.plantChoice && typeof input.plantChoice === 'object' ? input.plantChoice : null;
+  if (!draft || draft.kind !== 'draft' || !choice || !Array.isArray(choice.notUsed) || !choice.notUsed.length) return draft;
+  const used = [...(Array.isArray(choice.used) ? choice.used : []), ...(Array.isArray(choice.added) ? choice.added.map((item) => item && item.item) : [])].filter((name) => typeof name === 'string').join('\n');
+  const gone = UNTICKED_PLANT_LINES.filter(([plant]) => choice.notUsed.some((name) => plant.test(String(name || ''))) && !plant.test(used) && !plant.test(String(input.task || ''))).map(([, lines]) => lines);
+  if (!gone.length) return draft;
+  const keep = (line) => !gone.some((pattern) => pattern.test(line));
+  return { ...draft, jobSteps: draft.jobSteps.map((step) => (step.hazards.every(keep) && step.controls.every(keep) ? step : { ...step, hazards: step.hazards.filter(keep), controls: step.controls.filter(keep) })) };
+}
+
+function withoutNotApplying(draft, input) {
+  if (!draft || draft.kind !== 'draft' || !(draft.highRiskNotApply || []).length) return draft;
+  const facts = (input && input.facts) || {};
+  const steps = (draft.jobSteps || []).filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up');
+  const stepWords = steps.flatMap((step) => [step.step, ...(step.hazards || []).filter((line) => !/\(Does not apply to this job\)$/.test(line))]).join('\n');
+  let out = draft;
+  for (const { id } of draft.highRiskNotApply) {
+    const parts = NOT_APPLY_PARTS[id];
+    if (!parts || (parts.still && parts.still.test(stepWords))) continue;
+    const answers = new Set((parts.facts || []).flatMap((fact) => sentences(keptFact(facts[fact]) || '')).map((line) => line.toLowerCase().replace(/[.\s]+$/, '')));
+    const answered = (text) => answers.has(String(text || '').toLowerCase().replace(/[.\s]+$/, ''));
+    const keepCode = parts.keepCode && (out.plant || []).some((item) => parts.keepCode.test(item.known || item.item));
+    out = {
+      ...out,
+      controls: (out.controls || []).filter((item) => !answered(item.text)),
+      method: Array.isArray(out.method) ? out.method.filter((line) => !answered(line)) : out.method,
+      qualifications: parts.licences ? (out.qualifications || []).filter((name) => !parts.licences.test(name)) : out.qualifications,
+      emergency: parts.rows ? (out.emergency || []).filter((row) => !parts.rows.test(row.type)) : out.emergency,
+      sources: parts.codes && !keepCode && out.sources ? { ...out.sources, codes: (out.sources.codes || []).filter((title) => !parts.codes.test(title)) } : out.sources,
+      jobSteps: (out.jobSteps || []).map((step) => {
+        const controls = parts.lines ? step.controls.filter((line) => !parts.lines.test(line)) : step.controls;
+        const responsible = parts.who && parts.who[0].test(step.responsible || '') ? parts.who[1] : step.responsible;
+        return controls.length === step.controls.length && responsible === step.responsible ? step : { ...step, controls, responsible };
+      }),
+    };
+  }
+  return out;
+}
+
 function highRiskOffOf(input, state) {
   const given = Array.isArray(input && input.highRiskOff) ? input.highRiskOff : [];
   const { reasonNeed } = require('./public/substance-rules');
@@ -5194,7 +5327,11 @@ function ownStepPlace(item, steps) {
     const lines = [...(step.hazards || []), ...(step.controls || []).map(withoutStateCodes)].join(' ').split(/[^A-Za-z-]+/).filter(Boolean);
     const hits = (list) => [...things].filter((thing) => list.some((word) => sameWord(thing, thingStem(word)))).length;
     const score = hits(name) * 3 + hits(lines) + (name.some((word) => doing.has(doingStem(word))) ? 1 : 0);
-    const ahead = before && partThings(before, SITE_WORK).length === 0 && before.split(/\s+/).some((word) => name.some((other) => doingStem(other) === doingStem(word)));
+    // "Before stripping the formwork" goes before "Strip the formwork": the verb matches, and so does the
+    // thing it names, if it names one (messy round 7: the step was placed after the strip).
+    const beforeThings = partThings(before, SITE_WORK).map(thingStem);
+    const ahead = before && (beforeThings.length === 0 ? before.split(/\s+/).some((word) => name.some((other) => doingStem(other) === doingStem(word))) : name.some((other) => doingStem(other) === doingStem(before.split(/\s+/)[0])))
+      && (beforeThings.length === 0 || beforeThings.some((thing) => name.some((word) => sameWord(thing, thingStem(word)))));
     if (ahead) { if (!best || !best.ahead) best = { index, score: 99, ahead: true }; return; }
     if (score >= 3 && (!best || (!best.ahead && score > best.score))) best = { index, score, ahead: false };
   });
@@ -5322,6 +5459,9 @@ function tradeFlags(task, facts, state) {
   const picked = new Set(state.kinds);
   const out = { ...flags };
   for (const id of KIND_IDS) out[id] = picked.has(id);
+  // Brazing the task's own words say is not done comes off, though a pick list ticked it (messy round 7:
+  // "propress copper no brazing" kept "Braze and solder pipe joints (hot work)").
+  if (state.noBrazing) out.hotWork = false;
   if (pickedDisturbsBuilding(task, state.kinds)) out.asbestosCheck = true;
   // Picked pour and reo steps for slabs on the ground only, or an in-ground pool or tank, have no deck:
   // no deck edge, stair tower or reo loaded onto a deck (messy round 5). Deck formwork picked as well
@@ -5428,6 +5568,12 @@ function slabGroundFlags(text, flags) {
   const task = String(text || '').replace(/\b(?:after|once|until|before|when|prior to)\b[^.]{0,50}\bslabs?\b[^.]{0,20}?\b(?:has been |have been |is |are )?(?:poured|placed|cast)\b[^.]*/gi, '');
   if (!(SLAB_GROUND.test(task) && CONCRETE_POUR.test(task))) return {};
   // Pavers, or cleaning and sealing an existing slab, is not forming or placing concrete.
+  // Nor is cutting it with a concrete saw (messy round 7: "concrete saw to cut the kerb" ticked the slab
+  // and kerb pour steps): read without the cutting, the task must still pour or place concrete.
+  if (/\bconcrete saws?\b|\bcut\w* (?:the |a )?(?:existing )?kerbs?\b/i.test(task)) {
+    const uncut = task.replace(/\b(?:concrete|road|demo(?:lition)?|cut-?off) saws?\b[^.,;]*|\bsaw[- ]?cut\w*[^.,;]*|\bcut\w* (?:the |a )?(?:existing )?(?:kerbs?|footpaths?|slabs?|concrete)\b[^.,;]*/gi, ' ');
+    if (!(SLAB_GROUND.test(uncut) && CONCRETE_POUR.test(uncut))) return {};
+  }
   if (/\b(pavers?|paving|pressure clean\w*|clean\w*|re-?seal\w*|seal\w*|grind\w*|polish\w*|bolt\w*|drill\w*|anchor\w*)\b/i.test(task) && !/\b(pour\w*|plac\w* (?:the )?concrete|edge forms?|formwork|new (?:concrete )?(?:slabs?|driveways?|paths?))\b/i.test(task)) return {};
   const only = !SUSPENDED.test(task);
   // With suspended slabs too, the ground steps are added only for the crew forming or placing the concrete.
@@ -6116,7 +6262,12 @@ function settleFlags(flags, task, facts = {}) {
   // Welding steel brackets or plates is steel welding; brazing and soldering are for pipe joints.
   if (/\bweld\w*\b/i.test(task) && /\b(steel|beams?|brackets?|columns?|plates?|cleats?|purlins?)\b/i.test(task) && !/\b(pipes?|pipework|copper)\b/i.test(task)) out.steelWeld = true;
   off((out.steelWeld || out.oxyCutting) && !/\b(braz\w*|solder\w*|pipes?|pipework|copper)\b/i.test(task), 'hotWork');
-  out.cabinetWork = /\b(refit\w*|fit-?outs?|cabinet\w*|joinery|kitchens?|vanit\w*|wardrobes?|cupboards?|benches|benchtops?|shelving)\b/i.test(task);
+  // Wardrobe, vanity and cistern walls are framed, not joinery (messy round 7: "stud framing ... including
+  // wardrobe, cistern enclosure and vanity walls" brought "Install joinery and cabinets").
+  const framedFor = task.replace(/\b(?:wardrobes?|vanit(?:y|ies)|cisterns?|cupboards?|kitchens?)\b(?=(?:[\s,]+(?:and\s+|or\s+)?(?!(?:units?|cabinet\w*|joinery|benchtops?|doors?|then)\b)[\w-]+){0,3}?\s+(?:walls?|nibs?|frames?|framing|enclosures?|bulkheads?)\b(?!\s+(?:cabinet\w*|units?|cupboards?|mounted|hung)))/gi, ' ');
+  out.cabinetWork = /\b(refit\w*|fit-?outs?|cabinet\w*|joinery|kitchens?|vanit\w*|wardrobes?|cupboards?|benches|benchtops?|shelving)\b/i.test(framedFor);
+  // Walls framed for them bring no door step in their place.
+  if (!out.cabinetWork && /\b(cabinet\w*|joinery|kitchens?|vanit\w*|wardrobes?|cupboards?|benches|benchtops?|shelving)\b/i.test(task)) out.joineryStripped = true;
   out.trimWork = /\b(skirting\w*|architraves?|mouldings?|trims?)\b/i.test(task);
   out.openingBrickUp = /\bbrick\w* up\b[^.]{0,30}\b(?:window |door )?openings?\b|\blintels?\b[^.]{0,40}\bwindow openings?\b/i.test(task);
   if (/\b(?:new|replac\w*)\b[^.]{0,20}\bkitchens?\b/i.test(task) && /\b(relocat\w*|existing|old|renovat\w*|replac\w*)\b/i.test(task) && /\b(houses?|homes?|units?|apartments?|dwellings?)\b/i.test(task)) out.stripOut = true;
@@ -6237,6 +6388,8 @@ function settleFlags(flags, task, facts = {}) {
   off(out.ceilingGrid && !/\b(plasterboard|gyprock|drywall|sheets?)\b/i.test(task), 'plasterCeiling');
   // A grease trap or pit inside a building goes through the existing slab.
   if (out.tankPlace && /\b(food courts?|inside|existing (?:slab|floor|building)|kitchens?|restaurants?|shops?|basements?)\b/i.test(task)) out.sawCut = true;
+  // A concrete saw that cuts the kerb, footpath, driveway or road is saw cutting concrete (messy round 7).
+  if (/\b(?:concrete|road|demolition|cut-?off) saws?\b[^.]{0,30}\bcut\w*|\bcut\w*\b[^.]{0,30}\bwith (?:a |the )?(?:concrete|road) saw\b/i.test(task) && /\b(kerbs?|footpaths?|driveways?|roads?|pavements?)\b/i.test(task)) out.sawCut = true;
   if (out.flyScreens) out.silicaDrill = false;
   off(out.vehicleHoist, 'hoistInstall', 'hoistOperate');
   off(out.underslabDrainage, 'slabGround', 'slabPour', 'trench');
@@ -6468,7 +6621,9 @@ function settleFlags(flags, task, facts = {}) {
   out.pontoonPlace = /\bpontoons?\b/i.test(task) && /\b(install\w*|plac\w*|build\w*|replac\w*|new)\b/i.test(task);
   // "Fire dampeners" is a common way of writing fire dampers.
   out.fireDampers = /\b(fire|smoke|fire and smoke) damp(?:en)?ers?\b/i.test(task);
-  if (out.fireDampers && !/\b(?:new|install\w*|run\w*|connect\w*) (?:the )?(?:ductwork|ducting|ducts?)\b/i.test(task)) out.ductwork = false;
+  // Ductwork named as work of its own, apart from the dampers in it, keeps its step (messy round 7: kitchen
+  // extract and pizza oven exhaust ductwork beside fire dampers got no ductwork step).
+  if (out.fireDampers && !/\b(?:new|install\w*|run\w*|connect\w*) (?:the )?(?:ductwork|ducting|ducts?)\b/i.test(task) && !task.split(/[.;·•\n]+/).some((part) => /\b(?:ductwork|ducting)\b/i.test(part) && !/\bdampers?\b/i.test(part))) out.ductwork = false;
   out.tileRemove = Boolean((out.tileLay || out.tileCut) && /\b(cracked|broken|drummy|loose|damaged|chipped)\b[^.]{0,20}\btiles?\b/i.test(task) && /\b(fix\w*|repair\w*|replac\w*)\b/i.test(task));
   out.timberHouse = Boolean(out.windowInstall && /\b(timber|weatherboard|queenslander|fibro|cottage)\b/i.test(task) && !/\b(brick|masonry|concrete|block\w*)\b/i.test(task));
   out.windowsOnly = Boolean(out.windowInstall && !/\bdoors?\b/i.test(task) && !out.louvres);
@@ -6608,6 +6763,20 @@ function settleFlags(flags, task, facts = {}) {
   if (out.carpentryWork && heads.test(task) && !CARPENTRY_WORK.test(task.replace(heads, ' '))) {
     for (const id of ['carpentryWork', 'carpJoinery', 'carpLoad', 'carpFraming', 'carpEdge']) out[id] = false;
   }
+  // Walls or floor coverings named only as what is demolished, stripped or removed are not laid, cut to
+  // build or mixed for (messy round 7: "demolish non load bearing block walls with jackhammer" and "remove
+  // ceilings, stud partitions and carpet" in an office fitout ticked "Cut blocks and bricks", "Mix mortar",
+  // "Lay blocks and bricks" and "Lay floor coverings").
+  const REMOVED = /\b(?:demo|demolish\w*|demolition(?: of)?|remov\w*|strip\w*(?: out)?|knock\w* (?:down|out)|break\w* out|jackhammer\w*|rip\w* out|tak\w* out|pull\w* (?:up|out))\b[^.;]*?(?=[.;]|(?:,\s*|\s+)(?:and\s+|then\s+|&\s+)?(?:lay\w*|install\w*|fit(?!-?outs?\b)\w*|build\w*|rebuild\w*|construct\w*|supply\w*|replac\w*|new|pour\w*|form\b|forms?\b|erect\w*|fix\b|fix(?:es|ed|ing)\b|paint\w*|tile\b|tiles?\b|tiling|render\w*)\b|$)/gi;
+  const kept = task.replace(REMOVED, ' ');
+  if (['masonryLay', 'masonryMortar', 'masonryWork', 'masonryCut'].some((id) => out[id]) && MASONRY_WORK.test(task) && !MASONRY_WORK.test(kept) && !/\b(?:brick|block) ?lay\w*|\bmortar\b|\b(?:build|rebuild|construct)\w*\b[^.]{0,30}\b(?:walls?|blockwork|brickwork)\b/i.test(kept)) {
+    for (const id of ['masonryLay', 'masonryMortar', 'masonryWork', 'masonryCut']) out[id] = false;
+  }
+  if (out.floorLay && FLOOR_WORK.test(task) && !FLOOR_WORK.test(kept)) out.floorLay = false;
+  // Joinery that is only stripped out is not installed (messy round 7: "strip out ceilings, partitions, floor
+  // coverings and joinery" brought "Install joinery and cabinets").
+  const CABINET_WORDS = /\b(cabinet\w*|joinery|kitchens?|vanit\w*|wardrobes?|cupboards?|benches|benchtops?|shelving)\b/i;
+  if (out.cabinetWork && CABINET_WORDS.test(task) && !CABINET_WORDS.test(kept) && !/\b(?:refit\w*|fit-?outs?)\b/i.test(kept)) { out.cabinetWork = false; out.joineryStripped = true; }
   if (['masonryLay', 'masonryMortar', 'masonryWork', 'masonryCut'].some((id) => out[id]) && /\bmasonry (?:bolts?|anchors?|fixings?|screws?|plugs?)\b|\b(?:in|into|to) (?:the )?(?:existing )?masonry\b/i.test(task) && !/\b(masonry|brick\w*|block\w*|mortar|besser)\b/i.test(task.replace(/\bmasonry (?:bolts?|anchors?|fixings?|screws?|plugs?)\b|\b(?:in|into|to) (?:the )?(?:existing )?masonry\b/gi, ' '))) {
     for (const id of ['masonryLay', 'masonryMortar', 'masonryWork', 'masonryCut']) out[id] = false;
   }
@@ -6767,7 +6936,7 @@ function settleFlags(flags, task, facts = {}) {
   if (T(/\b(sprung (?:timber )?(?:sports )?floor\w*|timber sports floor\w*)\b/i)) { out.timberFloor = true; out.floorLay = false; }
   if (T(/\b(warm-?up tracks?|athletics tracks?|running tracks?)\b/i) && T(/\b(install\w*|construct\w*|lay\w*|build\w*|new)\b/i)) out.sportsSurface = true;
   // A whole building or structure, however it is described, is demolished with the notice and licence lines.
-  if ((T(/\bdemolish\w*\s+(?:an? |the )?(?:[\w-]+ ){0,4}(?:grandstands?|stands?|stadiums?|buildings?|blocks?|car ?parks?)\b/i) || T(DEMOLISH_STRUCTURE)) && !T(/\b(sheds?|garages?|carports?|cubby|associated)\b/i)) { out.structureDemolition = true; out.demolition = false; }
+  if ((T(/\bdemolish\w*\s+(?:an? |the )?(?!(?:[\w-]+ ){0,4}?(?:non[- ]load|internal|interior|partition))(?:[\w-]+ ){0,4}(?:grandstands?|stands?|stadiums?|buildings?|blocks?(?![- ]?(?:walls?|work|partitions?|piers?|fences?))|car ?parks?)\b/i) || T(DEMOLISH_STRUCTURE)) && !T(/\b(sheds?|garages?|carports?|cubby|associated)\b/i)) { out.structureDemolition = true; out.demolition = false; }
   // Stripping and cycling forms is not building and pouring a new deck.
   out.timberFramingOnly = T(/\btimber (?:fram\w*|studs?|wall frames?)\b/i) && !T(/\bsteel (?:fram\w*|studs?)\b/i);
   out.formStripOnly = Boolean(out.formwork) && T(/\b(strip\w*|cycl\w*|fly\w*|flown)\b/i) && !T(/\b(erect\w*|set\w* up|install\w* (?:the )?formwork|pour\w*|build\w*)\b/i);
@@ -6897,7 +7066,9 @@ function settleFlags(flags, task, facts = {}) {
   if (T(/\b(high voltage|hv|\d+ ?kv)\b/i) && T(/\b(commission\w*|switchgear)\b/i)) { out.commissioning = true; out.isolation = true; if (!T(/\b(deliver\w*|install\w*|plac\w*)\b/i)) out.boardDelivery = false; }
   if (T(/\b(sound|noise|acoustic) barriers?\b/i) && T(/\bbridges?\b/i)) { out.noiseWall = true; out.workAbove = true; }
   if (T(/\b(?:build\w*|construct\w*|install\w*|lay\w*)\b[^.]{0,30}\b(?:\w+ )?culverts?\b/i) && !T(/\bculverts? (?:&|and) covers?\b/i)) { out.tankPlace = true; out.trench = true; out.craneInterface = true; }
-  out.kerbInstall = T(/\bkerb(?:s| and channel| and gutter)?\b(?! ramps?)/i) && T(/\b(construct\w*|build\w*|new|install\w*|form\w*|pour\w*|extrud\w*|lay\w*)\b/i) && !T(/\b(remov\w*|replac\w*|repair\w*|section of)\b/i);
+  // The verb that builds the kerb is the kerb's own, not one for other work in the task (messy round 7:
+  // "lay and joint the pipes ... concrete saw to cut the kerb" ticked "Form and pour the kerb and channel").
+  out.kerbInstall = T(/\b(?:construct\w*|build\w*|new|install\w*|form\w*|pour\w*|extrud\w*|lay\w*)\b(?:\s+(?:and|the|a|new|concrete|in-?situ|precast|extruded|barrier|mountable|semi-mountable|\w+ed|\w+ing)){0,4}\s+kerb(?:s| and channel| and gutter)?\b(?! ramps?)|\bkerb(?:s| and channel| and gutter)?\b(?! ramps?)[^.,;]{0,20}\b(?:construct\w*|built|install\w*|formed|poured|extrud\w*|laid)\b/i) && !T(/\b(remov\w*|replac\w*|repair\w*|section of)\b/i);
   if (T(/\bbus shelters?\b/i)) { out.kitStructure = true; out.footingHoles = true; }
   if (T(/\b(?:install\w*|build\w*|construct\w*|new)\b[^.]{0,30}\b(?<!drinking )(fountains?|water features?)\b/i)) { out.pumpInstall = true; out.trench = true; }
   out.trackWork = T(/\b(sleepers?|ballast|rail track|track renewal|resleeper\w*)\b/i) && T(/\b(rail|track|possession)\b/i) && !T(/\b(track slabs?|slab track|embedded rails?)\b/i);
@@ -7109,7 +7280,7 @@ function settleFlags(flags, task, facts = {}) {
   // Facade fixing, joinery and doors: one step per activity. Resealing joints alone drills
   // nothing; brackets, anchors or fixings named are drilled for.
   out.facadeDrill = !out.jointSealOnly || /\b(drill\w*|brackets?|anchors?|fixings?)\b/i.test(task);
-  out.joineryDoors = Boolean(out.doorHangWork || !out.cabinetWork);
+  out.joineryDoors = Boolean(out.doorHangWork || (!out.cabinetWork && !out.joineryStripped));
   const framesNamed = /\b(door ?frames?|doorsets?|frames?|jambs?)\b/i.test(task);
   const leavesNamed = /\bdoors?\b(?! ?frames?| ?sets?)/i.test(task.replace(/\b(?:install|stand|fix)\w* (?:the |all )?(?:\w+ )?door ?frames?\b/gi, ''));
   out.doorFrames = framesNamed || !/\bhang\w*\b/i.test(task);
@@ -7468,7 +7639,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
     // Painting or masking around electrical fittings is not electrical work, and nor is cleaning them.
     electricalWork: ELECTRICAL_WORK.test(withoutCleaned(withoutOtherTrades(task))),
-    plumbingWork: isPlumbing(withoutCleaned(withoutOtherTrades(task))),
+    plumbingWork: isPlumbing(withoutServiceCabling(withoutCleaned(withoutOtherTrades(task)))),
     // Water supply plumbing, where backflow and temperature control devices are found.
     waterSupplyWork: /\b(water (?:supply|services?|mains?|meters?|lines?|pipes?|heaters?|tanks?|reticulation)|potable|cold water|hot water|backflow|temper\w* valves?|tmvs?|thermostatic|taps?|tapware|fixtures?|basins?|sinks?|showers?|baths?|toilets?|cisterns?|urinals?|irrigation|hose reels?|hydrants?|plumbing fit[- ]?off)\b/i.test(task),
     sewerConnection: /\b(sewer (?:junctions?|connections?|jump-?ups?)|sewer connection|connect\w*[^.]{0,40}\bsewer\b|connect\w* (?:to )?(?:(?:the|a|new) )*(?:council |existing |live )?sewer\w*|connect\w*[^.]{0,40}\b(?:council|sewer) mains?|live sewer|(?<!\b(?:lay\w*|install\w*|construct\w*|build\w*|new|gravity|pressure|rising)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:gravity\s+|pressure\s+)?)sewer mains?|(?<!\b(?:build\w*|construct\w*|install\w*|new|precast|lay\w*)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:precast\s+)?)(?:manholes?|maintenance holes?))\b/i.test(task),
@@ -7625,7 +7796,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     fibreCement: /\b(fibre cement|fc sheet\w*|villaboard|cement sheet\w*|compressed sheet|hebel|aac)\b/i.test(task),
     regletCut: /\breglets?\b/i.test(task),
     replaceAppliance: /\b(replac\w*|old|existing|remov\w*|swap\w*|upgrad\w*|relocat\w*|mov(?:e|ing) (?:the )?(?:gas )?(?:cooktop|oven|heater|appliance))\b/i.test(task),
-    ceilingGrid: /\b(suspended (?:grid )?ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?|acoustic (?:ceiling )?panels?)\b/i.test(task) && /\b(install\w*|fit\w*|supply|replac\w*)\b/i.test(task),
+    // "Suspended grid, coffered and flush plasterboard ceilings" names the grid ceilings in a list (messy round 7).
+    ceilingGrid: /\b(suspended (?:grid )?ceilings?|suspended grid,?(?: [\w-]+,?){0,8} ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?|acoustic (?:ceiling )?panels?)\b/i.test(task) && /\b(install\w*|fit\w*|supply|replac\w*)\b/i.test(task),
     playground: /\b(playground (?:equipment|structures?)|play equipment|softfall|soft fall)\b/i.test(task),
     hddBore: /\b(directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under|thrust bor\w*)\b/i.test(task),
     structureDemolition: /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?|dwellings?|granny flats?)\b/i.test(task),
@@ -8104,6 +8276,16 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
     controls: controls.map((item) => item.text),
   });
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
+  // A general step is not repeated beside the step for the same work (messy round 7: "Strip out the room"
+  // beside "Strip out ceilings, partitions and floor coverings" for an office strip-out, and "Drill or cut
+  // concrete, masonry or stone" beside "Saw cut concrete" for one saw cut slab opening). It stays where
+  // the task names its own work (tiles and render in a wet area, holes drilled or cored).
+  const named = (name) => steps.some((step) => step.step === name);
+  const repeated = new Set([
+    named('Strip out ceilings, partitions and floor coverings') && !/\b(tiles?|tiled|tiling|render\w*|kitchens?|bathrooms?|wet areas?|toilets?|amenities|showers?|laundr(?:y|ies))\b/i.test(source) ? 'Strip out the room' : '',
+    named('Saw cut concrete') && !/\b(drill\w*|cor(?:e|es|ed|ing)|chas\w*|grind\w*|break\w* out|scabbl\w*|anchors?|fixings?|holes?|masonry|brick\w*|stone)\b/i.test(source.replace(/\bnon[- ]load[- ]bearing block walls?\b[^,.;]*/gi, ' ')) ? 'Drill or cut concrete, masonry or stone' : '',
+  ].filter(Boolean));
+  if (repeated.size) steps.splice(0, steps.length, ...steps.filter((step) => !repeated.has(step.step)));
   const scaffoldType = scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType);
   // Travel restraint chosen as the way to work at height is a harness in use, so its lines stay.
   const restraint = extra.accessRestraint ? '\nTravel restraint is used.' : '';
@@ -8125,6 +8307,15 @@ const WORK_SEQUENCE = [
   [/^(?:Set edge forms and prepare the base|Form the tank walls|Stand and brace wall and column forms|Lay the formwork deck|Place and tie reo(?: on the ground)?|Lift reo onto the deck|Load reo onto the deck|Fix the pool shell reo|Fix the tank wall reo|Inspect before the pour|Land and fix the precast floor units)$/, /^(?:Set up the concrete pump and placing boom|Set up the concrete pump|Place concrete|Pump and place concrete|Pour the tank walls|Spray the pool shell)$/],
   // The old structure comes out before the new one goes in (messy round 5: the old bridge deck was
   // demolished after the new planks were landed and the stitch pour placed).
+  // Ceilings, partitions and floor coverings are stripped before the walls are demolished, and the cast-in
+  // conduits go on the deck before the pour and the strip (messy round 7).
+  [/^Strip out (?:the room|ceilings, partitions and floor coverings)$/, /^(?:Demolish|Demolish the structure)$/],
+  [/^Install cast-in conduits on the deck before the pour$/, /^(?:Inspect before the pour|Monitor the formwork during the pour|Strip the formwork|Install backprops|Pump and place concrete|Place concrete)$/],
+  // Materials are unloaded from the truck before the work that uses them (messy round 7: the pipes unloaded
+  // after they were laid and the trench backfilled; the scaffold tube unloaded after the dismantle).
+  // The kerb, footpath or slab over the trench line is saw cut before the dig.
+  [/^(?:Saw cut concrete|Remove cut sections)$/, /^(?:Excavate|Work in the trench)$/],
+  [/^Unload with the truck loading crane \(hiab\)$/, /^(?:Excavate|Work in the trench|Lay pipes|Install pits|Lay conduits|Lift and place tanks, pits or precast units|Backfill the trench|Reinstate the surface|Erect the scaffold|Inspect and hand over|Dismantle the scaffold)$/],
   [/^(?:Demolish|Demolish the bridge|Demolish the structure)$/, /^(?:Set up the crane|Land and fix the precast floor units|Stand and brace the precast elements|Erect falsework and shores|Lay the formwork deck|Set edge forms and prepare the base|Place and tie reo|Set up the concrete pump and placing boom|Place concrete|Pump and place concrete|Install road safety barrier)$/],
   // Concrete poured in the excavation (thrust blocks, pits) goes in before the trench is backfilled, and
   // a retaining wall is built before the drainage and backfill behind it (messy round 6: the thrust
@@ -8203,7 +8394,7 @@ function scaffoldLicenceLine(steps, type) {
 }
 
 // Harness, restraint and fall arrest lines that only apply when one is used.
-const HARNESS_ONLY = /^(?:Where (?:harnesses are used|fall arrest is used|travel restraint is used|a boom-type platform is used|boom EWPs are used)|In a boom EWP|Travel restraint is not used on fragile|A travel restraint system is installed|Travel restraint and fall arrest systems are inspected|Travel restraint is installed|Insert-type anchors|Harness anchors are|A harness user never works alone|No one uses a fall arrest harness)/;
+const HARNESS_ONLY = /^(?:Where (?:harnesses are used|fall arrest is used|travel restraint is used|a boom-type platform is used|boom EWPs are used)|In a boom EWP|Travel restraint is not used on fragile|A travel restraint system is installed|Travel restraint and fall arrest systems are inspected|Travel restraint is installed|Insert-type anchors|Harness anchors are|A harness user never works alone|No one uses a fall arrest harness|The lanyard is as short as possible, has a personal energy absorber)/;
 const HARNESS_USED = /\b(harness\w*|fall arrest|travel restraint|restraint systems?|boom(?:[- ]type)? (?:lifts?|ewps?|platforms?)|boom lifts?|swing ?stages?|static lines?|anchor points?)\b/i;
 
 // A harness is in use with fall arrest or restraint, in a boom lift or on a swing stage.
@@ -8244,6 +8435,14 @@ const TASK_ONLY = [
   [/^Reglets are cut into concrete/, /\breglets?\b/i],
   [/^Top courses of wall tiles/, /\b(walls?|splashbacks?)\b/i],
   [/^Fire rated sealants and mastics/, /\bfire[- ]?(?:rat\w*|stop\w*|seal\w*)\b/i],
+  // Brazing lines only where the task still brazes (a denied "no brazing" is read as joining).
+  [/^Brazing is hot work under the site's hot work permit\b|^A fire watch is kept after brazing\b|^Burns and fire from brazing\b/, /\bbraz\w*/i],
+  // Timber and MDF dust, and glue for nailing, only where the work cuts or fixes timber or boards (messy round
+  // 7: MDF and wood dust lines and "Glue instead of nailing" for a mechanical crew's power tools).
+  [/^(?:Keep timber and MDF dust below the exposure standard|Wood dust, including MDF dust, is hazardous|Glue instead of nailing)\b/, /\b(timber|mdf|wood\w*|joinery|particleboard|plywood|ply|skirtings?|architraves?|doors?(?! grilles?| grills?| louvres?)|cabinet\w*|framing|frames?|studs?|battens?|decking|noggings?|blocking|carpent\w*|shelv\w*|benchtops?|wardrobes?|vanit(?:y|ies)|trims?|mouldings?|cladding|fascias?|pergolas?)\b/i],
+  // Refrigerant connections only where the plant is refrigeration or air conditioning plant (messy round 7:
+  // a refrigerant licence, a release row and the ARC code for fans, kitchen exhaust and fire dampers).
+  [/^Refrigerant connections are made only by the holder of a refrigerant handling licence\b|^Refrigerant and pipe connections are made after the plant is fixed\b/, /\b(refrigera\w*|condens(?!ate)\w*|chillers?|split systems?|vrf|vrv|heat pumps?|air[- ]?condition\w*|ac units?|a\/c|hvac units?|package[d]? units?|fan coil\w*|cool ?rooms?|cold ?rooms?|freezers?|evaporators?|ahus?|air handling units?)\b/i],
   [/^Adhesives, sealants and sealers are used/, /\b(adhesives?|glue\w*|seal\w*|silicone|mastic)\b/i],
   [/^Silica dust from cutting fibre cement/, /\b(fibre cement|fc sheet\w*|villaboard|cement sheet\w*|compressed sheet)\b/i],
   // The compactor's hearing line only where the work compacts (messy round 6: a plate compactor line in
@@ -8392,7 +8591,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { taskLine, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { taskLine, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

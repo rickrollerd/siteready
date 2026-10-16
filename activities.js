@@ -12398,7 +12398,9 @@ function jobStepsFor(rawFlags, factText, fallback) {
     .filter((step) => (!step.only || flags[step.only]) && !anyFlag(flags, step.unless))
     .filter((step) => !seen.has(step.step) && seen.add(step.step));
   // Post-tensioning checks apply only where the task is on post-tensioned slabs.
-  const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
+  // "Silica dust and tendon strike when drilling rack anchors" keeps its silica dust (messy round 7: the
+  // whole hazard went, so silica was never asked beside rack anchors drilled into the slab).
+  const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').replace(/ and tendon strike\b/gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
   // A line already given in an earlier step is not repeated in a later one. The later step keeps a
   // note of it (sharedControls, not printed), so its risk rating still counts it.
   const said = new Map();

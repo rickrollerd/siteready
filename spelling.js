@@ -25,12 +25,17 @@ const SITE_WORDS = ['vibro', 'nightshift', 'nightshifts', 'dayshift', 'dayshifts
   'underslab', 'crete', 'penos', 'roughin', 'roughins', 'condeck', 'destress', 'destressing', 'regrout', 'regrouts', 'regrouted', 'regrouting',
   // Rooms and fittings named in fit-out scopes (messy round 5, run 1: "ensuites" became "ensures").
   'ensuite', 'ensuites', 'kitchenette', 'kitchenettes', 'alfresco', 'alfrescos', 'rumpus', 'splashback', 'splashbacks', 'showerscreen', 'showerscreens', 'powerpoint', 'powerpoints', 'downlight', 'downlights'];
+// Trade words, product systems and brands found in our sources (the scope texts, saved readings and the
+// messy test tasks) that the dictionary does not hold, so they are never "corrected" (messy round 7:
+// "propress", the ProPress press-fit copper system, became "progress" in the task, title and sign-on
+// sheet; the scan of our scopes also found "set downs", "camlock", "prepainted" and "offsite" changed).
+const TRADE_WORDS = ['propress', 'megapress', 'pressfit', 'viega', 'rehau', 'unistrut', 'kango', 'kangos', 'sikaflex', 'promat', 'rondo', 'knauf', 'siniat', 'revit', 'autodesk', 'qcover', 'climbtrac', 'skydome', 'skydomes', 'speartop', 'rebox', 'corefill', 'roadsaw', 'roadsaws', 'roadsawing', 'tapware', 'sanitaryware', 'powdercoat', 'powdercoated', 'powdercoating', 'linemarking', 'plantroom', 'plantrooms', 'coldroom', 'coldrooms', 'steelfixer', 'steelfixers', 'steelfixing', 'gasfitter', 'gasfitters', 'blocklayer', 'blocklayers', 'overform', 'insitu', 'siteworks', 'tradewaste', 'groundcovers', 'tubestock', 'submains', 'rangehood', 'rangehoods', 'prefinished', 'prefinishes', 'carpark', 'carparks', 'camlock', 'camlocks', 'setdown', 'setdowns', 'prepainted', 'offsite', 'onsite', 'inline', 'workface', 'workfaces', 'rebriefing', 'coredrill', 'coredrills', 'coredrilling', 'hardscape', 'hardscapes', 'standalone', 'greenstar', 'onboarding'];
 const EXTRA = ['plasterboard', 'formwork', 'falsework', 'scaffolding', 'scaffold', 'excavator', 'excavation', 'telehandler', 'balustrade', 'balustrades', 'waterproofing', 'downpipes', 'downpipe', 'blockwork', 'brickwork', 'blockwall', 'jumpform', 'precast', 'shotcrete', 'stormwater', 'switchboard', 'switchboards', 'subcontractor', 'penetrations', 'reinforcement', 'asbestos', 'demolition', 'demolish', 'concrete', 'electrical', 'plumbing', 'carpentry', 'skylight', 'sarking', 'flashing', 'flashings', 'guttering', 'cladding', 'insulation', 'sprinklers', 'hydrant', 'hydrants', 'ductwork', 'refrigerant', 'condenser', 'chiller', 'generator', 'substation', 'transformer', 'conduit', 'containment', 'trench', 'trenching', 'backfill', 'compaction', 'asphalt', 'bitumen', 'pavers', 'retaining', 'footings', 'lintel', 'lintels', 'pergola', 'decking', 'joinery', 'benchtop', 'benchtops', 'membrane', 'membranes', 'sealant', 'silicone', 'grandstand', 'stadium', 'concourse', 'hospital', 'classroom', 'basement', 'dewatering', 'piling', 'stockpile', 'stockpiles', 'spoil', 'kerb', 'kerbs', 'bollards', 'hoarding', 'gantry', 'crane', 'cranes', 'forklift', 'elevating', 'platform', 'scissor', 'electrician', 'plumber', 'carpenter', 'bricklayer', 'scaffolder', 'rigger', 'dogman'];
 
 let vocabulary = null;
 function vocabularyWords() {
   if (vocabulary) return vocabulary;
-  vocabulary = new Set([...EXTRA, ...SITE_WORDS]);
+  vocabulary = new Set([...EXTRA, ...SITE_WORDS, ...TRADE_WORDS]);
   try {
     const { ACTIVITIES } = require('./activities');
     const add = (text) => { for (const word of String(text || '').toLowerCase().match(/[a-z]{5,}/g) || []) vocabulary.add(word); };
@@ -56,11 +61,26 @@ function vocabularyWords() {
   } catch {
     // Without the pick lists, the library words alone.
   }
+  // The plant SiteWrite knows, by its names and the words that find it ("posi-track", "franna"), and the
+  // products in the hazardous substance types.
+  try {
+    for (const item of require('./register').PLANT) { addAll(item.item); addAll(item.pattern && item.pattern.source.replace(/\\[a-z]/gi, ' ')); }
+  } catch {
+    // Without the plant register, the rest alone.
+  }
+  try {
+    const rules = require('./public/substance-rules');
+    for (const [label] of rules.SUBSTANCES) addAll(label);
+  } catch {
+    // Without the substance types, the rest alone.
+  }
   try {
     for (const trade of require('./trades').TRADES) addAll(trade.name);
   } catch {
     // Without the trades, the rest alone.
   }
+  // A slip the plant patterns also catch ("compacters") is still a slip.
+  for (const slip of Object.keys(KNOWN)) vocabulary.delete(slip);
   return vocabulary;
 }
 
@@ -88,7 +108,7 @@ const KNOWN = { cieling: 'ceiling', cielings: 'ceilings', guage: 'gauge', sepera
   // Plant typed with -er for -or (messy round 7, run 8: "13t excavater", "plate compacter"). "compacter"
   // is also an old word for more compact, which a task never means.
   excavater: 'excavator', excavaters: 'excavators', compacter: 'compactor', compacters: 'compactors',
-  crain: 'crane', crains: 'cranes', rendring: 'rendering', hydrolic: 'hydraulic', hydralic: 'hydraulic', hydrualic: 'hydraulic', sheating: 'sheeting', vynil: 'vinyl', acess: 'access', removel: 'removal', landscapping: 'landscaping', assembley: 'assembly', trimimg: 'trimming', operater: 'operator', tileing: 'tiling', seting: 'setting', laders: 'ladders', hording: 'hoarding', hordings: 'hoardings', sewar: 'sewer', formate: 'format' };
+  crain: 'crane', crains: 'cranes', rendring: 'rendering', hydrolic: 'hydraulic', hydralic: 'hydraulic', hydrualic: 'hydraulic', sheating: 'sheeting', vynil: 'vinyl', acess: 'access', removel: 'removal', landscapping: 'landscaping', assembley: 'assembly', trimimg: 'trimming', operater: 'operator', tileing: 'tiling', seting: 'setting', laders: 'ladders', hording: 'hoarding', hordings: 'hoardings', sewar: 'sewer', formate: 'format', ammended: 'amended' };
 
 function correction(word) {
   const lower = word.toLowerCase();

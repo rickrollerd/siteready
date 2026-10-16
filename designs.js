@@ -312,11 +312,19 @@ function designRows(draft, input) {
     const answer = answers.get(item.id);
     return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: [], needed: false };
   }).filter((row) => row.status === 'notIssued' || (row.status === 'given' && designNeed(row) === ''));
+  // A design named by its number and revision in the answer to the question that asks for it, but not given
+  // on its card, is listed with that number and revision, and asked for in full so it prints in the table
+  // (messy round 7: "temporary support design SK-201 rev B" printed only as a control).
+  const facts = (input && input.facts) || {};
+  const named = Object.entries(QUESTION_DESIGNS).filter(([question, item]) => !listed.has(item.id) && !answers.has(item.id) && typeof facts[question] === 'string').map(([question, item]) => {
+    const found = /\b([A-Z]{1,6}[- ]?\d{1,5}[A-Z]?(?:[-/]\d{1,4})?)\s*,?\s*\(?\s*rev(?:ision)?\.?\s*([A-Z0-9]{1,3})\b/i.exec(facts[question]);
+    return found ? { id: item.id, what: item.label, label: item.label, status: '', by: '', number: found[1], revision: found[2], date: '', file: null, steps: [], needed: true, fromAnswer: true } : null;
+  }).filter(Boolean);
   const added = [...answers.values()].filter((row) => ADDED.test(row.id) && clean(row.what)).map((row) => ({ ...answerFields(row), id: row.id, what: clean(row.what), label: '', steps: [], needed: false }));
   const { methodNeed } = require('./public/gate-rules');
   const methods = [...answers.values()].filter((row) => METHOD.test(row.id) && methodNeed(row) === '')
     .map((row) => ({ ...answerFields({ ...row, status: 'given' }), id: row.id, what: clean(row.what), label: '', steps: [], needed: false, kind: 'method' }));
-  return [...needed, ...asked, ...added, ...methods];
+  return [...needed, ...asked, ...named, ...added, ...methods];
 }
 function answerFields(row) {
   const status = ['given', 'notIssued', 'notNeeded'].includes(row.status) ? row.status : '';

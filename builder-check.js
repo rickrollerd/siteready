@@ -166,6 +166,8 @@ function normaliseSwms(input = {}) {
     stepPpeLines: list(input.stepPpeLines),
     // Each hazardous product's line in its step (substances.js, D257).
     stepSubstanceLines: list(input.stepSubstanceLines),
+    // The types of hazardous substance a SiteWrite draft marks "Not required on this job" (substances.js).
+    notRequired: list(input.notRequired),
     responsiblePerson: text(input.responsiblePerson),
     consultation: text(input.consultation),
     signatures,
@@ -625,7 +627,12 @@ const railSignalsOnly = (swms) => /\bdetonators?\b/i.test([...swms.plant, ...swm
 
 // The categories the minimum control set applies to, each with the steps it is in.
 function minimumSets(swms, state, context) {
-  const ids = new Set([...context.implied, ...context.named].map((item) => item.id));
+  // Work the SWMS marks "Does not apply", with its reason, is not asked for its controls, unless the SWMS
+  // lists it after all (messy round 7: "For trenches (Install risers and pipework), add shoring" stayed
+  // after the riser shaft was marked as not dug).
+  const off = new Set((swms.notApply || []).map((item) => item.id));
+  const namedIds = new Set(context.named.map((item) => item.id));
+  const ids = new Set([...context.implied, ...context.named].map((item) => item.id).filter((id) => !off.has(id) || namedIds.has(id)));
   const steps = swms.steps;
   const workNames = steps.map((step) => step.step).filter((name) => !checkOnly(name));
   const ownWork = [swms.task, ...workNames].join('\n');
@@ -644,7 +651,7 @@ function minimumSets(swms, state, context) {
   if (DIG.work.test(ownWork) && DIG.near.test(allText)) use('services', (words) => DIG.work.test(words));
   // Electrical: work near overhead lines, and work on or near energised installations. A SWMS that
   // lists the category with neither wording is taken as near an installation.
-  const lines = POWER_LINE.test(said);
+  const lines = POWER_LINE.test(said) && !(off.has('electrical') && !namedIds.has('electrical'));
   if (lines) use('lines', (words) => POWER_LINE.test(words));
   if (ids.has('electrical') && (!lines || ELECTRICAL_WORK.test([ownWork, ...swms.highRisk].join('\n')))) use('energised', (words) => ELECTRICAL_WORK.test(words) || byCategory('electrical')(words));
   // Road and rail, by the SWMS's own wording: the category's label names both.
@@ -979,6 +986,15 @@ function weighted(swms, state, context) {
     // SWMS with no step for the thermite welds). Read from a SiteWrite draft's own
     // list of such work; an uploaded document has none. 1 point each, at most 2: the work may be in another
     // SWMS the business holds.
+    // Whole-building demolition lines (roof down, chutes, notice to the regulator) in a SWMS whose task keeps
+    // the structure: internal, non-load-bearing or strip-out work (messy round 7: they passed).
+    const keepsStructure = /\b(non[- ]load[- ]bearing|internal walls?|soft strip|strip[- ]?out|fit-?outs?|structur\w* (?:elements? )?(?:untouched|retained|kept|left))\b/i.test(swms.task)
+      && !/\b(?:demolish\w*|demolition of)\s+(?:the |a |an )?(?:whole |entire |existing |old )?(?:buildings?|houses?|structures?|sheds?|garages?|warehouses?)\b/i.test(swms.task);
+    const wholeLines = keepsStructure ? steps.filter((step) => step.controls.some((line) => /\bfrom the roof down\b|\breverse order to its construction\b|\bGlass is taken out of windows\b|\bRoof timbers and timber floors are cut\b/i.test(line))).map((step) => step.step) : [];
+    if (wholeLines.length) {
+      points -= 2;
+      fixes.push(`"${wholeLines[0]}" has lines for demolishing a whole building (from the roof down), but the task keeps the structure. Use the steps for the internal work, or take those lines out.`);
+    }
     const uncovered = list(swms.uncovered);
     if (uncovered.length) {
       points -= Math.min(2, uncovered.length);
@@ -1115,7 +1131,9 @@ function weighted(swms, state, context) {
     if (/\bfirst aid\w*\b/i.test(emergency)) points += 2; else fixes.push('Say where first aid is and who the first aider is.');
     const contacts = /\b(000|emergency (?:contacts?|numbers?|services|procedures?|plan)|muster|hospital|evacuat\w*|raise the alarm)\b/i.test(emergency);
     if (contacts) points += 3; else fixes.push('Give the emergency contacts and procedure.');
-    const ids = new Set([...context.implied, ...context.named].map((item) => item.id));
+    const offIds = new Set((swms.notApply || []).map((item) => item.id));
+    const namedIds = new Set(context.named.map((item) => item.id));
+    const ids = new Set([...context.implied, ...context.named].map((item) => item.id).filter((id) => !offIds.has(id) || namedIds.has(id)));
     const rescueNeeded = ['fall', 'confined', 'trench', 'water', 'tower'].filter((id) => ids.has(id));
     // With no rescue needed, the rescue share goes with having an emergency procedure at all.
     if (rescueNeeded.length ? /\brescue\b/i.test(emergency) : contacts) points += 3; else if (!rescueNeeded.length) fixes.push('Add an emergency section: contacts, the procedure and the nearest hospital.'); else fixes.push(`Add a rescue plan for ${rescueNeeded.map((id) => ({ fall: 'a fall or a person suspended in a harness', confined: 'the confined space', trench: 'the trench', water: 'a person in the water', tower: 'the tower' })[id]).join(', ')}.`);
@@ -1307,7 +1325,11 @@ function weighted(swms, state, context) {
     const unchecked = products.filter((row) => (row.controls || []).length && row.confirmed !== true).map((row) => row.product);
     if (noControls.length) fixes.push(`Give the controls from the safety data sheet for: ${noControls.join('; ')}.`);
     if (unchecked.length) fixes.push(`Check each product's row against its safety data sheet and confirm it: ${unchecked.join('; ')}.`);
-    points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0));
+    // Silica marked "Not required" beside a step that cuts, drills or grinds concrete, masonry or stone
+    // (messy round 7: "Not required (saw cutting done by others)" beside the SWMS's own saw cutting step).
+    const silicaCut = (swms.notRequired || []).some((type) => /crystalline silica/i.test(type)) ? require('./public/substance-rules').silicaStep({ jobSteps: steps }) : '';
+    if (silicaCut) fixes.push(`Silica is marked "Not required", but the step "${silicaCut}" cuts, drills or grinds concrete, masonry or stone. List the product cut, with its safety data sheet.`);
+    points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0) - (silicaCut ? 2 : 0));
     add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length || products.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
   }
 
@@ -1384,6 +1406,11 @@ function ppeContradictions(swms) {
 // Another trade's licence, or its licensing lines, where the SWMS's own work (its task and step names) is
 // not that trade's: { what }.
 const OTHER_TRADES = [
+  // Messy round 7: a gas work licence for cabling to gas meters, an asbestos removalist where the asbestos
+  // register found none, and a refrigerant licence with no refrigeration work, all passed.
+  { what: 'a gas work licence', lines: /\bgas work licen[cs]e\b/i, work: /\b(gas ?fitt\w*|gas (?:appliances?|lines?|pipe\w*|supply|services?|heaters?|heating|hot water|cooktops?|ovens?|boilers?|bbqs?|barbecues?|mains?|connections?)|lpg|natural gas|(?:connect|disconnect|relocat)\w*[^.\n]{0,30}\bgas\b(?! meters?))\b/i },
+  { what: 'a licensed asbestos removalist', lines: /\blicensed asbestos removalist \(/i, work: /\b(?:remov\w*|strip\w*|encapsulat\w*|bag\w*|enclos\w*|abat\w*)\b[^.\n]{0,40}\basbestos\b(?![^.\n]{0,40}\b(?:nil|none|not) (?:found|present)\b)|\basbestos (?:removal|waste|work area)\b/i },
+  { what: 'a refrigerant handling licence', lines: /\brefrigerant handling licen[cs]e\b/i, work: /\b(refrigera\w*|condens(?!ate)\w*|split systems?|chillers?|vrf|vrv|heat pumps?|air[- ]?condition\w*|ac units?|hvac units?|package[d]? units?|fan coil\w*|ahus?|air handling units?|heat exchangers?|cool ?rooms?|cold ?rooms?|freezers?|evaporators?|refrigerants?)\b/i },
   { what: 'electrical licensing lines or an electrical licence', lines: /\b(?:electrical work is done or supervised only by licensed|apprentices are supervised at all times by a licensed electrical|electrical (?:work )?licen[cs]e|licensed electrician\) under)/i, work: /\b(electrical|electrician|wiring|rewir\w*|switchboards?|distribution boards?|circuits?|power points?|gpos?|light fittings?|lights\b|lighting|cabl\w*|solar|photovoltaic|inverters?|batter(?:y|ies)|generators?|fit[- ]?off|rough[- ]?in|terminat\w*|test the new work|isolate and prove|energised parts|construction power|temporary power|fire alarm|detectors?|smoke alarms?|exit signs?|emergency light\w*|conduits?|cast[- ]ins?|containment|cable trays?|ladders? for cables|risers?|services?|isolat\w*|electric\w*|motors?|control panels?|lift (?:installation|motors?|cars?)|pumps?|earth\w*|lightning|switch\w*|data|comms|communications|security|cctv|access control|ups|dewater\w*)\b/i },
   { what: 'plumbing licensing lines or a plumbing licence', lines: /\b(?:plumbing and drainage work is done by licensed|plumbing (?:and drainage )?licen[cs]e|backflow prevention devices and temperature control devices)/i, work: /\b(plumb\w*|drain\w*|sewer\w*|sanitary|stormwater|hot water|cold water|water (?:service|supply|mains?|meters?|connections?|heaters?|tanks?)|tapware|toilets?|basins?|vanit\w*|backflow|gas\b|fixtures|hydraulic|pipes?|pipework|risers?|sleeves?|puddle flanges?|cast[- ]ins?|valves?|pumps?|sumps?|tanks?|waste|penetrations?|services?|trenches?|pits?|boilers?|heaters?|condensate|irrigation|mains?|downpipes?|gutters?|roof drainage|rainwater|dewater\w*|water)\b/i },
 ];
@@ -1456,6 +1483,7 @@ function fromDraft(draft, extra = {}) {
     site: { address: draft.workplace, conditions },
     highRisk: draft.highRisk || [],
     notApply: draft.highRiskNotApply || [],
+    notRequired: ((draft.substances && draft.substances.notRequired) || []).map((item) => item.type),
     steps,
     // Every PPE item ticked, for all work or for particular steps (D246): one a single step needs is
     // still in the SWMS's PPE.

@@ -411,7 +411,8 @@
   // What a type ticked "Not required" still needs: a reason where the SWMS's own words name it.
   function notUsedNeed(index, type) {
     const rules = window.SiteWriteSubstanceRules;
-    return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(project.items[index])[type], wordsOf(index)) : '';
+    // The step that cuts or drills concrete, kept from its prepared draft: silica cannot be "Not required" beside it.
+    return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(project.items[index])[type], wordsOf(index), '', '', project.items[index].silicaStep || '') : '';
   }
   function setNotUsed(index, type, ticked) {
     const item = project.items[index];
@@ -1575,6 +1576,8 @@
     item.emergencyAsked = (S.askedEmergency && S.askedEmergency(draft)) || item.emergencyAsked;
     item.body = S.keptEmergency ? S.keptEmergency(body, item.emergencyAsked) : body;
     item.kind = draft.kind;
+    const rules = window.SiteWriteSubstanceRules;
+    item.silicaStep = draft.kind === 'draft' && rules && rules.silicaStep ? rules.silicaStep(draft) : '';
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];
