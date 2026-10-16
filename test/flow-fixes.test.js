@@ -199,7 +199,7 @@ test('each part with no job steps is dealt with on its own: your step, or the SW
   p.document.getElementById('task').value = DRAFT.task;
   await prepare(p);
   const block = p.run('notCoveredBlock(shownDraft)');
-  assert.match(block, /Write your own step for it, or say which SWMS covers it\./);
+  assert.match(block, /Write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it\./);
   assert.match(block, /<select id="cover-where-0" data-cover-where="0" class="plain"><option value="">Not covered in another SWMS<\/option><option value="Fuel system">Fuel system<\/option><option value="__typed">Another SWMS: I will type its name<\/option><\/select>/);
   assert.doesNotMatch(block, /not-covered-confirm|I have added my own step/, 'no tick that can be ticked without it being true');
   assert.equal(p.run('outstanding(shownDraft).length'), 1);

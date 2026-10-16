@@ -295,6 +295,8 @@ function draftBody(body) {
     movedIn: Array.isArray(body.movedIn) ? body.movedIn.filter((item) => item && typeof item === 'object' && typeof item.part === 'string').slice(0, 30).map((item) => ({ part: textField(item.part, 400), from: textField(item.from, 300) })).filter((item) => item.part) : undefined,
     // The SWMS the user named for each part another SWMS covers ({ part: SWMS name }), kept with the record.
     notCoveredElsewhere: elsewhere(body.notCoveredElsewhere),
+    // The job step of this SWMS the user said already covers each part ({ part: step name }, messy round 6).
+    notCoveredInStep: elsewhere(body.notCoveredInStep),
     // Of those, the work moved into another SWMS of the project (D289): it comes off this SWMS's Task line (D291).
     movedOut: Array.isArray(body.movedOut) ? body.movedOut.filter((part) => typeof part === 'string').slice(0, 30).map((part) => textField(part, 400)).filter(Boolean) : undefined,
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,

@@ -40,7 +40,7 @@ const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
-const { clean, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST } = require('./public/gate-rules');
+const { clean, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST, ownLineProblem } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 const { designNeed } = require('./designs');
 const substances = require('./substances');
@@ -139,7 +139,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // Work that is all the task's work (D211) needs the user's own step, not the tick.
   const unwritten = uncovered ? notCoveredUnwritten(draft) : [];
   if (unwritten.length) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Your own step for work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.`, message: uncovered });
-  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it.`, message: uncovered });
+  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteWrite has no job steps for', need: `SiteWrite has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     const rule = fieldRule(item);
@@ -205,9 +205,9 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // it is saved (messy round 3).
   (draft.jobSteps || []).filter((step) => step.own).forEach((step, n) => {
     const open = [step.step, ...(step.hazards || []), ...(step.controls || []), step.responsible].find((text) => typeof text === 'string' && leftOpen(text));
-    const short = (step.hazards || []).find((text) => clean(text).split(' ').length < 2 || notAnswer(text)) || (step.controls || []).find((text) => clean(text).split(' ').length < 3 || notAnswer(text));
+    const short = [...(step.hazards || []).map((text) => ownLineProblem(text, 'hazard')), ...(step.controls || []).map((text) => ownLineProblem(text, 'control'))].find(Boolean);
     if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open).slice(0, 160)}". Change your step to say what applies.` });
-    else if (short) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `${notAnswer(short) || `"${clean(short).slice(0, 80)}" is too short to act on.`} Change your step to say what is done and how.` });
+    else if (short) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `${short} Change your step to say what is done and how.` });
   });
   // A hazard the user added needs at least one control (D254): ticked from SiteWrite's offers or written.
   (draft.ownHazards || []).forEach((item, n) => {

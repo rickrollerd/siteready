@@ -142,7 +142,7 @@ test('a part with a printed step needs no tick; a part without one still does; a
   const both = prepareDraft(draftBody(two));
   assert.deepEqual(both.notCovered, [PART, 'hang the artwork from the scissor lift']);
   const one = prepareDraft(draftBody({ ...two, ownSteps: [STEP] }));
-  assert.equal(notCoveredRefusal(one, { ownSteps: [STEP] }), 'SiteWrite has no job steps for: hang the artwork from the scissor lift. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.');
+  assert.equal(notCoveredRefusal(one, { ownSteps: [STEP] }), 'SiteWrite has no job steps for: hang the artwork from the scissor lift. Above the draft, write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it, before saving or downloading.');
   assert.equal(notCoveredRefusal(one, { notCoveredConfirmed: ['hang the artwork from the scissor lift'] }), '', 'the tick for the rest is enough');
   const cover = downloadGaps(draftBody({ ...two, ownSteps: [STEP] }), one).find((gap) => gap.kind === 'cover');
   assert.match(cover.need, /^SiteWrite has no job steps for: hang the artwork from the scissor lift\./);
@@ -449,7 +449,7 @@ test('the page offers a step for each part, asks which SWMS covers only the rest
   p.run(`ownSteps = ${JSON.stringify([STEP])}`);
   const block = p.run(`notCoveredBlock(${JSON.stringify(PAGE_DRAFT)})`);
   // The top line names only the work still to deal with: the part with your own step is done (messy round 3).
-  assert.match(block, /SiteWrite has no job steps for: hang the artwork\. Write your own step for it, or say which SWMS covers it\./);
+  assert.match(block, /SiteWrite has no job steps for: hang the artwork\. Write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it\./);
   assert.match(block, /You must enter the specific steps for this work yourself: SiteWrite cannot write them for you\./);
   assert.match(block, /Done: your step "Leak test the fuel line" is in the job steps below\.<\/span> <button type="button" class="link" data-own-change="Leak test the fuel line">Change your step<\/button>/);
   assert.match(block, /<button type="button" class="small" data-own-write="1">Write a step for this<\/button>/);

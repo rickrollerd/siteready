@@ -453,7 +453,8 @@
       .rp-dig, .rp-body, .rp-dirt { animation: none; }
       .rp-worker, .rp-fill { transition: none; }
     }
-    .read-done { border: 1px solid #c9d1d9; border-top: 5px solid #1f4e3d; border-radius: 10px; padding: 20px 22px 18px; width: min(440px, calc(100% - 32px)); background: #fff; color: #1c2430; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25); text-align: center; }
+    .read-done { position: fixed; inset: auto 0 16px 0; margin: 0 auto; z-index: 50; border: 1px solid #c9d1d9; border-top: 5px solid #1f4e3d; border-radius: 10px; padding: 14px 18px 12px; width: min(440px, calc(100% - 32px)); background: #fff; color: #1c2430; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25); text-align: center; }
+    @media (max-width: 600px) { .read-done { padding: 10px 14px 8px; } .read-done .read-done-mark { display: none; } .read-done h2 { font-size: 17px; margin-bottom: 4px; } .read-done p { margin-bottom: 8px; } }
     .read-done::backdrop { background: rgba(28, 36, 48, 0.45); }
     .read-done h2 { font-size: 20px; text-transform: none; letter-spacing: -0.01em; color: #1c2430; margin: 0 0 8px; }
     .read-done p { margin: 0 0 14px; }

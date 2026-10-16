@@ -202,7 +202,7 @@ test('while the AI reads, the bar shows a percentage and the steps; when done, a
   const asked = p.calls.filter((call) => call.route.startsWith('/api/scope/ai/r1'));
   assert.equal(asked.length, 3, 'asked until done');
   assert.match(results(p), /The AI found 1 activities in 1 work packages/);
-  assert.match(body(p), /<dialog class="read-done" id="read-done" role="alertdialog" aria-modal="true" aria-labelledby="read-done-title" aria-describedby="read-done-text">/);
+  assert.match(body(p), /<dialog class="read-done" id="read-done" role="alertdialog" aria-labelledby="read-done-title" aria-describedby="read-done-text">/);
   assert.match(body(p), /<h2 id="read-done-title">The scope has been read<\/h2>/);
   assert.match(body(p), /The AI has finished reading the scope\. Choose the SWMS you need\./);
   assert.match(body(p), /<button type="button" data-read-done-go>Choose the SWMS<\/button>/);
@@ -211,8 +211,8 @@ test('while the AI reads, the bar shows a percentage and the steps; when done, a
   p.document.hidden = false;
   p.document.body.dispatchEvent(new FakeEvent('visibilitychange', { bubbles: true }));
   assert.equal(p.document.title, 'SiteWrite');
-  // Nothing is kept once the reading is done.
-  assert.equal(p.window.localStorage.getItem('sitewrite-scope-reading'), null);
+  // The finished reading is kept, so a reload before Prepare brings the list back (messy round 6).
+  assert.equal(JSON.parse(p.window.localStorage.getItem('sitewrite-scope-reading')).done, true);
 });
 
 test('the chime is made in the browser, set up on the press that starts the reading, and silent when sound is blocked', async () => {
@@ -279,7 +279,7 @@ test('a reading still running when the page was left is picked up when the user 
   assert.equal(p.calls.filter((call) => call.route === '/api/scope/ai' && call.method === 'POST').length, 0, 'not read again');
   assert.match(results(p), /The AI found 1 activities/);
   assert.match(body(p), /The scope has been read/);
-  assert.equal(p.window.localStorage.getItem('sitewrite-scope-reading'), null);
+  assert.equal(JSON.parse(p.window.localStorage.getItem('sitewrite-scope-reading')).done, true);
 
   // Found done at once on coming back: the message still shows.
   const q = signedInPage(server({}), { 'sitewrite-scope-reading': JSON.stringify({ id: 'r1', state: '' }) });
@@ -371,4 +371,37 @@ test('"Sign in, or start the free trial" shows only to someone signed out, and g
   await settle(40);
   assert.equal(none.out.classList.contains('hidden'), true);
   assert.equal(none.noAccess.classList.contains('hidden'), true);
+});
+
+// Messy round 6, run 1: a finished reading was lost by a reload before Prepare, and the only way back was a
+// second paid reading. It is kept, with the ticks, until the SWMS are prepared from it.
+test('a finished reading comes back after a reload with its ticks, with no second reading, until it is prepared', async () => {
+  const p = signedInPage(server({}));
+  await settle(40);
+  await readPasted(p);
+  assert.equal(p.calls.filter((call) => call.route === '/api/scope/ai' && call.method === 'POST').length, 1);
+  // The package is ticked: the tick is kept with the reading.
+  const tick = new FakeEvent('change', { bubbles: true });
+  tick.target = { dataset: { package: '0' }, checked: true, name: '' };
+  p.document.getElementById('scope-results').dispatchEvent(tick);
+  const kept = JSON.parse(p.window.localStorage.getItem('sitewrite-scope-reading'));
+  assert.deepEqual([kept.id, kept.done, kept.choice.chosen], ['r1', true, ['Roofing']]);
+
+  // Reloaded: the list is back, ticked as left, read from the server's kept result, not read again.
+  const q = signedInPage(server({}), { 'sitewrite-scope-reading': JSON.stringify(kept) });
+  await settle(80);
+  assert.equal(q.calls.filter((call) => call.route === '/api/scope/ai' && call.method === 'POST').length, 0, 'not read again');
+  assert.ok(q.calls.some((call) => call.method === 'GET' && call.route.startsWith('/api/scope/ai/r1')));
+  assert.match(results(q), /The scope reading is back as you left it\. Tick the packages you need, then press the Prepare button at the bottom\./);
+  assert.match(results(q), /data-package="0" checked/);
+  assert.match(results(q), /Prepare this SWMS/);
+  assert.doesNotMatch(body(q), /The scope has been read/, 'no message or chime the second time');
+
+  // Prepared: the project holds it, and the kept reading is forgotten.
+  const press = new FakeEvent('click', { bubbles: true });
+  press.target = q.document.getElementById('scope-confirm');
+  q.document.getElementById('scope-results').dispatchEvent(press);
+  await settle(40);
+  assert.equal(q.window.localStorage.getItem('sitewrite-scope-reading'), null);
+  assert.ok(q.window.localStorage.getItem('sitewrite.project'));
 });

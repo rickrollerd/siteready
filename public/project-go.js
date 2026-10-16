@@ -665,8 +665,25 @@
   const CHECK_CLEARED = 'Its ticks were cleared because an answer it uses changed.';
   function uncheck(item) {
     if (!item.check) return;
+    // Kept aside, so an answer typed back as it was gives the check back (messy round 6, run 4).
+    item.checkKept = item.check;
     delete item.check;
     item.checkNote = CHECK_CLEARED;
+  }
+  // A SWMS marked for a shared site answer whose answers are all back as it was prepared with is no longer
+  // marked, and its check comes back: nothing it prints has changed.
+  const SHARED_CHANGED = 'A site answer every SWMS shares changed.';
+  function unmarkSame(indexes, same) {
+    let changed = false;
+    for (const index of indexes) {
+      const item = project.items[index];
+      if (!item || item.stale !== SHARED_CHANGED || !same(index)) continue;
+      delete item.stale;
+      if (item.checkKept) { item.check = item.checkKept; delete item.checkNote; }
+      delete item.checkKept;
+      changed = true;
+    }
+    if (changed) { save(); drawKept(); }
   }
   const staleItems = () => project.items.map((item, index) => ({ item, index })).filter((entry) => entry.item.stale);
   // Only a SWMS prepared as a draft counts as prepared (messy round 4: "Your 3 prepared SWMS are kept"
@@ -799,7 +816,12 @@
     }
     if (target.dataset.goSharedSite !== undefined) {
       sharedSite()[target.dataset.siteId] = target.value;
-      markStale(usingShared(), 'A site answer every SWMS shares changed.');
+      // Only a SWMS prepared with another answer needs preparing again: typing the same words back, or
+      // a box the browser fills, changes nothing it prints.
+      const same = (index) => String(((project.items[index].body || {}).site || {})[target.dataset.siteId] || '').trim() === String(target.value || '').trim();
+      const allSame = (index) => Object.entries(sharedSite()).every(([id, value]) => String(((project.items[index].body || {}).site || {})[id] || '').trim() === String(value || '').trim());
+      markStale(usingShared().filter((index) => !same(index)), SHARED_CHANGED);
+      unmarkSame(usingShared(), allSame);
       markSuggest(target.dataset.siteId);
       sharedNotes();
       save();
@@ -1195,6 +1217,7 @@
     if (!response.ok) throw new Error(draft.message || `SWMS ${index + 1} could not be prepared.`);
     const item = project.items[index];
     delete item.stale;
+    delete item.checkKept;
     // Only the emergency answers this SWMS's draft asks are kept with it (scope.js keptEmergency).
     item.emergencyAsked = (S.askedEmergency && S.askedEmergency(draft)) || item.emergencyAsked;
     item.body = S.keptEmergency ? S.keptEmergency(body, item.emergencyAsked) : body;

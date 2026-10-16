@@ -43,6 +43,24 @@ function vocabularyWords() {
   } catch {
     // The extra list alone.
   }
+  // SiteWrite's own words in the pick lists and the trade names are never "fixed" either (messy round 6,
+  // run 6: the pick list's "electrofusion" became "electrocution" in the task line, file name and
+  // sign-on sheet).
+  const addAll = (text) => { for (const word of String(text || '').toLowerCase().match(/[a-z]{5,}/g) || []) vocabulary.add(word); };
+  try {
+    const picks = require('./pick-lists.json');
+    for (const trade of picks.trades || []) {
+      addAll(trade.name);
+      for (const task of trade.tasks || []) { addAll(task.title); addAll(task.task); }
+    }
+  } catch {
+    // Without the pick lists, the library words alone.
+  }
+  try {
+    for (const trade of require('./trades').TRADES) addAll(trade.name);
+  } catch {
+    // Without the trades, the rest alone.
+  }
   return vocabulary;
 }
 

@@ -221,6 +221,18 @@
       else if (box && !box.value) box.value = read(key);
     }
     if (options.initial) take(panel, options.initial);
+    // A tick kept from before (on this device, or for this SWMS) for a part this draft prints differently
+    // comes off now: the draft changed since it was ticked (messy round 6, run 8: two ticks survived the
+    // job steps changing and the draft being prepared again).
+    else if (options.parts) {
+      const cleared = P().staleParts(panel.ticks, options.parts);
+      if (cleared.length) {
+        for (const id of cleared) delete panel.ticks[id];
+        panel.note = P().staleMessage(cleared);
+        panel.noteParts = cleared;
+        keep(panel);
+      }
+    }
     listen(prefix);
     changed(panel);
     if (!options.initial) refresh(prefix, { now: true });

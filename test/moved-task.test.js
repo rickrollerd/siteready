@@ -20,11 +20,11 @@ const draftOf = (task, extra = {}) => prepareDraft(draftBody({ ...BASE, task, ..
 const moved = (part, to = 'Fuel system') => ({ notCoveredElsewhere: { [part]: to }, notCoveredConfirmed: [part], movedOut: [part] });
 
 test('work moved into another SWMS of the project comes off the Task line it left, with its "and" or comma', () => {
-  const task = 'Install the generator, leak test the fuel line and hang the artwork.';
+  const task = 'Install the generator, flush the cooling system and hang the artwork.';
   const before = draftOf(task);
-  assert.deepEqual(before.notCovered, ['leak test the fuel line', 'hang the artwork']);
-  assert.equal(draftOf(task, moved('hang the artwork')).task, 'Install the generator and leak test the fuel line.');
-  assert.equal(draftOf(task, moved('leak test the fuel line')).task, 'Install the generator and hang the artwork.');
+  assert.deepEqual(before.notCovered, ['flush the cooling system', 'hang the artwork']);
+  assert.equal(draftOf(task, moved('hang the artwork')).task, 'Install the generator and flush the cooling system.');
+  assert.equal(draftOf(task, moved('flush the cooling system')).task, 'Install the generator and hang the artwork.');
   // A sentence of its own goes whole, and the next one starts with a capital.
   assert.equal(draftOf('Hang the artwork in the foyer. Install the generator.', moved('Hang the artwork in the foyer')).task, 'Install the generator.');
   // The work is still listed above the draft, named as covered in the other SWMS, so the move can be undone.
@@ -34,11 +34,11 @@ test('work moved into another SWMS of the project comes off the Task line it lef
 });
 
 test('outside a project, the SWMS named is only recorded and the Task line is as typed (D289)', () => {
-  const task = 'Install the generator and leak test the fuel line.';
-  const named = draftOf(task, { notCoveredElsewhere: { 'leak test the fuel line': 'Fuel SWMS' }, notCoveredConfirmed: ['leak test the fuel line'] });
+  const task = 'Install the generator and flush the cooling system.';
+  const named = draftOf(task, { notCoveredElsewhere: { 'flush the cooling system': 'Fuel SWMS' }, notCoveredConfirmed: ['flush the cooling system'] });
   assert.equal(named.task, task);
   // movedOut for a part not named as covered elsewhere changes nothing.
-  assert.equal(draftOf(task, { movedOut: ['leak test the fuel line'] }).task, task);
+  assert.equal(draftOf(task, { movedOut: ['flush the cooling system'] }).task, task);
 });
 
 test('work moved here is on the Task line of the SWMS it moved to, once', () => {
@@ -49,19 +49,19 @@ test('work moved here is on the Task line of the SWMS it moved to, once', () => 
 });
 
 test('the move changes the site details a person ticked as checked (D286), and prints on the Word file and the PDF', async () => {
-  const task = 'Install the generator, leak test the fuel line and hang the artwork.';
+  const task = 'Install the generator, flush the cooling system and hang the artwork.';
   const left = draftOf(task, moved('hang the artwork'));
   assert.deepEqual(parts.staleParts(parts.partHashes(draftOf(task)), parts.partHashes(left)), ['site']);
   const xml = await (await JSZip.loadAsync(Buffer.from(await draftToDocx(left, {})))).file('word/document.xml').async('string');
   const words = xml.replace(/<[^>]+>/g, '');
-  assert.match(words, /TaskInstall the generator and leak test the fuel line\./);
+  assert.match(words, /TaskInstall the generator and flush the cooling system\./);
   assert.doesNotMatch(words, /artwork/);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'moved-'));
   try {
     const file = path.join(dir, 'left.pdf');
     fs.writeFileSync(file, await draftToPdf(left, {}));
     const text = execFileSync('pdftotext', ['-layout', file, '-'], { encoding: 'utf8' }).replace(/\s+/g, ' ');
-    assert.match(text, /Install the generator and leak test the fuel line\./);
+    assert.match(text, /Install the generator and flush the cooling system\./);
     assert.doesNotMatch(text, /artwork/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

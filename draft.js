@@ -20,6 +20,22 @@ function cleanLine(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+// The task as one line to print, without a pasted scope's clause numbers ("1.", "3.2", "(a)") or its
+// pointers to the tender papers ("as specified in tender documentation"), which say nothing of the work
+// (messy round 6, run 2: three numbered scope lines named the SWMS "1" and printed "1.", "3." and "4.").
+const CLAUSE_NUMBER = /^[ \t]*(?:\(?\d{1,3}(?:\.\d{1,3})*[.)]|\d{1,3}(?:\.\d{1,3})+(?=[ \t]+[A-Z])|\(?[a-z]\)|\(?(?:i|ii|iii|iv|v|vi|vii|viii|ix|x)\))[ \t]+(?=\S)/gim;
+const INLINE_CLAUSE = /([.;:])[ \t]+(?:\(?\d{1,3}(?:\.\d{1,3})*[.)]|\d{1,3}(?:\.\d{1,3})+)[ \t]+(?=[A-Z])/g;
+const TENDER_POINTER = /,?[ \t]*(?:all[ \t]+)?(?:(?:as|where)[ \t]+(?:(?:specified|detailed|shown|noted|described|outlined|required|documented|nominated|indicated)[ \t]+)?(?:in|on|by|per|within|under)|in accordance with|in line with|to suit|per)[ \t]+(?:the[ \t]+)?(?:tender|contract|project|client'?s)[ \t]+(?:documentation|documents|docs|drawings|specifications?|specs?|scope(?: of works)?|requirements)\b/gi;
+function taskLine(value) {
+  // A numbered line ends its own sentence, so the lines do not run together once the numbers go.
+  const lines = String(value || '').split(/\r?\n/).map((line) => {
+    const bare = line.replace(CLAUSE_NUMBER, '');
+    return bare !== line && /\w$/.test(bare.trim()) ? `${bare.trim()}.` : bare;
+  });
+  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(TENDER_POINTER, '');
+  return cleanLine(text.replace(/[ \t]+([.,;:])/g, '$1').replace(/,(?=[.;:])/g, ''));
+}
+
 function blankName(value) {
   const text = cleanLine(value);
   if (!text) return '';
@@ -45,7 +61,9 @@ function noneAnswer(value) {
 }
 
 function sentences(text) {
-  return cleanLine(text)
+  // Each line is its own sentence: answers given in separate boxes never run together into one line
+  // (messy round 6, run 6: five site answers printed as one "Isolate or engineer" control).
+  return String(text || '').split(/\n+/).map(cleanLine).join('\n')
     .split(/(?<=[.])\s+|\n+/)
     .map((part) => part.trim())
     .filter(Boolean)
@@ -2215,7 +2233,8 @@ const withoutDenials = (text) => String(text || '').replace(DENIED_PART, ' ');
 const ACCESS_ROUTE = /\b(?:off|from|via)\s+(?:the\s+)?(?:[\w'-]+\s+){0,3}?(?:roads?|rd|streets?|st|highways?|hwy|avenues?|ave|drives?|parades?|boulevards?|terraces?|crescents?)\b/gi;
 function siteConditions(site) {
   const answers = Object.entries(site || {}).map(([key, value]) => (typeof value !== 'string' ? value : key === 'liveServices' ? value.replace(SERVICE_PLACE, '') : key === 'access' ? value.replace(ACCESS_ROUTE, ' ') : value));
-  return readSlang(answers.map(supplied).filter(Boolean).map(withoutDenials).filter((answer) => /\w/.test(answer)).join('\n'));
+  // Each answer is read on its own line, so answers never run together (messy round 6, run 6).
+  return answers.map(supplied).filter(Boolean).map(withoutDenials).filter((answer) => /\w/.test(answer)).map(readSlang).join('\n');
 }
 
 function combinedFacts(task, facts) {
@@ -2230,7 +2249,8 @@ function combinedFacts(task, facts) {
     facts.fallControl,
     facts.asbestosArrangement,
     facts.trenchSupport,
-  ].map(supplied).filter(Boolean).join('\n');
+    // Line by line: the site answers come as one per line, and each stays its own sentence.
+  ].map((value) => String(value || '').split(/\n+/).map(supplied).filter(Boolean).join('\n')).filter(Boolean).join('\n');
 }
 
 // Words that say a fact exists without stating it.
@@ -2368,12 +2388,16 @@ function weakAnswers(input) {
   const task = readSlang(fixSpelling(cleanLine(input.task || input.jobDescription)).text);
   const facts = withDesignHolds(input.facts, input.designs);
   const { helpText } = require('./answer-help');
+  // An answer typed that does not answer the question ("none" for the products used) is said under its box
+  // too, with why, rather than refused with no word (messy round 6, run 4).
+  const typedOnly = (item) => !keptFact(facts[item.id]) && cleanLine(facts[item.id]) && factState(item, task, facts, state) !== 'supplied';
   return (asked.required || [])
-    .filter((item) => !item.choices && keptFact(facts[item.id]))
-    .filter((item) => factState(item, task, facts, state) === 'vague')
+    .filter((item) => !item.choices && (keptFact(facts[item.id]) || typedOnly(item)))
+    .filter((item) => typedOnly(item) || factState(item, task, facts, state) === 'vague')
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
-      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]));
+      const typed = cleanLine(facts[item.id]);
+      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed.slice(0, 40)}" does not answer this question.` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });
 }
@@ -2496,7 +2520,9 @@ function controlsFor(task, facts, pack) {
   const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);
   if (asbestos && !isDenialLine(asbestos)) push('Administrative', asbestos);
 
-  const trench = trenchSupportText(acceptedText(source)) || keptFact(facts.trenchSupport);
+  // Read from the task and the answers to the questions, not the site answers: those print whole in the
+  // site table, never as part of a control (messy round 6, run 6).
+  const trench = trenchSupportText(acceptedText(combinedFacts(task, { ...facts, siteConditions: '' }))) || keptFact(facts.trenchSupport);
   if (trenchDig(source) && trench) push('Isolate or engineer', trench);
 
   const sheet = keptFact(facts.safetyDataSheet);
@@ -3137,7 +3163,10 @@ function withoutNotes(text, keep = () => false) {
 function taskParts(task, verbs, keep) {
   const lead = '(?:(?!(?:the|a|an|all|any|each|new|existing|its|their|our)\\b)[a-z-]+\\s+(?=\\S+\\s+(?:the|a|an|all|each|any|new|existing)\\b))?';
   const starts = new RegExp(`^${lead}(?:${verbs.source})`, 'i');
-  const newWork = (piece) => starts.test(piece) && !/^\S*(?:ing|ed|s|able)\b/i.test(piece.replace(new RegExp(`^${lead}`, 'i'), ''));
+  // A piece whose verb goes straight to a place ("fix to slab above") has no object of its own: it is
+  // the same work as the piece before it ("lift canopies up to ceiling and fix to slab above").
+  const noObject = new RegExp(`^${lead}(?:${verbs.source})\\s+(?:to|into|onto|in|on|at|from|off|over|under|up|down|above|below|with|through)\\b`, 'i');
+  const newWork = (piece) => starts.test(piece) && !noObject.test(piece) && !/^\S*(?:ing|ed|s|able)\b/i.test(piece.replace(new RegExp(`^${lead}`, 'i'), ''));
   const parts = [];
   for (const sentence of withoutNotes(task, keep).split(/[.;:](?!\d)/)) {
     const pieces = sentence.split(/(,\s*(?:and\s+|then\s+)?|\s+(?:and|then)\s+)/i);
@@ -3187,6 +3216,57 @@ function stepNamesPart(part, steps, verbs) {
     const text = stepWords([step.step, ...step.hazards, ...step.controls.map(withoutStateCodes)].join(' '));
     return step.step.split(/[^A-Za-z-]+/).some((word) => doing.has(workStem(word))) && things.some((word) => text.has(word));
   });
+}
+
+// Things the library names in other words: a canopy is a hood, a join is a seam.
+const SAME_THING = [['canopy', 'canopie', 'hood'], ['join', 'joint', 'seam'], ['doorframe', 'frame'], ['benchtop', 'bench'], ['sheet', 'panel']];
+const thingStem = (word) => { const found = stem(word); return (SAME_THING.find((group) => group.includes(found)) || [found])[0]; };
+// Verbs the library uses for the same work as the task's: lifting in is placing, priming is coating.
+const SAME_DOING = [['lift', 'hoist', 'land', 'plac', 'position', 'set'], ['seal', 'caulk', 'silicon'], ['cut', 'rout', 'trim'], ['compact', 'roll'], ['weld', 'fus']];
+const doingStem = (word) => { const found = workStem(word); return (SAME_DOING.find((group) => group.includes(found)) || [found])[0]; };
+const sameWord = (a, b) => a === b || (Math.min(a.length, b.length) >= 4 && (a.startsWith(b) || b.startsWith(a)));
+
+// The job step whose own lines already cover a part of the task, or '': one line of the step (its name, a
+// hazard or a control) names the part's work and what it works on (messy round 6: "fix to slab above"
+// beside a step whose line says hoods are "supported until fixed to structure", heat welded joins beside
+// "Weld vinyl seams with the hot air gun", sleepers "lifted in by machine" in "Build the retaining wall").
+function stepCoveringPart(part, steps) {
+  const { SITE_WORK } = require('./scope');
+  const text = String(part || '').replace(PART_WHEN, ' ');
+  const doing = [...new Set((text.match(new RegExp(SITE_WORK.source, 'gi')) || []).map((word) => doingStem(word.split(/\s+/)[0])))];
+  // What the work is done to: the words after the first verb, up to where it is done or what with ("cut
+  // sleepers with a quick cut saw", "hang the artwork from the scissor lift"). A verb that goes straight to
+  // a place or a tool is read with that ("weld to all joins", "compact with a plate compactor").
+  const verb = new RegExp(SITE_WORK.source, 'i').exec(text);
+  const after = verb ? text.slice(verb.index + verb[0].length) : text;
+  const PLACE = /\b(?:with|using|by|from|on|onto|off|in|into|at|to|for|under|over|above|below|through|across|along|around|near|beside|inside|outside|within|up|down|before|after|until|then)\b/i;
+  const cut = after.search(PLACE);
+  let object = cut < 0 ? after : after.slice(0, cut);
+  if (!partThings(object, SITE_WORK).length && cut >= 0) {
+    const rest = after.slice(cut).replace(PLACE, ' ');
+    const next = rest.search(PLACE);
+    object = next < 0 ? rest : rest.slice(0, next);
+  }
+  const things = [...new Set(partThings(object, SITE_WORK).map(thingStem))];
+  if (!doing.length || !things.length) return '';
+  const lineWords = (line) => String(line || '').split(/[^A-Za-z-]+/).filter(Boolean);
+  const found = steps.find((step) => !['Before starting', 'Finish and clean up'].includes(step.step) && [step.step, ...(step.hazards || []), ...(step.controls || []).map(withoutStateCodes)].some((line) => {
+    const words = lineWords(line);
+    const did = words.some((word) => doing.includes(doingStem(word)));
+    const on = words.map(thingStem).filter((word) => word.length >= 4 && !PART_GENERIC.test(word));
+    return did && things.some((thing) => on.some((word) => sameWord(thing, word)));
+  }));
+  return found ? found.step : '';
+}
+
+// A part of several pieces ("lift sleepers in with the excavator and chains, cut sleepers with quick cut
+// saw, ag drain and gravel backfill") is named by the pieces no step covers, or not at all.
+function uncoveredPieces(part, steps, verbs) {
+  const pieces = part.split(/,\s*(?:and\s+|then\s+)?/).map((piece) => piece.trim()).filter(Boolean);
+  const covered = (piece) => Boolean(stepCoveringPart(piece, steps)) || stepNamesPart(piece, steps, verbs);
+  if (pieces.length < 2) return covered(part) ? [] : [part];
+  const left = pieces.filter((piece) => !covered(piece));
+  return left.length === pieces.length ? [part] : left;
 }
 
 // Moving, lifting and storing materials: the draft's handling or lifting steps cover it.
@@ -3362,7 +3442,7 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
     // An in-ground pool's shell or structure, formed and poured, is the tank wall steps' work.
     if (/\bpool (?:shells?|structures?)\b/i.test(text) && inGroundPool(text) && steps.some((step) => /^(?:Form|Pour) the tank walls$/.test(step.step))) return false;
     const kinds = suggestedKinds(text, {}, { ...state, allWords: true });
-    if (Array.isArray(unmatched)) return !kinds.some((id) => inDraft.has(id) && !SUPPORT_KINDS.has(id));
+    if (Array.isArray(unmatched)) return !kinds.some((id) => inDraft.has(id) && !SUPPORT_KINDS.has(id)) && !stepNamesPart(text.replace(PART_WHEN, ' '), steps, SITE_WORK) && !stepCoveringPart(text, steps);
     // Site work: a work verb, not only a noun such as "installations" or "fixings", and not when
     // the work is done ("during the testing stages").
     const work = text.replace(PART_WHEN, ' ');
@@ -3373,7 +3453,7 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
     if (kinds.some((id) => inDraft.has(id)) && (!doing.length || partThings(work, SITE_WORK).every((word) => named.has(word)))) return false;
     if (handled && !doing.length) return false;
     return !stepNamesPart(work, steps, SITE_WORK);
-  }).map((part) => part.replace(/[.,;:]+$/, '')));
+  }).flatMap((part) => uncoveredPieces(part, steps, SITE_WORK)).map((part) => part.replace(/[.,;:]+$/, '')));
   // Work only the user's own steps cover (D211), and heavy items with no step that places them.
   // A picked task's own parts with no job steps come first (D184).
   // A picked task's own parts already name the work the user writes steps for, so they are not named twice.
@@ -3425,7 +3505,7 @@ function notCoveredRefusal(draft, input) {
   const parts = notCoveredLeft(draft);
   const ticked = input && Array.isArray(input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
   if (parts.every((part) => ticked.includes(part))) return '';
-  return `SiteWrite has no job steps for: ${parts.join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.`;
+  return `SiteWrite has no job steps for: ${parts.join('; ')}. Above the draft, write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it, before saving or downloading.`;
 }
 
 // A SWMS from a scope prints a plain list of the work (D251), but SiteWrite reads the work from the
@@ -3442,7 +3522,7 @@ function scopeWords(input) {
 }
 function printedTask(out, input) {
   if (!out || typeof out !== 'object' || typeof out.task !== 'string') return out;
-  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
+  const spelling = fixSpelling(taskLine(input.task || input.jobDescription));
   return { ...out, task: readSlang(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
 
@@ -3682,7 +3762,7 @@ function buildDraft(input, screen) {
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
   // The SWMS keeps the task as typed, with typos fixed but slang left as written.
-  const typed = fixSpelling(cleanLine(input.task || input.jobDescription)).text;
+  const typed = fixSpelling(taskLine(input.task || input.jobDescription)).text;
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   // A fall control answer the questions no longer ask (the fall answer changed to No after it was
@@ -3792,10 +3872,14 @@ function buildDraft(input, screen) {
     .filter((item) => (isCraneOrLift(task) || !LIFT_BLEED.test(item.text)) && !contradicts(item.text, controlText))
     .sort((a, b) => HIERARCHY_RANK[a.level] - HIERARCHY_RANK[b.level]);
 
-  const finalControls = dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
+  const keyed = dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
     const splitAt = key.indexOf('|');
     return { level: key.slice(0, splitAt), text: key.slice(splitAt + 1) };
   });
+  // A line already said, word for word, inside a longer line of the list prints once, in the longer line
+  // (messy round 6, run 5: one sentence of the fall answer printed again as its own control).
+  const flat = (text) => ` ${String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const finalControls = keyed.filter((item, index) => flat(item.text).trim().split(' ').length < 4 || !keyed.some((other, at) => at !== index && flat(other.text).length > flat(item.text).length && flat(other.text).includes(flat(item.text))));
   const hazards = hazardsFor(task, facts, pack);
   // Plant named only as checked in a generator test is not worked on, so it raises no category.
   // Nor does what the task says is not there ("No overhead lines on site").
@@ -4002,7 +4086,7 @@ function buildDraft(input, screen) {
   // The steps the user wrote for work SiteWrite does not cover go in once the registers and ratings
   // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
-  const edited = applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input);
+  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input), input);
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
@@ -4895,7 +4979,49 @@ function ownStepNotes(item) {
   return notes;
 }
 
-// The job steps with the user's own steps in, before the closing step, then in the order the user
+// Each step the user wrote goes where its work is done (messy round 6, run 4: frame fixing printed after
+// the doors were hung, as every own step went last): after the library step that names the same things,
+// or before it where the step says it is done before that work ("Seal bottoms of doors before hanging").
+// A step that names nothing of the library's goes last, before the closing step, as before.
+function ownStepPlace(item, steps) {
+  const { SITE_WORK } = require('./scope');
+  const words = `${item.name}. ${item.part || ''}`;
+  const before = (words.match(/\bbefore\s+([^,.;]+)/i) || [])[1] || '';
+  const things = new Set(partThings(words.replace(/\bbefore\s+[^,.;]+/gi, ' '), SITE_WORK).map(thingStem));
+  const doing = new Set((words.match(new RegExp(SITE_WORK.source, 'gi')) || []).map((word) => doingStem(word.split(/\s+/)[0])));
+  let best = null;
+  steps.forEach((step, index) => {
+    if (step.own || ['Before starting', CLOSING_STEP].includes(step.step)) return;
+    const name = step.step.split(/[^A-Za-z-]+/).filter(Boolean);
+    const lines = [...(step.hazards || []), ...(step.controls || []).map(withoutStateCodes)].join(' ').split(/[^A-Za-z-]+/).filter(Boolean);
+    const hits = (list) => [...things].filter((thing) => list.some((word) => sameWord(thing, thingStem(word)))).length;
+    const score = hits(name) * 3 + hits(lines) + (name.some((word) => doing.has(doingStem(word))) ? 1 : 0);
+    const ahead = before && partThings(before, SITE_WORK).length === 0 && before.split(/\s+/).some((word) => name.some((other) => doingStem(other) === doingStem(word)));
+    if (ahead) { if (!best || !best.ahead) best = { index, score: 99, ahead: true }; return; }
+    if (score >= 3 && (!best || (!best.ahead && score > best.score))) best = { index, score, ahead: false };
+  });
+  return best;
+}
+function placeOwnSteps(jobSteps, made, items) {
+  const out = [...jobSteps];
+  const closing = () => { const at = out.findIndex((step) => step.step === CLOSING_STEP); return at < 0 ? out.length : at; };
+  const last = new Map();
+  made.forEach((step, n) => {
+    const place = ownStepPlace(items[n] || { name: step.step }, out);
+    if (!place) { out.splice(closing(), 0, step); return; }
+    const anchor = out[place.index];
+    const at = place.index;
+    // Two steps placed at the same step keep the order they were written in.
+    const key = `${place.ahead ? 'before' : 'after'}:${anchor.step}`;
+    const after = last.get(key);
+    const index = after ? out.indexOf(after) + 1 : place.ahead ? at : at + 1;
+    out.splice(index, 0, step);
+    last.set(key, step);
+  });
+  return out;
+}
+
+// The job steps with the user's own steps in, each where its work is done, then in the order the user
 // put them in. With no steps of the user's own, the job steps are as they were.
 function withOwnSteps(draft, input) {
   const written = Array.isArray(input && input.ownSteps) ? input.ownSteps : [];
@@ -4905,8 +5031,7 @@ function withOwnSteps(draft, input) {
     const step = { step: `${item.name} ${OWN_STEP_MARK}`, hazards: [...item.hazards], controls: [...item.controls], own: true };
     return { ...step, responsible: item.who || positionFor({ step: item.name }), risk: riskFor(step) };
   });
-  const at = draft.jobSteps.findIndex((step) => step.step === CLOSING_STEP);
-  const jobSteps = at < 0 ? [...draft.jobSteps, ...made] : [...draft.jobSteps.slice(0, at), ...made, ...draft.jobSteps.slice(at)];
+  const jobSteps = placeOwnSteps(draft.jobSteps, made, ownStepsOf(input));
   // The parts of the task the user wrote a printed step for.
   const parts = new Set(ownStepsOf(input).map((item) => sameText(item.part)).filter(Boolean));
   return {
@@ -4915,6 +5040,20 @@ function withOwnSteps(draft, input) {
     notCoveredWritten: (draft.notCovered || []).filter((part) => parts.has(sameText(part))),
     ownStepNotes: written.map((item) => ({ name: item.name, part: item.part, prints: ownStepsOf({ ownSteps: [item] }).length > 0, notes: ownStepNotes(item) })),
   };
+}
+
+// Work the user says a job step of this SWMS already covers ("A step in this SWMS covers it", messy round
+// 6): dealt with, as a step of their own is, while that step is in the SWMS. Work moved here from another
+// SWMS of the project still needs the user's own step (D289). notCoveredInStep lists each with its step.
+function withStepCover(draft, input) {
+  const named = (input && input.notCoveredInStep) || {};
+  if (!Object.keys(named).length || !Array.isArray(draft.notCovered)) return draft;
+  const library = new Set((draft.jobSteps || []).filter((step) => !step.own && !['Before starting', CLOSING_STEP].includes(step.step)).map((step) => step.step));
+  // Work that is all the task's work (D211), or moved here from another SWMS (D289), needs the user's own step.
+  const moved = new Set([...movedInParts(input), ...(draft.notCoveredMain || [])].map(sameText));
+  const covered = draft.notCovered.filter((part) => library.has(cleanLine(named[part])) && !moved.has(sameText(part))).map((part) => ({ part, step: cleanLine(named[part]) }));
+  if (!covered.length) return draft;
+  return { ...draft, notCoveredInStep: covered, notCoveredWritten: [...new Set([...(draft.notCoveredWritten || []), ...covered.map((item) => item.part)])] };
 }
 
 // The parts of the task with no job steps that still need the tick: those the user has not written
@@ -7992,7 +8131,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { taskLine, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

@@ -69,6 +69,8 @@
     $('scope-file-clear').classList.add('hidden');
     $('scope-error').textContent = '';
     $('scope-results').innerHTML = '';
+    // Taken off, the reading of it is not brought back on the next visit either.
+    if ((keptReading() || {}).done) keepReading(null);
   });
 
   $('scope-read').addEventListener('click', async () => {
@@ -95,6 +97,8 @@
       // Owner decision, 7 October 2026: reading a scope needs an account, and the AI reads every
       // scope. Signed out, the scope is kept and read once the user signs in.
       if (!S.signedIn || !S.signedIn()) { await askToSignIn(body); return; }
+      // A new scope read: the finished reading kept from before is done with.
+      if ((keptReading() || {}).done) keepReading(null);
       await readScope(body);
     } catch (error) {
       $('scope-error').textContent = error.message;
@@ -198,6 +202,9 @@
 
   // A reading still running is kept in this browser by its id, so the page picks it up again when the
   // user comes back after it was closed or reloaded (a phone often reloads a page left in the background).
+  // A finished reading is kept too, with the packages ticked, until the user prepares the SWMS from it or
+  // reads another scope (messy round 6, run 1: a reload before Prepare lost the list, and the only way
+  // back was a second paid reading). Opening it again reads nothing: the server keeps the result.
   const READING_KEY = 'sitewrite-scope-reading';
   const keepReading = (value) => { try { if (value) localStorage.setItem(READING_KEY, JSON.stringify(value)); else localStorage.removeItem(READING_KEY); } catch { /* not kept */ } };
   const keptReading = () => { try { return JSON.parse(localStorage.getItem(READING_KEY) || 'null'); } catch { return null; } };
@@ -205,11 +212,13 @@
   async function resumeReading() {
     const kept = keptReading();
     if (!kept || !kept.id || running || !S.signedIn || !S.signedIn() || !S.call) return;
+    // A project already made from this reading has its own list: the reading is done with.
+    if (kept.done && project && project.from && project.from.readingId === kept.id) { keepReading(null); return; }
     $('scope-panel').open = true;
     $('scope-error').textContent = '';
     $('scope-read').disabled = true;
     try {
-      await readWithAi({ state: kept.state || '' }, kept.id);
+      await readWithAi({ state: kept.state || '' }, kept.id, kept.done ? kept.choice || { chosen: [], answers: {} } : null);
     } catch (error) {
       keepReading(null);
       // A reading that is gone (or another account's) is forgotten without a word; its bar goes too.
@@ -231,7 +240,7 @@
     return tracker;
   }
 
-  async function readWithAi(body, resumeId) {
+  async function readWithAi(body, resumeId, keptChoice = null) {
     running = true;
     let tracker = null;
     try {
@@ -256,14 +265,20 @@
         reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
         if (tracker && reading.status === 'reading') tracker.update(reading.progress);
       }
-      keepReading(null);
       if (reading.status !== 'done') {
+        keepReading(null);
         if (tracker) tracker.fail();
         $('scope-results').innerHTML = `${tracker ? tracker.html() : ''}<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
         return;
       }
       if (tracker) tracker.finish();
-      showPackages(reading, null, waited);
+      // Kept, finished, until the SWMS are prepared from it or another scope is read.
+      keepReading({ id: reading.id, state: body.state || '', done: true, choice: keptChoice || null });
+      // A finished reading brought back shows the list as it was left, with no message and no chime.
+      if (keptChoice) {
+        showPackages(reading, { crane: keptChoice.crane || '', slinging: keptChoice.slinging || '', answers: keptChoice.answers || {}, chosen: keptChoice.chosen || [] });
+        $('scope-results').insertAdjacentHTML('afterbegin', '<p class="note" role="status">The scope reading is back as you left it. Tick the packages you need, then press the Prepare button at the bottom.</p>');
+      } else showPackages(reading, null, waited);
     } catch (error) {
       // The bar stops where it was; the error shows as before. Refused at the start (a trial ended),
       // the "reading" note goes.
@@ -408,7 +423,14 @@
     } else return;
     $('scope-choice-error').textContent = '';
     $('scope-confirm').textContent = prepareButton();
+    keepChoice();
   });
+  // The ticks, crane answer and scope review answers, kept with the finished reading.
+  function keepChoice() {
+    const kept = keptReading();
+    if (!kept || !kept.done || !aiReading || kept.id !== aiReading.id || !choice) return;
+    keepReading({ ...kept, choice: { chosen: [...choice.ticked], crane: choice.crane || '', slinging: choice.slinging || '', answers: choice.answers || {} } });
+  }
   function redrawCard(work, index, focus) {
     const card = $(`scope-package-${index}`);
     card.outerHTML = packageCard(work[index], index);
@@ -463,6 +485,8 @@
     const slinging = crane === 'company' ? choice.slinging || '' : '';
     const items = C().projectItems(aiReading.reading, chosen, { answers: choice.answers, crane, slinging });
     startProject(items, { readingId: aiReading.id, state: aiReading.state || '', chosen, answers: choice.answers, crane, slinging });
+    // Prepared: the project holds the reading now, and "Change the SWMS chosen" opens it again.
+    if (project && project.from && project.from.readingId === aiReading.id) keepReading(null);
   }
 
   $('scope-results').addEventListener('click', (event) => {
@@ -481,6 +505,7 @@
       });
       $('scope-choice-error').textContent = '';
       $('scope-confirm').textContent = prepareButton();
+      keepChoice();
       return;
     }
     const clauses = event.target.closest('[data-scope-clauses]');
@@ -755,7 +780,7 @@
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick', 'write'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteWrite has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
-      ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, has work SiteWrite has no job steps for. Above its draft, write your own step for it, or say which SWMS covers it, to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
+      ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, has work SiteWrite has no job steps for. Above its draft, write your own step for it, say which of its steps covers it, or say which SWMS covers it, to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? (checked ? `<div class="actions"><button type="button" id="project-zip">Download ${checked} checked SWMS (Word and PDF, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '') + (checked < ready ? `<p class="note">${ready - checked === 1 ? 'One SWMS is' : `${ready - checked} SWMS are`} ready but not checked yet. Open each, tick each part as checked under its draft, and give your name and role.</p>` : '') : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <p class="meta" id="project-status" role="status"></p>
@@ -950,6 +975,11 @@
     item.emergencyAsked = askedEmergency(draft) || item.emergencyAsked;
     item.body = keptEmergency(body, item.emergencyAsked);
     item.kind = draft.kind;
+    // Prepared again here with the answers as they are now, it no longer needs preparing again (messy
+    // round 6, run 4: the list said both SWMS needed preparing again and were not checked, right after
+    // they were checked).
+    delete item.stale;
+    delete item.checkKept;
     shareEmergency(body.emergency);
     // The one-go page shows the answers as last given here (project-go.js). Site answers changed while
     // checking this SWMS become its own, so Prepare all does not put the shared ones back over them.

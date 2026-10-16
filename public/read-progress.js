@@ -238,7 +238,9 @@
   function announce({ heading, text, button, tab, go, after }) {
     const old = byId('read-done');
     if (old) { if (old.close) { try { old.close(); } catch { /* already closed */ } } old.remove(); }
-    doc.body.insertAdjacentHTML('beforeend', `<dialog class="read-done" id="read-done" role="alertdialog" aria-modal="true" aria-labelledby="read-done-title" aria-describedby="read-done-text">
+    // Not modal, and at the foot of the screen: the list it is about stays in view and can be ticked at
+    // once (messy round 6, runs 1 and 7: on a phone it covered the package list until it was closed).
+    doc.body.insertAdjacentHTML('beforeend', `<dialog class="read-done" id="read-done" role="alertdialog" aria-labelledby="read-done-title" aria-describedby="read-done-text">
   <p class="read-done-mark" aria-hidden="true">&#10003;</p>
   <h2 id="read-done-title">${esc(heading)}</h2>
   <p id="read-done-text">${esc(text)}</p>
@@ -263,7 +265,15 @@
     // Escape closes it, as Close does.
     dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(false); });
     dialog.addEventListener('close', () => close(false));
-    if (typeof dialog.showModal === 'function') { try { dialog.showModal(); } catch { dialog.setAttribute('open', ''); } } else dialog.setAttribute('open', '');
+    // A tap anywhere else on the page (a package ticked) closes it.
+    const outside = (event) => {
+      if (closed) { doc.removeEventListener('click', outside, true); return; }
+      if (event.target && event.target.closest && event.target.closest('#read-done')) return;
+      doc.removeEventListener('click', outside, true);
+      close(false);
+    };
+    doc.addEventListener('click', outside, true);
+    if (typeof dialog.show === 'function') { try { dialog.show(); } catch { dialog.setAttribute('open', ''); } } else dialog.setAttribute('open', '');
     const first = dialog.querySelector && dialog.querySelector('[data-read-done-go]');
     if (first && first.focus) first.focus();
     markTitle(tab || heading);
