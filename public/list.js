@@ -41,7 +41,7 @@
     }
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && signedIn) { session = ''; store.set(SESSION_KEY, ''); me = null; }
-    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field });
+    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, confirm: data.confirm });
     return data;
   }
   async function busy(button, text, fn) {
@@ -51,6 +51,10 @@
     try { return await fn(); } finally { button.disabled = false; button.textContent = before; }
   }
   const clauseWord = (items) => (items.length === 1 && !/[,;&]|\band\b/.test(items[0]) ? 'clause' : 'clauses');
+  // "Also covers: cells and secure areas and access equipment": the package names read as a list.
+  const coversList = (list) => { const names = list.map((name) => String(name).replace(/^trade installation:\s*/i, '').replace(/^./, (letter) => letter.toLowerCase())); return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || ''; };
+  // An ABN reads with its spaces wherever it shows (messy round 7: "66719388375").
+  const formatAbn = (abn) => { const d = String(abn || '').replace(/\D/g, ''); return d.length === 11 ? `${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8)}` : String(abn || ''); };
 
   // ---- The list ----
 
@@ -84,6 +88,8 @@
   }
 
   function card(item) {
+    // Once a company has taken up the list, its files show only to people signed in for it (messy round 7).
+    const hidden = item.uploadsHidden ? `<p class="meta">${item.uploadsHidden === 1 ? 'A file has' : `${item.uploadsHidden} files have`} been uploaded for this SWMS. Only people signed in for ${esc(list.filesFor)} can see ${item.uploadsHidden === 1 ? 'it' : 'them'} or take ${item.uploadsHidden === 1 ? 'it' : 'them'} off.</p>` : '';
     const files = item.uploads.length ? `<ul class="files">${item.uploads.map((file) => `<li><span>${esc(file.name)} <span class="meta">(${esc(file.type)}, uploaded ${esc(file.on)})</span></span><button type="button" class="danger" data-remove="${esc(file.id)}" data-name="${esc(file.name)}" data-title="${esc(item.title)}" aria-label="${esc(`Take ${file.name} off ${item.title}`)}">Take it off</button></li>`).join('')}</ul>` : '';
     const upload = list.uploadsOn ? `<details class="upload"><summary>${item.uploads.length ? 'Upload another file for this SWMS' : 'Upload a SWMS you have for this'}</summary>
         <label for="file-${esc(item.id)}">Your SWMS for ${esc(item.title)} <span class="hint">A PDF or a Word file (.docx), up to ${esc(list.uploadMaxMb)} MB.</span></label>
@@ -93,9 +99,9 @@
     return `<div class="swms" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>
       ${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}
       ${item.task ? `<p class="work">${esc(item.task)}</p>` : ''}
-      ${item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers your own ${esc(item.alsoCovers.join(', ').toLowerCase())}.</p>` : ''}
+      ${item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</p>` : ''}
       ${item.clauses.length ? `<p class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</p>` : ''}
-      ${files}${upload}<div id="item-${esc(item.id)}-status" role="status"></div></div>`;
+      ${files}${hidden}${upload}<div id="item-${esc(item.id)}-status" role="status"></div></div>`;
   }
 
   function fileError(itemId, message) {
@@ -179,13 +185,19 @@
       // A company that cannot take it up (another ABN, or another company has it) is told why, with no button.
       const refused = (claimNote && claimNote.kind === 'bad' && claimNote.message) || (ready && l.refusal);
       if (refused) {
-        html += `<p>Signed in for <strong>${esc(company.name)}</strong> (ABN ${esc(company.abn)}).</p><div class="bad">${esc(refused)}</div>
+        html += `<p>Signed in for <strong>${esc(company.name)}</strong> (ABN ${esc(formatAbn(company.abn))}).</p><div class="bad">${esc(refused)}</div>
           <p class="meta">You can still upload your SWMS above. If you signed in with the wrong account, sign out at the top of the page.</p>`;
         $('l-claim').innerHTML = html;
         return;
       }
-      if (ready) {
-        html += `<p>Take up this list for <strong>${esc(company.name)}</strong> (ABN ${esc(company.abn)}).${abnLine}</p><div class="actions"><button type="button" id="claim-go">Take up this list for ${esc(company.name)}</button></div>`;
+      if (ready && !l.abnSet) {
+        // With no ABN given, the company is asked whether the list is for it, naming the company it will
+        // be linked to (messy round 7: another company took it up with no question).
+        html += `<div class="ask" id="claim-ask"><p><strong>This list is for ${esc(l.subcontractor.name)}. Is that your company?</strong></p>
+          <p>Taking it up links it to <strong>${esc(company.name)}</strong> (ABN ${esc(formatAbn(company.abn))}) in SiteWrite, and ${esc(l.builder.name)} sees that ${esc(company.name)} has it.</p>
+          <div class="actions"><button type="button" id="claim-go" data-confirm="1">Yes, take it up for ${esc(company.name)}</button><button type="button" class="light" id="claim-no">No, it is not ours</button></div></div>`;
+      } else if (ready) {
+        html += `<p>Take up this list for <strong>${esc(company.name)}</strong> (ABN ${esc(formatAbn(company.abn))}).${abnLine}</p><div class="actions"><button type="button" id="claim-go">Take up this list for ${esc(company.name)}</button></div>`;
       } else {
         html += `<p>Add your company name and ABN. They link the list to your company, and print on your SWMS.${abnLine}</p>
           <form id="company" novalidate><label for="c-name">Company name</label><input id="c-name" type="text" autocomplete="organization" maxlength="200" value="${esc(company.name || '')}"><p class="field-error hidden" id="c-name-error"></p>
@@ -200,11 +212,12 @@
   async function claim(button) {
     await busy(button, 'Taking it up...', async () => {
       try {
-        const data = await call('POST', `/api/list/${encodeURIComponent(token)}/claim`, null, { signedIn: true });
+        const data = await call('POST', `/api/list/${encodeURIComponent(token)}/claim`, button.dataset.confirm ? { confirm: true } : null, { signedIn: true });
         claimNote = { kind: 'ok', message: data.message, listId: data.listId || '' };
       } catch (error) {
         if (error.status === 401) claimNote = { kind: 'warn', message: 'You have been signed out. Sign in again to take up the list.' };
         else if (error.field === 'company') claimNote = { kind: 'warn', message: error.message };
+        else if (error.confirm) claimNote = { kind: 'warn', message: error.message };
         else claimNote = { kind: 'bad', message: error.message };
       }
     });
@@ -214,7 +227,11 @@
 
   $('l-claim').addEventListener('click', async (event) => {
     const go = event.target.closest('#claim-go');
-    if (go) await claim(go);
+    if (go) { await claim(go); return; }
+    if (event.target.closest('#claim-no')) {
+      claimNote = { kind: 'warn', message: `Then do not take it up. ${list.uploadsOn ? 'You can still upload a SWMS above. ' : ''}If the list should be yours, contact ${list.from.name} at ${list.builder.name}${list.from.email ? ` (${list.from.email})` : ''}. If you signed in with the wrong account, sign out at the top of the page.` };
+      renderClaim();
+    }
   });
   document.addEventListener('click', async (event) => {
     if (!event.target.closest || !event.target.closest('#sign-out')) return;
@@ -251,7 +268,7 @@
       const name = $('c-name').value.trim();
       const abn = $('c-abn').value.trim();
       if (!name) { mark('c-name', 'Enter your company name.'); return; }
-      if (abn.replace(/\D/g, '').length !== 11) { mark('c-abn', 'Enter your company\'s 11 digit ABN.'); return; }
+      if (abn.replace(/\D/g, '').length !== 11) { mark('c-abn', 'That ABN is not valid. Check the 11 digits.'); return; }
       await busy($('company-go'), 'Saving...', async () => {
         try {
           const c = me.company || {};
@@ -259,6 +276,10 @@
           const data = await call('PUT', '/api/company', { name, abn, address: c.address || '', phone: c.phone || '', email: c.email || '' }, { signedIn: true });
           me.company = data.company;
           claimNote = null;
+          // The list again, now that the company is known: whether it can take the list up, and why not
+          // (messy round 7: a company another had beaten to it was asked "Is that your company?").
+          list = await call('GET', `/api/list/${encodeURIComponent(token)}`, null, { signedIn: true }).catch(() => list);
+          renderList();
         } catch (error) {
           if (/ABN/.test(error.message)) mark('c-abn', error.message);
           else mark('c-name', error.message);
@@ -266,7 +287,8 @@
         }
         renderClaim();
         const go = $('claim-go');
-        if (go) await claim(go);
+        if (go && !go.dataset.confirm) await claim(go);
+        else if (go) $('claim-ask').scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     }
   });
@@ -349,9 +371,10 @@
     renderList();
     if (fromLink && me) {
       $('l-claim').scrollIntoView({ block: 'start' });
-      // Back from the sign-in link with the company set up: the list is taken up straight away.
+      // Back from the sign-in link with the company set up: the list is taken up straight away when the
+      // ABN the builder gave settles it. With no ABN, the question "Is that your company?" waits.
       const go = $('claim-go');
-      if (go) await claim(go);
+      if (go && !go.dataset.confirm) await claim(go);
     }
   })();
 })();

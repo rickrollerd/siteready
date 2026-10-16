@@ -77,7 +77,7 @@ async function builder(prefix, orgName = 'Corbel Build Pty Ltd', { abn = '', ema
   const added = await call('POST', `/api/hse/projects/${projectId}/subcontracts`, { reviewer: lead, body: { name: 'Tallow Formwork Pty Ltd', trade: 'Formwork', email, abn } });
   assert.equal(added.status, 201, JSON.stringify(added.data));
   const subId = added.data.subcontract.id;
-  for (const [title, task] of [['Formwork to suspended slabs', 'Form up, pour and strip the suspended slabs on levels 1 to 4.'], ['Edge protection to slab edges', 'Put up and take down the edge screens at each slab edge.']]) {
+  for (const [title, task] of [['Formwork to suspended slabs', 'Form up, pour and strip the suspended slabs on levels 1 to 4.'], ['Edge protection to slab edges', 'Install and dismantle the edge screens at each slab edge.']]) {
     assert.equal((await call('POST', `/api/hse/subcontracts/${subId}/items`, { reviewer: lead, body: { title, task } })).status, 201);
   }
   return { lead, leadEmail, orgId: org.data.org.id, projectId, subId };
@@ -169,10 +169,12 @@ test('the email wording is the owner\'s, exactly, with the due date and nothing 
     'To review them, sign in to SiteWrite or start an account:',
     'LINK',
     '',
+    'You do not need SiteWrite: you can reply to this email, or upload your SWMS on the same page, with no account.',
+    '',
     '--',
     'Sent through SiteWrite for Corbel Build Pty Ltd. To stop these emails from Corbel Build Pty Ltd: STOP',
   ].join('\n'));
-  assert.equal(email.version, 1);
+  assert.equal(email.version, 2);
   assert.equal(listMail.fromName('Dana Whitfield'), 'Dana Whitfield via SiteWrite');
   const changed = listMail.compose({ kind: 'list_changed', person: 'Dana Whitfield', builder: 'Corbel Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs', 'Perimeter screens'], due: '2026-11-02', dueWas: '2026-10-30', changes: { added: ['Perimeter screens'], removed: ['Edge protection to slab edges'], changed: ['Formwork to suspended slabs'] }, link: 'LINK', stopLink: 'STOP' });
   assert.equal(changed.subject, 'Updated: SWMS required for Northgate Health Hub by 2 November 2026');
@@ -227,7 +229,7 @@ test('the lead checks the email, then sends it: From "{person} via SiteWrite", R
     'Dana Whitfield from Corbel Build Pty Ltd has reviewed your scope of works for Northgate Health Hub and has confirmed they require the following SWMS, which are ready for you to review in SiteWrite:',
     '', '\u2022 Formwork to suspended slabs', '\u2022 Edge protection to slab edges', '',
     `Submission due date: ${listMail.longDue(due)}`, '',
-    'To review them, sign in to SiteWrite or start an account:', `${base}/list.html?t=${token}`, '', '--',
+    'To review them, sign in to SiteWrite or start an account:', `${base}/list.html?t=${token}`, '', listMail.NO_ACCOUNT, '', '--',
     `Sent through SiteWrite for Corbel Build Pty Ltd. To stop these emails from Corbel Build Pty Ltd: ${base}/list.html?stop=${stop}`,
   ].join('\n'));
   assert.equal(message.html, undefined);
@@ -250,10 +252,15 @@ test('the lead checks the email, then sends it: From "{person} via SiteWrite", R
   assert.ok(project.data.log.some((entry) => /sent the SWMS list/.test(entry.text)));
   assert.equal(project.data.subcontracts[0].due, listMail.shortDue(due));
   assert.equal(project.data.subcontracts[0].lastContact.text, 'List sent');
-  // The same list again is refused: Remind is for that.
+  // The same list again is refused. Straight after sending, Remind cannot go yet either, so the refusal
+  // says when it can, not "Use Remind" (messy round 7).
   const again = await call('POST', `/api/hse/subcontracts/${b.subId}/send/preview`, { reviewer: b.lead, body: { due } });
   assert.equal(again.status, 409);
-  assert.match(again.data.message, /^The list has not changed since it was sent to office@send1-sub\.example on .+\. Use Remind to send a reminder\.$/);
+  assert.match(again.data.message, /^The list has not changed since it was sent to office@send1-sub\.example on .+\. The next reminder can go from .+\.$/);
+  await db.query("UPDATE list_links SET created_at = created_at - INTERVAL '49 hours' WHERE subcontract_id = $1", [b.subId]);
+  const later = await call('POST', `/api/hse/subcontracts/${b.subId}/send/preview`, { reviewer: b.lead, body: { due } });
+  assert.match(later.data.message, /^The list has not changed since it was sent to office@send1-sub\.example on .+\. Use Remind to send a reminder\.$/);
+  await db.query("UPDATE list_links SET created_at = created_at + INTERVAL '49 hours' WHERE subcontract_id = $1", [b.subId]);
 });
 
 test('sending needs a contact email, a SWMS on the list, the site details and the lead\'s name', async () => {

@@ -513,7 +513,8 @@
     // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
     // every print has a record. Later changes save as its next revision.
     const saveAndDownload = async (route, fallbackName) => {
-      const body = { ...S.actionInput, ...answersNow(kind), ...(kind === 'draft' ? confirmed('new') : {}), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
+      const listTitle = S.listSwmsTitle ? S.listSwmsTitle() : '';
+      const body = { ...S.actionInput, ...answersNow(kind), ...(kind === 'draft' ? confirmed('new') : {}), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}), ...(listTitle ? { swmsTitle: listTitle } : {}) };
       const { saved } = await download(route, fallbackName, body);
       if (!saved) return;
       // A new revision was saved when the number moved on from the one being changed.

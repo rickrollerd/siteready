@@ -744,7 +744,10 @@ app.use((error, req, res, _next) => {
   const preview = error.publicMessage && error.preview && typeof error.preview === 'object' ? { preview: error.preview } : {};
   // Stage 6: the company's newer work on a list, when a save came from a device that was behind.
   const progress = error.publicMessage && error.progress && typeof error.progress === 'object' ? { progress: error.progress } : {};
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...support, ...unverified, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview, ...progress });
+  // Messy round 7: SWMS on a list with no job steps, and a take-up that asks "Is that your company?".
+  const noSteps = error.publicMessage && Array.isArray(error.noSteps) ? { noSteps: error.noSteps } : {};
+  const confirm = error.publicMessage && error.confirm === true ? { confirm: true, forName: String(error.forName || ''), company: String(error.company || '') } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate, ...field, ...stale, ...conflict, ...register, ...taken, ...support, ...unverified, ...limit, ...replace, ...fields, ...tradeMismatch, ...preview, ...progress, ...noSteps, ...confirm });
 });
 
 // One worker per processor core, as many as the memory allows. A worker holds the step library, the word

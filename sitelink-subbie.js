@@ -75,24 +75,29 @@ async function contactOf(sub, org) {
 // The work each SWMS on the list covers, in the shape the one-go page opens (scope-choice.js
 // projectItems), with any price taken out (handover.js). A SWMS the lead added, or whose work the lead
 // changed, is read from the lead's words: the scope's words would no longer match it.
-function itemOf(row, view) {
+// The work folded into a SWMS (handover.withFolded) comes with it, so the SWMS drafts its steps too
+// (messy round 7). A SWMS the reading matched to no step group is drafted from its words.
+function itemOf(row, view, rows = []) {
   const item = row.item || {};
   const clean = (value) => handover.wordsWithoutPrices(value);
-  const task = clean(row.task);
+  const joined = handover.withFolded(row, rows);
+  const extra = clean(joined.extraTask);
+  const own = clean(row.task);
+  const task = extra ? `${own.replace(/[.\s]*$/, '.')} ${extra}` : own;
   const ownWords = row.source === 'added' || row.task_changed;
-  const scopeTask = ownWords || !item.scopeTask ? { plain: task, full: task, notes: '' } : { plain: clean(item.scopeTask.plain), full: clean(item.scopeTask.full), notes: clean(item.scopeTask.notes) };
+  const scopeTask = ownWords || !item.scopeTask ? { plain: task, full: task, notes: '' } : { plain: task, full: clean(joined.scopeFull) || task, notes: clean(item.scopeTask.notes) };
   return {
     requiredId: row.id,
     title: handover.nameWithoutPrices(row.title),
     task,
     scopeTask,
-    site: ownWords ? {} : Object.fromEntries(Object.entries(item.site || {}).map(([key, value]) => [key, clean(value)]).filter(([, value]) => value)),
-    plant: ownWords ? [] : (item.plant || []).map(clean).filter(Boolean),
+    site: ownWords ? {} : Object.fromEntries(Object.entries(joined.site || {}).map(([key, value]) => [key, clean(value)]).filter(([, value]) => value)),
+    plant: ownWords ? [] : (joined.plant || []).map(clean).filter(Boolean),
     trade: '',
     pick: item.pick || null,
-    kinds: Array.isArray(item.kinds) ? item.kinds : null,
-    leaveOut: Array.isArray(item.leaveOut) ? item.leaveOut : null,
-    unmatched: ownWords ? null : Array.isArray(item.unmatched) ? item.unmatched.map(clean).filter(Boolean) : null,
+    kinds: handover.draftKinds(joined.kinds),
+    leaveOut: Array.isArray(joined.leaveOut) ? joined.leaveOut : null,
+    unmatched: ownWords ? null : Array.isArray(joined.unmatched) ? joined.unmatched.map(clean).filter(Boolean) : null,
     fallRisk: item.fallRisk || '',
     fallHint: item.fallHint || '',
     crane: '',
@@ -102,7 +107,7 @@ function itemOf(row, view) {
     alsoCovers: view ? view.alsoCovers : [],
     // The scope reading's points that are not about who does or supplies what, kept on the list item
     // (rec7, sl6 decision 6): shown to the company as plain notes from the builder's scope, not questions.
-    draftNotes: notesOf(item.draftNotes),
+    draftNotes: notesOf(joined.draftNotes),
   };
 }
 
@@ -138,7 +143,7 @@ async function listView(found) {
     subcontractor: { name: sub.name, trade: sub.trade },
     due: { date: due, shown: due ? listMail.longDue(due) : '', past: Boolean(due) && due < todayIn(project.state) },
     contact: await contactOf(sub, org),
-    items: rows.map((one, i) => itemOf(one, view.swms[i])),
+    items: rows.map((one, i) => itemOf(one, view.swms[i], all)),
     answers: view.answers.map(({ by: _by, ...answer }) => answer),
     siteDetails: row ? { rev: Number(row.rev), setBy: row.set_by_name, setOn: when(row.set_at, project.state) } : null,
     builderSet: builderSet.builderSetOf({ workplace: project.workplace, pcName: project.pc_name || org.name }, details),
@@ -160,9 +165,11 @@ async function progressView(found, company, list) {
     seen: merged.seen,
     overrides: builderSet.overridesOf(list.builderSet, merged.page),
     updatedOn: row ? when(row.updated_at, found.project.state) : '',
-    updatedBy: row ? row.updated_by_name : '',
+    updatedBy: row ? nameOnly(row.updated_by_name) : '',
   };
 }
+// A name kept before this rule may be an email address: it is not shown.
+const nameOnly = (value) => (String(value || '').includes('@') ? '' : String(value || ''));
 
 // How far the company has got, for its list of lists: from its own saved work only.
 function progressSummary(row, total) {
@@ -227,7 +234,7 @@ router.get('/from-builders', route(async (req, res) => {
       project: { name: project.name, workplace: project.workplace },
       subcontractor: { name: sub.name, trade: sub.trade },
       due: { date: due, shown: due ? listMail.longDue(due) : '', past: Boolean(due) && due < todayIn(project.state) },
-      progress: { ...progressSummary(row, kept), ...(await require('./sitelink-submit').companySummary(sub)), updatedOn: row ? when(row.updated_at, project.state) : '', updatedBy: row ? row.updated_by_name : '' },
+      progress: { ...progressSummary(row, kept), ...(await require('./sitelink-submit').companySummary(sub)), updatedOn: row ? when(row.updated_at, project.state) : '', updatedBy: row ? nameOnly(row.updated_by_name) : '' },
     });
   }
   res.json({ lists, access: auth.hasAccess(req.company) });
@@ -259,7 +266,11 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
   const overrides = builderSet.overridesOf(list.builderSet, page);
   const base = Number(body.baseVersion);
   if (!Number.isInteger(base) || base < 0) throw fail(400, 'Reload the page, then carry on.');
-  const who = String(req.user.name || req.user.email || '').slice(0, 200);
+  // Who saved, by name, never an email address (messy round 7: "by r7c-office-...@siteready.test"). A
+  // person with no name on their account is named by the "Prepared by" name on the page, if any.
+  const typedBy = page && typeof page.preparedBy === 'string' ? page.preparedBy : '';
+  const given = typedBy.split(',')[0].replace(/\s+/g, ' ').trim().slice(0, 120);
+  const who = String(req.user.name || (given && !given.includes('@') ? given : '')).slice(0, 200);
   const now = new Date();
   const kept = { project, page };
   const saved = await db.transaction(async (tx) => {

@@ -300,7 +300,7 @@ test('one free trial per ABN, and the ABN must be a valid ABN', async () => {
   const first = await signIn('first@abn.example', { company: false });
   const bad = await call('PUT', '/api/company', { token: first, body: { name: 'First Co', abn: '12 345 678 901' } });
   assert.equal(bad.status, 400);
-  assert.match((await bad.json()).message, /not a valid ABN/);
+  assert.match((await bad.json()).message, /^That ABN is not valid\. Check the 11 digits\.$/);
   const ok = await call('PUT', '/api/company', { token: first, body: { name: 'First Co', abn: '83 914 571 673' } });
   assert.equal(ok.status, 200);
   assert.equal((await ok.json()).company.hasAccess, true, 'the first business with the ABN gets the trial');

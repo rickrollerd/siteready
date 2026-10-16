@@ -209,7 +209,8 @@ test('the list holds only what is needed: support work folds into the main SWMS,
     assert.equal(by[title].group, 'removed', title);
     assert.equal(by[title].removedWhy, 'Part of Ductwork and mechanical units: whole project to start with: the subcontractor\'s own work of this kind goes in that SWMS. Put it back to ask for a SWMS of its own.');
   }
-  assert.deepEqual(main.alsoCovers, ['Materials handling', 'Housekeeping and waste', 'Access equipment']);
+  // Messy round 7: a one-line "Trade installation:" package with no certain high risk work goes in too.
+  assert.deepEqual(main.alsoCovers, ['Trade installation: plant', 'Materials handling', 'Housekeeping and waste', 'Access equipment']);
   assert.equal(by.Maintenance.group, 'removed');
   assert.match(by.Maintenance.removedWhy, /maintenance in the defects period/);
   // Controls: no high risk construction work, so set aside in its own group.
@@ -224,7 +225,7 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   const preview = JSON.stringify(page.preview);
   assert.doesNotMatch(preview, /may not need/);
   assert.deepEqual(page.preview.swms.map((item) => item.title), page.items.filter((item) => item.group === 'list').map((item) => item.title));
-  assert.deepEqual(page.preview.swms[0].alsoCovers, ['Materials handling', 'Housekeeping and waste', 'Access equipment']);
+  assert.deepEqual(page.preview.swms[0].alsoCovers, ['Trade installation: plant', 'Materials handling', 'Housekeeping and waste', 'Access equipment']);
   // The defects-period point is not asked while its SWMS is off the list; the main SWMS's point is,
   // and it starts with a capital letter.
   const point = (text) => page.points.find((one) => one.question.startsWith(text));
@@ -277,7 +278,8 @@ test('the list rules on a made-up reading: folding, defects and set aside, with 
     { package: 'Controls', categories: [], dependsOn: [] },
     { package: 'Materials handling', categories: [], dependsOn: [] },
     { package: 'Housekeeping and waste', categories: [], dependsOn: [] },
-    // Access equipment with high risk work of its own stays a SWMS of its own.
+    // Access equipment with high risk work of its own folds into the main SWMS too, which then names it
+    // (messy round 7).
     { package: 'Access equipment', categories: [{ id: 'fall', short: 'Fall of more than 2 m', likely: false }], dependsOn: [] },
     { package: 'Maintenance', categories: [], dependsOn: [] },
   ];
@@ -285,11 +287,11 @@ test('the list rules on a made-up reading: folding, defects and set aside, with 
   const why = Object.fromEntries(list.map((item) => [item.title, item.removedWhy]));
   assert.deepEqual(why, {
     'Ductwork and mechanical units: whole project': '',
-    'Trade installation: plant': '',
+    'Trade installation: plant': 'folded',
     Controls: 'noLaw',
     'Materials handling': 'folded',
     'Housekeeping and waste': 'folded',
-    'Access equipment': '',
+    'Access equipment': 'folded',
     Maintenance: 'defects',
   });
   assert.equal(list.find((item) => item.title === 'Trade installation: plant').highRisk.status, 'depends');
@@ -399,7 +401,7 @@ test('the project log records subcontracts, scopes, list changes and invitations
   await call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: mate, body: { baseRev: 1, details: { musterPoint: 'Assembly area B by the site office' } } });
   const project = (await call('GET', `/api/hse/projects/${projectId}`, { reviewer: lead })).data;
   const log = project.log.map((entry) => entry.text);
-  for (const text of ['Dana Whitfield invited mate-r6j@siteready.test to the team.', 'Dana Whitfield added the subcontract Coolwater Air Pty Ltd (Mechanical).', 'Dana Whitfield uploaded Mechanical scope.txt as the scope for Coolwater Air Pty Ltd, and SiteLink read it.', 'Dana Whitfield put Controls on the SWMS list for Coolwater Air Pty Ltd.', 'Dana Whitfield added Crane lift to the SWMS list for Coolwater Air Pty Ltd.']) {
+  for (const text of ['Dana Whitfield invited mate-r6j@siteready.test to the team.', 'Dana Whitfield added the subcontract Coolwater Air Pty Ltd (Mechanical).', 'Dana Whitfield uploaded Mechanical scope.txt as the scope for Coolwater Air Pty Ltd. SiteLink is reading it.', 'SiteLink read Mechanical scope.txt, the scope for Coolwater Air Pty Ltd, and listed 1 SWMS.', 'Dana Whitfield put Controls on the SWMS list for Coolwater Air Pty Ltd.', 'Dana Whitfield added Crane lift to the SWMS list for Coolwater Air Pty Ltd.']) {
     assert.ok(log.includes(text), `${text} in ${JSON.stringify(log)}`);
   }
   assert.deepEqual(project.replaced, { by: 'Sam Okafor', rev: 2, details: ['muster point'] });

@@ -55,11 +55,19 @@ async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at) VALUES ($1, $2, $3, $4)',
     [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000)]);
   const link = `${appUrl(req)}/?login=${token}`;
-  const opening = invitedBy ? `${invitedBy} has added you to their company on SiteWrite.` : 'Use this link to sign in to SiteWrite.';
+  // An invitation reads as one, not as a sign-in the person asked for (messy round 7), as SiteLink's does.
+  if (invitedBy) {
+    await sendMail({
+      to: email,
+      subject: `${invitedBy} has added you on SiteWrite`,
+      text: `${invitedBy} has added you to their company on SiteWrite. Use this link to sign in and see its SWMS.\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${appUrl(req)} and sign in with this email address. If you did not expect this email, you can ignore it.`,
+    });
+    return;
+  }
   await sendMail({
     to: email,
     subject: 'Your SiteWrite sign-in link',
-    text: `${opening}\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
+    text: `Use this link to sign in to SiteWrite.\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. If you did not ask for it, you can ignore this email.`,
   });
 }
 

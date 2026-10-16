@@ -59,6 +59,7 @@ function dateTime(date, state) {
 const PEOPLE = { firstAider: { firstAider: true }, siteManager: {}, scaffoldSupervisor: { example: 'Pat Doyle, Tallow Scaffolding, 0412 345 678' } };
 const PLACES = ['musterPoint', 'firstAidLocation'];
 function detailProblem(field, value) {
+  if (field.key === 'firstAider') return answers.firstAiderProblem(value);
   if (PEOPLE[field.key]) return answers.personProblem(value, PEOPLE[field.key]);
   if (PLACES.includes(field.key)) return answers.placeProblem(value);
   if (field.key === 'hospital') return answers.hospitalProblem(value);
@@ -86,13 +87,17 @@ function cleanDetails(body) {
         .filter(Boolean).slice(0, RULES_LIMIT);
       const bad = out[field.key].find((line) => PLACEHOLDER.test(line));
       const weak = bad ? '' : out[field.key].map((line) => answers.notAnswer(line)).find(Boolean);
+      out[field.key] = out[field.key].map(answers.tidyPlace);
       if (bad) found[field.key] = `Take out the rule "${bad}". Add the site rules once you know them.`;
       else if (weak) found[field.key] = `${weak} Write the rule in full, or take it out.`;
     } else {
-      out[field.key] = oneLine(raw, FIELD_LIMIT);
-      if (PLACEHOLDER.test(out[field.key])) found[field.key] = `Leave ${field.label.toLowerCase()} empty until you know it. Contractors would see "${out[field.key]}" on their SWMS.`;
+      // Typed case is tidied as it reads, without changing a word (messy round 7).
+      // The problem is said in the words as typed.
+      const typedValue = oneLine(raw, FIELD_LIMIT);
+      out[field.key] = PEOPLE[field.key] || field.key === 'hospital' ? answers.tidyPerson(typedValue) : PLACES.includes(field.key) ? answers.tidyPlace(typedValue) : typedValue;
+      if (PLACEHOLDER.test(typedValue)) found[field.key] = `Leave ${field.label.toLowerCase()} empty until you know it. Contractors would see "${typedValue}" on their SWMS.`;
       else {
-        const weak = detailProblem(field, out[field.key]);
+        const weak = detailProblem(field, typedValue);
         if (weak) found[field.key] = weak;
       }
     }
@@ -219,7 +224,7 @@ async function newAbn(body, name, reviewer) {
   if (!abn) throw Object.assign(fail(400, 'Enter the company\'s ABN. It links this account to your company.'), { field: 'abn' });
   if (!validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits.'), { field: 'abn' });
   await refuseTakenAbn(abn);
-  if (testSetUp(reviewer)) return { abn, check: 'unavailable', names: [] };
+  if (testSetUp(reviewer)) return { abn, check: 'test', names: [] };
   const result = await checkAbn(abn, name);
   if (result.check === 'missing') throw Object.assign(fail(400, notListed(abn)), { field: 'abn' });
   if (result.check === 'cancelled') throw Object.assign(fail(400, 'The ABN register shows that ABN as cancelled. Check the 11 digits, or enter the company\'s current ABN.'), { field: 'abn' });
@@ -246,6 +251,7 @@ function abnNote(org) {
   if (org.abn_check === 'name' && names.length) return `The ABN register lists this ABN under ${readableCompany(names[0])}. The account shows Unverified. If this account is for ${readableCompany(names[0])}, contact SiteWrite at ${supportEmail()} to have it checked.`;
   if (org.abn_check === 'cancelled') return 'The ABN register shows this ABN as cancelled. The account shows Unverified.';
   if (org.abn_check === 'missing') return 'This ABN is not on the ABN register. The account shows Unverified.';
+  if (org.abn_check === 'test') return 'The ABN register is not checked for a test address. The account shows Unverified.';
   return 'The ABN register could not be checked yet. The account shows Unverified until it is.';
 }
 
@@ -405,6 +411,8 @@ const checkMessage = (check) => ({
   verified: 'Its ABN matches the ABN register.',
   name: 'It shows Unverified until its name matches the ABN register.',
   unavailable: 'The ABN register could not be checked just now, so the account shows Unverified for now.',
+  // Staging: a test address's ABN is not checked at all (messy round 7: it said "could not be checked").
+  test: 'The ABN register was not checked, because this is a test address. The account shows Unverified.',
 })[check] || 'It shows Unverified.';
 
 router.post('/hse/orgs', route(async (req, res) => {
@@ -521,7 +529,7 @@ router.post('/hse/orgs/:orgId/abn-check', route(async (req, res) => {
   const { org, role } = await membership(req, req.params.orgId);
   requireLead(role, 'Only the lead can change the account details.');
   if (!org.abn) throw Object.assign(fail(400, 'Add the company\'s ABN first.'), { field: 'abn' });
-  const checked = testSetUp(req.reviewer) ? { check: 'unavailable', names: [] } : await checkAbn(org.abn, org.name, keptNames(org));
+  const checked = testSetUp(req.reviewer) ? { check: 'test', names: [] } : await checkAbn(org.abn, org.name, keptNames(org));
   await db.query('UPDATE orgs SET abn_check = $1, abn_names = $2, abn_checked_at = $3, abn_verified_at = $4 WHERE id = $5', [...checkColumns(checked, org, new Date()), org.id]);
   const saved = await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]);
   res.json({

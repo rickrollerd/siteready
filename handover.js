@@ -183,10 +183,43 @@ const DEFECTS = /\bdefects? (?:liability )?period\b|\bdefects liability\b|\bDLP\
 const MAINTENANCE = /\b(?:maint\w*|servicing|warranty)\b/i;
 function defectsOnly(pack) {
   const words = (row) => `${row.activity || ''} ${(row.quotes || []).join(' ')}`;
-  return MAINTENANCE.test(pack.name) && pack.rows.every((row) => DEFECTS.test(words(row)) || MAINTENANCE.test(row.activity));
+  // At least one row is in the defects period: maintenance before handover is the trade's own work
+  // during the job (messy round 7).
+  return MAINTENANCE.test(pack.name) && pack.rows.some((row) => DEFECTS.test(words(row))) && pack.rows.every((row) => DEFECTS.test(words(row)) || MAINTENANCE.test(row.activity));
 }
 // High risk work the package's own words carry: a category that is not only likely.
 const ownHighRisk = (flag) => ((flag && flag.categories) || []).some((item) => !item.likely);
+
+// Packages whose names say no job of their own (messy round 7: one mechanical scope gave 17 SWMS,
+// with "Electrical", "Controls", "Maintenance", "Access equipment" and "Trade installation: cells"):
+//   - a bare discipline or catch-all name ("Electrical", "Controls", "General"): the trade's own work
+//     of that kind, which goes with the like work in another package of the list;
+//   - maintenance before handover: the trade running and servicing its own plant, which goes with its
+//     testing and commissioning;
+//   - "Trade installation: {an area or one item}" ("cells", "services walkways", "louvres"): more of
+//     the trade's installation, which goes with its main SWMS unless it carries certain high risk work.
+const GENERIC = /^(?:electrical(?: works?)?|controls?|bms|services|general(?: works?)?|other work|miscellaneous|sundr\w*|ancillary(?: works?)?|builders?['’]? works?|attendance)$/i;
+const genericName = (name) => GENERIC.test(String(name || '').replace(/^trade installation:\s*/i, '').replace(/:\s*whole project$/i, '').trim());
+const PART = /^trade installation:\s*(?!whole project\b)\S/i;
+// An area or a room, not a kind of work: "cells and secure areas", "services walkways", "plant room".
+const AREA = /\b(?:cells?|secure areas?|plant ?rooms?|walkways?|bathrooms?|wet areas?|toilets?|amenities|kitchenettes?|shafts?|risers?|levels?|floors?|basements?|car ?parks?|eaves|areas?|rooms?|zones?|wings?|blocks?|buildings?|gatehouse|facilit(?:y|ies)|apartments?|ground floor|roof ?spaces?|ceiling spaces?|plenums?)\b/i;
+const smallPart = (name, activities) => PART.test(name) && (AREA.test(String(name).replace(/^trade installation:\s*/i, '')) || activities <= 2);
+const COMMISSIONING = /\b(?:testing|commissioning)\b/i;
+// A package named for maintenance or servicing ("Maintenance", "Preventative maintenance"), not one
+// that only maintains something ("Jumpform: install, climb, maintain and dismantle").
+const MAINTENANCE_NAME = /^(?:(?:preventative|preventive|routine|planned|scheduled|plant|systems?|services)\s+)?(?:maintenance|servicing)\b/i;
+// The rows of a maintenance package done in the defects period become their own package, which
+// starts removed, so maintenance during the work is not lost with them (messy round 7: "Maintenance"
+// held filter changes before handover and the defects-period servicing, and stayed on the list).
+const DEFECTS_PACKAGE = 'Maintenance in the defects period';
+const inDefects = (row) => DEFECTS.test(`${row.activity || ''} ${(row.quotes || []).join(' ')}`);
+function splitDefects(reading) {
+  const work = (reading.activities || []).filter((row) => row.type !== 'Duty');
+  const mixed = new Set([...new Set(work.map((row) => row.package))].filter((name) => MAINTENANCE.test(name || '')
+    && work.some((row) => row.package === name && inDefects(row)) && work.some((row) => row.package === name && !inDefects(row))));
+  if (!mixed.size) return reading;
+  return { ...reading, activities: (reading.activities || []).map((row) => (row.type !== 'Duty' && mixed.has(row.package) && inDefects(row) ? { ...row, package: DEFECTS_PACKAGE } : row)) };
+}
 
 // "Moving powered mobile plant" comes from the step groups matched to a package. Where the package's
 // own words never move, lift or drive anything (messy round 6: "acoustic and vibration separation
@@ -215,7 +248,7 @@ const packWords = (pack) => pack.rows.map((row) => `${row.activity || ''} ${row.
 //   - work the reading finds no high risk construction work in ("may not need a SWMS by law") is set
 //     aside in its own group (removedWhy 'noLaw'), for the lead to move onto the list if needed.
 function listItems(reading) {
-  const safe = scrubReading(reading);
+  const safe = splitDefects(scrubReading(reading));
   const { work } = scopeChoice.packagesOf(safe);
   const flags = new Map((safe.highRisk || []).map((item) => [item.package, item]));
   const craneClause = scopeChoice.craneClause(safe);
@@ -227,21 +260,143 @@ function listItems(reading) {
     if (flag && flag.offSite) removedWhy = 'offSite';
     else if (scopeChoice.isCranage(pack.name) && !craneClause) removedWhy = 'cranage';
     else if (defectsOnly(pack)) removedWhy = 'defects';
-    return { package: pack.name, removedWhy, support: supportKind(pack.name), ownHighRisk: ownHighRisk(flag), ...itemFields(item, pack, flag) };
+    const kind = supportKind(pack.name) ? 'support' : MAINTENANCE_NAME.test(pack.name) ? 'maintenance' : genericName(pack.name) ? 'generic' : smallPart(pack.name, pack.rows.length) ? 'part' : '';
+    return { package: pack.name, removedWhy, kind, ownHighRisk: ownHighRisk(flag), ...itemFields(item, pack, flag) };
   });
-  // The trade's main SWMS: the package with the most work in it that is not support work, and not
-  // testing, set-up or making good, when there is one. Support work folds into it, and goes where it
-  // goes: set aside with it, or onto the list when the lead moves it there.
+  // The trade's main SWMS: the package with the most work in it that names a job of its own, and is not
+  // testing, set-up or making good, when there is one. The rest fold into the SWMS their work goes
+  // with, and go where it goes: set aside with it, or onto the list when the lead moves it there.
   const SECONDARY = /\b(?:testing|commissioning|demolition|strip[- ]?out|set[- ]?up|establishment|protection|making good|penetrations?|core drilling)\b/i;
-  const main = out.filter((item) => !item.removedWhy && !item.support)
+  const listed = (item) => !item.removedWhy;
+  // A bare discipline name can be the main SWMS: "Electrical" in an electrical subcontract.
+  const main = out.filter((item) => listed(item) && !['support', 'maintenance'].includes(item.kind))
     .sort((a, b) => (SECONDARY.test(a.package) ? 1 : 0) - (SECONDARY.test(b.package) ? 1 : 0) || b.activities.length - a.activities.length)[0];
+  const fold = (item, into) => {
+    if (!into || into === item) return false;
+    item.removedWhy = 'folded';
+    item.foldedInto = into.package;
+    return true;
+  };
+  const noLaw = (item) => item.highRisk && item.highRisk.status === 'none';
+  // Bare discipline names go together, under the one with the most certain high risk work and the
+  // most work in it ("Controls" goes with "Electrical"); one alone stays if its own words carry certain
+  // high risk work, and otherwise goes with the main SWMS.
+  const generics = out.filter((item) => listed(item) && item.kind === 'generic' && !noLaw(item) && item !== main);
+  const host = generics.slice().sort((a, b) => (b.ownHighRisk ? 1 : 0) - (a.ownHighRisk ? 1 : 0) || b.activities.length - a.activities.length)[0];
+  const commissioning = out.find((item) => listed(item) && !item.kind && item !== main && COMMISSIONING.test(item.package) && !noLaw(item));
   for (const item of out) {
-    if (!item.removedWhy && main && item.support && !item.ownHighRisk) {
-      item.removedWhy = 'folded';
-      item.foldedInto = main.package;
-    } else if (!item.removedWhy && item.highRisk && item.highRisk.status === 'none') item.removedWhy = 'noLaw';
+    if (!listed(item) || item === main) continue;
+    // The trade's own housekeeping, materials handling and access equipment always go in its main SWMS,
+    // and bring their high risk work with them (messy round 7: access equipment with a fall stayed a
+    // SWMS of its own).
+    if (item.kind === 'support') { fold(item, main); continue; }
+    if (noLaw(item)) continue;
+    if (item.kind === 'maintenance') fold(item, commissioning || main);
+    else if (item.kind === 'generic' && item !== host) fold(item, host);
+    else if (item.kind === 'generic' && generics.length === 1 && !item.ownHighRisk) fold(item, main);
+    else if (item.kind === 'part' && !item.ownHighRisk) fold(item, main);
   }
-  return out.map(({ support, ownHighRisk: own, ...item }) => item);
+  // Work the reading finds no high risk construction work in is set aside, counting the work folded
+  // into it: a SWMS that takes in access equipment with a fall is on the list.
+  for (const item of out) {
+    if (!listed(item)) continue;
+    const joined = riskJoined([item.highRisk, ...out.filter((other) => other.removedWhy === 'folded' && other.foldedInto === item.package).map((other) => other.highRisk)]);
+    if (item.highRisk && (!joined || joined.status === 'none')) item.removedWhy = 'noLaw';
+  }
+  return out.map(({ kind, ownHighRisk: own, ...item }) => item);
+}
+
+// ---- What a SWMS on the list holds once the work folded into it is counted ----
+
+// A high risk summary (hrcwSummary) read back into its parts: the categories that are certain, and
+// those that are likely or depend on something ("Fall of more than 2 m, depending on the working
+// height"). The summary is what each list item keeps.
+function riskParts(summary) {
+  const out = { certain: [], likely: [], depends: [] };
+  if (!summary || !summary.lines || !summary.lines[0]) return out;
+  // Already in SiteLink's words: what may also apply is on its own line.
+  const also = summary.siteLink && summary.status === 'yes' ? /^It may also be (.*)\. The SWMS questions will confirm it$/.exec(summary.lines[1] || '') : null;
+  if (also) {
+    for (const part of splitOutside(also[1], '; ')) {
+      const at = part.indexOf(', depending on ');
+      if (at > 0) out.likely.push({ short: part.slice(0, at).replace(/^./, (letter) => letter.toUpperCase()), on: part.slice(at + ', depending on '.length) });
+    }
+  }
+  const inside = /\((.*)\)\s*$/.exec(summary.lines[0]);
+  if (!inside) return out;
+  // Split at "; " outside brackets: a reason can hold its own brackets ("(A2L, A2 and A3 refrigerants are flammable)").
+  for (const part of splitOutside(inside[1], '; ')) {
+    const at = part.indexOf(', depending on ');
+    if (at < 0) out.certain.push(part);
+    else (summary.status === 'depends' ? out.depends : out.likely).push({ short: part.slice(0, at), on: part.slice(at + ', depending on '.length) });
+  }
+  return out;
+}
+
+// The high risk line SiteLink shows, on the lead's page, in the preview, on the list page and on the
+// subcontractor's drafts alike (messy round 7: "This work needs a SWMS by law" sat beside "depending on
+// the working height"). "Needs a SWMS by law" only when a category is certain; the categories that
+// depend on something are said as likely, each with what it depends on.
+function siteLinkRisk(parts) {
+  const likely = [...parts.likely, ...parts.depends].filter((one, i, all) => !parts.certain.includes(one.short) && all.findIndex((other) => other.short === one.short) === i);
+  const named = (list) => list.map((one) => `${one.short}, depending on ${one.on}`).join('; ');
+  if (parts.certain.length) {
+    const lines = [`It is high risk construction work (${parts.certain.join('; ')})`];
+    if (likely.length) lines.push(`It may also be ${named(likely).replace(/^./, (letter) => letter.toLowerCase())}. The SWMS questions will confirm it`);
+    return { status: 'yes', tag: 'High risk', heading: 'This work needs a SWMS by law', lines, siteLink: true };
+  }
+  if (parts.likely.length) return { status: 'likely', tag: 'Likely high risk', heading: 'This work likely needs a SWMS by law', lines: [`It is likely to be high risk construction work (${named(likely)})`, 'The SWMS questions will confirm it'], siteLink: true };
+  if (parts.depends.length) return { status: 'depends', tag: 'May be high risk', heading: 'This work may need a SWMS by law', lines: [`It could be high risk construction work (${named(likely)})`, 'The SWMS questions will confirm it'], siteLink: true };
+  return null;
+}
+// One item's summary in SiteLink's words; a summary with nothing in brackets (none, off site) is kept.
+function riskOf(summary) {
+  if (!summary) return null;
+  return siteLinkRisk(riskParts(summary)) || summary;
+}
+// The summaries of a SWMS and the work folded into it, as one.
+function riskJoined(summaries) {
+  const all = summaries.filter(Boolean);
+  if (!all.length) return null;
+  const parts = { certain: [], likely: [], depends: [] };
+  for (const one of all.map(riskParts)) {
+    for (const short of one.certain) if (!parts.certain.includes(short)) parts.certain.push(short);
+    for (const key of ['likely', 'depends']) for (const entry of one[key]) if (!parts[key].some((other) => other.short === entry.short)) parts[key].push(entry);
+  }
+  // Likely beats depends for the same category.
+  parts.depends = parts.depends.filter((one) => !parts.likely.some((other) => other.short === one.short));
+  return siteLinkRisk(parts) || riskOf(all[0]);
+}
+
+// The rows a SWMS on the list takes in: those folded into it that are still off the list.
+const foldedInto = (row, rows) => (row && row.package ? (rows || []).filter((other) => other !== row && other.removed_why === 'folded' && (other.removed_at || other.removedAt) && other.item && other.item.foldedInto === row.package) : []);
+
+// What a SWMS on the list covers with the work folded into it: its high risk line in SiteLink's words,
+// and for the subcontractor's draft, the folded work's own words, step groups, site conditions, plant
+// and notes, so the SWMS covers what its card says it covers (messy round 7: "Also covers" named work
+// whose steps and high risk work were in no SWMS).
+function withFolded(row, rows) {
+  const item = (row && row.item) || {};
+  const folded = foldedInto(row, rows).map((other) => other.item || {});
+  const own = row.source === 'added' || row.task_changed;
+  const join = (list) => list.map((one) => String(one || '').trim()).filter(Boolean).join(' ');
+  const union = (lists) => { const seen = []; for (const list of lists) for (const one of list || []) if (!seen.includes(one)) seen.push(one); return seen; };
+  const kindsList = [item.kinds, ...folded.map((one) => one.kinds)].filter(Array.isArray);
+  const site = { ...(item.site || {}) };
+  for (const one of folded) for (const [key, value] of Object.entries(one.site || {})) site[key] = site[key] ? `${site[key]} ${value}` : value;
+  return {
+    highRisk: riskJoined([item.highRisk, ...folded.map((one) => one.highRisk)]),
+    // The lead's own words for the work stay as they are; the folded work comes in alongside.
+    extraTask: join(folded.map((one) => one.task)),
+    scopeFull: own ? '' : join([item.scopeTask && item.scopeTask.full, ...folded.map((one) => one.scopeTask && one.scopeTask.full)]),
+    kinds: kindsList.length ? union(kindsList) : null,
+    leaveOut: Array.isArray(item.leaveOut) || folded.some((one) => Array.isArray(one.leaveOut)) ? union([item.leaveOut, ...folded.map((one) => one.leaveOut)]) : null,
+    unmatched: Array.isArray(item.unmatched) ? union([item.unmatched, ...folded.map((one) => one.unmatched)]) : null,
+    site,
+    plant: union([item.plant, ...folded.map((one) => one.plant)]),
+    draftNotes: union([item.draftNotes, ...folded.map((one) => one.draftNotes)]).slice(0, 20),
+    activities: [...(item.activities || []), ...folded.flatMap((one) => one.activities || [])],
+  };
 }
 
 // Why a SWMS is not on the list to start with, as the lead reads it. 'folded' names the SWMS it is in.
@@ -269,6 +424,26 @@ function highRiskOf(task, state, item = {}) {
   return hrcwSummary(plantFromWords({ categories, dependsOn }, task));
 }
 
+// The step groups a SWMS on the list is drafted with. A package the reading matched to no step group
+// is drafted from its own words instead, as a SWMS the lead adds is (messy round 7: "Trade
+// installation: cells" reached the subcontractor with no job steps at all).
+const draftKinds = (kinds) => (Array.isArray(kinds) && kinds.length ? kinds : null);
+
+// Whether SiteWrite has no job steps for a SWMS's work, so it would reach the subcontractor empty.
+// Asked of the SWMS's own rules (draft.js questionsFor) only when the words decide the steps: step
+// groups the reading matched always have steps.
+function noJobSteps(item, state) {
+  if (!item || draftKinds(item.kinds)) return false;
+  const task = String(item.task || '').trim();
+  if (!task) return true;
+  try {
+    const asked = require('./draft').questionsFor({ state: state || 'qld', task, scopeTask: item.scopeTask || undefined, kinds: null, leaveOut: Array.isArray(item.leaveOut) ? item.leaveOut : null, unmatched: null, trade: '', crane: '', slinging: '', fallRisk: 'yes', residential: 'no' });
+    return Boolean(asked && asked.standDown);
+  } catch {
+    return false;
+  }
+}
+
 // Clause references once each: "Description of Work Area, Description of Work Area" reads once, and
 // "Installation 6, 10" and "Installation 6" read "Installation 6, 10".
 function clauseList(list) {
@@ -294,10 +469,15 @@ function sentence(text) {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
 }
 
-// Words that make an open point about who does the work or who supplies what (messy round 6 decision 6,
-// D307): who, by whom, the builder or the subcontractor, supplied, provided, included, in the scope. A
-// power, water or gas "supply" is a service, not who supplies it.
-const WHO_SUPPLIES = /\b(?:who|whom|whose|by others|(?:the |this |that )?(?:builder|client|principal(?: contractor)?|head contractor|main contractor|contractor)(?:['’]s)?|(?:the |this |that )?sub-?contractors?(?!['’])|(?<!\b(?:power|energised|live|mains|water|gas|air|electricity|electrical|temporary) )suppl(?:y|ies|ied|ier|iers)(?!\s+(?:is|are|was|were)\s+(?:energised|live|isolated|on|off|dead|available|connected)\b)|(?<!\b(?:not|to be|yet to be|not yet) )provid\w*|furnish\w*|responsib\w*|free[- ]issue\w*|in (?:the |this |base )?scope|(?:base|subcontract|sub-contract) scope|scope (?:in|of (?:this|the) (?:sub-?)?contract)|out of scope|not itemised|includ(?:ed|es)|exclud(?:ed|es))\b/i;
+// An open point is asked of the lead only when it asks who does the work or who supplies what (messy
+// round 6 decision 6, D307). Messy round 7: a statement that only names the builder ("Shop drawings
+// need builder approval", "The precast suppliers are yet to be determined") was asked too, 33 times
+// for one scope. A point asks who when it names who ("who", "by whom"), or when it leaves something
+// open ("whether", "not stated", "unclear") about a party or about supplying, providing or scope.
+const WHO_WORD = /(?<!\b(?:workers?|persons?|people|those|anyone|someone|everyone|trades?|staff|operators?|personnel|employees?|crews?)\s)\b(?:who|whom|whose)\b/i;
+const OPEN = /\b(?:whether|not stated|not said|does not say|doesn['’]t say|do not say|not clear|unclear|not specified|unspecified|not confirmed|unconfirmed|to be confirmed|not defined|undefined|not itemised|split between|which party|either party|conflicts?)\b|^\s*(?:what|which)\b|\?/i;
+const PARTY = /\b(?:by others|(?:builder|client|principal(?: contractor)?|head contractor|main contractor|contractor)(?:['’]s)?|sub-?contractors?(?:['’]s)?|(?<!\b(?:power|energised|live|mains|water|gas|air|electricity|electrical|temporary) )suppl(?:y|ies|ied)(?!\s+(?:is|are|was|were)\s+(?:energised|live|isolated|on|off|dead|available|connected)\b)|provid(?:e|es|ed|ing)|furnish\w*|responsib\w*|free[- ]issue\w*|in (?:the |this |base )?scope|(?:base|subcontract|sub-contract) scope|scope (?:in|of (?:this|the) (?:sub-?)?contract)|out of scope|not itemised|includ(?:ed|es)|exclud(?:ed|es))\b/i;
+const WHO_SUPPLIES = { test: (text) => WHO_WORD.test(text) || (OPEN.test(text) && PARTY.test(text)) };
 // An open point split in two: the parts about who does or supplies what, asked of the lead, and the
 // other notes (a height, a weight, a product), which are for the subcontractor's own draft instead.
 // The AI's point lists its parts with semicolons, and sometimes commas: a comma list is split only
@@ -318,10 +498,25 @@ function splitOutside(text, separator) {
 // What a part asks about, without its bracketed asides: "Lifting method (cranage excluded)" asks about the
 // lifting method, not about who supplies the crane.
 const asksWho = (part) => WHO_SUPPLIES.test(String(part).replace(/\([^()]*\)/g, ' '));
+// A part that only follows on from the one before ("If it does, the welding procedure applies",
+// "This depends on whether an exemption is granted") goes with it, so a note never reaches the
+// subcontractor without the question it answers (messy round 7).
+const FOLLOWS_ON = /^(?:if (?:it|so|not|they|this|that|one|there)\b|if so\b|otherwise\b|(?:this|that|it|which) (?:depends|applies|means|would|will|is needed|affects)\b|in which case\b|in that case\b|then\b)/i;
+function joinFollowOns(parts) {
+  const out = [];
+  for (const part of parts) {
+    if (out.length && FOLLOWS_ON.test(part)) out[out.length - 1] = `${out[out.length - 1].replace(/[.\s]*$/, '')}. ${part.charAt(0).toUpperCase()}${part.slice(1)}`;
+    else out.push(part);
+  }
+  return out;
+}
 function splitPoint(text) {
   const asks = [];
   const notes = [];
-  for (const part of splitOutside(String(text || ''), ';')) {
+  const sentences = (part) => joinFollowOns(String(part).split(/(?<=[.!?])\s+(?=[A-Z])/).map(tidy).filter(Boolean)).join(' ');
+  for (const part of joinFollowOns(splitOutside(String(text || ''), ';').map(sentences))) {
+    // A part whose follow-on sentence was the only thing left after the question goes with it whole.
+    if (FOLLOWS_ON.test(part)) continue;
     if (!asksWho(part)) { notes.push(part); continue; }
     const pieces = splitOutside(part, ', ').map((one) => one.replace(/^and\s+/i, ''));
     if (pieces.length < 2 || asksWho(pieces[0])) { asks.push(part); continue; }
@@ -378,8 +573,9 @@ function pointInPlay(point, items) {
 // What the subcontractor is told about the high risk work in a SWMS on its list: only what the work
 // is, never that it may not need a SWMS (Goal 12: it is the list, no second guessing).
 function sentHighRisk(flag) {
-  if (!flag || !['yes', 'likely'].includes(flag.status)) return null;
-  return { status: flag.status, heading: flag.heading, line: (flag.lines || [])[0] || '' };
+  const said = riskOf(flag);
+  if (!said || !['yes', 'likely'].includes(said.status)) return null;
+  return { status: said.status, heading: said.heading, line: (said.lines || []).join('. ') };
 }
 
 // The list as the subcontractor will be given it: the project, the SWMS kept on the list with the
@@ -400,7 +596,8 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
     swms: kept.map((item) => ({
       title: nameWithoutPrices(item.title),
       task: wordsWithoutPrices(item.task),
-      highRisk: sentHighRisk(item.item && item.item.highRisk),
+      // With the high risk work of the work folded into it (messy round 7).
+      highRisk: sentHighRisk(withFolded(item, all).highRisk),
       clauses: clauseList(((item.item && item.item.activities) || []).map((row) => row.clause)),
       alsoCovers: all.filter((other) => other.removed_why === 'folded' && (other.removed_at || other.removedAt) && other.item && other.item.foldedInto && other.item.foldedInto === item.package).map((other) => nameWithoutPrices(other.title)),
       added: item.source === 'added',
@@ -413,4 +610,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView };
+module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };

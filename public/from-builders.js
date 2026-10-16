@@ -26,6 +26,10 @@
   let access = true;
   let loading = null;
   let note = '';
+  // Whether the page has just opened: a company with lists sees them first then.
+  let firstLoad = true;
+  const panelOpen = () => ['my-swms', 'sites-panel', 'team-panel', 'from-builders'].some((id) => $(id) && !$(id).classList.contains('hidden'))
+    || Boolean($('project-panel') && !$('project-panel').classList.contains('hidden') && $('project-panel').innerHTML.trim());
 
   function load() {
     loading = S.call('GET', '/api/from-builders').then((data) => {
@@ -88,8 +92,11 @@
     // saved since. One no longer the company's (released, or withdrawn) goes from this device.
     const local = S.builderListLocal && S.builderListLocal();
     if (local && !lists.some((list) => list.id === local)) {
+      // Who to contact, by name and email, as the list page gives them (messy round 7).
+      const info = S.builderInfo && S.builderInfo();
+      const contact = info && info.contact && info.contact.name ? `${info.contact.name} at ${info.contact.builder || info.builder.name}${info.contact.email ? ` (${info.contact.email})` : ''}` : '';
       const name = S.dropBuilderList();
-      note = `The list from ${name} is no longer linked to your company in SiteWrite, so it has gone from this page. If you think this is wrong, contact ${name}.`;
+      note = `The list from ${name} is no longer linked to your company in SiteWrite, so it has gone from this page. If you think this is wrong, contact ${contact || name}.`;
       renderPanel();
       wantPanel = true;
     } else if (local) {
@@ -99,6 +106,7 @@
       } catch { /* the work on this device stays; it is saved when SiteWrite can be reached */ }
     }
     if (wanted) {
+      firstLoad = false;
       const id = wanted;
       wanted = '';
       wantPanel = false;
@@ -106,7 +114,11 @@
       await open(id);
       return;
     }
-    if (wantPanel && S.showPanel) { wantPanel = false; S.showPanel('from-builders'); }
+    if (wantPanel && S.showPanel) { wantPanel = false; firstLoad = false; S.showPanel('from-builders'); return; }
+    // A company with lists sees them first when the page opens signed in, after a browser restart too
+    // (messy round 7), unless a list or another panel is already open.
+    if (firstLoad && lists.length && !local && S.showPanel && !panelOpen()) S.showPanel('from-builders');
+    firstLoad = false;
   };
   S.builderListsSignedOut = () => {
     lists = [];
@@ -118,7 +130,7 @@
   document.addEventListener('click', (event) => {
     const go = event.target.closest && event.target.closest('[data-list-open]');
     if (go) { open(go.dataset.listOpen, go); return; }
-    // "Use {builder}'s": the detail the builder set goes back in its box.
+    // "Use {builder}'s muster point": the detail the builder set goes back in its box.
     const use = event.target.closest && event.target.closest('[data-set-by-use]');
     if (use) {
       const info = S.builderInfo && S.builderInfo();
@@ -158,7 +170,7 @@
       if (!given) { if (line) line.remove(); continue; }
       const changed = !rules.same(field, now[field.key], given.value);
       const html = changed
-        ? `${esc(rules.changedWarning(name, given.value))} <button type="button" class="link" data-set-by-use="${esc(field.key)}">Use ${esc(name)}'s</button>`
+        ? `${esc(rules.changedWarning(name, given.value))} <button type="button" class="link" data-set-by-use="${esc(field.key)}">Use ${esc(rules.possessive(name))} ${esc(field.label.toLowerCase())}</button>`
         : `Set by ${esc(name)}${field.key === 'hospital' ? ': the hospital or medical centre arranged for this project' : ''}.`;
       if (!line) {
         line = document.createElement('p');

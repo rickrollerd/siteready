@@ -117,6 +117,8 @@ const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessio
   // A list the lead released from a company (stage 6) is the main contractor's record: it loses its
   // link to a deleted business.
   'subcontract_releases',
+  // A withdrawn list's link, kept as its hash and the builder's name only (messy round 7).
+  'withdrawn_links',
   // What was submitted to the main contractor, its responses' conditions and the files it received
   // outside SiteWrite (stage 7) are its record too: a submission loses its link to a deleted business
   // and its SWMS (sitelink-submit.test.js).
