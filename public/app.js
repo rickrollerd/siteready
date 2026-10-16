@@ -2573,8 +2573,12 @@ function drawDesigns(list) {
   designsFound = (list || []).filter((row) => row.needed);
   const answers = designAnswers || [];
   for (const row of answers) if (row && row.id && !ownRow(row)) designsKept.set(row.id, row);
+  // The same design given in another SWMS of the project is filled in from it (messy round 7).
+  const fromProject = (id) => ((window.SiteWrite && window.SiteWrite.projectDesigns && window.SiteWrite.projectDesigns()) || []).find((entry) => entry.row.id === id);
   const rows = designsFound.map((found) => {
     const mine = designsKept.get(found.id);
+    const shared = !mine && !found.status && fromProject(found.id);
+    if (shared) { const row = { ...shared.row, what: found.what || shared.row.what }; designsKept.set(found.id, row); return row; }
     return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };
   });
   // A design given at its question (D243) and not in the steps, kept as typed.

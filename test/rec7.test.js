@@ -47,16 +47,17 @@ test('silica cannot be "Not required" while SiteWrite\'s own step cuts or drills
     assert.equal(rules.cutStep(draft), step);
     const silica = typeItems(draft, input).find((item) => item.type === rules.SILICA);
     assert.ok(silica, task);
-    assert.equal(silica.need, `Product with crystalline silica: the job step "${step}" cuts or drills concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that step, take the step off.`);
+    assert.equal(silica.need, `Product with crystalline silica: the job step "${step}" cuts, drills or grinds concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`);
   }
   // Without such a step a short reason still settles it (D292 item 3), and other types are as before.
   assert.equal(rules.notUsedNeed(rules.SILICA, 'Supplied and applied by others', 'grind the silica tiles', '', '', ''), '');
   assert.equal(rules.notUsedNeed('Fuels (diesel, petrol)', 'Supplied and applied by others', 'petrol saw', '', '', 'Saw cut concrete'), '');
-  // Only SiteWrite's own steps that cut, drill, core, grind or break out concrete, masonry or stone count.
+  // Steps that cut, drill, core, grind or break out concrete, masonry or stone count.
   const cut = (name, extra = {}) => rules.cutStep({ jobSteps: [{ step: name, ...extra }] });
   for (const name of ['Drill or cut concrete, masonry or stone', 'Prepare and grind floors', 'Drill fixing holes in the slab edge', 'Break out damaged concrete', 'Cut blocks and bricks']) assert.equal(cut(name), name);
   for (const name of ['Core fill blockwork', 'Plan core holes', 'Cut timber flooring to size', 'Cut and fix plasterboard', 'Cut and flash the roof penetration', 'Before starting']) assert.equal(cut(name), '', name);
-  assert.equal(cut('Saw cut concrete', { own: true }), '', 'the user\'s own step');
+  // The user's own step counts too (messy round 7: an own step saw cutting the kerb brought no silica).
+  assert.equal(cut('Saw cut concrete', { own: true }), 'Saw cut concrete', 'the user\'s own step');
 });
 
 // ---- "Does not apply" for wrongly found high risk work (D311, round 6 content decision 2) ----

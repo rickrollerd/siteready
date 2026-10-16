@@ -419,7 +419,8 @@ test('a later revision starts unreviewed, and a response on the old revision is 
   const reviewer = await reviewerSignIn('pc2@tierone.example', ref);
   const body = { response: 'approved', name: 'Lee Park', company: 'Tier One Builders' };
   assert.equal((await call('POST', `/api/review/swms/${ref}/response`, { reviewer, body })).status, 201);
-  const changed = await call('PUT', `/api/swms/${id}`, { token, body: checked({ input: { ...INPUT, task: `${INPUT.task} Replace the gate too.` }, ...CONFIRM }) });
+  // Revision 2 has no step that cuts concrete, so the slab product listed for revision 1's post holes goes.
+  const changed = await call('PUT', `/api/swms/${id}`, { token, body: checked({ input: { ...INPUT, task: `${INPUT.task} Replace the gate too.`, substances: undefined }, ...CONFIRM }) });
   assert.equal(changed.status, 200);
   const opened = await (await call('GET', `/api/swms/${id}`, { token })).json();
   assert.equal(opened.swms.revision, 2);

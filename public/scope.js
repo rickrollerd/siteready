@@ -859,6 +859,17 @@
     });
     return out;
   };
+  // Designs given in another SWMS of the project, by the same design (messy round 7: the formwork design given
+  // in SWMS 1 was asked again in SWMS 2): [{ row, from }].
+  S.projectDesigns = () => {
+    if (!project || paused || project.stage !== 'check') return [];
+    const out = [];
+    project.items.forEach((item, index) => {
+      if (index === project.current || !item.body || !Array.isArray(item.body.designs)) return;
+      for (const row of item.body.designs) if (row && row.id && row.status === 'given' && String(row.number || '').trim() && !/^(?:added|method)-/.test(row.id) && !out.some((other) => other.row.id === row.id)) out.push({ row, from: `SWMS ${index + 1}` });
+    });
+    return out;
+  };
   // A step written for work, moved with the work from one SWMS of the project to another (messy round 4,
   // A fault 4: one piece of work was written twice). Each SWMS changed is prepared again.
   const sameWork = (a, b) => String(a || '').replace(/\s+/g, ' ').trim().toLowerCase() === String(b || '').replace(/\s+/g, ' ').trim().toLowerCase();

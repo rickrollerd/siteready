@@ -135,7 +135,8 @@ test('it moves like any step, and hazard and Who changes made on SiteWrite\'s st
 
 // ---- The download gate (D184) ----
 
-const READY = ready({ ...GENERATOR, ...ANSWERED });
+// The step written here handles diesel, so fuel is not "by others" (messy round 7): the reason says why.
+const READY = (({ substancesNotUsedWhy: why = {}, ...rest }) => ({ ...rest, substancesNotUsedWhy: { ...why, 'Fuels (diesel, petrol)': 'the hire company fills the generator before delivery' } }))(ready({ ...GENERATOR, ...ANSWERED }));
 
 test('a part with a printed step needs no tick; a part without one still does; a blank left in the step stops the download', () => {
   const two = { ...READY, task: 'Install the generator, leak test the fuel line and hang the artwork from the scissor lift.' };

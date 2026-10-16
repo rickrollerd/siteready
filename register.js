@@ -31,7 +31,7 @@ const PLANT = [
   { item: 'Building maintenance unit (BMU)', pattern: /\b(building maintenance units?|bmus?)\b/i, inspection: 'Inspected and maintained to the manufacturer\'s instructions and AS 1418.13, with current certification before use.', licence: 'No. Operators trained in the unit' },
   { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?|(?<!small )earthmoving plant)\b/i, skipIf: /\bRun earthmoving plant\b/, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Skid steer or posi-track', pattern: /\b(skid ?steers?|bobcats?|posi-?tracks?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?|paver, roller|spreader, roller|(?:graders?|dozers?|water carts?),? (?:and )?(?:a )?rollers?|rollers? and (?:a )?water carts?|the roller|a roller or plate compactor|(?:asphalt|bitumen|hot mix|compact\w*)\b[^.]{0,40}\bwith a roller)\b/i, skipIf: /\b(paint\w*|brush\w*|roller doors?|rolling impact compact\w*)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
+  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|plate compacters?|compactors?|compacters?|jumping jacks?|rammers?|wacker\w*|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?|paver, roller|spreader, roller|(?:graders?|dozers?|water carts?),? (?:and )?(?:a )?rollers?|rollers? and (?:a )?water carts?|the roller|a roller or plate compactor|(?:asphalt|bitumen|hot mix|compact\w*)\b[^.]{0,40}\bwith a roller)\b/i, skipIf: /\b(paint\w*|brush\w*|roller doors?|rolling impact compact\w*)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|cfa piles?|continuous flight auger|bored pil\w*|bored piers?|crawler rigs?|pile driving machines?|piling machines?)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
   { item: 'Concrete truck', pattern: /\bconcrete trucks?\b/i, inspection: 'The supplier\'s pre-start check.', licence: 'Truck driver\'s licence' },
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
@@ -40,7 +40,7 @@ const PLANT = [
   { item: 'Generator', pattern: /\bgenerators?\b/i, skipIf: /\b(standby|load shed\w*|load test\w*|operation of (?:the )?generators?|install generators|generators and fuel|run and load test|generator (?:rooms?|sets?))\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
-  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite|alumino-?thermic|flash[- ]butt)\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite|alumino-?thermic|flash[- ]butt|(?:electro-?)?fusion|polyethylene|hdpe)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Nail gun', pattern: /\bnail guns?\b/i, inspection: 'Checked before use. Single shot trigger.', licence: 'No' },
   { item: 'Air compressor', pattern: /\b(compressed air|air compressors?|compressors?)\b/i, skipIf: /\b(fans?|pumps|start\w* without|refrigerat\w*|condens\w*)\b/i, inspection: `${PRESTART} Hoses and couplings checked and restrained.`, licence: 'No' },
   { item: 'Concrete vibrator', pattern: /\bvibrators?\b/i, inspection: TEST_TAG, licence: 'No' },
@@ -127,12 +127,15 @@ const PLANT = [
   { item: 'Concrete conveyor', pattern: /\b(concrete conveyors?|conveyor and pump|by conveyor)\b/i, inspection: `${PRESTART} Guards, belt and emergency stops checked.`, licence: 'No. Operator trained' },
   { item: 'Trolley or panel lifter', pattern: /\b(trolleys?|panel lifters?|door lifters?|lift trolleys?|pallet trolleys?)\b/i, skipIf: /\bglass trolleys?\b/i, inspection: 'Checked before use: wheels, brakes and handles, and loaded only to its rated load.', licence: 'No, where one is used' },
   { item: 'Ladders', pattern: /\bladders?\b/i, inspection: 'Industrial rated, at least 120 kg. Checked before each use.', licence: 'No' },
-  { item: 'Electric power tools and leads', pattern: /\b(power tools?|(?<!\b(?:network|wi-?fi|wireless|internet|nbn|modem|4g|5g|edge|core)\s)routers?(?!\s+and\s+switch)|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|hole saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
+  // A powder-actuated tool brings its own step and its operator's training (the library's own lines: trained in
+  // that tool, checked before each use and serviced as the manufacturer sets, WHS Reg s 213).
+  { item: 'Powder-actuated tool', pattern: /\b(ramset\w*|ram set\w*|powder[- ]actuated (?:tools?|nail guns?|fixing tools?)|explosive[- ]powered (?:tools?|nail guns?|fixing tools?)|cartridge (?:tools?|nail guns?|hammers?)|stud guns?|hilti dx\w*)\b/i, inspection: 'Cleaned each day it is used, checked before each use, and serviced by the manufacturer or its agent at the interval the manufacturer sets.', licence: 'No licence class. Used only by operators trained in that tool' },
+  { item: 'Electric power tools and leads', pattern: /\b(power tools?|(?<!\b(?:network|wi-?fi|wireless|internet|nbn|modem|4g|5g|edge|core)\s)routers?(?!\s+and\s+switch)|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|hole saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|rotary hammers?|hammer drills?|kangos?|(?:pro)?press tools?|propress\w*|crimp(?:ing)? tools?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
 ];
 
 // Hazardous substances that commonly come with the work: the types, which the page offers as
 // prompts for the user to add each product used (public/substance-rules.js, owner D256).
-const { SUBSTANCES, CONTROL_PRODUCTS } = require('./public/substance-rules');
+const { SUBSTANCES, CONTROL_PRODUCTS, silicaStep, SILICA } = require('./public/substance-rules');
 
 // Licences, tickets and training the work needs.
 // Class A for friable asbestos (s 485), Class B or A for more than 10 m2 of non-friable asbestos
@@ -142,8 +145,8 @@ const ASBESTOS_REMOVALIST = 'Licensed asbestos removalist (Class A for friable a
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
-  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|(?<!(?:roof|rainwater|siphonic|floor|stormwater|drainage|pit|gutter|sump|tank|overflow|air|duct|exhaust) )outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|(?<!clean\w* )solar(?! hot water| powered| farm piles?)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
-  ['Plumbing and drainage licence', /\b(vanit(?:y|ies)|plumbing|plumber|(?<!(?:wall|ag|agricultural|subsoil|retaining) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
+  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting(?! pelmets?| troughs?| recess\w*| bulkheads?| baffles?| bridges?| boxes)|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|(?<!(?:roof|rainwater|siphonic|floor|stormwater|drainage|pit|gutter|sump|tank|overflow|air|duct|exhaust) )outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|(?<!clean\w* )solar(?! hot water| powered| farm piles?)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
+  ['Plumbing and drainage licence', /\b(vanit(?:y|ies)(?! walls?| enclosures?| frames?| nibs?)|plumbing|plumber|hydraulic (?:services (?:pipework|pipes?)|pipework|pipes?|piping|risers?|stacks?)|sanitary (?:stacks?|plumbing|drainage|pipework)|(?<!(?:wall|ag|agricultural|subsoil|retaining) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?|install\w* (?:split |reverse cycle )?air ?condition\w*)\b/i],
   ['Gas work licence', /\b(?<!medical )(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
   [ASBESTOS_REMOVALIST, /\basbestos\b/i],
@@ -401,6 +404,19 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
     if (/harness/.test(name)) return /\b(use (?:a )?(?:harness|travel restraint)|fall arrest is used|harness is attached|travel restraint is installed)\b/i.test(allText.replace(/\b(?:where|if|when)\b[^.]*/gi, ""));
     // Work done around another trade's fittings ("mask and cut in around electrical fittings") is not that trade's work.
     // Data, fibre and communications cabling is not electrical work.
+    // Asbestos the task says was cleared or not found ("asbestos register checked nil found") needs no
+    // removalist (messy round 7).
+    if (name === ASBESTOS_REMOVALIST) return pattern.test(require('./draft').withoutClearedAsbestos(withoutOtherTrades(ownWork(taskText))));
+    // Cabling, power or controls run to gas meters, water meters or a sewer pump station is the electrician's
+    // work, not gas or plumbing work (messy round 7: an electrical SWMS listed the gas and plumbing licences).
+    // Lagging hydraulic pipework, and the oil piping of a hydraulic power unit, are not plumbing work.
+    if (/^Plumbing and drainage licence/.test(name)) {
+      let own = require('./draft').withoutServiceCabling(withoutOtherTrades(ownWork(taskText)));
+      own = own.split(/(?<=[.;])\s+/).filter((part) => !(/\b(?:lag\w*|insulat\w*)\b/i.test(part) && !/\b(?:install\w*|run|runs|running|fix\w*|lay\w*|rough\w*|join\w*|connect\w*)\b/i.test(part))).join(' ');
+      if (/\bhydraulic (?:power units?|power packs?|rams?|cylinders?|oil|hoses?|fluid|lifts?)\b/i.test(own)) own = own.replace(/\bhydraulic (?:pipework|pipes?|piping)\b/gi, ' ');
+      return pattern.test(own);
+    }
+    if (/^Gas work licence/.test(name)) return pattern.test(require('./draft').withoutServiceCabling(withoutOtherTrades(ownWork(taskText))));
     return pattern.test(TASK_LICENCES.test(name) ? withoutOtherTrades(ownWork(taskText)).replace(/\bfit[- ]off (?:of )?(?:the )?(?:plumbing|sanitary|drainage|hydraulic)\b|\b(?:plumbing|sanitary|drainage|hydraulic)\b[^.]{0,20}\bfit[- ]off\b/gi, '').replace(/\b(?:fibre optic|optical fibre|data|communications?|comms|cat ?6a?|structured|telephone|ip)\s+(?:cabling|cables?)(?:\s+and\s+terminations?)?/gi, '') : /silica/.test(name) ? silicaText : /Hot work/.test(name) ? hazardText : allText);
   }).map(([name]) => name);
   if (highRisk.some((item) => /energised electrical/i.test(item)) && !needed.some((name) => /^Rescue/.test(name))) needed.push('Rescue and resuscitation (low voltage rescue and CPR), current');
@@ -450,7 +466,12 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const live = String((input.site && input.site.liveServices) || '');
   const noLive = /^\s*(?:none|no|nil|n\/?a|not applicable|no live services?\b[^.]*|there are none\b[^.]*)\.?\s*$/i.test(live);
   const LINE_WORDS = /\b(?:overhead |power |electric )(?:power |electric )?lines?\b/i;
-  if (LINE_WORDS.test(`${input.task || ''}\n${live}`) || (LINE_WORDS.test(coreText) && !noLive)) rows.push({ type: 'Contact with power lines', equipment: 'Keep everyone well clear of a person, plant or load in contact with a line. Call 000 and the network operator. The operator stays in the plant unless there is fire', detail: '' });
+  // An answer that says there are no lines does not bring the row (messy round 7: "temp power board on each
+  // level from builders, no overhead lines" brought it).
+  const NO_LINES = /\b(?:no|nil|without|not near|away from|clear of) (?:any )?(?:overhead |power |electric )(?:power |electric )?lines?\b[^.]*/gi;
+  const liveSaid = live.replace(NO_LINES, ' ');
+  const linesDenied = liveSaid !== live && !LINE_WORDS.test(liveSaid);
+  if (LINE_WORDS.test(`${input.task || ''}\n${liveSaid}`) || (LINE_WORDS.test(coreText) && !noLive && !linesDenied)) rows.push({ type: 'Contact with power lines', equipment: 'Keep everyone well clear of a person, plant or load in contact with a line. Call 000 and the network operator. The operator stays in the plant unless there is fire', detail: '' });
   if (highRisk.some((item) => /energised electrical/i.test(item)) || /\b(energised parts?|live cables?|energised cables?|live electrical parts?|live parts|partly energised)\b/i.test(text)) rows.push({ type: 'Electric shock or arc flash', equipment: 'Isolate the supply before touching the person. Low voltage rescue kit, CPR and defibrillator (AED), burns first aid', detail: '' });
   if (highRisk.some((item) => /trench|shaft/i.test(item))) rows.push({ type: 'Trench', equipment: 'Rescue plan for a trench collapse (Excavation work Code of Practice s 3.8). No one enters an unsupported trench to rescue', detail: '' });
   if (highRisk.some((item) => /drowning/i.test(item))) rows.push({ type: 'Person in the water', equipment: 'Raise the alarm and reach with the rescue pole or throw the life ring. No one enters the water to rescue unless trained and equipped. Call 000', detail: '' });
@@ -491,7 +512,9 @@ function legislationFor(lines) {
 const plantName = (p) => p.known || p.item;
 const WORK_CODES = [
   ['falls', (d) => d.highRisk.some((item) => /falling more than/i.test(item))],
-  ['excavation', (d) => d.highRisk.some((item) => /trench|shaft/i.test(item)) || d.plant.some((p) => /Excavator|Trench shield/.test(plantName(p)))],
+  // An excavator used to demolish or load is not excavation work: its code needs digging (messy round 7: the
+  // Excavation code for a strip-out with a mini excavator).
+  ['excavation', (d) => d.highRisk.some((item) => /trench|shaft/i.test(item)) || d.plant.some((p) => /Trench shield/.test(plantName(p))) || (d.plant.some((p) => /Excavator/.test(plantName(p))) && /\b(?:excavat(?!ors?\b)\w*|trench\w*|dig(?:s|ging)?|dug|earthworks?|bulk earth\w*|cut and fill|footings?|pits?|bor(?:e|es|ing))\b/i.test(d.workText))],
   ['pumping', (d) => d.plant.some((p) => /Concrete (?:placing boom|line pump)/.test(plantName(p)))],
   ['plant', (d) => d.plant.some((p) => !/Ladders|Electric power tools/.test(plantName(p)))],
   ['manual', (d) => d.hazardText.match(/\b(strain|manual|lifting|carry\w*|kneel\w*|repetit\w*|awkward)\b/i)],
@@ -830,8 +853,17 @@ function registersFor(draft, input = {}) {
   const listed = confirmedPlant(plant, input.plantChoice, stateId);
   // A hazard about residues or waste swept up is not a product the crew uses (messy round 4: plaster and
   // adhesive asked for a paint washout).
-  const productHazards = steps.flatMap((step) => step.hazards).filter((line) => !/\b(?:paint|adhesive|membrane|product) residues?\b|\bsweep\w*|\bwaste\b|\boffcuts?\b/i.test(line)).join('\n');
+  // The solvent vapour from PVC primer and solvent cement is that product's, not a separate solvent (messy
+  // round 7: "solvent cement" asked for Solvents and Cement as well as the PVC row).
+  const productHazards = steps.flatMap((step) => step.hazards.filter((line) => !(/\bsolvent\b/i.test(line) && /\b(?:solvent cement|pvc primer)\b/i.test(step.step)))).filter((line) => !/\b(?:paint|adhesive|membrane|product) residues?\b|\bsweep\w*|\bwaste\b|\boffcuts?\b/i.test(line)).join('\n');
   const substances = substancesFor(`${ownTask}\n${productHazards}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
+  // A step that cuts, drills, grinds, chases or breaks concrete, masonry, stone or slabs, the user's own
+  // steps included, makes silica dust: silica is asked as a product, its training listed and its code cited
+  // (messy round 7: anchors drilled into the slab with silica never asked, and an own step saw cutting the
+  // kerb with no silica row, training or code).
+  const ownWritten = (Array.isArray(input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name).map((item) => ({ step: item.name, hazards: item.hazards || [], controls: item.controls || [] }));
+  const silicaWork = silicaStep({ jobSteps: [...steps, ...ownWritten] });
+  if (silicaWork && !substances.items.some((item) => item.product === SILICA)) substances.items.push({ product: SILICA, sds: '', quantity: '' });
   // Gases and fuels named only for plant the user has said is not used are not asked for (messy round 4:
   // acetylene after the torch was unticked).
   if (input.plantChoice && typeof input.plantChoice === 'object') {
@@ -844,14 +876,14 @@ function registersFor(draft, input = {}) {
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
   // Work near energised services only because of power lines: no low voltage rescue (draft.js).
   const rescueRisk = (draft.highRisk || []).filter((item) => !(draft.electricalLinesOnly && /energised electrical/i.test(item)));
-  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(ownTask, hazardText, allText, listed.map((item) => localPlant(item, stateId)), rescueRisk, steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line) && (SILICA_PROCESS.test(line) || SILICA_PROCESS.test(step.step))) || (step.hazards.some((line) => /\bdust\b/i.test(line) && SILICA_PROCESS.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
+  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(ownTask, hazardText, allText, listed.map((item) => localPlant(item, stateId)), rescueRisk, [...steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line) && (SILICA_PROCESS.test(line) || SILICA_PROCESS.test(step.step))) || (step.hazards.some((line) => /\bdust\b/i.test(line) && SILICA_PROCESS.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust'), silicaWork ? 'silica dust' : ''].join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
   // Comms room and UPS work: the electrical licence is listed where the user says our crew connects the
   // work to mains power, or the task's own words say it wires it (owner D298).
   if (mainsWork(task, input.facts) && !qualifications.some((name) => /^Electrical (?:work )?licence/.test(name))) {
     const at = qualifications.findIndex((name) => !/induction/i.test(name));
     qualifications.splice(at < 0 ? qualifications.length : at, 0, localLicences(draft.state, '', ['Electrical work licence (electrical mechanic)'], '')[0]);
   }
-  const codeWork = { highRisk: draft.highRisk || [], plant: listed, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` };
+  const codeWork = { highRisk: draft.highRisk || [], plant: listed, substances, hazardText: silicaWork ? `${hazardText}\nSilica dust (${silicaWork})` : hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` };
   sources = /Queensland/.test(draft.state || '') ? addQldSources(sources, codeWork) : addWorkCodes(sources, stateId, codeWork);
   // D258: with a crane company's crane, the dogging or rigging licence prints only where our crew slings
   // the loads and directs the crane; where the crane company's dogman does, the licence is theirs.
@@ -867,8 +899,15 @@ function registersFor(draft, input = {}) {
   // company's crew does the slinging.
   // So does a line that has a licensed dogger sling the loads, unless only "where" the work needs it
   // (messy round 6: a HIAB step whose lines have a licensed dogger sling, with no dogging licence).
-  const slings = listed.some((item) => /^Lifting gear\b/.test(item.known || item.item)) || /\ba licensed dogger directs\b/i.test(allText)
-    || /\b(?:slung|slinging\b[^.]{0,60}\bis done) by (?:a )?licensed doggers?\b(?:(?! where)[^.])*\./i.test(allText);
+  // A line that has a licensed dogman sling or direct the loads names the licence too (messy round 7: "Loads
+  // are slung, and the operator is directed when the load is out of view, only by a licensed dogman" with no
+  // dogging licence), but not crane loads where no crane is used (an electrical SWMS with no crane listed
+  // dogging for "crane loads are slung by a licensed dogger").
+  const craneNone = String(input.crane || '').trim().toLowerCase() === 'none' && !listed.some((item) => /\b(crane|hiab|hoist)\b/i.test(item.known || item.item));
+  const lineText = craneNone ? allText.split('\n').filter((line) => !/\bcrane loads?\b/i.test(line)).join('\n') : allText;
+  const slings = listed.some((item) => /^Lifting gear\b/.test(item.known || item.item)) || /\ba licensed dog(?:ger|man) directs\b/i.test(lineText.replace(/\bwhere\b[^.]*\ba licensed dog(?:ger|man) directs\b/gi, ''))
+    || /\b(?:slung|slinging\b[^.]{0,60}\bis done) by (?:a )?licensed dog(?:gers?|man|men)\b(?:(?! where)[^.])*\./i.test(lineText)
+    || /\b(?:slung|directed)\b[^.]{0,80}\bonly by (?:a )?licensed dog(?:gers?|man|men)\b/i.test(lineText);
   if (slings && !(craneCompany && !ourSlinging) && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging|advanced rigging)/.test(name))) qualifications.push(DOGGING);
   // A licence or ticket the user gave for their own plant item is listed with the licences too, not only in
   // the plant table (messy round 5: HR and MR truck licences printed only in the plant table).

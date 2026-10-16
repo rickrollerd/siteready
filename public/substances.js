@@ -149,8 +149,8 @@
   const TYPE_NEED = (type) => `${R.SHORT.get(type)}: add the product you use, or tick "Not required".`;
   // What a suggested type still needs, judged as the user ticks or adds (the server checks again).
   // The old safety data sheet answer, while no product is listed (D277 item 3): a type it names cannot be "Not required".
-  const sdsWords = () => { const facts = ((S.payload && S.payload()) || {}).facts || {}; return !products.some(typed) && typeof facts.safetyDataSheet === 'string' ? facts.safetyDataSheet : ''; };
-  const typeNeed = (type) => (productsOf(type).length ? '' : notUsed.has(type) ? R.notUsedNeed(type, notUsedWhy[type], words(), R.stepWords ? R.stepWords(shown) : '', sdsWords(), R.cutStep ? R.cutStep(shown) : '') : TYPE_NEED(type));
+  const sdsWords = () => { const facts = ((S.payload && S.payload()) || {}).facts || {}; return typeof facts.safetyDataSheet === 'string' ? facts.safetyDataSheet : ''; };
+  const typeNeed = (type) => (productsOf(type).length ? '' : notUsed.has(type) ? R.notUsedNeed(type, notUsedWhy[type], words(), R.stepWords ? R.stepWords(shown) : '', sdsWords(), R.cutStep ? R.cutStep(shown) : '', shown) : TYPE_NEED(type));
   // Products given in the project's other SWMS, not yet added here (scope.js, D292).
   const offered = () => (S.projectProducts ? S.projectProducts() : []).filter(({ row }) => !products.some((mine) => String(mine.product || '').trim().toLowerCase() === String(row.product || '').trim().toLowerCase()));
   const offerButtons = (list) => list.map(({ row, from }) => `<button type="button" class="pick-button" data-sub-offer="${esc(row.product)}">Use ${esc(row.product)} (from ${esc(from)})</button>`).join('');
