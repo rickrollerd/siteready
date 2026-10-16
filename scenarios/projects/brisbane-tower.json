@@ -62,6 +62,7 @@
           "Install backprops"
         ],
         "missing": [
+          "Fall control",
           "Formwork design",
           "Load limits",
           "How the deck is laid",

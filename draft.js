@@ -26,13 +26,20 @@ function cleanLine(value) {
 const CLAUSE_NUMBER = /^[ \t]*(?:\(?\d{1,3}(?:\.\d{1,3})*[.)]|\d{1,3}(?:\.\d{1,3})+(?=[ \t]+[A-Z])|\(?[a-z]\)|\(?(?:i|ii|iii|iv|v|vi|vii|viii|ix|x)\))[ \t]+(?=\S)/gim;
 const INLINE_CLAUSE = /([.;:])[ \t]+(?:\(?\d{1,3}(?:\.\d{1,3})*[.)]|\d{1,3}(?:\.\d{1,3})+)[ \t]+(?=[A-Z])/g;
 const TENDER_POINTER = /,?[ \t]*(?:all[ \t]+)?(?:(?:as|where)[ \t]+(?:(?:specified|detailed|shown|noted|described|outlined|required|documented|nominated|indicated)[ \t]+)?(?:in|on|by|per|within|under)|in accordance with|in line with|to suit|per)[ \t]+(?:the[ \t]+)?(?:tender|contract|project|client'?s)[ \t]+(?:documentation|documents|docs|drawings|specifications?|specs?|scope(?: of works)?|requirements)\b/gi;
+// A pasted list's bullets ("· All fire dampers ...") and a quote's commercial labels ("Variation Price
+// Option:", "Provisional sum:") say nothing of the work either (messy round 7, runs 2 and 3: a bullet
+// named the SWMS, and "Variation Price Option:" printed in the task line). So do pointers to anyone's
+// drawings or specification ("as detailed on the kitchen consultant's drawings and spec").
+const LIST_BULLET = /^[ \t]*(?:[\u00b7\u2022\u2023\u2043\u2219\u25aa\u25ab\u25cf\u25cb\u25e6\u25a0\u25a1\u27a2\u27a4\u25ba\u2713\u2714*\u2013\u2014]|-(?!\d))[ \t]*(?=\S)/gm;
+const COMMERCIAL_LABEL = /(^|[.;]\s+|\n)[ \t]*(?:(?:variation|provisional|alternative|alternate|optional|separable|additional|extra)(?:[ \t]+(?:price|cost|sum|scope))?(?:[ \t]+(?:options?|items?|prices?|sums?|portions?|works?))?|p\.?c\.?[ \t]+(?:sums?|items?)|prime[ \t]+cost(?:[ \t]+(?:sums?|items?))?|lump[ \t]+sum|price[ \t]+options?|(?:option|alternative|separable portion)[ \t]+\d+|tender[ \t]+(?:items?|options?))[ \t]*:[ \t]*/gi;
+const DRAWING_POINTER = /,?[ \t]*(?:as|where)[ \t]+(?:specified|detailed|shown|noted|described|outlined|documented|nominated|indicated)[ \t]+(?:in|on|by|per)[ \t]+(?:the[ \t]+)?(?:[\w'\u2019-]+[ \t]+){0,3}?(?:drawings?|documents?|documentation|specifications?|specs?|plans?|schedules?)(?:[ \t]+(?:and|&)[ \t]+(?:the[ \t]+)?(?:drawings?|specifications?|specs?|spec|plans?|schedules?))?\b/gi;
 function taskLine(value) {
-  // A numbered line ends its own sentence, so the lines do not run together once the numbers go.
+  // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
   const lines = String(value || '').split(/\r?\n/).map((line) => {
-    const bare = line.replace(CLAUSE_NUMBER, '');
+    const bare = line.replace(CLAUSE_NUMBER, '').replace(LIST_BULLET, '');
     return bare !== line && /\w$/.test(bare.trim()) ? `${bare.trim()}.` : bare;
   });
-  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(TENDER_POINTER, '');
+  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(COMMERCIAL_LABEL, (_whole, lead) => `${lead}\u0000`).replace(/\u0000(\S)?/g, (_whole, first) => (first ? first.toUpperCase() : ''));
   return cleanLine(text.replace(/[ \t]+([.,;:])/g, '$1').replace(/,(?=[.;:])/g, ''));
 }
 
@@ -763,6 +770,11 @@ function fallControlText(text) {
     // A task sentence ("Install roofing, working from the roof with edge protection") gives only its control clause.
     const clause = /^\s*(?:install|lay|fix|erect|build|replac|paint|clean|repair|strip|remov|tile|apply|construct)\w*\b.*?\b((?:with|using|behind|inside)\b[^,.;]*\b(?:edge protection|guard\s?rails?|harness|travel restraint|fall arrest|safety mesh|scaffold\w*)\b[^,.;]*)/i.exec(line);
     if (clause) return `Work at height is done ${clause[1].replace(/\s+$/, '')}.`;
+    // A clause anywhere in the sentence that says how the work is done ("..., working from inside the
+    // floor behind edge protection") gives the control, in SiteWrite's words: the task's own sentence is
+    // never a control (messy round 7).
+    const working = /\b(?:working|work is done|done)\s+((?:from|on|behind|inside|within)\b[^,.;]*\b(?:edge protection|guard\s?rails?|travel restraint|safety mesh|scaffold\w*|elevating work platforms?|ewps?|scissor lifts?|boom lifts?)\b[^,.;]*)/i.exec(line);
+    if (working) return `Work at height is done ${working[1].replace(/\s+$/, '')}.`;
     return line;
   });
   return lines.join(' ');
@@ -927,10 +939,39 @@ function trenchDig(text) {
 // inspection before each pour) is not one who designs the trench support (messy round 5: a concrete SWMS
 // printed "Pump, place and finish concrete (...; conditions: Engineer inspection ...; plant: Concrete pump)"
 // as a control).
+const TRENCH_SUPPORT = /\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|trench (?:box|shield)|shields?)\b/i;
+const SUPPORT_CONTEXT = /\b(trench\w*|excavat\w*|shaft|pits?|batters?|support\w*)\b/i;
+// How the sides of a trench or excavation are secured, from answers the user gave: each line that says so.
 function trenchSupportText(text) {
-  const lines = sentences(String(text || '').replace(SCOPE_NOTES, ' ')).filter((line) => /\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|trench (?:box|shield)|shields?)\b/i.test(line) || (/\bengineer\w*/i.test(line) && /\b(trench\w*|excavat\w*|shaft|pits?|batters?|support\w*)\b/i.test(line)))
+  const lines = sentences(String(text || '').replace(SCOPE_NOTES, ' ')).filter((line) => TRENCH_SUPPORT.test(line) || (/\bengineer\w*/i.test(line) && SUPPORT_CONTEXT.test(line)))
     .map((line) => (/^(?:excavat\w*|dig\w*|lay\w*|install\w*)\b/i.test(line) && /\b(?:trench (?:box\w*|shields?)|shields?)\b/i.test(line) && !/\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|engineer\w*)\b/i.test(line) ? 'The trench is supported with trench shields.' : line));
   return lines.join(' ');
+}
+// From the task, the way the sides are secured is said in SiteWrite's own words: the task's sentence is
+// never a control (messy round 7, run 8: the whole task printed as an "Isolate or engineer" control and in
+// "Excavate", and its "shoring or shields ... or benches" stopped the Trench support question). A part of
+// the task that gives a choice of ways ("shore it or use a trench shield") names none.
+const SUPPORT_WAYS = [
+  [/\b(?:trench (?:box\w*|shields?)|shields?)\b/i, 'The trench is supported with trench shields.'],
+  [/\bshor(?:e|ed|es|ing)\b/i, 'The trench sides are shored.'],
+  [/\bbench(?:ed|es|ing)?\b/i, 'The trench sides are benched.'],
+  [/\bbatter(?:ed|s|ing)?\b/i, 'The excavation sides are battered.'],
+];
+function taskTrenchSupport(task) {
+  const said = [];
+  for (const sentence of sentences(String(task || '').replace(SCOPE_NOTES, ' '))) {
+    for (const part of sentence.split(/\s*[,;:]\s*/)) {
+      if (/^or\b|\bor\b/i.test(part.trim())) continue;
+      const ways = SUPPORT_WAYS.filter(([pattern]) => pattern.test(part));
+      if (ways.length === 1) said.push(ways[0][1]);
+      else if (!ways.length && /\bengineer\w*['\u2019]?s? (?:design|instructions)|\bdesign\w* by (?:the |a |an )?(?:\w+ )?engineer/i.test(part) && SUPPORT_CONTEXT.test(sentence)) said.push('The excavation is supported to the engineer\'s design.');
+    }
+  }
+  return [...new Set(said)].join(' ');
+}
+// The task in SiteWrite's words, then the answers as given.
+function trenchSupportOf(task, facts) {
+  return [taskTrenchSupport(acceptedText(task)), trenchSupportText(acceptedText(combinedFacts('', facts || {})))].filter(Boolean).join(' ');
 }
 
 function mentioned(text, pattern) {
@@ -2192,7 +2233,7 @@ function allRequiredFacts(fullTask, answer, state) {
       prompt: SDS_PROMPT,
     });
   }
-  if (fallRiskFor(task, answer) && !fallControlText(task)) {
+  if (fallRiskFor(task, answer) && !withoutTaskSentences(fallControlText(task), task)) {
     facts.push({
       id: 'fallControl',
       label: 'Fall control',
@@ -2222,7 +2263,7 @@ function allRequiredFacts(fullTask, answer, state) {
       prompt: state.fallControlsConsidered,
     });
   }
-  if (trenchDig(task) && !trenchSupportText(task)) {
+  if (trenchDig(task) && !taskTrenchSupport(task)) {
     facts.push({
       id: 'trenchSupport',
       label: 'Trench support',
@@ -2360,9 +2401,9 @@ function factState(item, task, facts, state) {
     const fallLine = fallLineFor(combinedFacts(task, facts), facts);
     if (!fallLine || ['Eliminate', 'Isolate or engineer'].includes(fallControlLevel(fallLine))) return 'supplied';
   }
-  if (item.id === 'fallControl' && fallControlText(acceptedText(combinedFacts(task, facts)))) return 'supplied';
+  if (item.id === 'fallControl' && withoutTaskSentences(fallControlText(acceptedText(combinedFacts(task, facts))), task)) return 'supplied';
   if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return 'supplied';
-  if (item.id === 'trenchSupport' && trenchSupportText(acceptedText(combinedFacts(task, facts)))) return 'supplied';
+  if (item.id === 'trenchSupport' && trenchSupportOf(task, { ...facts, siteConditions: '' })) return 'supplied';
   if (TOPIC_PATTERNS[item.id]) return topicState(item.id, task, facts[item.id], TOPIC_PATTERNS[item.id]);
   const field = keptFact(facts[item.id]);
   if (!field) return 'missing';
@@ -2464,11 +2505,25 @@ function controlRows(text) {
   return rows;
 }
 
+// A line that holds a whole sentence of the task (eight words or more) is the task, not a control: it
+// never prints as one (messy round 7, run 8). The task prints on its own line in the header.
+const squash = (text) => ` ${String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+function holdsTaskSentence(line, task) {
+  const flat = squash(line);
+  return sentences(task).some((sentence) => squash(sentence).trim().split(' ').length >= 8 && flat.includes(squash(sentence)));
+}
+// The line with any sentence of it that holds a whole task sentence taken out.
+function withoutTaskSentences(line, task) {
+  const text = cleanLine(line);
+  if (!text || !holdsTaskSentence(text, task)) return text;
+  return sentences(text).filter((part) => !holdsTaskSentence(part, task)).join(' ');
+}
+
 function controlsFor(task, facts, pack) {
   const source = combinedFacts(task, facts);
   const items = [];
   const push = (level, text) => {
-    const line = cleanLine(text);
+    const line = withoutTaskSentences(cleanLine(text), task);
     if (!line || isDenialLine(line)) return;
     items.push(control(level, line));
   };
@@ -2546,7 +2601,7 @@ function controlsFor(task, facts, pack) {
 
   // Read from the task and the answers to the questions, not the site answers: those print whole in the
   // site table, never as part of a control (messy round 6, run 6).
-  const trench = trenchSupportText(acceptedText(combinedFacts(task, { ...facts, siteConditions: '' }))) || keptFact(facts.trenchSupport);
+  const trench = trenchSupportOf(task, { ...facts, siteConditions: '' }) || keptFact(facts.trenchSupport);
   if (trenchDig(source) && trench) push('Isolate or engineer', trench);
 
   const sheet = keptFact(facts.safetyDataSheet);
@@ -2972,7 +3027,7 @@ function askQuestions(input) {
     };
   }
   // Typos are fixed, then site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
-  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
+  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription), { places: input.workplace || input.siteAddress });
   const task = withoutDeniedWelding(readSlang(spelling.text));
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
@@ -3561,7 +3616,7 @@ function scopeWords(input) {
 }
 function printedTask(out, input) {
   if (!out || typeof out !== 'object' || typeof out.task !== 'string') return out;
-  const spelling = fixSpelling(taskLine(input.task || input.jobDescription));
+  const spelling = fixSpelling(taskLine(input.task || input.jobDescription), { places: input.workplace || input.siteAddress });
   return { ...out, task: readSlang(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
 
@@ -3801,7 +3856,7 @@ function buildDraft(input, screen) {
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
   // The SWMS keeps the task as typed, with typos fixed but slang left as written.
-  const typed = fixSpelling(taskLine(input.task || input.jobDescription)).text;
+  const typed = fixSpelling(taskLine(input.task || input.jobDescription), { places: input.workplace || input.siteAddress }).text;
   const task = withoutDeniedWelding(readSlang(typed));
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   // A fall control answer the questions no longer ask (the fall answer changed to No after it was
@@ -3959,6 +4014,7 @@ function buildDraft(input, screen) {
     const fromAnswers = highRiskMatches(combinedFacts(riskTask, facts), pack.fallAnswer, state).filter((item) => ['road', 'roadOrRail', 'plant'].includes(item.check) && !own.has(item.label)).map((item) => item.label);
     draft.highRisk = draft.highRisk.filter((label) => !fromAnswers.includes(label));
   }
+  draft.jobSteps = withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state), facts, [...(draft.references || []), ...(draft.controls || [])]);
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
   // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
   // reason (D311, round 6 content decision 2). It comes off the list wherever it is found, and prints as
@@ -7956,6 +8012,32 @@ function asSentence(text) {
   return line && !/[.!?]$/.test(line) ? `${line}.` : line;
 }
 
+// Every answer a question asked for prints where it belongs (messy round 7, run 4: the crane chart and
+// the ground under a truck loading crane were required, then printed nowhere, as the hiab's step has no
+// place for them). An answer no step or document prints goes into the step its work is done in (the
+// crane's step for the crane's answers), or Before starting where no step names that work.
+const FACT_STEP = {
+  craneChart: /\b(?:cranes?|hiab|monorail)\b/i,
+  groundBearing: /\b(?:cranes?|hiab|outriggers?)\b/i,
+};
+function withAskedFacts(steps, required, facts, elsewhere) {
+  if (!Array.isArray(steps) || !steps.length) return steps;
+  const flat = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const printed = flat([...steps.flatMap((step) => step.controls || []), ...(elsewhere || []).map((item) => item.text)].join(' '));
+  let out = steps;
+  for (const item of required || []) {
+    if (item.choices || !FACT_KINDS.has(item.id)) continue;
+    const line = asSentence(keptFact((facts || {})[item.id]));
+    if (!line || printed.includes(flat(line))) continue;
+    const topic = FACT_STEP[item.id];
+    let at = topic ? out.findIndex((step) => topic.test(step.step)) : -1;
+    if (at < 0) at = out.findIndex((step) => step.step === 'Before starting');
+    if (at < 0) at = 0;
+    out = out.map((step, index) => (index === at ? { ...step, controls: [...step.controls, line] } : step));
+  }
+  return out;
+}
+
 // A high voltage pole's transformer, from the user's answers: none, dry type, oil labelled or
 // tested PCB-free, or oil with PCBs (confirmed, or not known and so treated as PCBs until tested).
 function transformerFlags(facts = {}) {
@@ -7987,8 +8069,8 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
     if (id === 'asbestosQuantity') return choiceAnswer(id, facts[id]) || 'large';
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
-    if (id === 'fallControl') return asSentence(fallControlText(source));
-    if (id === 'trenchSupport') return asSentence(trenchSupportText(source));
+    if (id === 'fallControl') return asSentence(withoutTaskSentences(fallControlText(source), task));
+    if (id === 'trenchSupport') return asSentence(trenchSupportOf(task, { ...facts, siteConditions: '' }));
     if (id === 'asbestosArrangement') return asSentence(asbestosArrangement(source));
     return '';
   };

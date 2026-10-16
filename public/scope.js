@@ -321,7 +321,7 @@
     const question = first ? `<fieldset class="scope-others scope-crane"><legend>Is a crane used, and who operates it?</legend>${CRANE_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-crane" value="${value}" ${choice.crane === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>${slinging}` : '';
     const name = offer && !offer.full ? `${esc(C().CRANAGE_TICK)}</strong> <span class="meta">(${esc(pack.name)}: ${count})</span>` : `${esc(pack.name)}</strong> <span class="meta">(${count})</span>`;
     const others = full ? ((mapped && mapped.byOthers) || []).map((entry, j) => {
-      const yes = (choice.answers[pack.name] || {})[entry.step] === 'yes';
+      const yes = C().othersAnswer(choice.answers, pack, entry) === 'yes';
       return `<fieldset class="scope-others"><legend>Scope review: ${esc(entry.step.toLowerCase())} by others</legend><p class="meta">${esc(entry.says)}${entry.clause ? ` (${esc(entry.clause)})` : ''} Do you need this in your SWMS?</p><label><input type="radio" name="others-${index}-${j}" data-others="${index}" data-step="${esc(entry.step)}" value="no" ${yes ? '' : 'checked'}> No, leave it out</label> <label><input type="radio" name="others-${index}-${j}" data-others="${index}" data-step="${esc(entry.step)}" value="yes" ${yes ? 'checked' : ''}> Yes, our crew does some of it</label></fieldset>`;
     }).join('') : '';
     const clauses = full ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${pack.rows.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${(row.quotes || []).map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : '';
@@ -1107,6 +1107,9 @@
   }
 
   S.renderProject = () => renderProject();
+  // The one-go page or the review list is shown: the work of each SWMS is with the project (app.js
+  // restoreUnsaved brings back only the details above, not a draft under the list).
+  S.projectListOpen = () => Boolean(project && !paused && (project.stage === 'questions' || project.stage === 'review'));
   // The phone's Back button from a SWMS being checked goes back to the list (app.js).
   S.projectReview = () => { if (project && project.stage === 'check') backToReview(); else if (project && project.stage) requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' })); };
   // What the one-go page and the review list (project-go.js) use of the project.

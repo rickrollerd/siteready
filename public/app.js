@@ -213,6 +213,32 @@ async function lookUpAbn() {
     box.classList.add('hidden');
   }
 }
+// An ABN that cannot be right is said at its box as soon as the person leaves it, and when the profile
+// is saved (messy round 7, run 6: a 10 digit ABN was saved with "Saved on this device." and nothing at the box).
+function abnProblem(value) {
+  const text = String(value || '').trim();
+  const digits = text.replace(/\D/g, '');
+  if (!text) return '';
+  if (/[^\d\s]/.test(text)) return 'An ABN is 11 digits, with no letters or other marks.';
+  if (digits.length !== 11) return `An ABN has 11 digits. This one has ${digits.length}.`;
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  const total = [...digits].reduce((sum, digit, index) => sum + (Number(digit) - (index === 0 ? 1 : 0)) * weights[index], 0);
+  return total % 89 === 0 ? '' : 'That is not a valid ABN. Check the digits against your ABN.';
+}
+function showAbnProblem({ typing = false } = {}) {
+  const box = document.getElementById('profile-abn');
+  const said = document.getElementById('abn-error');
+  const problem = abnProblem(box.value);
+  // While typing, a note already shown goes once the ABN is right; a new one waits until the box is left.
+  if (typing && said.classList.contains('hidden')) return problem;
+  said.textContent = problem;
+  said.classList.toggle('hidden', !problem);
+  box.setAttribute('aria-invalid', problem ? 'true' : 'false');
+  return problem;
+}
+document.getElementById('profile-abn').addEventListener('change', () => showAbnProblem());
+document.getElementById('profile-abn').addEventListener('blur', () => showAbnProblem());
+document.getElementById('profile-abn').addEventListener('input', () => showAbnProblem({ typing: true }));
 document.getElementById('profile-abn').addEventListener('change', lookUpAbn);
 document.getElementById('profile-abn').addEventListener('input', () => { if (document.getElementById('profile-abn').value.replace(/\D/g, '').length === 11) lookUpAbn(); });
 document.getElementById('abn-found').addEventListener('click', (event) => {
@@ -266,7 +292,13 @@ async function saveProfile({ auto = false } = {}) {
     Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typedSince[key] !== String(next[key] || '')) document.getElementById(id).value = typedSince[key]; });
     keepProfileTyping();
   }
-  profileStatus(auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
+  const abnWrong = showAbnProblem();
+  profileStatus(abnWrong ? `Saved on this device, but the ABN needs fixing before a SWMS can be saved or downloaded. ${abnWrong}` : auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
+  // An ABN that needs fixing keeps the profile open at its box, where the note is.
+  if (abnWrong) {
+    document.getElementById('profile').open = true;
+    document.getElementById('profile-abn').scrollIntoView({ block: 'center' });
+  }
   if (shownDraft) showGate();
   draftWithProfile();
 }
@@ -1948,6 +1980,38 @@ function pickPattern(text) {
   return new RegExp(parts.join('[^]*?'));
 }
 
+// A second standard answer pressed for the same question takes the place of the one already in the box,
+// with the person's own words kept, so the answer never says two different things (messy round 7, run 6:
+// "Mobile scaffolds ... for work above 2 m", then "Scissor lifts ... for all work above 2 m", both
+// printed). A note under the box says what was replaced, with Keep both. null: none was in the box.
+function pickSwap(box, picks, chosen) {
+  const before = box.value;
+  const pick = picks[chosen];
+  const others = picks.filter((other, index) => index !== chosen && other && pickPattern(other.text).test(before));
+  if (!pick || !others.length) return null;
+  let rest = before;
+  for (const other of others) rest = rest.replace(pickPattern(other.text), ' ');
+  rest = rest.replace(/\s{2,}/g, ' ').trim();
+  return { value: rest ? `${rest} ${pick.text}` : pick.text, both: `${before.trim()} ${pick.text}`, replaced: others.map((other) => other.label), label: pick.label };
+}
+function pickSwapNote(box, swap, after) {
+  const id = `${box.id}-swap`;
+  const old = document.getElementById(id);
+  if (old) old.remove();
+  const note = document.createElement('p');
+  note.className = 'meta pick-swap';
+  note.id = id;
+  note.setAttribute('role', 'status');
+  note.innerHTML = `"${esc(swap.label)}" is used in place of "${esc(swap.replaced.join('", "'))}", so the answer does not say two different things. <button type="button" class="link">Keep both</button>`;
+  note.querySelector('button').addEventListener('click', () => {
+    box.value = swap.both;
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+    note.textContent = 'Both kept. Check the answer says what your crew does.';
+    if (after) after();
+  });
+  (box.nextElementSibling && box.nextElementSibling.classList.contains('pick-swap') ? box.nextElementSibling : box).after(note);
+}
+
 // Highlights the standard answers whose wording is in the box.
 function markPicks(id) {
   const item = (questions && questions.required || []).find((entry) => entry.id === id);
@@ -1978,10 +2042,13 @@ document.getElementById('required-block').addEventListener('click', (event) => {
     return;
   }
   // A refused or thin answer is replaced, not added to (messy round 3: "harnes Work is done from a
-  // scaffold..."); a full answer is kept and the standard answer added after it.
+  // scaffold..."); a full answer is kept and the standard answer added after it. Another standard answer
+  // to the same question already in the box is replaced by this one (pickSwap).
   const now = box.value.trim();
   const thin = !now || (window.SiteWriteGate && window.SiteWriteGate.notAnswer(now)) || now.split(/\s+/).length < 3 || weakNotes.has(item.id) || missingNotes.has(item.id);
-  box.value = thin ? pick.text : `${now} ${pick.text}`;
+  const swap = thin ? null : pickSwap(box, item.suggestions || [], Number(button.dataset.pick));
+  box.value = thin ? pick.text : swap ? swap.value : `${now} ${pick.text}`;
+  if (swap) pickSwapNote(box, swap, () => { markPicks(item.id); askAgain(); });
   // A standard answer chosen after "Write your own" shows as its sentence again (D261).
   if ((blankForms.get(box.id) || {}).own) blankForms.delete(box.id);
   if (questionDesign(item.id)) fillFromDesign(item.id);
@@ -2209,6 +2276,45 @@ function currentAnswers() {
   return Object.fromEntries(asGiven().map((key) => [key, now[key]]));
 }
 const draftStale = () => Boolean(shownSent && shownDraft && shownDraft.kind === 'draft' && redrawKey(payload()) !== redrawKey(shownSent));
+// The details above the questions (the people, the address, the hospital, the muster point) print in the
+// draft as given, and a download takes them as they are now. Changed while a draft is shown, the draft on
+// screen shows them at once, in place, with no new draft: its header, its people and the emergency
+// arrangements that name them (messy round 7, run 1: the old muster point showed on screen with the
+// downloads enabled).
+const DETAIL_ROWS = {
+  workplace: 'Workplace', principalContractor: 'Principal contractor', siteManager: 'Site manager', scaffoldSupervisor: 'Scaffold supervisor',
+  hospital: 'Hospital', firstAider: 'First aider', musterPoint: 'Muster point', worksManager: 'Works manager', worksManagerPhone: 'Contact phone',
+  complianceResponsible: 'Person responsible for ensuring compliance', reviewer: 'Person responsible for reviewing the controls', reviewDate: 'Review date',
+};
+let detailsShown = null;
+function showDetailsInDraft() {
+  const sheet = shownDraft && shownDraft.kind === 'draft' && !resultEl.classList.contains('hidden') && resultEl.querySelector('.sheet');
+  if (!sheet || !sheet.querySelectorAll) return;
+  const now = payload();
+  const before = detailsShown || shownSent || {};
+  const clean = (value) => String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+  const cells = [...sheet.querySelectorAll('tr')];
+  const head = sheet.querySelector('#emergency-table');
+  const emergencyRows = new Set(head && head.nextElementSibling ? [...head.nextElementSibling.querySelectorAll('tr')] : []);
+  for (const [key, label] of Object.entries(DETAIL_ROWS)) {
+    const was = clean(before[key]);
+    const is = clean(now[key]);
+    if (was === is || (!is && key === 'reviewDate')) continue;
+    for (const row of cells) {
+      const th = row.querySelector('th');
+      const cell = row.querySelector('td');
+      if (!cell) continue;
+      if (th && clean(th.textContent) === label) { cell.textContent = is || (key === 'musterPoint' ? 'To be completed before submitting for approval' : ''); continue; }
+      // The emergency arrangements name the first aider, the hospital and the muster point.
+      if (was.length >= 3 && is && emergencyRows.has(row)) row.querySelectorAll('td').forEach((td) => { if (td.textContent.includes(was)) td.textContent = td.textContent.split(was).join(is); });
+    }
+  }
+  detailsShown = Object.fromEntries(Object.keys(DETAIL_ROWS).map((key) => [key, now[key]]));
+}
+['input', 'change'].forEach((type) => document.addEventListener(type, (event) => {
+  if (!event.target.closest || !event.target.closest('#job-details')) return;
+  showDetailsInDraft();
+}));
 
 // Everything still outstanding before download, in one list: the site questions and blanks the
 // server found (goal 2), judged again as the user answers, and the tick for work SiteWrite has no
@@ -3429,6 +3535,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     shownReport = report;
     const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
+    detailsShown = null;
     if (data.kind === 'draft') drawDesigns(data.designs || []);
     shownChecks = data.gateChecks || data.gate || [];
     // The scaffold supervisor is asked for only where this SWMS involves a scaffold.
@@ -3459,6 +3566,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     backToSpot(spot);
     if (scroll && !spot) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (scroll) markStage('draft');
+    return true;
   } catch (error) {
     // A server that could not be reached gets a plain message and a button to try again.
     const said = document.getElementById('facts-error');
@@ -3467,6 +3575,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     // Said where the button was pressed too, when the draft is shown below the questions.
     if (origin && error.serverDown) draftNote(origin, DRAFT_DOWN, true);
     else if (origin) draftNote(origin, error.message, true);
+    return false;
   } finally {
     button.disabled = false;
   }
@@ -4624,12 +4733,20 @@ async function restoreUnsaved() {
   const input = { ...kept.input };
   // Signed in, the company is the account's own.
   if (document.getElementById('company').value.trim()) delete input.company;
+  // A project on its one-go page or its review list keeps each SWMS's work with the project, and the
+  // SWMS form is hidden: only the details above come back, and no draft is asked for under the list
+  // (messy round 7, run 1: the draft of the SWMS last checked was asked for at page load, refused with
+  // an HTTP 400 that nothing on the page said, and drawn under the list of SWMS).
+  const listOpen = Boolean(window.SiteWrite && window.SiteWrite.projectListOpen && window.SiteWrite.projectListOpen());
+  let notPrepared = '';
   restoring = true;
   try {
-    if (kept.stage === 'start') fillStart(input);
+    if (kept.stage === 'start' || listOpen) fillStart(input);
     else if (await fillForm(input, { stay: true }).catch(() => false)) {
       if (kept.editing && window.SiteWrite) window.SiteWrite.editing = kept.editing;
-      if (kept.stage === 'draft') await prepareDraft({ scroll: false });
+      // Work whose draft cannot be prepared again says why in the note at the top (messy round 7, run 1:
+      // a refusal at page load said nothing).
+      if (kept.stage === 'draft' && (await prepareDraft({ scroll: false })) === false) notPrepared = document.getElementById('facts-error').textContent.replace(/\s*Try again$/, '').trim() || 'Press Prepare the statement to try again.';
     } else fillStart(input);
   } finally {
     restoring = false;
@@ -4640,7 +4757,7 @@ async function restoreUnsaved() {
   note.className = 'note';
   note.id = 'unsaved-note';
   note.setAttribute('role', 'status');
-  note.innerHTML = `Your work is back as you left it (not saved yet, from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`}). <button type="button" class="link" id="unsaved-clear">Start again</button>`;
+  note.innerHTML = `Your work is back as you left it (not saved yet, from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`}).${notPrepared ? ` The draft could not be prepared again: ${esc(notPrepared)}` : ''} <button type="button" class="link" id="unsaved-clear">Start again</button>`;
   // A project being prepared in one go hides the SWMS form: the note goes above the details it brought back.
   const start = document.getElementById('start');
   const stage = kept.stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl : kept.stage !== 'start' && !factsForm.classList.contains('hidden') ? factsForm : start.classList.contains('hidden') ? document.getElementById('job-details') : start;
@@ -4786,7 +4903,7 @@ function goToEl(el) {
 
 window.SiteWrite = Object.assign(window.SiteWrite || {}, {
   mustFixPlace, goToMustFix, signedInProfile,
-  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
+  pickSwap, pickSwapNote, keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, showBuilderFields, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, ownStepProblem, OWN_HIERARCHY, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },

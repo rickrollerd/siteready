@@ -54,8 +54,16 @@ const STREET_NUMBER = /\b\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+[A-Za-z]/;
 // Only a city doubled ("East Perth Perth") or a "City" suburb after another suburb ("Carina Brisbane
 // City") is taken off: "North Sydney" stays as it is.
 const CITY_AFTER_SUBURB = /,\s*([A-Z][A-Za-z' -]*?)\s+(Brisbane City|Sydney City|Darwin City|Brisbane|Perth|Sydney|Melbourne|Adelaide|Hobart|Darwin|Canberra)(?=,?\s*(?:QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\b)/;
-function toSuggestion(prediction) {
-  const full = prediction && prediction.text && prediction.text.text;
+// Symbols the lookup sometimes puts in a suggestion ("60 \u26c9 Bridge Street", messy round 7, run 1) are
+// not part of any address: only letters, numbers, spaces and the marks an address uses are kept.
+const ADDRESS_MARKS = /[^\p{L}\p{N}\s,.'\u2019/&()#-]/gu;
+const plainAddress = (text) => String(text || '').replace(ADDRESS_MARKS, ' ').replace(/\s+([,.])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+function toSuggestion(given) {
+  if (!given || !given.text || !given.text.text) return null;
+  const clean = (part) => (part && part.text ? { ...part, text: plainAddress(part.text) } : part);
+  const format = given.structuredFormat || {};
+  const prediction = { ...given, text: clean(given.text), structuredFormat: { ...format, mainText: clean(format.mainText), secondaryText: clean(format.secondaryText) } };
+  const full = prediction.text.text;
   if (!full) return null;
   const types = Array.isArray(prediction.types) ? prediction.types : [];
   const main = prediction.structuredFormat && prediction.structuredFormat.mainText && prediction.structuredFormat.mainText.text;

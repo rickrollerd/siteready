@@ -25,15 +25,34 @@
   let page = null;
   const base = () => (inProject ? `/api/hse/submissions/${encodeURIComponent(submissionId)}` : `/api/review/swms/${encodeURIComponent(ref)}`);
 
-  async function call(method, route, body) {
-    const response = await fetch(route, {
-      method,
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { 'X-Reviewer-Token': token } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field });
-    return data;
+  // A host's error (502, 503, 504) or a reply that is not SiteWrite's own says so plainly, and a request
+  // that is safe to send again (tries: 2) is sent once more first (messy round 7, run 7: a 502 on
+  // "Email me a sign-in link" said "Something went wrong" while the button already read "Email me another
+  // link").
+  const SERVER_DOWN = 'SiteWrite could not reach the server. Try again.';
+  async function call(method, route, body, { tries = 1, down = SERVER_DOWN } = {}) {
+    for (let attempt = 1; ; attempt += 1) {
+      let response;
+      try {
+        response = await fetch(route, {
+          method,
+          headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { 'X-Reviewer-Token': token } : {}) },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+      } catch (error) {
+        if (attempt < tries) { await new Promise((resolve) => { setTimeout(resolve, 900); }); continue; }
+        throw Object.assign(new Error(down), { serverDown: true });
+      }
+      const type = (response.headers && response.headers.get && response.headers.get('content-type')) || '';
+      const ours = /json/i.test(type);
+      if (!ours || [502, 503, 504].includes(response.status)) {
+        if (attempt < tries) { await new Promise((resolve) => { setTimeout(resolve, 900); }); continue; }
+        if (!ours || response.status >= 500) throw Object.assign(new Error(down), { serverDown: true, status: response.status });
+      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw Object.assign(new Error(data.message || (response.status >= 500 ? down : 'Something went wrong. Try again.')), { status: response.status, field: data.field });
+      return data;
+    }
   }
 
   const show = (id, on) => $(id).classList.toggle('hidden', !on);
@@ -487,13 +506,15 @@
     status('signin-note', '');
     status('signin-status', 'Sending...', 'meta');
     try {
-      const data = await call('POST', '/api/review/email', { email: $('email').value, ref });
+      // Sending a link again is safe: each link works once, and either one signs in.
+      const data = await call('POST', '/api/review/email', { email: $('email').value, ref }, { tries: 2, down: 'SiteWrite could not reach the server, so no sign-in link was sent. Your email address is kept. Press Email me a sign-in link again.' });
       status('signin-status', `<strong>${esc(data.message)}</strong><p>Open the email on the device you will review on, and press the link. If you open it on another device, you review on that one. This page stays signed out.</p>`, 'ok');
+      // Only once a link has gone does the button offer another.
+      button.textContent = 'Email me another link';
     } catch (error) {
       status('signin-status', esc(error.message), 'bad');
     } finally {
       button.disabled = false;
-      button.textContent = 'Email me another link';
     }
   });
 

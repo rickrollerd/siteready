@@ -580,6 +580,10 @@
   // response showed only after My SWMS was pressed again): while it is open it is asked again every
   // 30 seconds and when the page is shown again, quietly, and says when a response has arrived.
   let reviewsSeen = null;
+  // When the list was last drawn, and when the person last used the page (seenOnScreen).
+  let drawnAt = 0;
+  let usedAt = 0;
+  let seenTimer = null;
   async function loadSwms({ quiet = false } = {}) {
     const list = $('swms-list');
     if (!quiet) list.innerHTML = '<p class="lede">Loading…</p>';
@@ -589,12 +593,14 @@
       const reviewed = new Map(swms.filter((item) => item.review).map((item) => [item.id, `${item.review.label}|${item.review.date}`]));
       const arrived = reviewsSeen ? swms.filter((item) => item.review && reviewsSeen.get(item.id) !== reviewed.get(item.id)) : [];
       reviewsSeen = reviewed;
-      // My SWMS open shows each review: the note above the page goes.
-      markReviewsSeen(swms);
+      // My SWMS open shows each review, so the note above the page goes. A review counts as seen only
+      // once a person has had it on screen (seenOnScreen below), not because the list was asked again
+      // while open (messy round 7, run 7: the 30 second refresh marked it seen on an idle phone, and
+      // the next page load showed no notice).
       reviewsBackNote([]);
       const arrivedHtml = arrived.length ? `<p class="note" role="status" id="swms-review-arrived">A principal contractor's review has come back: ${arrived.map((item) => `${esc(item.title)} (${esc(item.review.label)})`).join('; ')}.</p>` : '';
       const html = arrivedHtml + (swms.length ? swms.map((item) => `
-        <div class="swms-row">
+        <div class="swms-row"${item.review ? ` data-review-row="${esc(item.id)}" data-review-key="${esc(reviewKey(item))}"` : ''}>
           <div>
             <strong>${esc(item.title)}</strong>
             <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Check due</span>' : `Check by ${shortDate(item.reviewDueAt)}`}</span>
@@ -603,7 +609,12 @@
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
         </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (every revision in Word, with team and sites, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>');
-      if (!quiet || arrived.length || list.innerHTML.replace(/<p class="note" role="status" id="swms-review-arrived">.*?<\/p>/, '') !== html) list.innerHTML = html;
+      if (!quiet || arrived.length || list.innerHTML.replace(/<p class="note" role="status" id="swms-review-arrived">.*?<\/p>/, '') !== html) {
+        list.innerHTML = html;
+        // Opened by the person (not the quiet refresh), the press that opened it counts as use.
+        drawnAt = !quiet && usedAt > Date.now() - 10000 ? usedAt - 1 : Date.now();
+      }
+      seenSoon();
     } catch (error) {
       if (!quiet) list.innerHTML = `<p class="error">${esc(error.message)}</p>`;
     }
@@ -620,13 +631,37 @@
   function seenReviews() {
     try { const all = JSON.parse(read(REVIEWS_SEEN_KEY) || '{}'); return (all && me && all[me.user.email]) || {}; } catch { return {}; }
   }
-  function markReviewsSeen(swms) {
-    if (!me) return;
+  // seen: { swms id: review key } for the reviews just seen, added to those seen before.
+  function markReviewsSeen(seen) {
+    if (!me || !Object.keys(seen).length) return;
     let all = {};
     try { all = JSON.parse(read(REVIEWS_SEEN_KEY) || '{}') || {}; } catch { all = {}; }
-    all[me.user.email] = Object.fromEntries(swms.filter((item) => item.review).map((item) => [item.id, reviewKey(item)]));
+    all[me.user.email] = { ...((all && all[me.user.email]) || {}), ...seen };
     write(REVIEWS_SEEN_KEY, JSON.stringify(all));
   }
+  // A review is seen when its row in My SWMS is on screen, with the page in view, after the person has
+  // touched, scrolled or typed on the page since the row was drawn; or when its SWMS is opened. A page
+  // left open on an idle phone sees nothing.
+  function seenOnScreen() {
+    if (!mineOpen() || document.visibilityState !== 'visible' || usedAt <= drawnAt) return;
+    const seen = {};
+    const before = seenReviews();
+    document.querySelectorAll('#swms-list [data-review-row]').forEach((row) => {
+      const box = row.getBoundingClientRect();
+      if (box.height && box.top < window.innerHeight && box.bottom > 0 && before[row.dataset.reviewRow] !== row.dataset.reviewKey) seen[row.dataset.reviewRow] = row.dataset.reviewKey;
+    });
+    markReviewsSeen(seen);
+  }
+  // Seen after a moment on screen, not as the row flicks past.
+  function seenSoon() {
+    clearTimeout(seenTimer);
+    seenTimer = setTimeout(seenOnScreen, 1000);
+  }
+  ['pointerdown', 'keydown', 'scroll', 'wheel', 'touchstart'].forEach((type) => document.addEventListener(type, (event) => {
+    if (!event.isTrusted) return;
+    usedAt = Date.now();
+    if (mineOpen()) seenSoon();
+  }, { capture: true, passive: true }));
   function reviewsBackNote(list) {
     let note = $('reviews-back');
     if (!list.length) { if (note) note.remove(); return; }
@@ -661,7 +696,12 @@
       return;
     }
     const button = event.target.closest('[data-swms]');
-    if (button) openSwms(button.dataset.swms);
+    if (button) {
+      // Opening a SWMS shows its review.
+      const row = button.closest && button.closest('[data-review-row]');
+      if (row) markReviewsSeen({ [row.dataset.reviewRow]: row.dataset.reviewKey });
+      openSwms(button.dataset.swms);
+    }
   });
 
   // A saved SWMS's revisions, newest first: when and by whom each was saved, why, what changed

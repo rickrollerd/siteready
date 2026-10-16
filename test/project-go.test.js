@@ -315,6 +315,47 @@ test('a detail every SWMS shares, changed after a SWMS was checked, clears the p
   assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>/);
 });
 
+test('as the page loads, the review list asks for no draft before the state is back, and never empties a detail a SWMS holds', async () => {
+  // Messy round 7, run 1: a silent HTTP 400 on POST /api/draft ("Choose a state.") at page load.
+  const p = page({ people: { workplace: '1 A St, Brisbane QLD 4000' }, answer: (route, body) => (route === '/api/draft' ? (body.state ? { body: { kind: 'draft', gate: [], checkParts: CHECK.partHashes } } : { status: 400, body: { kind: 'refused', message: 'Choose a state.' } }) : {}) });
+  const loading = { state: '', workplace: '', principalContractor: '', company: '' };
+  p.window.SiteWrite.payload = () => loading;
+  const project = { stage: 'review', shared: { emergency: {}, designs: {} }, items: [item('Formwork'), item('Reinforcement')] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  await new Promise((resolve) => { setTimeout(resolve, 500); });
+  assert.equal(p.calls.filter((call) => call.route === '/api/draft').length, 0, 'nothing asked before the state is back');
+  // The state and the address are back; the company is not yet: the drafts are brought up to date with
+  // what is given, and the company each SWMS holds stays.
+  Object.assign(loading, { state: 'qld', workplace: '2 B St, Brisbane QLD 4000' });
+  p.go.render(panel, project, p.hooks);
+  await new Promise((resolve) => { setTimeout(resolve, 500); });
+  const sent = p.calls.filter((call) => call.route === '/api/draft').map((call) => call.body);
+  assert.equal(sent.length, 2);
+  assert.ok(sent.every((body) => body.state === 'qld' && body.workplace === '2 B St, Brisbane QLD 4000' && body.company === 'Co'), JSON.stringify(sent[0]));
+  assert.equal(project.items[0].body.company, 'Co');
+});
+
+test('prepared again after a shared answer changed, the list names only the ticked parts that now print differently', async () => {
+  // Messy round 7, run 6: "Its ticks were cleared" when only the parts that changed were.
+  const p = page({
+    people: PEOPLE,
+    answer: (route) => (route === '/api/draft/questions' ? { body: { required: [], weak: [] } } : route === '/api/draft' ? { body: { kind: 'draft', gate: [], checkParts: { ...CHECK.partHashes, site: 'changed', hazards: 'changed' } } } : {}),
+  });
+  const project = { stage: 'questions', shared: { crane: 'none', emergency: {}, designs: {}, site: {} }, items: [item('Formwork')] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  p.fire('input', { dataset: { goSharedSite: '', siteId: 'access' }, value: 'Through gate 2 on Smith Street.', attrs: ['go-shared-site'] });
+  p.fire('click', { id: 'go-prepare-stale', attrs: [] });
+  await settle();
+  assert.equal(project.items[0].check, undefined);
+  assert.equal(project.items[0].checkNote, 'You changed the hazards and controls and the site details after ticking them. Tick them again.');
+  project.stage = 'review';
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /You changed the hazards and controls and the site details after ticking them\. Tick them again\. Ready for your check/);
+  assert.doesNotMatch(panel.innerHTML, /ticks were cleared/);
+});
+
 test('a SWMS that needs preparing again after an answer changed is not checked either, and the list says its ticks are cleared', async () => {
   const p = page({
     people: PEOPLE,
@@ -326,18 +367,20 @@ test('a SWMS that needs preparing again after an answer changed is not checked e
   // A site answer every SWMS shares changes after two were checked.
   p.fire('input', { dataset: { goSharedSite: '', siteId: 'access' }, value: 'Through gate 2 on Smith Street.', attrs: ['go-shared-site'] });
   assert.deepEqual(project.items.map((entry) => [Boolean(entry.stale), Boolean(entry.check)]), [[true, false], [true, false], [true, false]]);
-  assert.match(p.element('go-kept-box').innerHTML, /so they need preparing again: SWMS 1 \(Formwork\); SWMS 2 \(Reinforcement\); SWMS 3 \(Edge protection\)\. Their ticks are cleared, so check them again once prepared\./);
+  assert.match(p.element('go-kept-box').innerHTML, /so they need preparing again: SWMS 1 \(Formwork\); SWMS 2 \(Reinforcement\); SWMS 3 \(Edge protection\)\. Once prepared, the list names any ticked part that changed, to tick again\./);
   project.stage = 'review';
   p.go.render(panel, project, p.hooks);
-  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">Needs preparing again: a site answer every SWMS shares changed\. Its ticks are cleared\.<\/span>/);
+  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">Needs preparing again: a site answer every SWMS shares changed\. Any ticked part that changes is named once it is prepared\.<\/span>/);
   assert.match(panel.innerHTML, /<strong>Edge protection<\/strong><span class="meta">Needs preparing again: a site answer every SWMS shares changed\. Not checked yet\.<\/span>/);
   assert.match(panel.innerHTML, /They stay on the list and download once prepared again and checked\./);
   assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>/);
   // Prepared again, each waits for its check, with the reason.
   p.fire('click', { id: 'go-prepare-stale', attrs: [] });
   await settle();
-  assert.deepEqual(project.items.map((entry) => [Boolean(entry.stale), Boolean(entry.check)]), [[false, false], [false, false], [false, false]]);
+  // Nothing they print changed (messy round 7, run 6), so the two checked come back checked.
+  assert.deepEqual(project.items.map((entry) => [Boolean(entry.stale), Boolean(entry.check)]), [[false, true], [false, true], [false, false]]);
   p.go.render(panel, project, p.hooks);
-  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">Its ticks were cleared because an answer it uses changed\. Ready for your check: open it, tick each part as checked, and give your name and role\.<\/span>/);
-  assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>/);
+  assert.doesNotMatch(panel.innerHTML, /ticks were cleared/);
+  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">Ready to download\. Checked by Sam Lee, Supervisor\.<\/span>/);
+  assert.match(panel.innerHTML, /<button type="button" id="project-zip">Download the 2 checked SWMS/);
 });

@@ -129,6 +129,26 @@
   // A fall of more than 2 m the package's own words state settles the fall question; a likely one does not.
   const fallFrom = (flag) => (((flag && flag.categories) || []).some((item) => item.id === 'fall' && !item.likely) ? 'yes' : '');
 
+  // A step the reading says is done by others, where this package's own work names it in a sentence that
+  // does not give it to others ("Supply and install edge protection to all slab edges ... Perimeter
+  // screens are supplied by others"): the scope gives it to this crew, so its question starts at Yes
+  // (messy round 7, run 1: it started at "No, leave it out").
+  const STEP_VERBS = /\b(?:supply|supplied|install\w*|erect\w*|fit\w*|fix\w*|remov\w*|dismantl\w*|strip\w*|maintain\w*|provid\w*|the|and|of|to|for|with|from|on|in|at|all|work|works)\b/gi;
+  const TO_OTHERS = /\b(?:by others|others (?:to )?(?:supply|install|provide|erect)|(?:supplied|installed|provided|erected|done) by (?:the )?(?:builder|head contractor|principal contractor|client|others))\b/i;
+  const OWN_VERB = /\b(?:supply|install|erect|fit|fix|provide|maintain|put up|set up)\b[^.;]*$/;
+  function ownsStep(rows, step) {
+    const words = String(step || '').toLowerCase().replace(STEP_VERBS, ' ').split(/[^a-z]+/).filter((word) => word.length >= 4);
+    if (!words.length) return false;
+    return (rows || []).some((row) => [row.activity, ...(row.quotes || [])].join('. ').split(/(?<=[.;])\s+/).some((sentence) => {
+      const lower = sentence.toLowerCase();
+      const at = lower.indexOf(words[0].replace(/s$/, ''));
+      // The crew's own verb comes just before the work: "install edge protection", not "handed over to the perimeter screens".
+      return at >= 0 && words.every((word) => lower.includes(word.replace(/s$/, ''))) && OWN_VERB.test(lower.slice(Math.max(0, at - 40), at)) && !TO_OTHERS.test(sentence);
+    }));
+  }
+  // The answer to a "by others" step: the user's, else Yes where the package's own work names it.
+  const othersAnswer = (answers, pack, entry) => (answers[pack.name] || {})[entry.step] || (ownsStep(pack.rows, entry.step) ? 'yes' : 'no');
+
   // One SWMS in the project for each package chosen. answers holds the scope review answers by
   // package name ({ [step]: 'yes' | 'no' }): Yes adds that step's group, No leaves the step out.
   function projectItems(reading, chosen, { answers = {}, crane = '', slinging = '' } = {}) {
@@ -140,7 +160,7 @@
       const kinds = mapped ? [...(mapped.groups || [])] : null;
       const leaveOut = [];
       for (const entry of (mapped && mapped.byOthers) || []) {
-        if ((answers[pack.name] || {})[entry.step] === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else leaveOut.push(entry.step);
+        if (othersAnswer(answers, pack, entry) === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else leaveOut.push(entry.step);
       }
       return {
         title: pack.name,
@@ -167,7 +187,7 @@
     });
   }
 
-  const api = { packagesOf, isCranage, craneClause, suppliesCranage, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
+  const api = { packagesOf, ownsStep, othersAnswer, isCranage, craneClause, suppliesCranage, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteScopeChoice = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -491,6 +491,7 @@ const CRANE = /\b(?:(?:mobile|crawler|tower|franna|slewing|pick and carry|all te
 const SILICA_CONTEXT = /\b(dust|silica|slurry|concrete|masonry|bricks?|blocks?|stone|pavers?|tiles?|cut\w*|drill\w*|grind\w*|saw\w*|cor(?:e|ing)|chas\w*|clean\w*)\b/i;
 const LIFT_WORDS = /\b(lift\w*|hoist\w*|loads?|slung|sling\w*|rigg\w*|dogg\w*|pick\w*|lower\w*|install\w*|erect\w*|plac\w*)\b/i;
 
+const IF_HARNESS = /^\s*(?:where|if|when|wherever|should)\b[^.]*\b(?:harness\w*|fall arrest|lanyards?|static lines?)\b|\b(?:where|if|when) (?:a |the )?(?:harness\w*|fall arrest|lanyards?)(?: systems?)? (?:is|are) (?:used|worn|needed)\b|\bno (?:fall arrest )?harness\w*\b|\b(?:harness\w*|fall arrest)\b[^.]*\b(?:is|are) not (?:used|worn|needed)\b/i;
 const MINIMUM = [
   { id: 'fall', label: 'falls over 2 m', musts: [
     // As for H3, a stated reason that edge protection, a scaffold or an EWP is not reasonably practicable answers it.
@@ -1262,6 +1263,10 @@ function weighted(swms, state, context) {
     ];
     const said = [swms.task, ...swms.highRisk, ...steps.flatMap((step) => [step.step, ...step.hazards]), ...swms.plant].join('\n');
     const controlText = allControls.join('\n');
+    // A harness is asked about (its anchor) only where one is used: not from a line that only says what
+    // happens if one is ("Where harnesses are used ...", the rescue plan "where harnesses are used"), or
+    // that none is (messy round 7, run 1: harness anchors asked for a formwork SWMS with no harness).
+    const usedText = controlText.split(/\n|(?<=\.)\s+/).filter((line) => !IF_HARNESS.test(line)).join('\n');
     const sets = minimumSets(swms, state, context);
     // A crew that does not remove asbestos itself, and says a licensed asbestos removalist does, is not
     // asked for the removal controls; the removalist's own SWMS carries them (owner decision, 6 October 2026).
@@ -1269,7 +1274,7 @@ function weighted(swms, state, context) {
       && !/\b(?:remov\w*|strip\w*|encapsulat\w*)\b[^.\n]{0,40}\basbestos\b|\basbestos\b[^.\n]{0,40}\b(?:remov\w*|strip\w*)/i.test(swms.task);
     const gaps = [];
     for (const { set, steps: where } of sets) {
-      const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(controlText))
+      const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(usedText))
         && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist));
       const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
       if (missing.length) gaps.push({ set, where, missing });
