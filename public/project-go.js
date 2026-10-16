@@ -72,7 +72,13 @@
   // details the builder set are filled in above, marked "Set by {builder}" (from-builders.js).
   const builder = () => (hooks && hooks.builder ? hooks.builder() : null);
   const builderName = () => { const b = builder(); return b ? b.builder.name : ''; };
-  const poss = (name) => (window.SiteWriteBuilderSet ? window.SiteWriteBuilderSet.possessive(name) : `${poss(name)}`);
+  // builder-set.js loads after this file, and a list kept on the device is drawn before it has loaded
+  // (messy round 8: the fallback called itself, "Maximum call stack size exceeded" on every load).
+  const poss = (name) => {
+    if (window.SiteWriteBuilderSet) return window.SiteWriteBuilderSet.possessive(name);
+    const text = String(name || '').trim();
+    return /s$/i.test(text) ? `${text}'` : `${text}'s`;
+  };
   const OWN_TAG = '<span class="pill own-tag">Your own, not sent</span>';
   // The open SWMS's title on the builder's list, which names its download (messy round 7: the file was
   // named after the task).
@@ -90,7 +96,7 @@
     const answers = (b.answers || []).length ? `<details class="go-answers"><summary>${esc(poss(name))} answers to points in the scope (${b.answers.length})</summary><ul>${b.answers.map((answer) => `<li><span class="meta">${esc(answer.question)}${answer.activity ? ` (${esc(answer.activity)})` : ''}</span><br><strong>${esc(answer.answer)}</strong></li>`).join('')}</ul></details>` : '';
     return `<div class="project-head"><h2>SWMS for ${esc(name)}</h2><button type="button" class="small secondary" data-list-close>Close</button></div>
       <div class="from-builder-head">
-        <p><strong>${esc(name)}</strong>${b.builder.verified ? '' : ' <span class="pill">Unverified</span>'} needs these SWMS from ${esc(b.subcontractor.name)} for <strong>${esc(b.project.name)}</strong>, ${esc(b.project.workplace)}.${due}</p>
+        <p><strong>${esc(name)}</strong>${b.builder.verified ? '' : ' <span class="pill">Unverified</span>'} needs these SWMS from ${esc(b.subcontractor.name)} for <strong>${esc(b.project.name)}</strong> at ${esc(b.project.workplace)}.${due}</p>
         <p class="meta">${required === 1 ? 'One SWMS is' : `${required} SWMS are`} on ${esc(poss(name))} list${own ? `, and ${own === 1 ? 'one is' : `${own} are`} your own` : ''}. The site details ${esc(name)} set are filled in above, each marked "Set by ${esc(name)}". Your company's details come from your own company profile. ${esc(name)} sees only the SWMS you submit to it, and which ones you take off its list. It does not see your drafts.</p>
         <p class="meta" id="list-saved" role="status">${esc(S.listSavedLine ? S.listSavedLine() : '')}</p>
         <p class="${b.note ? 'warning' : 'note hidden'}" id="list-note" role="status">${esc(b.note || '')}</p>
@@ -115,7 +121,7 @@
     const also = coversNames.length ? ` Also covers: ${esc(coversNames.length > 1 ? `${coversNames.slice(0, -1).join(', ')} and ${coversNames[coversNames.length - 1]}` : coversNames[0])}.` : '';
     return `${item.workChanged ? `<p class="note">${esc(item.workChanged)} The task below is the work as it is now.</p>` : item.newOnList ? `<p class="note">New on ${poss(name)} list.</p>` : ''}
       <p class="meta go-item-from">On ${poss(name)} list.${risk}${clauses}${also} <button type="button" class="link" data-go-take-off="${index}" aria-label="${esc(`Take ${item.title} off my list`)}">Take it off my list</button></p>
-      ${(item.draftNotes || []).length ? `<div class="note go-draft-notes"><p><strong>Notes from ${poss(name)} scope</strong></p><ul>${item.draftNotes.map((entry) => `<li>${esc(entry.text)}${entry.clause ? ` <span class="meta">(clause ${esc(entry.clause)})</span>` : ''}</li>`).join('')}</ul></div>` : ''}`;
+      ${(item.draftNotes || []).length ? `<div class="note go-draft-notes"><p><strong>Notes from ${poss(name)} scope</strong></p><ul>${item.draftNotes.map((entry) => `<li>${esc(entry.text)}${entry.clause ? ` <span class="meta">(clause ${esc(entry.clause)})</span>` : ''}${entry.settled ? ` <span class="go-note-settled"><strong>Settled:</strong> ${esc(poss(b.builder.name))} answer is "${esc(String(entry.settled).replace(/[.\s]+$/, ''))}".</span>` : ''}</li>`).join('')}</ul></div>` : ''}`;
   }
   // SWMS taken off the list here: the builder still expects them, and each can be put back.
   function offListHtml() {
@@ -145,12 +151,20 @@
   // marks done for the builder to confirm.
   const sentOf = (item) => { const b = builder(); return b && b.sent && item && item.requiredId ? (b.sent.items || {})[item.requiredId] || null : null; };
   const checkKey = (check) => (check && check.partHashes ? `${JSON.stringify(check.partHashes)}|${check.name}|${check.role}` : '');
+  // The parts as they printed when submitted, from the server, against the check here now: the same on
+  // every device and after a reload (messy round 8: "Changed since you submitted it" with nothing changed
+  // on a second device, and Submit then said nothing had changed).
+  const PART_IDS = () => ((window.SiteWriteCheckParts && window.SiteWriteCheckParts.IDS) || ['steps', 'hazards', 'plant', 'emergency', 'site']);
+  const sameParts = (a, b) => Boolean(a && b) && PART_IDS().every((id) => a[id] === b[id]);
   function submitState(item) {
     const check = checkOf(item);
     const sent = sentOf(item);
     const latest = sent && sent.latest && sent.latest.channel === 'sitewrite' ? sent.latest : null;
-    // Submitted from this page with this same check: nothing new to send.
-    const same = Boolean(latest && check && item.submittedKey && item.submittedKey === checkKey(check) && item.submittedRevision === latest.revision);
+    // Submitted with this same check: nothing new to send. A submission from before the server kept its
+    // parts is matched as this page last submitted it.
+    const same = Boolean(latest && check && (latest.partHashes
+      ? sameParts(latest.partHashes, check.partHashes) || (item.submittedKey === checkKey(check) && item.submittedRevision === latest.revision)
+      : item.submittedKey && item.submittedKey === checkKey(check) && item.submittedRevision === latest.revision));
     return { check, latest, same, can: Boolean(builder() && item.requiredId && check && item.status === 'ready' && item.body && !item.stale && !same) };
   }
   const CONDITION_STATE = { outstanding: 'To do', done: 'Marked done', closed: 'Confirmed done' };
@@ -189,11 +203,22 @@
     const reviewText = review
       ? `<b>${esc(review.label)}</b> by ${esc(review.name)}, ${esc(review.company)}, ${esc(review.date)}.${review.response === 'changes' && review.text ? `<span class="pre go-changes">${esc(review.text)}</span>` : ''}`
       : `Not reviewed yet.${earlier ? ` Revision ${esc(earlier.revision)} was ${esc(earlier.review.label)}.` : ''}`;
-    const changed = latest.channel === 'sitewrite' && !state.same && state.check && item.submittedKey
+    const changed = latest.channel === 'sitewrite' && !state.same && state.check && (latest.partHashes || item.submittedKey)
       ? ` <b>Changed since you submitted it.</b> Submit it again to send the new revision.` : '';
     const overrides = (latest.overrides || []).length ? ` ${name} sees that it changes details it set: ${esc(latest.overrides.map((one) => one.label.toLowerCase()).join(', '))}.` : '';
     const conditions = (sent.conditions || []).length ? `<ul class="go-conditions">${sent.conditions.map(conditionHtml).join('')}</ul>` : '';
     return `<span class="go-sent"><span class="meta">${what}${overrides} ${reviewText}${changed}</span>${conditions}</span>${note}`;
+  }
+  // A detail the builder set, changed for this SWMS alone while it was open (messy round 8, stuck point 4).
+  function ownDetailsLine(item) {
+    const b = builder();
+    const set = window.SiteWriteBuilderSet;
+    const keys = Object.keys((b && item.pageOwn) || {});
+    if (!keys.length || !set) return '';
+    const labels = keys.map((key) => (set.fieldOf(key) || { label: key }).label.toLowerCase());
+    // Once submitted, the line under it says the builder sees the change.
+    const sent = sentOf(item);
+    return `<span class="meta go-own-detail">For this SWMS only, you changed ${labels.length === 1 ? 'a detail' : 'details'} ${esc(b.builder.name)} set: ${esc(labels.join(', '))}.${(sent && sent.latest) || !item.requiredId ? '' : ` ${esc(b.builder.name)} sees it when you submit.`}</span>`;
   }
   // The log both sides see, at the top of the list.
   function logHtml() {
@@ -280,6 +305,8 @@
       save();
       hooks.render();
       const row = $(`cond-${id}`);
+      // The reply is said beside the condition (messy round 8: the row just changed, with no word).
+      if (row && data.message) row.insertAdjacentHTML('beforeend', `<span class="meta go-submit-ok" role="status">${esc(data.message)}</span>`);
       if (row && row.scrollIntoView) row.scrollIntoView({ block: 'center' });
     } catch (error) {
       button.disabled = false;
@@ -374,6 +401,7 @@
     const emergency = shared().emergency;
     return {
       ...pageBase(),
+      ...(builder() && item.pageOwn ? item.pageOwn : {}),
       // Unanswered until the user answers, or the scope clearly says (messy round 3); Prepare all
       // answers "No crane" where no task names one.
       crane: shared().crane || item.crane || '',
@@ -387,6 +415,9 @@
       fallRisk: item.fallRisk || item.goFall || '',
       facts: { ...(item.facts || {}) },
       site: { ...(item.siteOwn || sharedSite()) },
+      // Filled across to every SWMS: the high risk work these answers alone bring is not this SWMS's own
+      // (messy round 8: "Open trenches near building 5 during pit work" made every SWMS trench work).
+      siteShared: !item.siteOwn && project.items.length > 1 ? true : undefined,
       designs: designs.length ? designs.map((row) => ({ ...row })) : undefined,
       emergency: Object.keys(emergency).length ? { ...emergency } : undefined,
       substancesNotUsed: notUsedOf(item).length ? notUsedOf(item) : undefined,
@@ -573,7 +604,7 @@
       const given = pageGiven();
       // So are emergency answers given in another SWMS of the project (D239: filled across).
       const across = Object.keys(shared().emergency);
-      const stale = Boolean(given.state) && project.items.some((item) => item.body && (Object.entries(given).some(([key, value]) => JSON.stringify(item.body[key]) !== JSON.stringify(value))
+      const stale = Boolean(given.state) && project.items.some((item) => item.body && (Object.entries(given).some(([key, value]) => !(item.pageOwn && key in item.pageOwn) && JSON.stringify(item.body[key]) !== JSON.stringify(value))
         || across.some((id) => (!item.emergencyAsked || item.emergencyAsked.includes(id)) && !((item.body.emergency || {})[id] || '').trim())));
       if (stale && !refreshing) { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => refreshAll({ given: true }), 300); }
       return;
@@ -1331,16 +1362,16 @@
       const item = project.items[index];
       const name = builderName();
       if (!item || !window.confirm(`${name} asked for "${item.title}". Take it off your list here? ${name} still expects it, and sees that you took it off. You can put it back.`)) return;
-      const box = $(`go-item-${index}`);
-      const top = box ? box.getBoundingClientRect().top : null;
+      // The note goes where the button was pressed, at the same height on the screen, and always in view
+      // (messy round 8: on a phone the view was left a screen above the note, the SWMS's top being the mark).
+      const top = takeOff.getBoundingClientRect().top;
       const before = [...project.items];
       project.items.splice(index, 1);
       project.offList = [...(project.offList || []), item];
       goneNote = { requiredId: item.requiredId, at: index };
       listChanged(before);
-      // The note sits where the SWMS was, at the same height on the screen.
       const note = $('go-gone');
-      if (note && top !== null) window.scrollBy(0, note.getBoundingClientRect().top - top);
+      if (note) window.scrollBy(0, note.getBoundingClientRect().top - Math.max(16, Math.min(top, window.innerHeight - 160)));
       if (note) { note.setAttribute('tabindex', '-1'); note.focus({ preventScroll: true }); }
       return;
     }
@@ -1441,7 +1472,8 @@
   function addOwnSwms() {
     // Typed case is tidied (messy round 7: "unloading ute").
     const title = String($('go-own-title').value || '').replace(/\s+/g, ' ').trim().slice(0, 160).replace(/^./, (letter) => letter.toUpperCase());
-    const task = String($('go-own-task').value || '').trim().slice(0, 5000);
+    // Each sentence with its capital, the last with its full stop (messy round 8, wording 13: "unload cable drums").
+    const task = String($('go-own-task').value || '').trim().slice(0, 5000).replace(/^[a-z]/, (letter) => letter.toUpperCase()).replace(/([.!?]\s+)([a-z])/g, (whole, gap, letter) => `${gap}${letter.toUpperCase()}`).replace(/([A-Za-z0-9)])$/, '$1.');
     const said = $('go-own-error');
     // The refusal is brought into view with its box (messy round 7: on a phone it was out of view).
     const refuse = (text, box) => {
@@ -1656,7 +1688,8 @@
         // One marked as needing preparing again takes this page's answers too.
         const own = item.stale ? payloadFor(index) : {};
         if (given) for (const key of PAGE_KEYS) if (!(key in base)) delete own[key];
-        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
+        // A detail the builder set that was changed for this SWMS alone stays its own (messy round 8).
+        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, ...(builder() && item.pageOwn ? item.pageOwn : {}), emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
       }
       save();
       if (project.stage === 'review') hooks.render();
@@ -1780,7 +1813,7 @@
       <p class="error" id="project-error"></p>${said()}
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again and checked.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
-      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}" id="go-row-${index}"><div><strong>${esc(item.title)}</strong>${isOwn(item) ? ` ${OWN_TAG}` : ''}<span class="meta">${esc(states[index].text)}${checkOf(item) || states[index].check || item.checkNote === CHECK_CLEARED ? '' : ' Not checked yet.'}</span>${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}${sentHtml(item)}</div>${rowButtons(item, index, firstToCheck)}</li>`).join('')}</ol>
+      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}" id="go-row-${index}"><div><strong>${esc(item.title)}</strong>${isOwn(item) ? ` ${OWN_TAG}` : ''}<span class="meta">${esc(states[index].text)}${checkOf(item) || states[index].check || item.checkNote === CHECK_CLEARED ? '' : ' Not checked yet.'}</span>${ownDetailsLine(item)}${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}${sentHtml(item)}</div>${rowButtons(item, index, firstToCheck)}</li>`).join('')}</ol>
       ${can ? submitHtml() : ''}
       <div id="project-download">${can ? downloadHtml(states, ready, n) : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>'}</div>
       <div class="actions"><button type="button" class="small secondary" id="go-back-questions">Back to the questions</button><button type="button" class="small secondary" id="project-close">${builder() ? 'Close the list' : 'Close project'}</button></div>`;

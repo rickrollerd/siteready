@@ -112,10 +112,11 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
     [MAIN]: 'list',
     'Access equipment': `folded:${MAIN}`,
     'Trade installation: services walkways': `folded:${MAIN}`,
-    'Trade installation: medical gas systems': 'list',
+    // Messy round 8: a bare or area title on the list gets a work title from the reading's own words.
+    'Medical gas systems': 'list',
     Controls: 'folded:Electrical',
     'Work in an existing or live facility': 'list',
-    Electrical: 'list',
+    'Electrical installation': 'list',
     'Ductwork and mechanical units: whole project': 'list',
     'Testing and commissioning': 'list',
     'Trade installation: louvres': `folded:${MAIN}`,

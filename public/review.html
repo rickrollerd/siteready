@@ -106,6 +106,7 @@
     @media (max-width: 640px) {
       .meta, label, dt, .sheet table, .source, .sheet .note { font-size: 16px; }
     }
+    .ok-line { color: #1f4e3d; font-weight: 600; margin: 6px 0 0; }
   </style>
 </head>
 <body>
@@ -171,7 +172,7 @@
             <div><label for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="120"><p class="field-error hidden" id="name-error"></p></div>
             <div><label for="company">Your company</label><input id="company" type="text" autocomplete="organization" maxlength="200"><p class="field-error hidden" id="company-error"></p></div>
           </div>
-          <p class="meta">Recorded against this revision with today's date. The business sees your response in SiteWrite and is emailed that its review is back. A later revision starts unreviewed.</p>
+          <p class="meta" id="sent-note">Recorded against this revision with today's date. The business sees your response in SiteWrite and is emailed that its review is back. A later revision starts unreviewed.</p>
           <button type="submit" id="send">Send the response</button>
         </div>
         <div id="respond-status" aria-live="polite"></div>

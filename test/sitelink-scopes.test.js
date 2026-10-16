@@ -169,7 +169,8 @@ test('a Word file is read like a text file', async () => {
   assert.equal(started.status, 202, JSON.stringify(started.data));
   const page = await finished(lead, subId);
   // A crane company's lifts: the scope does not give this subcontractor the cranage, so it starts removed.
-  assert.deepEqual(page.data.items.map((item) => [item.title, item.removed]), [['Trade installation: ceiling space', false], ['Plant lifting and cranage', true], ['Testing and commissioning', false]]);
+  // Messy round 8: an area title on the list takes its one activity's words.
+  assert.deepEqual(page.data.items.map((item) => [item.title, item.removed]), [['Pull cables through the ceiling space', false], ['Plant lifting and cranage', true], ['Testing and commissioning', false]]);
   assert.match(page.data.items[1].removedWhy, /does not say this subcontractor supplies the cranage/);
 });
 
@@ -389,7 +390,7 @@ test('keep, remove, put back, add and reword: the preview follows, and every pac
   assert.equal(replace.data.replace, true);
   await upload(lead, subId, D.ELECTRICAL, { replace: true, tradeChecked: true });
   page = (await finished(lead, subId)).data;
-  assert.deepEqual(page.items.map((item) => item.title), ['Trade installation: ceiling space', 'Plant lifting and cranage', 'Testing and commissioning', 'Perimeter screens']);
+  assert.deepEqual(page.items.map((item) => item.title), ['Pull cables through the ceiling space', 'Plant lifting and cranage', 'Testing and commissioning', 'Perimeter screens']);
 });
 
 test('the lead\'s changes to a list are kept without names or ids, and only with control learning on', async () => {

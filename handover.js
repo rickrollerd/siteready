@@ -303,7 +303,81 @@ function listItems(reading) {
     const joined = riskJoined([item.highRisk, ...out.filter((other) => other.removedWhy === 'folded' && other.foldedInto === item.package).map((other) => other.highRisk)]);
     if (item.highRisk && (!joined || joined.status === 'none')) item.removedWhy = 'noLaw';
   }
+  // A bare or area title gets a work title from the reading's own words (messy round 8, blocker 6: the
+  // lead renamed "Electrical" and "Trade installation: Central Facilities" before sending).
+  // The SWMS with the most work in it is named first, so it takes the plain name ("Electrical
+  // installation") and a smaller one keeps its area.
+  // A title that reads as another's ("Ceilings and partitions installation" beside "Ceilings and
+  // partitions") keeps its area too.
+  const base = (title) => String(title).toLowerCase().replace(/ (?:installation|work)$/, '');
+  const titles = new Set(out.map((item) => item.title.toLowerCase()));
+  const taken = (title) => titles.has(title.toLowerCase()) || [...titles].some((other) => base(other) === base(title));
+  const order = out.map((item, index) => index).sort((a, b) => work[b].rows.length - work[a].rows.length);
+  for (const index of order) {
+    const item = out[index];
+    // Only the SWMS on the list to start with: the ones the lead sends.
+    if (item.removedWhy) continue;
+    titles.delete(item.title.toLowerCase());
+    let better = workTitle(item, work[index]);
+    const area = /^trade installation:\s*(.+)$/i.exec(item.title);
+    if (better && better.toLowerCase() !== item.title.toLowerCase() && taken(better) && area && !better.includes(',')) better = `${better}, ${area[1].trim()}`;
+    if (better && better.toLowerCase() !== item.title.toLowerCase() && !taken(better)) item.title = better;
+    titles.add(item.title.toLowerCase());
+  }
   return out.map(({ kind, ownHighRisk: own, ...item }) => item);
+}
+
+// The trade, from the crew the reading names for the work ("Electricians", "Mechanical fitters"), and
+// whether its work is an installation or work ("Electrical installation", "Tiling work").
+const CREWS = [
+  [/electric/i, 'Electrical', 'installation'], [/sprinkler|\bfire\b/i, 'Fire services', 'installation'], [/mechanical|refrigeration|sheet metal|pipefitter|hvac|air ?condition/i, 'Mechanical', 'installation'],
+  [/plumb|drainer/i, 'Plumbing', 'installation'], [/telecommunication|\bcomms\b|data cabl/i, 'Communications', 'installation'], [/security/i, 'Security', 'installation'],
+  [/fenc/i, 'Fencing', 'work'], [/window|door|glaz/i, 'Windows and doors', 'installation'], [/ceiling|partition|plasterer/i, 'Ceilings and partitions', 'installation'], [/joinery/i, 'Joinery', 'installation'],
+  [/tiler|tiling/i, 'Tiling', 'work'], [/waterproof/i, 'Waterproofing', 'work'], [/painter/i, 'Painting', 'work'], [/formwork/i, 'Formwork', 'work'], [/steel fixer/i, 'Reinforcement', 'work'],
+  [/roof/i, 'Roofing', 'work'], [/landscap/i, 'Landscaping', 'work'], [/concret/i, 'Concrete', 'work'], [/civil/i, 'Civil', 'work'],
+];
+function tradeOf(pack) {
+  const counts = new Map();
+  for (const row of (pack && pack.rows) || []) {
+    const found = CREWS.find(([test]) => test.test(String(row.crew || '')));
+    if (found) counts.set(found, (counts.get(found) || 0) + 1);
+  }
+  const best = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  return best ? { name: best[0][1], kind: best[0][2] } : null;
+}
+// One activity's words as a title: its first clause, with no brackets, when short enough to read as one.
+function activityTitle(text) {
+  const words = String(text || '').replace(/\s*\([^)]*\)/g, '').replace(/[.;:]\s.*$/, '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim();
+  return words && words.length <= 60 ? words.replace(/^./, (letter) => letter.toUpperCase()) : '';
+}
+const TEMPORARY = /\btemporary\b|\btemp\b|\bchangeovers?\b|\bbuilders?['’]? (?:power|supply|lighting)\b/i;
+function workTitle(item, pack) {
+  const name = String(item.title || '').trim();
+  const rows = (pack && pack.rows) || [];
+  const part = /^trade installation:\s*(.+)$/i.exec(name);
+  const bare = genericName(name) && !part;
+  if (!part && !bare) return '';
+  const area = part ? part[1].trim() : '';
+  const whole = /^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i.test(area);
+  const areaName = Boolean(part) && !/\b(?:finish(?:es|ing)?|coverings?)\b/i.test(area) && (whole || AREA.test(area) || /\b(?:interiors?|custodial|precincts?|stages?|towers?|podiums?)\b/i.test(area));
+  // A work, not an area ("Trade installation: structural steel"): the work's own name.
+  if (part && !areaName) {
+    const work = area.replace(/^./, (letter) => letter.toUpperCase());
+    // One word alone is still bare ("Plant"): it says what is done with it.
+    const kind = (tradeOf(pack) || { kind: 'installation' }).kind;
+    if (/\s/.test(work) || kind === 'work') return work;
+    return rows.length === 1 && activityTitle(rows[0].activity) ? activityTitle(rows[0].activity) : `${work} installation`;
+  }
+  if (rows.length === 1 && activityTitle(rows[0].activity)) return activityTitle(rows[0].activity);
+  // A bare name is its own discipline ("Electrical" in a mechanical scope is the electrical work); an
+  // area's comes from the crew doing it.
+  const named = bare ? CREWS.find(([test]) => test.test(name)) : null;
+  const trade = named ? { name: named[1], kind: named[2] } : tradeOf(pack);
+  if (!trade) return '';
+  // Mostly temporary services ("Electrical" holding the builder's temporary power and lighting).
+  if (bare && rows.length && rows.filter((row) => TEMPORARY.test(row.activity || '')).length * 3 >= rows.length * 2) return `Temporary ${trade.name.toLowerCase()} services`;
+  const where = areaName && !whole ? `, ${area}` : '';
+  return `${trade.name} ${trade.kind}${where}`;
 }
 
 // ---- What a SWMS on the list holds once the work folded into it is counted ----
@@ -404,6 +478,7 @@ const REMOVED_WHY = {
   offSite: 'Removed to start with: all of this work is done off site, so it needs no SWMS on site.',
   cranage: 'Removed to start with: the scope does not say this subcontractor supplies the cranage. Put it back if they need a cranage SWMS.',
   defects: 'Removed to start with: this is maintenance in the defects period, after the work is handed over. Put it back, or ask for its SWMS when that work is booked.',
+  unfolded: 'Taken out of the SWMS it was part of, when you changed that SWMS\'s work. Put it back if it needs a SWMS of its own.',
   noLaw: 'No high risk construction work was found in it, so the law may not need a SWMS for it. Move it to the list if you need one.',
 };
 const foldedWhy = (title) => `Part of ${title} to start with: the subcontractor's own work of this kind goes in that SWMS. Put it back to ask for a SWMS of its own.`;
@@ -526,10 +601,17 @@ function splitPoint(text) {
 }
 // The notes for the subcontractor's draft of a SWMS: the open points of its work that are not about who
 // does or supplies what, once each, for stage 6 to put on the draft.
+// A note with no subject of its own ("Party not named.", "Locations to be advised by the Contractor.")
+// is said with the work it is about (messy round 8, wording 16).
+const LOOSE_NOTE = /^(?:the\s+)?[a-z]+(?:\s+[a-z]+)?\s+(?:to be|not|is not|are not|tbc|tba|unknown|unclear)\b/i;
 function draftNotes(rows) {
   const out = [];
   for (const row of rows || []) {
-    for (const note of splitPoint(wordsWithoutPrices(row.unknowns)).notes.map(sentence)) if (note && !out.includes(note)) out.push(note);
+    const activity = wordsWithoutPrices(row.activity).replace(/[.\s]+$/, '');
+    for (let note of splitPoint(wordsWithoutPrices(row.unknowns)).notes.map(sentence)) {
+      if (note && activity && LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
+      if (note && !out.includes(note)) out.push(note);
+    }
   }
   return out.slice(0, 20);
 }
@@ -602,7 +684,7 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
       alsoCovers: all.filter((other) => other.removed_why === 'folded' && (other.removed_at || other.removedAt) && other.item && other.item.foldedInto && other.item.foldedInto === item.package).map((other) => nameWithoutPrices(other.title)),
       added: item.source === 'added',
     })),
-    answers: answered.map((point) => ({ activity: point.activity, clause: point.clause, question: point.question, answer: String(point.answer).trim(), by: point.answered_by_name || '' })),
+    answers: answered.map((point) => ({ activity: point.activity, clause: point.clause, question: point.question, answer: require('./sitelink-answers').capitalSentences(String(point.answer).trim()), by: point.answered_by_name || '' })),
     siteDetails: siteDetails && siteDetails.rev ? {
       rev: siteDetails.rev,
       list: (fields || []).map((field) => ({ label: field.label, value: siteDetails.details[field.key] })).filter((entry) => (Array.isArray(entry.value) ? entry.value.length : String(entry.value || '').trim())),

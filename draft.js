@@ -4106,6 +4106,17 @@ function buildDraft(input, screen) {
     const fromAnswers = highRiskMatches(combinedFacts(riskTask, facts), pack.fallAnswer, state).filter((item) => ['road', 'roadOrRail', 'plant'].includes(item.check) && !own.has(item.label)).map((item) => item.label);
     draft.highRisk = draft.highRisk.filter((label) => !fromAnswers.includes(label));
   }
+  // Site answers given once for a whole project and filled across to each of its SWMS (siteShared, the
+  // one-go page): the high risk work they alone bring belongs to the SWMS whose own work it is, not to
+  // every SWMS (messy round 8, SiteLink blocker 2: "Open trenches near building 5 during pit work" made
+  // Testing and commissioning trench work, with trench rescue). Their hazards still print.
+  if (input.siteShared === true && facts.siteConditions) {
+    const labelOf = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
+    const whole = combinedFacts(riskTask, facts);
+    const own = new Set(highRiskMatches(riskText.replace(whole, combinedFacts(riskTask, { ...facts, siteConditions: '' })), pack.fallAnswer, state).map(labelOf));
+    const fromSite = highRiskMatches(riskText, pack.fallAnswer, state).map(labelOf).filter((label) => !own.has(label));
+    if (fromSite.length) draft.highRisk = draft.highRisk.filter((label) => !fromSite.includes(label));
+  }
   draft.jobSteps = withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state), facts, [...(draft.references || []), ...(draft.controls || [])]);
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
   // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
@@ -5554,6 +5565,13 @@ function chosenKinds(kinds) {
 }
 
 // The kinds of work found from the task's words, for the form to show ticked.
+// The step groups a task's own words bring, for SiteLink (messy round 8: after the lead changes the
+// work of a SWMS, only the scope reading's step groups the new words still name are kept).
+function kindsInWords(input) {
+  const state = stateFor(input || {});
+  return state && state.loaded ? suggestedKinds(String((input && input.task) || ''), {}, { ...state, kinds: null }) : [];
+}
+
 function suggestedKinds(task, facts, state) {
   return kindsWithSteps(suggestedFlags(task, facts || {}, state));
 }
@@ -8677,6 +8695,7 @@ module.exports = { taskLine, typedNames, withFallCheck, withoutClearedAsbestos, 
   ownStepNotes,
   OWN_STEP_MARK,
   screenHighRisk,
+  kindsInWords,
   FALL_PLACE,
   stripLiftBleedText,
   blankName,

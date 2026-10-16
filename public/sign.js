@@ -15,7 +15,6 @@
   let language = { code: 'en' };
   const translations = {};
   const seconds = {};
-  const visible = {};
   let reachedEnd = false;
   let unlocked = false;
   let finished = false;
@@ -108,23 +107,29 @@
     progress();
   }
 
-  // A section counts while at least half of it, or most of the screen, shows it.
+  // A section counts in full while at least half of it, or most of the screen, shows it; otherwise for
+  // its share of the screen (messy round 8, stuck point 2: on a phone read at a normal pace, the time a
+  // long step spent partly on screen counted for nothing, and the count stopped at "Read 4 of 12").
   let observer = null;
+  function shareOfScreen(id) {
+    const element = $(`sec-${id}`);
+    if (!element || !element.getBoundingClientRect) return 0;
+    const box = element.getBoundingClientRect();
+    const screen = window.innerHeight || 1;
+    const shown = Math.max(0, Math.min(box.bottom, screen) - Math.max(box.top, 0));
+    if (!shown) return 0;
+    const own = box.height > 0 ? shown / box.height : 0;
+    if (own >= 0.5 || shown >= 0.6 * screen) return 1;
+    // A translation shows each line twice (the worker's language and the English).
+    return Math.min(1, Math.max(own, (shown / screen) * (translated ? 2 : 1)));
+  }
   function observe() {
     if (observer) observer.disconnect();
     if (!('IntersectionObserver' in window)) return;
     observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.target.id === 'end') {
-          if (entry.isIntersecting) reachedEnd = true;
-          continue;
-        }
-        const screen = entry.rootBounds ? entry.rootBounds.height : window.innerHeight;
-        visible[entry.target.dataset.section] = entry.isIntersecting && (entry.intersectionRatio >= 0.5 || entry.intersectionRect.height >= 0.6 * screen);
-      }
+      for (const entry of entries) if (entry.target.id === 'end' && entry.isIntersecting) reachedEnd = true;
       progress();
-    }, { threshold: Array.from({ length: 21 }, (_, i) => i / 20) });
-    document.querySelectorAll('.read').forEach((element) => observer.observe(element));
+    }, { threshold: [0, 1] });
     observer.observe($('end'));
   }
 
@@ -135,7 +140,13 @@
     const step = (now - last) / 1000;
     last = now;
     if (!data || finished || document.visibilityState !== 'visible' || step > 2) return;
-    for (const id of Object.keys(visible)) if (visible[id]) seconds[id] = (seconds[id] || 0) + step;
+    for (const item of data.sections) {
+      const share = shareOfScreen(item.id);
+      if (share) seconds[item.id] = (seconds[item.id] || 0) + step * share;
+    }
+    // The end, for a browser without IntersectionObserver.
+    const end = $('end');
+    if (end && end.getBoundingClientRect && end.getBoundingClientRect().top < (window.innerHeight || 0)) reachedEnd = true;
     progress();
     // The reading time is kept every few seconds while the worker reads.
     if (now - keptAt > 3000) keepNow();
@@ -159,10 +170,13 @@
     const total = data.sections.length;
     const ready = read === total && reachedEnd;
     if (ready && !unlocked) unlocked = true;
-    $('progress').textContent = $('explained').checked
+    const said = $('explained').checked
       ? 'Your supervisor has explained the SWMS. Sign on below.'
       : unlocked ? 'You have read the SWMS. Answer the questions and sign on below.'
       : `Read ${read} of ${total} sections${read === total ? '. Scroll to the end.' : '. Take your time with each one.'}`;
+    // While the form is locked, the bar also says what to do if the worker cannot read it.
+    const html = `${esc(said)}${$('explained').checked || unlocked ? '' : '<button type="button" class="link" data-cannot-read>Cannot read it? Your supervisor can explain it.</button>'}`;
+    if ($('progress').innerHTML !== html) $('progress').innerHTML = html;
     lock();
   }
 
@@ -269,6 +283,18 @@
   });
 
   $('explained').addEventListener('change', progress);
+  // "My supervisor has explained it to me", at the top and in the bar: ticks the box in the form and goes
+  // to it, with no reading needed.
+  const explainedGo = () => {
+    if (!$('explained').checked) { $('explained').checked = true; $('explained').dispatchEvent(new Event('change', { bubbles: true })); }
+    $('sign-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => $('supervisor').focus({ preventScroll: true }), 400);
+  };
+  $('explained-go').addEventListener('click', explainedGo);
+  $('progress').addEventListener('click', (event) => {
+    if (!event.target.closest('[data-cannot-read]')) return;
+    $('cannot-read').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   $('sign-form').addEventListener('input', keepSoon);
   $('sign-form').addEventListener('change', keepSoon);
 

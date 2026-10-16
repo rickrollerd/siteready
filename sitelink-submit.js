@@ -113,6 +113,10 @@ function submissionOut(row, state, { forLead = false } = {}) {
     id: row.id, channel: row.channel, requiredId: row.required_swms_id, title: row.title, revision: Number(row.revision || 0), ref: row.ref,
     on: when(row.submitted_at, state), by: row.submitted_by_name, company: row.company_name,
     checkedBy: check && check.name ? { name: check.name, role: check.role || '', date: check.date || '' } : null,
+    // What each part printed as submitted, worked out on the server: the company's page compares its own
+    // check with it, so "Changed since you submitted it" is the same on every device and after a reload
+    // (messy round 8, stuck point 1).
+    partHashes: check && check.partHashes && typeof check.partHashes === 'object' ? check.partHashes : null,
     builderCheck: builder && builder.score !== undefined ? { score: builder.score, band: builder.band, mustFix: Number(builder.mustFix || 0) } : null,
     overrides: json(row.overrides, []),
     file: row.file_name ? { name: row.file_name, type: row.file_type === send.TYPES.pdf ? 'PDF' : 'Word', size: Number(row.file_size || 0) } : null,
@@ -164,7 +168,9 @@ async function forCompany(found) {
 
 // For the company's list of lists: how many are submitted and how many conditions it has to do.
 async function companySummary(sub) {
-  const rows = await db.query("SELECT DISTINCT required_swms_id FROM submissions WHERE subcontract_id = $1 AND required_swms_id IN (SELECT id FROM required_swms WHERE subcontract_id = $1 AND removed_at IS NULL)", [sub.id]);
+  // Only what the company submitted in SiteWrite: a file the lead recorded is the lead's (messy round 8,
+  // wording 8: "3 submitted" when the company had submitted 2).
+  const rows = await db.query("SELECT DISTINCT required_swms_id FROM submissions WHERE subcontract_id = $1 AND channel = 'sitewrite' AND required_swms_id IN (SELECT id FROM required_swms WHERE subcontract_id = $1 AND removed_at IS NULL)", [sub.id]);
   const open = await db.query("SELECT id FROM review_conditions WHERE subcontract_id = $1 AND status = 'outstanding'", [sub.id]);
   return { submitted: rows.length, conditionsToDo: open.length };
 }
@@ -242,10 +248,12 @@ async function submitOne(req, found, list, entry, versions) {
   const id = auth.newId();
   const now = new Date();
   const who = oneLine(req.user.name, 200) || check.name;
+  // The name given with the check names this person from now on, when the account has none.
+  if (!oneLine(req.user.name, 200) && check.name) await db.query("UPDATE users SET name = $1 WHERE id = $2 AND (name IS NULL OR name = '')", [oneLine(check.name, 120), req.user.id]).catch(() => {});
   await db.query(`INSERT INTO submissions (id, project_id, subcontract_id, required_swms_id, company_id, company_name, channel, swms_id, revision, ref, title, content_hash, check_info, builder_check, overrides, submitted_by, submitted_by_name, submitted_at)
     VALUES ($1, $2, $3, $4, $5, $6, 'sitewrite', $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
   [id, project.id, sub.id, requiredId, req.company.id, req.company.name, row.id, revision, kept.ref || '', handover.nameWithoutPrices(item.title), revisions.contentHash(kept.draft),
-    JSON.stringify({ name: check.name, role: check.role, date: check.date, parts: check.parts || null }), JSON.stringify(builder), JSON.stringify(overrides), req.user.id, who, now]);
+    JSON.stringify({ name: check.name, role: check.role, date: check.date, parts: check.parts || null, partHashes: confirmation.partHashes || null }), JSON.stringify(builder), JSON.stringify(overrides), req.user.id, who, now]);
   const earlier = await db.one("SELECT revision FROM submissions WHERE subcontract_id = $1 AND required_swms_id = $2 AND id <> $3 ORDER BY submitted_at DESC LIMIT 1", [sub.id, requiredId, id]);
   const changed = overrides.length ? ` It changes details ${found.org.name} set: ${listed(overrides.map(overrideText))}.` : '';
   await send.logEntry({
@@ -298,7 +306,15 @@ router.post('/from-builders/:id/submit', route(async (req, res) => {
 // A condition marked done by the company, with a short note if it wants; or no longer done, before the
 // main contractor has confirmed it.
 // Who did it at the company: the person's name, else the company itself.
-const personOf = (req) => oneLine(req.user.name, 200) || req.company.name;
+// A person with no name on their account is named as they named themselves when they submitted a SWMS on
+// this list ("Checked by"), not as the company (messy round 8, wording 6: "Marked done by Wallaroo Bend
+// Electrical Pty Ltd" when Ben Hollis did it).
+async function personOf(req, subId = '') {
+  const own = oneLine(req.user.name, 200);
+  if (own) return own;
+  const row = subId ? await db.one('SELECT submitted_by_name FROM submissions WHERE subcontract_id = $1 AND submitted_by = $2 ORDER BY submitted_at DESC LIMIT 1', [subId, req.user.id]) : null;
+  return (row && oneLine(row.submitted_by_name, 200)) || req.company.name;
+}
 const byCompany = (req, who) => (who === req.company.name ? who : `${who} at ${req.company.name}`);
 // Words quoted in a log line, without their own last full stop: the line ends with one.
 const quoted = (text) => String(text || '').replace(/[.\s]+$/, '');
@@ -314,9 +330,11 @@ async function conditionForCompany(req) {
 router.post('/from-builders/:id/conditions/:conditionId/done', route(async (req, res) => {
   const { found, row, title } = await conditionForCompany(req);
   if (row.status === 'closed') throw fail(409, `${found.org.name} has already confirmed this condition is done.`);
-  if (row.status === 'done') throw fail(409, 'This condition is already marked done. Reload the page.');
   const note = oneLine(req.body && req.body.note, NOTE_LIMIT);
-  const who = personOf(req);
+  // Pressed again with the same note (after a 502): it is marked done once.
+  if (row.status === 'done' && (row.done_note || '') === note) { res.json({ message: `Marked done. ${found.org.name} confirms it.`, sent: await forCompany(found) }); return; }
+  if (row.status === 'done') throw fail(409, 'This condition is already marked done. Reload the page.');
+  const who = await personOf(req, found.sub.id);
   await db.query("UPDATE review_conditions SET status = 'done', done_note = $1, done_by_name = $2, done_at = $3 WHERE id = $4 AND status = 'outstanding'", [note, who, new Date(), row.id]);
   await send.logEntry({ projectId: found.project.id, subId: found.sub.id, itemId: row.required_swms_id, kind: 'condition_done', actorKind: 'sub', actorName: who, summary: `${byCompany(req, who)} marked a condition on ${title} as done: "${quoted(row.text)}".${note ? ` Note: "${quoted(note)}".` : ''}`, refs: { condition: row.id } });
   res.json({ message: `Marked done. ${found.org.name} confirms it.`, sent: await forCompany(found) });
@@ -326,7 +344,7 @@ router.post('/from-builders/:id/conditions/:conditionId/undo', route(async (req,
   const { found, row, title } = await conditionForCompany(req);
   if (row.status === 'closed') throw fail(409, `${found.org.name} has already confirmed this condition is done, so it cannot be changed here.`);
   if (row.status !== 'done') throw fail(409, 'This condition is not marked done. Reload the page.');
-  const who = personOf(req);
+  const who = await personOf(req, found.sub.id);
   await db.query("UPDATE review_conditions SET status = 'outstanding', done_note = '', done_by_name = '', done_at = NULL WHERE id = $1 AND status = 'done'", [row.id]);
   await send.logEntry({ projectId: found.project.id, subId: found.sub.id, itemId: row.required_swms_id, kind: 'condition_undone', actorKind: 'sub', actorName: who, summary: `${byCompany(req, who)} said a condition on ${title} is not done after all: "${quoted(row.text)}".`, refs: { condition: row.id } });
   res.json({ message: 'It is no longer marked done.', sent: await forCompany(found) });
@@ -379,7 +397,10 @@ async function summaryFor(sub, project) {
   return {
     stage7: {
       items: rows,
-      in: count((row) => ['sitewrite', 'outside', 'uploaded'].includes(row.state)),
+      // A file uploaded on the list page is in once the lead records it (messy round 8: "3 of 5 in" beside
+      // its tag "File uploaded: record it").
+      in: count((row) => ['sitewrite', 'outside'].includes(row.state)),
+      uploaded: count((row) => row.state === 'uploaded'),
       toReview: count((row) => row.submissionId && !row.review),
       approved: count((row) => row.review && row.review.response !== 'changes'),
       notApproved: count((row) => row.review && row.review.response === 'changes'),
@@ -444,6 +465,8 @@ async function submissionPage(found) {
     submission: submissionOut(row, state, { forLead: true }),
     project: { id: project.id, name: project.name, workplace: project.workplace, state },
     subcontract: { id: sub.id, name: sub.name, trade: sub.trade, claimed: Boolean(sub.company_id) },
+    // Whether the business is on SiteWrite, so is emailed that its review is back (messy round 8, wording 5).
+    onSiteWrite: Boolean(row.company_id || sub.company_id),
     org: { name: org.name, role },
     later: later ? { id: later.id, revision: Number(later.revision || 0), on: when(later.submitted_at, state), channel: later.channel } : null,
     earlier: earlier.map((one) => ({ id: one.id, revision: Number(one.revision || 0), on: when(one.submitted_at, state), channel: one.channel })),
@@ -501,13 +524,18 @@ function sendFile(res, row, data) {
 // Records a SWMS received outside SiteWrite against a SWMS on the list.
 async function recordOutside(req, ctx, item, { data, type, name, note, from = '' }) {
   const { sub, project } = ctx;
+  // The same file recorded again for this SWMS a moment later (Record it pressed again after a 502) is
+  // kept once (messy round 8, stuck point 5).
+  const sha = crypto.createHash('sha256').update(data).digest('hex');
+  const again = await db.one("SELECT id, submitted_at FROM submissions WHERE subcontract_id = $1 AND required_swms_id = $2 AND channel = 'outside' AND file_sha256 = $3 ORDER BY submitted_at DESC LIMIT 1", [sub.id, item.id, sha]);
+  if (again && Date.now() - new Date(again.submitted_at).getTime() < reviews.REPEAT_MINUTES * 60 * 1000) return again.id;
   const id = auth.newId();
   const storage = await putFile(id, data, type);
   const who = shared.personName(req.reviewer);
   const now = new Date();
   await db.query(`INSERT INTO submissions (id, project_id, subcontract_id, required_swms_id, company_id, company_name, channel, title, overrides, file_name, file_type, file_size, file_sha256, file_storage, note, submitted_by, submitted_by_name, submitted_at)
     VALUES ($1, $2, $3, $4, $5, $6, 'outside', $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
-  [id, project.id, sub.id, item.id, sub.company_id || '', sub.claimed_name || sub.name, titleOf(item), '[]', name, type, data.length, crypto.createHash('sha256').update(data).digest('hex'), storage, note, req.reviewer.id, who, now]);
+  [id, project.id, sub.id, item.id, sub.company_id || '', sub.claimed_name || sub.name, titleOf(item), '[]', name, type, data.length, sha, storage, note, req.reviewer.id, who, now]);
   await send.logEntry({ projectId: project.id, subId: sub.id, itemId: item.id, kind: 'outside_recorded', actorKind: 'org', actorName: who, summary: `${who} recorded a SWMS received outside SiteWrite for ${titleOf(item)} from ${sub.name}: ${name}${from ? `, ${from}` : ''}.${note ? ` Note: "${note}".` : ''}`, refs: { submission: id } });
   record('swms_outside_recorded', null);
   return id;
@@ -663,7 +691,10 @@ function install(hseRouter, deps) {
     // The same response sent again (a double press, or Back and send again) is kept once and emailed once.
     const recent = await db.one('SELECT * FROM swms_reviews WHERE submission_id = $1 AND reviewer_id = $2 ORDER BY created_at DESC LIMIT 1', [row.id, req.reviewer.id]);
     if (recent && recent.response === response && recent.text === text && Date.now() - new Date(recent.created_at).getTime() < reviews.REPEAT_MINUTES * 60 * 1000) {
-      res.json({ review: reviewOut(recent, project.state, await db.query('SELECT * FROM review_conditions WHERE review_id = $1 ORDER BY position', [recent.id])), repeated: true });
+      // Whether the business was emailed the first time, so the page says so again (messy round 8: a 502,
+      // then Send pressed again).
+      const mailed = await db.one("SELECT COUNT(*) AS n FROM mail_messages WHERE subcontract_id = $1 AND template = 'review_back' AND created_at >= $2", [sub.id, recent.created_at]);
+      res.json({ review: reviewOut(recent, project.state, await db.query('SELECT * FROM review_conditions WHERE review_id = $1 ORDER BY position', [recent.id])), repeated: true, emailed: Number((mailed && mailed.n) || 0) > 0, company: row.company_name || sub.name });
       return;
     }
     const check = kept ? reviews.checkRevision(kept.kept) : json(row.builder_check, null);
@@ -706,7 +737,8 @@ function install(hseRouter, deps) {
   hseRouter.post('/hse/conditions/:conditionId/confirm', route(async (req, res) => {
     const { row, ctx, title } = await conditionForLead(req);
     needName(req);
-    if (row.status === 'closed') throw fail(409, 'This condition is already confirmed. Reload the page.');
+    // Pressed again (after a 502): it is confirmed once.
+    if (row.status === 'closed') { res.json({ message: 'Confirmed done.', condition: conditionView(row, ctx.project.state) }); return; }
     if (row.status === 'outstanding' && ctx.sub.company_id) throw fail(409, `${ctx.sub.claimed_name || ctx.sub.name} has not marked this condition done yet. Confirm it once they have.`);
     const who = personName(req.reviewer);
     await db.query("UPDATE review_conditions SET status = 'closed', closed_by_name = $1, closed_at = $2 WHERE id = $3 AND status <> 'closed'", [who, new Date(), row.id]);
@@ -739,7 +771,8 @@ function install(hseRouter, deps) {
     const type = send.checkUpload(data);
     const header = (name) => { try { return decodeURIComponent(String(req.get(name) || '')); } catch { return ''; } };
     const name = send.uploadName(header('X-File-Name'), type);
-    const note = oneLine(header('X-Note'), NOTE_LIMIT);
+    // As typed, with each sentence's capital (messy round 8, wording 13: "emailed by pademelon 16 oct").
+    const note = require('./sitelink-answers').capitalSentences(oneLine(header('X-Note'), NOTE_LIMIT));
     const id = await recordOutside(req, ctx, item, { data, type, name, note });
     res.status(201).json({ id, message: `${name} is recorded as received for ${titleOf(item)}. Review it from the project screen or below.`, page: await deps.subcontractPage(ctx) });
   }));

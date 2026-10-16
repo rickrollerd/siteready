@@ -58,7 +58,11 @@ function dateTime(date, state) {
 // every problem is named at once, each at its own box (messy round 6: five saves for five problems).
 const PEOPLE = { firstAider: { firstAider: true }, siteManager: {}, scaffoldSupervisor: { example: 'Pat Doyle, Tallow Scaffolding, 0412 345 678' } };
 const PLACES = ['musterPoint', 'firstAidLocation'];
+// "n/a" or "none" for the scaffold supervisor: the box is left empty when there is no scaffold, as its
+// hint says (messy round 8, wording 9: the refusal said '"n/a" does not say who').
+const NO_SCAFFOLD = /^(?:n\/?a|na|none|nil|no|not applicable|no scaffold(?:ing)?(?: on (?:this )?(?:site|job|project))?|not required)\.?$/i;
 function detailProblem(field, value) {
+  if (field.key === 'scaffoldSupervisor' && NO_SCAFFOLD.test(String(value || '').trim())) return `"${String(value).trim()}" is not a person. Leave the scaffold supervisor empty if there is no scaffold.`;
   if (field.key === 'firstAider') return answers.firstAiderProblem(value);
   if (PEOPLE[field.key]) return answers.personProblem(value, PEOPLE[field.key]);
   if (PLACES.includes(field.key)) return answers.placeProblem(value);
@@ -274,7 +278,7 @@ async function teamOf(orgId) {
     id: row.id,
     email: row.email,
     name: row.person_name || '',
-    position: row.person_position || '',
+    position: answers.tidyRole(row.person_position || ''),
     phone: row.person_phone || '',
     role: row.role,
     joined: Boolean(row.joined_at),
@@ -381,7 +385,7 @@ router.get('/hse/me', route(async (req, res) => {
     orgs.push({ ...orgView(row, row.role), projects: projects.map(projectView) });
   }
   const { email, name, position, phone } = req.reviewer;
-  res.json({ me: { email, name, position, phone }, orgs });
+  res.json({ me: { email, name, position: answers.tidyRole(position), phone }, orgs });
 }));
 
 // The lead's name heads every invitation and sits on the site details contractors use, and the phone
@@ -390,7 +394,7 @@ router.put('/hse/me', route(async (req, res) => {
   const body = req.body || {};
   const name = answers.tidyName(oneLine(body.name, 120));
   if (!name) throw Object.assign(fail(400, 'Enter your name.'), { field: 'name' });
-  const position = oneLine(body.position, 120);
+  const position = answers.tidyRole(oneLine(body.position, 120));
   const phone = oneLine(body.phone, 40);
   const found = {};
   const nameProblem = answers.personProblem(name, { example: 'Jo Park' });

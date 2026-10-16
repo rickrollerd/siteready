@@ -92,11 +92,13 @@
     // saved since. One no longer the company's (released, or withdrawn) goes from this device.
     const local = S.builderListLocal && S.builderListLocal();
     if (local && !lists.some((list) => list.id === local)) {
-      // Who to contact, by name and email, as the list page gives them (messy round 7).
+      // Who to contact, by name and email, as the list page gives them (messy round 7). A builder that has
+      // left SiteLink is not given as a contact (messy round 8, wording 15).
       const info = S.builderInfo && S.builderInfo();
       const contact = info && info.contact && info.contact.name ? `${info.contact.name} at ${info.contact.builder || info.builder.name}${info.contact.email ? ` (${info.contact.email})` : ''}` : '';
+      const withdrawn = await S.call('GET', `/api/from-builders/${encodeURIComponent(local)}`).then(() => '', (error) => (error.status === 410 ? error.message : ''));
       const name = S.dropBuilderList();
-      note = `The list from ${name} is no longer linked to your company in SiteWrite, so it has gone from this page. If you think this is wrong, contact ${contact || name}.`;
+      note = withdrawn || `The list from ${name} is no longer linked to your company in SiteWrite, so it has gone from this page. If you think this is wrong, contact ${contact || name}.`;
       renderPanel();
       wantPanel = true;
     } else if (local) {
@@ -169,8 +171,11 @@
       const given = info.builderSet && info.builderSet[field.key];
       if (!given) { if (line) line.remove(); continue; }
       const changed = !rules.same(field, now[field.key], given.value);
+      // Changed while one SWMS is open: for that SWMS only (messy round 8, stuck point 4).
+      const only = S.listOpenTitle ? S.listOpenTitle() : '';
+      const onlyHere = only ? ` This change is for ${esc(only)} only. The other SWMS on the list keep ${esc(rules.possessive(name))} ${esc(field.label.toLowerCase())}.` : '';
       const html = changed
-        ? `${esc(rules.changedWarning(name, given.value))} <button type="button" class="link" data-set-by-use="${esc(field.key)}">Use ${esc(rules.possessive(name))} ${esc(field.label.toLowerCase())}</button>`
+        ? `${esc(rules.changedWarning(name, given.value))}${onlyHere} <button type="button" class="link" data-set-by-use="${esc(field.key)}">Use ${esc(rules.possessive(name))} ${esc(field.label.toLowerCase())}</button>`
         : `Set by ${esc(name)}${field.key === 'hospital' ? ': the hospital or medical centre arranged for this project' : ''}.`;
       if (!line) {
         line = document.createElement('p');

@@ -26,6 +26,7 @@ const auth = require('./auth');
 const handover = require('./handover');
 const listMail = require('./list-mail');
 const builderSet = require('./public/builder-set');
+const { stable } = require('./public/check-parts');
 const { record } = require('./events');
 
 const { fail } = auth;
@@ -54,7 +55,13 @@ async function logEntry({ projectId, subId, kind, actorKind, actorName = '', sum
 async function listFor(company, id) {
   const value = String(id || '');
   const sub = value && company && company.id ? await db.one('SELECT * FROM subcontracts WHERE id = $1 AND company_id = $2 AND removed_at IS NULL', [value, company.id]) : null;
-  if (!sub) throw fail(404, NOT_FOUND);
+  if (!sub) {
+    // A list whose builder has left SiteLink says so (messy round 8, wording 15). Only its id's hash and
+    // the builder's name are kept, so this tells nothing to anyone without the id.
+    const gone = value ? await db.one('SELECT builder FROM withdrawn_links WHERE token_hash = $1', [auth.hash(`list:${value}`)]).catch(() => null) : null;
+    if (gone) throw Object.assign(fail(410, `${gone.builder || 'The main contractor'} has withdrawn this list, and no longer uses SiteLink. Your own copies in My SWMS stay.`), { withdrawn: true });
+    throw fail(404, NOT_FOUND);
+  }
   const project = await db.one('SELECT * FROM projects WHERE id = $1', [sub.project_id]);
   const org = project && await db.one('SELECT * FROM orgs WHERE id = $1', [project.org_id]);
   if (!project || !org) throw fail(404, NOT_FOUND);
@@ -69,7 +76,7 @@ const detailsOf = (row) => ({ ...((shared && shared.EMPTY) || {}), ...((row && r
 async function contactOf(sub, org) {
   const link = (await db.query("SELECT sent_by, sent_by_name FROM list_links WHERE subcontract_id = $1 AND kind <> 'reminder' ORDER BY created_at DESC LIMIT 1", [sub.id]))[0];
   const person = link && link.sent_by ? await db.one('SELECT name, email, phone, position FROM reviewers WHERE id = $1', [link.sent_by]) : null;
-  return { name: (person && person.name) || (link && link.sent_by_name) || '', position: (person && person.position) || '', email: (person && person.email) || '', phone: (person && person.phone) || '', builder: org.name };
+  return { name: (person && person.name) || (link && link.sent_by_name) || '', position: require('./sitelink-answers').tidyRole((person && person.position) || ''), email: (person && person.email) || '', phone: (person && person.phone) || '', builder: org.name };
 }
 
 // The work each SWMS on the list covers, in the shape the one-go page opens (scope-choice.js
@@ -111,6 +118,24 @@ function itemOf(row, view, rows = []) {
   };
 }
 
+// A note from the scope that one of the lead's answers settles is marked so, with the answer (messy
+// round 8, blocker 3: "CCTV and Duress are listed as exclusions" beside the lead's answer that they are in
+// the scope, and the subcontractor could not tell which stood). A note and a point come from the same
+// line of the reading: matched by its activity where the note keeps it, else by the words they share.
+const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'there', 'which', 'while', 'where', 'whether', 'when', 'what', 'have', 'been', 'will', 'shall', 'must', 'also', 'into', 'only', 'other', 'others', 'than', 'said', 'says', 'listed', 'stated', 'given', 'scope', 'works', 'work', 'subcontractor', 'contractor', 'contractors', 'builder', 'clause', 'clauses', 'item', 'items', 'install', 'installs', 'installed', 'installation', 'provide', 'provides', 'provided', 'confirm', 'confirmed', 'includ', 'include', 'includes', 'included', 'exclud', 'yes']);
+const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').split(/[^a-z0-9]+/)
+  .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
+function withSettled(item, answers) {
+  if (!item || !(item.draftNotes || []).length || !(answers || []).length) return item;
+  const draftNotes = item.draftNotes.map((entry) => {
+    const own = stems(entry.text);
+    const found = answers.find((answer) => (entry.activity && answer.activity === entry.activity)
+      || [...stems(`${answer.question} ${answer.answer}`)].filter((word) => own.has(word)).length >= 2);
+    return found ? { ...entry, settled: found.answer } : entry;
+  });
+  return { ...item, draftNotes };
+}
+
 // Each note as plain words, once, with any price taken out. A note may be kept as words or as
 // { note | text | question, activity, clause }.
 function notesOf(list) {
@@ -119,7 +144,7 @@ function notesOf(list) {
     const raw = typeof entry === 'string' ? entry : entry && typeof entry === 'object' ? entry.note || entry.text || entry.question || '' : '';
     const text = handover.sentence(handover.quoteWithoutPrices(String(raw || '')));
     if (!text || out.some((one) => one.text === text)) continue;
-    out.push({ text, clause: entry && typeof entry === 'object' ? handover.wordsWithoutPrices(entry.clause || '') : '' });
+    out.push({ text, clause: entry && typeof entry === 'object' ? handover.wordsWithoutPrices(entry.clause || '') : '', ...(entry && typeof entry === 'object' && entry.activity ? { activity: handover.wordsWithoutPrices(entry.activity) } : {}) });
   }
   return out.slice(0, 20);
 }
@@ -143,7 +168,7 @@ async function listView(found) {
     subcontractor: { name: sub.name, trade: sub.trade },
     due: { date: due, shown: due ? listMail.longDue(due) : '', past: Boolean(due) && due < todayIn(project.state) },
     contact: await contactOf(sub, org),
-    items: rows.map((one, i) => itemOf(one, view.swms[i], all)),
+    items: rows.map((one, i) => withSettled(itemOf(one, view.swms[i], all), view.answers)),
     answers: view.answers.map(({ by: _by, ...answer }) => answer),
     siteDetails: row ? { rev: Number(row.rev), setBy: row.set_by_name, setOn: when(row.set_at, project.state) } : null,
     builderSet: builderSet.builderSetOf({ workplace: project.workplace, pcName: project.pc_name || org.name }, details),
@@ -253,9 +278,18 @@ router.get('/from-builders/:id', route(async (req, res) => {
   res.json({ list, access, sent, progress: access ? await progressView(found, req.company, list) : null, message: access ? '' : 'Your free trial has ended. Subscribe to prepare these SWMS in SiteWrite. You can still upload a SWMS you already have from the page the list email links to.' });
 }));
 
+// Whether two saves hold the same work. Which SWMS is open and the page's stage are where this device
+// is, not work: another device opens at the list (messy round 8, stuck point 1: a reload saved again,
+// and the phone's next save was refused as "saved on another device").
+const sameWork = (a, b) => {
+  const work = (kept) => { const { project, page } = kept || {}; const { current, stage, ...rest } = project || {}; return stable({ project: rest, page: page || {} }); };
+  return work(a) === work(b);
+};
+
 // The company's work on the list, kept. baseVersion is the version the page started from: a save from
 // a device that is behind (the foreman's phone saved since) is refused with the newer work, so it is
-// never lost.
+// never lost. A save that holds the same work as kept is not a new version, so a reload, or a save
+// sent again after its answer was lost (a 502), does not make another device's next save behind.
 router.put('/from-builders/:id/progress', route(async (req, res) => {
   const found = await listFor(req.company, req.params.id);
   if (!auth.hasAccess(req.company)) throw fail(402, 'Your free trial has ended. Subscribe to keep preparing these SWMS.');
@@ -274,8 +308,9 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
   const now = new Date();
   const kept = { project, page };
   const saved = await db.transaction(async (tx) => {
-    const row = await tx.one('SELECT version FROM sub_progress WHERE subcontract_id = $1 AND company_id = $2 FOR UPDATE', [found.sub.id, req.company.id]);
+    const row = await tx.one('SELECT version, body, updated_at FROM sub_progress WHERE subcontract_id = $1 AND company_id = $2 FOR UPDATE', [found.sub.id, req.company.id]);
     const current = row ? Number(row.version) : 0;
+    if (row && sameWork(row.body, kept)) return { version: current, at: row.updated_at };
     if (current !== base) return { behind: true, current };
     if (row) {
       await tx.query('UPDATE sub_progress SET body = $1, seen = $2, overrides = $3, version = $4, updated_by = $5, updated_by_name = $6, updated_at = $7 WHERE subcontract_id = $8 AND company_id = $9',
@@ -294,7 +329,7 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
     const latest = await progressView(found, req.company, list);
     throw Object.assign(fail(409, `This list was saved on another device${latest.updatedBy ? ` by ${latest.updatedBy}` : ''} on ${latest.updatedOn}. The newest work is shown.`), { progress: latest });
   }
-  res.json({ version: saved.version, savedOn: when(now, found.project.state), overrides });
+  res.json({ version: saved.version, savedOn: when(saved.at || now, found.project.state), overrides });
 }));
 
 // ---- The lead's Release button (D311), installed on hse.js's router ----
@@ -365,4 +400,4 @@ async function removeForSubcontract(subId) {
   await db.query('DELETE FROM subcontract_releases WHERE subcontract_id = $1', [subId]);
 }
 
-module.exports = { router, install, releasedFrom, releaseFor, RELEASED, removeForSubcontract, cleanProgress, listView, listFor, progressView, contactOf, offListOf, NOT_FOUND };
+module.exports = { sameWork, withSettled, router, install, releasedFrom, releaseFor, RELEASED, removeForSubcontract, cleanProgress, listView, listFor, progressView, contactOf, offListOf, NOT_FOUND };

@@ -654,9 +654,42 @@
   // Answers given (not empty) only: an empty answer kept with one SWMS does not hide one given since.
   const given = (answers) => Object.fromEntries(Object.entries(answers || {}).filter(([, value]) => typeof value === 'string' && value.trim()));
 
+  // On a builder's list, a detail the builder set that is changed while one SWMS is open is that SWMS's
+  // own: the other SWMS keep the detail every SWMS shares, and their ticks (messy round 8, stuck point 4:
+  // the first aid location changed in Testing and commissioning cleared the ticks of After hours
+  // shutdowns, already submitted). The details above as every SWMS shares them are kept while it is open.
+  const listSharedNow = () => {
+    const set = window.SiteWriteBuilderSet;
+    const now = S.payload ? S.payload() : {};
+    return set ? Object.fromEntries(set.KEYS.map((key) => [key, now[key] === undefined ? (key === 'siteRules' ? [] : '') : now[key]])) : {};
+  };
+  const asBoxes = (values) => Object.fromEntries(Object.entries(values).map(([key, value]) => [key, Array.isArray(value) ? value.join('\n') : value]));
+  function settleOwnDetails() {
+    const set = window.SiteWriteBuilderSet;
+    if (!project || !project.sitelink || !project.listShared || !set) return;
+    const item = project.items[project.current];
+    const now = S.payload ? S.payload() : {};
+    if (item) {
+      const own = { ...(item.pageOwn || {}) };
+      for (const field of set.FIELDS) {
+        if (!(field.key in project.listShared)) continue;
+        if (set.same(field, now[field.key], project.listShared[field.key])) delete own[field.key];
+        else own[field.key] = now[field.key] === undefined ? '' : now[field.key];
+      }
+      if (Object.keys(own).length) item.pageOwn = own; else delete item.pageOwn;
+    }
+    // The boxes above go back to what every SWMS shares.
+    if (S.fillFields) S.fillFields(asBoxes(project.listShared));
+    delete project.listShared;
+  }
+  S.listOpenTitle = () => (project && project.sitelink && project.stage === 'check' && project.listShared && project.items[project.current] ? project.items[project.current].title : '');
+
   function openItem(index, { toNeed = false, toCover = false } = {}) {
     if (!project || !project.items[index]) return;
     if (window.SiteWriteProjectGo && window.SiteWriteProjectGo.clearNotes) window.SiteWriteProjectGo.clearNotes();
+    // From one open SWMS straight to the next: the one left keeps its own details first.
+    if (project.stage === 'check') settleOwnDetails();
+    if (project.sitelink) project.listShared = listSharedNow();
     project.current = index;
     // From the one-go page or the review list, a SWMS opens to be checked (D240).
     if (project.stage) project.stage = 'check';
@@ -665,7 +698,9 @@
     // Answers to the emergency questions given in another SWMS of the project fill the same questions here.
     const shared = (project.shared && project.shared.emergency) || {};
     if (project.items[index].body && Object.keys(shared).length) project.items[index].body = { ...project.items[index].body, emergency: { ...shared, ...given(project.items[index].body.emergency) } };
-    if (project.items[index].body) project.items[index].body = withPageDetails(project.items[index].body);
+    if (project.items[index].body) project.items[index].body = { ...withPageDetails(project.items[index].body), ...(project.sitelink && project.items[index].pageOwn ? project.items[index].pageOwn : {}) };
+    // With none prepared yet, its own details show in the boxes above while it is open.
+    else if (project.sitelink && project.items[index].pageOwn && S.fillFields) S.fillFields(asBoxes(project.items[index].pageOwn));
     // Answers given on the one-go page since it was prepared (it is marked as needing preparing again)
     // go with it, so checking it does not bring back the old ones.
     const opened = project.items[index];
@@ -872,6 +907,14 @@
     });
     return out.length ? out : undefined;
   }
+  // The SWMS open to check takes the site answers every SWMS of the project shares (not its own).
+  S.projectSiteShared = (site) => {
+    if (!project || paused || project.stage !== 'check' || project.items.length < 2) return undefined;
+    const item = project.items[project.current];
+    const shared = (project.shared && project.shared.site) || {};
+    const same = ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].every((id) => String((site || {})[id] || '').trim() === String(shared[id] || '').trim());
+    return item && !item.siteOwn && same ? true : undefined;
+  };
   S.projectMovedIn = () => (project && !paused && project.stage === 'check' ? movedInto(project.current) : undefined);
   // Products given in another SWMS of the project, offered in this one (owner, D292): [{ row, from }].
   S.projectProducts = () => {
@@ -1134,9 +1177,11 @@
     if (project.stage === 'check' && S.liveGate && S.liveGate().stale && S.prepare) {
       try { await S.prepare({ scroll: false }); } catch { /* the draft says what went wrong */ }
     }
+    settleOwnDetails();
     project.stage = 'review';
     saveProject();
     renderProject();
+    if (S.drawSetBy) S.drawSetBy();
     requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
     if (S.markStage) S.markStage('review');
   }
@@ -1171,7 +1216,8 @@
   // The details above that every SWMS of the list shares, as kept for the company: never its company details.
   const LIST_PAGE_KEYS = ['state', 'residential', 'workplace', 'principalContractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'firstAidLocation', 'musterPoint', 'siteRules', 'worksManager', 'worksManagerPhone', 'complianceResponsible', 'reviewer', 'reviewDate', 'date', 'preparedBy'];
   function listPage() {
-    const now = S.payload ? S.payload() : {};
+    // While a SWMS is open, the details every SWMS shares are kept, not that SWMS's own.
+    const now = { ...(S.payload ? S.payload() : {}), ...((project && project.listShared) || {}) };
     // An emptied first aid location or site rules box is kept as empty, so it counts as a change.
     const empty = { firstAidLocation: '', siteRules: [] };
     return Object.fromEntries(LIST_PAGE_KEYS.map((key) => [key, now[key] === undefined && key in empty ? empty[key] : now[key]]).filter(([, value]) => value !== undefined));
@@ -1302,6 +1348,14 @@
     requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
   };
 
+  // The work a save holds, to tell whether anything changed since the last save from this device. Which
+  // SWMS is open and the page's stage are where this device is, not work (sitelink-subbie.js sameWork).
+  const workOf = (body) => {
+    const parts = window.SiteWriteCheckParts;
+    const { current, stage, ...rest } = body.project || {};
+    const value = { project: rest, page: body.page || {} };
+    return parts && parts.stable ? parts.stable(JSON.parse(JSON.stringify(value))) : JSON.stringify(value);
+  };
   // The list on this device, brought up to date from the server (another device may have saved since).
   S.builderListLocal = () => (project && project.sitelink ? project.sitelink.id : '');
   S.builderInfo = () => (project && project.sitelink) || null;
@@ -1310,7 +1364,11 @@
     const local = project.sitelink;
     const saved = data.progress;
     if (saved.version > (local.version || 0)) {
-      const note = local.dirty ? `This list was saved on another device${saved.updatedBy ? ` by ${saved.updatedBy}` : ''} on ${saved.updatedOn}. The newest work is shown. Changes made on this device since were not kept.` : '';
+      // Changes made here count only when the work differs from this device's last save (a reload marks
+      // the page changed when nothing is).
+      const { sitelink: mine, ...work } = project;
+      const changedHere = local.dirty && !(local.savedWork && local.savedWork === workOf({ project: work, page: listPage() }));
+      const note = changedHere ? `This list was saved on another device${saved.updatedBy ? ` by ${saved.updatedBy}` : ''} on ${saved.updatedOn}. The newest work is shown. Changes made on this device since were not kept.` : '';
       project = reconcile(saved.project, data.list);
       project.sitelink = { ...sitelinkOf(data, saved), note };
       fillPage(saved.page || {});
@@ -1322,7 +1380,7 @@
       project = reconcile(rest, data.list);
       // On this device a SWMS open to check stays open.
       project.stage = rest.stage || project.stage;
-      project.sitelink = { ...sitelinkOf(data, { ...saved, page: merged.page, seen: merged.seen }), version: local.version, dirty: local.dirty };
+      project.sitelink = { ...sitelinkOf(data, { ...saved, page: merged.page, seen: merged.seen }), version: local.version, dirty: local.dirty, savedWork: local.savedWork || '' };
       fillPage(merged.page);
       if (local.dirty) saveListSoon();
     }
@@ -1387,10 +1445,14 @@
     const link = project.sitelink;
     const { sitelink, ...rest } = project;
     const body = { baseVersion: link.version || 0, project: rest, page: listPage() };
+    const work = workOf(body);
     link.dirty = false;
+    // Nothing changed since this device last saved (a reload, a box typed back as it was): no save, so
+    // another device's next save is not refused (messy round 8, stuck point 1).
+    if (link.savedWork && link.savedWork === work && !link.offline) { writeProject(); return; }
     listSaving = S.call('PUT', `/api/from-builders/${encodeURIComponent(link.id)}/progress`, body).then((data) => {
       if (!project || !project.sitelink || project.sitelink.id !== link.id) return;
-      Object.assign(project.sitelink, { version: data.version, savedOn: data.savedOn, overrides: data.overrides, offline: false });
+      Object.assign(project.sitelink, { version: data.version, savedOn: data.savedOn, overrides: data.overrides, offline: false, savedWork: work });
       writeProject();
       const el = $('list-saved');
       if (el) el.textContent = savedLine(project.sitelink);
@@ -1399,13 +1461,17 @@
       project.sitelink.dirty = true;
       if (error.status === 409 && error.data && error.data.progress) {
         const saved = error.data.progress;
+        // This device had nothing new since its last save: the newer work is taken up with no warning,
+        // as nothing here was lost.
+        const nothingNew = Boolean(link.savedWork) && link.savedWork === work;
         // The newer work from the other device is shown; the builder's list is as this page last had it.
         project = reconcile(saved.project, { builder: link.builder, items: link.listItems || [] });
-        project.sitelink = { ...link, version: saved.version, savedOn: saved.updatedOn, savedBy: saved.updatedBy, seen: saved.seen, page: saved.page, dirty: false, offline: false };
+        project.sitelink = { ...link, version: saved.version, savedOn: saved.updatedOn, savedBy: saved.updatedBy, seen: saved.seen, page: saved.page, dirty: false, offline: false, savedWork: '' };
         fillPage(saved.page || {});
         writeProject();
         renderProject();
         if (S.drawSetBy) S.drawSetBy();
+        if (nothingNew) { sayList(''); const el = $('list-saved'); if (el) el.textContent = savedLine(project.sitelink); return; }
         sayList(`${error.message} Changes made on this device since were not kept.`, 'warning');
         return;
       }
