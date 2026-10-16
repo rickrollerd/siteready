@@ -203,9 +203,22 @@
     const used = namedIn(type, steps);
     return used ? { word: used, said: `the job steps name "${used}"`, hint: `The job steps name "${used}".` } : null;
   }
-  function notUsedNeed(type, reason, words, steps = '', sds = '') {
+  // SiteWrite's own job step that cuts, drills, cores, grinds or breaks out concrete, masonry or stone
+  // makes silica dust on this job (D311, round 6 content decision 1: silica was taken as "Not required,
+  // supplied and applied by others" beside such a step). The step's name, or ''. Not the user's own
+  // steps, nor the general steps at the start and end.
+  const SILICA = 'Respirable crystalline silica (concrete, masonry, tile and stone dust)';
+  const CUTS_CONCRETE = /\b(?:cut\w*|saw\w*|drill\w*|core[- ]?drill\w*|coring|grind\w*|chas\w*|scabbl\w*|break\w* out|jackhammer\w*)\b[^.\n]{0,40}\b(?:concrete|masonry|stone|slabs?|blocks?|blockwork|bricks?|brickwork|pavers?|kerbs?|sleepers?)\b|^(?:Core drill|Saw cut)\b|\bgrind\w* (?:the )?(?:concrete )?floors?\b/i;
+  function cutStep(draft) {
+    const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step));
+    const found = steps.find((step) => CUTS_CONCRETE.test(String(step.step || '')));
+    return found ? found.step : '';
+  }
+  function notUsedNeed(type, reason, words, steps = '', sds = '', cut = '') {
     const conflict = sdsConflict(type, sds);
     if (conflict) return conflict;
+    // While that step is in the SWMS, no reason settles it: the product being cut is asked for.
+    if (type === SILICA && cut) return `${SHORT.get(type)}: the job step "${cut}" cuts or drills concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that step, take the step off.`;
     const asked = reasonAsked(type, words, steps);
     if (!asked) return '';
     const named = asked.word;
@@ -283,7 +296,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict };
+  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, SILICA };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

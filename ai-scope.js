@@ -20,6 +20,7 @@ const { TITLES } = require('./scope');
 const { packageTask } = require('./public/scope-task');
 const { readSlang } = require('./slang');
 const { expectedSeconds } = require('./public/read-progress');
+const { plantFromWords, packWords } = require('./handover');
 
 const MODEL = 'claude-opus-5-5';
 // US dollars per million tokens for Claude Opus 5.5, to show what each reading cost.
@@ -652,7 +653,11 @@ async function packageHighRisk(reading, state) {
     }
     const chosen = steps.get(name);
     const input = { state, task: packageTask(rows), kinds: chosen ? chosen.groups : null, leaveOut: chosen ? (chosen.byOthers || []).map((entry) => entry.step) : [] };
-    out.push({ package: name, ...screenHighRisk(input, rows.flatMap((row) => row.quotes || []).join('\n')) });
+    // "Moving powered mobile plant" from the step groups alone is "may", not "is", where the package's
+    // own words never move, lift or drive anything (messy round 6, sl6 decision 3, D307): the same rule
+    // as SiteLink's list (handover.js), so the subcontractor's scope reading says the same.
+    const words = `${name} ${packWords({ rows })}`;
+    out.push(plantFromWords({ package: name, ...screenHighRisk(input, rows.flatMap((row) => row.quotes || []).join('\n')) }, words));
     await new Promise((resolve) => { setImmediate(resolve); });
   }
   return out;

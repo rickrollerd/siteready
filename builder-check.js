@@ -157,6 +157,9 @@ function normaliseSwms(input = {}) {
     // The hazardous products a SiteWrite draft lists one by one (substances.js, D256); null otherwise.
     substances: Array.isArray(input.substances) ? input.substances.filter((item) => item && typeof item === 'object').map((item) => ({ product: text(item.product), type: text(item.type), controls: list(item.controls), confirmed: item.confirmed === true })) : null,
     highRisk: list(input.highRisk),
+    // High risk work the SWMS says does not apply, each with its reason, as a SiteWrite draft prints it
+    // (D311): the user's call, so it is not marked as missing. [{ id, label, reason }]
+    notApply: (Array.isArray(input.notApply) ? input.notApply : []).filter((item) => item && typeof item === 'object' && typeof item.id === 'string' && text(item.reason)).map((item) => ({ id: text(item.id), label: text(item.label), reason: text(item.reason) })),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
       .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible), rating: ratingOf(item) })),
     ppe: list(input.ppe),
@@ -765,7 +768,10 @@ function hardFails(swms, state, stage = 'review') {
   // is not trench high risk work (s 291), so a trench step name alone does not imply it.
   const statedDepths = [...`${swms.task}`.matchAll(/\b(\d+(?:\.\d+)?)\s?m(?:etres?)?\s+deep\b/gi)].map((match) => Number(match[1]));
   const keptShallow = SHALLOW_TRENCH.test(allControls.join('\n')) && !statedDepths.some((depth) => depth > 1.5);
-  const missing = implied.filter((item) => !namedIds.has(item.id) && !(keptShallow && item.id === 'trench'));
+  // Work the SWMS says does not apply, with its reason, is the user's call (D311): it prints as such, so
+  // it is not missing. A reviewer still sees it and the reason on the SWMS.
+  const notApplyIds = new Set(swms.notApply.map((item) => item.id));
+  const missing = implied.filter((item) => !namedIds.has(item.id) && !(keptShallow && item.id === 'trench') && !notApplyIds.has(item.id));
   const hazardOnly = highRiskMatches(asSentences(swms.steps.flatMap((step) => step.hazards)), swms.fallRisk, state)
     .filter((item) => !namedIds.has(item.id) && !missing.some((other) => other.id === item.id));
   const alsoCheck = hazardOnly.length ? ` Also check, as the hazards name it: ${hazardOnly.map((item) => item.label).join('; ')}.` : '';
@@ -774,12 +780,14 @@ function hardFails(swms, state, stage = 'review') {
 
   // Nothing listed and nothing found in the task is not a fail: the work may not be high risk.
   // Steps marked "HRCW" say the work is high risk construction work, even where no category is listed.
+  const impliedLeft = implied.filter((item) => !notApplyIds.has(item.id));
   const marked = !swms.highRisk.length && swms.steps.some((step) => /\b(hrcw|high risk construction work)\b/i.test(step.step));
-  add('H1', 'High risk construction work identified', (Boolean(swms.highRisk.length) || (!implied.length && !marked)) && !missing.length,
-    (marked && !implied.length ? 'Steps are marked as high risk construction work, but the SWMS does not say which categories. List them.'
-      : !swms.highRisk.length && !implied.length ? `No high risk construction work is listed, and none was found in the task. Check whether the work needs a SWMS.${alsoCheck}`
+  add('H1', 'High risk construction work identified', (Boolean(swms.highRisk.length) || (!impliedLeft.length && !marked)) && !missing.length,
+    (marked && !impliedLeft.length ? 'Steps are marked as high risk construction work, but the SWMS does not say which categories. List them.'
+      : !swms.highRisk.length && !impliedLeft.length && swms.notApply.length ? `No high risk construction work is listed. The SWMS says why each item found does not apply to this work.${alsoCheck}`
+      : !swms.highRisk.length && !impliedLeft.length ? `No high risk construction work is listed, and none was found in the task. Check whether the work needs a SWMS.${alsoCheck}`
       : !swms.highRisk.length
-      ? `The SWMS does not say which high risk construction work it covers.${implied.length ? ` The work involves: ${implied.map((item) => item.label).join('; ')}.` : ''}`
+      ? `The SWMS does not say which high risk construction work it covers.${impliedLeft.length ? ` The work involves: ${impliedLeft.map((item) => item.label).join('; ')}.` : ''}`
       : missing.length ? `The work involves high risk construction work the SWMS does not list: ${missing.map((item) => item.label).join('; ')}.${alsoCheck}` : `The high risk construction work is identified.${alsoCheck}`) + noState);
 
   // Railway detonators are track signals, so a rail SWMS that ticks explosives for them is not
@@ -1442,6 +1450,7 @@ function fromDraft(draft, extra = {}) {
     fallRisk: draft.fallRisk,
     site: { address: draft.workplace, conditions },
     highRisk: draft.highRisk || [],
+    notApply: draft.highRiskNotApply || [],
     steps,
     // Every PPE item ticked, for all work or for particular steps (D246): one a single step needs is
     // still in the SWMS's PPE.

@@ -525,6 +525,7 @@ function payload() {
     whoEdits: whoEdits || undefined,
     ownSteps: ownSteps || undefined,
     highRiskAdded: highRiskAdded && highRiskAdded.length ? highRiskAdded : undefined,
+    highRiskOff: highRiskOff && highRiskOff.length ? highRiskOff : undefined,
     stepRatings: stepRatings && Object.keys(stepRatings).length ? stepRatings : undefined,
     fills: fills || undefined,
     plantChoice: plantChoice || undefined,
@@ -956,6 +957,10 @@ let choicesTask = null;
 // round 5), and the note under the box after an item is added or taken off.
 let highRiskAdded = null;
 let hrcwNote = '';
+// High risk work SiteWrite found that the user marked "Does not apply", each { id, reason } (D311), and
+// the note said after one is marked or put back.
+let highRiskOff = null;
+let hrcwOffNote = '';
 // The rating after the controls the supervisor set for a job step, by its name (messy round 5, run 4),
 // and the steps whose rating form is open.
 let stepRatings = null;
@@ -971,6 +976,9 @@ function replaceTask(written, answered = {}) {
   const dropped = [written ? 'the task you wrote' : 'the task picked before'];
   if (stepPicks || stepOrder || leaveOut) dropped.push('the job steps you ticked, added or moved for it');
   if (coverTicked || Object.keys(coverElsewhere || {}).length || Object.keys(coverInStep).length) dropped.push('what you said about its work SiteWrite had no job steps for');
+  // The new task's own work decides what high risk work it has, so "Does not apply" is asked again.
+  if (highRiskOff && highRiskOff.length) dropped.push('the high risk work you marked as not applying');
+  highRiskOff = null;
   // The answers on the page now, so the questions asked again for the new task show them.
   if (document.querySelector('#required-block [data-fact]')) Object.assign(factMemory, shownAnswers('#required-block [data-fact]', 'fact'));
   if (document.querySelector('[data-site]')) Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
@@ -1059,6 +1067,8 @@ function newSwms() {
   emergencyAnswers = null;
   highRiskAdded = null;
   hrcwNote = '';
+  highRiskOff = null;
+  hrcwOffNote = '';
   stepRatings = null;
   ratingOpen.clear();
   designAnswers = null;
@@ -1857,6 +1867,8 @@ function fillStart(input) {
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
   highRiskAdded = Array.isArray(input.highRiskAdded) && input.highRiskAdded.length ? [...input.highRiskAdded] : null;
   hrcwNote = '';
+  highRiskOff = Array.isArray(input.highRiskOff) && input.highRiskOff.length ? input.highRiskOff.filter((item) => item && typeof item.id === 'string').map((item) => ({ id: item.id, reason: String(item.reason || '') })) : null;
+  hrcwOffNote = '';
   stepRatings = input.stepRatings && typeof input.stepRatings === 'object' ? JSON.parse(JSON.stringify(input.stepRatings)) : null;
   ratingOpen.clear();
   ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
@@ -2809,13 +2821,21 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const ownRisk = new Map((draft.highRiskOwn || []).map((item) => [item.label, item.id]));
   // Where SiteWrite found each item is said beside it, so one from a site answer can be traced.
   const riskFrom = (item) => (movable && (draft.highRiskFrom || {})[item] ? ` <span class="meta">(from ${esc(draft.highRiskFrom[item])})</span>` : '');
+  // An item SiteWrite found can be marked "Does not apply" with a short reason (D311). It then prints as
+  // the user's call, and its permit, rescue row and the lines SiteWrite adds for it come off.
+  const foundRisk = new Map((draft.highRiskFound || []).map((item) => [item.label, item.id]));
   const riskItem = (item) => (movable && ownRisk.has(item)
     ? `<li>${esc(item)} <span class="meta">(added by you)</span> <button type="button" class="link" data-hrcw-remove="${esc(ownRisk.get(item))}">Remove</button></li>`
-    : `<li>${esc(item)}${riskFrom(item)}</li>`);
+    : `<li data-hrcw-item="${esc(foundRisk.get(item) || '')}">${esc(item)}${riskFrom(item)}${movable && foundRisk.has(item) ? ` <button type="button" class="link" data-hrcw-off="${esc(foundRisk.get(item))}">Does not apply</button>` : ''}</li>`);
+  const notApply = draft.highRiskNotApply || [];
+  const notApplyList = notApply.length
+    ? `<ul class="hrcw-notapply">${notApply.map((item) => `<li>Does not apply (our call): ${esc(item.label)}. Reason: ${esc(String(item.reason).trim().replace(/[.\s]+$/, ''))}.${movable ? ` <button type="button" class="link" data-hrcw-back="${esc(item.id)}">Put back</button>` : ''}</li>`).join('')}</ul>` : '';
   const riskChoices = movable ? draft.highRiskChoices || [] : [];
   const risks = (draft.highRisk.length
     ? `<ul>${draft.highRisk.map(riskItem).join('')}</ul>`
-    : '<p>This task is not identified as high risk construction work.</p>')
+    : notApply.length ? '' : '<p>This task is not identified as high risk construction work.</p>')
+    + notApplyList
+    + (movable && (notApply.length || foundRisk.size || hrcwOffNote) ? `<p class="meta" id="hrcw-off-note" role="status">${esc(hrcwOffNote)}</p>` : '')
     + (riskChoices.length ? `<div class="field hrcw-add" id="hrcw-add">
       <label for="hrcw-add-item">Add high risk construction work that applies<span class="hint">Choose from the list in the regulation. It prints on the SWMS, and SiteWrite adds its controls for it where it has them. Check the job steps cover it.</span></label>
       <select id="hrcw-add-item" class="plain"><option value="">Choose an item</option>${riskChoices.map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`).join('')}</select>
@@ -3400,6 +3420,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     resultEl.innerHTML = `${fixingHtml()}${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     // The note under the high risk work box is said once, by the draft drawn after the change.
     hrcwNote = '';
+    hrcwOffNote = '';
     resultEl.classList.remove('hidden');
     // A stood down draft names the facts still needed; each is asked for on the page, with what it
     // needs said under its box.
@@ -3600,6 +3621,58 @@ resultEl.addEventListener('click', async (event) => {
     await prepareDraft({ scroll: false, keep: '#hrcw-head' });
     const head = document.getElementById('hrcw-head');
     if (head) head.focus({ preventScroll: true });
+    return;
+  }
+  // "Does not apply" on an item SiteWrite found: a short reason is asked for in place (D311).
+  const offOpen = event.target.closest('[data-hrcw-off]');
+  if (offOpen) {
+    const li = offOpen.closest('li');
+    document.querySelectorAll('.hrcw-off').forEach((form) => form.remove());
+    document.querySelectorAll('[data-hrcw-off]').forEach((button) => { button.hidden = false; });
+    offOpen.hidden = true;
+    li.insertAdjacentHTML('beforeend', `<div class="field hrcw-off" data-hrcw-form="${esc(offOpen.dataset.hrcwOff)}"><label for="hrcw-off-why">Why does it not apply to this work?<span class="hint">A few words, for example "the trench is no deeper than 1.2 m". It prints as your call, with your reason. Its permit, its rescue row and the lines SiteWrite adds for it come off. The job steps for that work stay: take off any that are not part of this job.</span></label><input id="hrcw-off-why" type="text" maxlength="200" autocomplete="off"><p class="answer-note" id="hrcw-off-need" role="alert" hidden></p><div class="actions"><button type="button" class="secondary small" data-hrcw-off-go="${esc(offOpen.dataset.hrcwOff)}">Mark it as not applying</button> <button type="button" class="link" data-hrcw-off-cancel>Cancel</button></div></div>`);
+    document.getElementById('hrcw-off-why').focus();
+    return;
+  }
+  if (event.target.closest('[data-hrcw-off-cancel]')) {
+    const form = event.target.closest('.hrcw-off');
+    const button = form && form.parentElement.querySelector('[data-hrcw-off]');
+    if (form) form.remove();
+    if (button) { button.hidden = false; button.focus(); }
+    return;
+  }
+  const offGo = event.target.closest('[data-hrcw-off-go]');
+  if (offGo) {
+    const why = document.getElementById('hrcw-off-why');
+    const need = document.getElementById('hrcw-off-need');
+    const reason = why ? why.value.replace(/\s+/g, ' ').trim() : '';
+    const rules = window.SiteWriteSubstanceRules;
+    const weak = rules && rules.reasonNeed ? rules.reasonNeed(reason) : (reason.split(' ').length < 2 ? 'weak' : '');
+    if (weak) {
+      if (need) { need.hidden = false; need.textContent = weak === 'missing' ? 'Say in a few words why it does not apply to this work.' : `"${reason.slice(0, 60)}" does not say why. Say in a few words why it does not apply to this work.`; }
+      if (why) why.focus();
+      return;
+    }
+    const id = offGo.dataset.hrcwOffGo;
+    const li = offGo.closest('li');
+    const label = li ? li.firstChild.textContent.trim() : 'it';
+    highRiskOff = [...(highRiskOff || []).filter((item) => item.id !== id), { id, reason }];
+    await prepareDraft({ scroll: false, keep: '#hrcw-head' });
+    hrcwOffNote = `Marked as not applying: ${label}. It prints as your call, with your reason. Put it back if it does apply.`;
+    const note = document.getElementById('hrcw-off-note');
+    if (note) note.textContent = hrcwOffNote;
+    const head = document.getElementById('hrcw-head');
+    if (head) head.focus({ preventScroll: true });
+    return;
+  }
+  const offBack = event.target.closest('[data-hrcw-back]');
+  if (offBack) {
+    highRiskOff = (highRiskOff || []).filter((item) => item.id !== offBack.dataset.hrcwBack);
+    if (!highRiskOff.length) highRiskOff = null;
+    await prepareDraft({ scroll: false, keep: '#hrcw-head' });
+    hrcwOffNote = 'Put back. It prints under High risk construction work again, with its controls.';
+    const note = document.getElementById('hrcw-off-note');
+    if (note) note.textContent = hrcwOffNote;
     return;
   }
   const hrcwOff = event.target.closest('[data-hrcw-remove]');

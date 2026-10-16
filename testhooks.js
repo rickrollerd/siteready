@@ -137,6 +137,7 @@ function install(app, { sendReviewReminders, removeExpired }) {
           await db.query('DELETE FROM project_site_details WHERE project_id = $1', [project.id]);
         }
         await db.query('DELETE FROM project_events WHERE org_id = $1', [org.id]);
+        await db.query('DELETE FROM lead_asks WHERE org_id = $1', [org.id]);
         await db.query('DELETE FROM projects WHERE org_id = $1', [org.id]);
         await db.query("DELETE FROM ai_readings WHERE org_id = $1 AND company_id = ''", [org.id]);
         await db.query('DELETE FROM mail_stops WHERE org_id = $1', [org.id]);

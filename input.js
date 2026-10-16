@@ -279,6 +279,8 @@ function draftBody(body) {
     // High risk construction work the user added on the draft, by its id in the regulation's list
     // (messy round 5). Unknown ones are dropped when drafted.
     highRiskAdded: Array.isArray(body.highRiskAdded) ? [...new Set(body.highRiskAdded.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 30) : undefined,
+    // High risk work SiteWrite found that the user marks "Does not apply", each with a short reason (D311).
+    highRiskOff: Array.isArray(body.highRiskOff) ? body.highRiskOff.filter((item) => item && typeof item.id === 'string' && typeof item.reason === 'string').map((item) => ({ id: item.id.slice(0, 40), reason: textField(item.reason, 200).replace(/\s+/g, ' ').trim() })).slice(0, 30) : undefined,
     // The job steps in the order the user put them, by name.
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     // The rows of a scope reading that the reader matched to no job steps (owner decision D184).

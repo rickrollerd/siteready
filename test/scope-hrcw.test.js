@@ -8,6 +8,7 @@ const { screenHighRisk, prepareDraft } = require('../draft');
 const { packageHighRisk, settlePackages } = require('../ai-scope');
 const { hrcwSummary, HRCW_NOTE } = require('../public/scope-hrcw');
 const { packageTask } = require('../public/scope-task');
+const { plantFromWords, packWords } = require('../handover');
 
 const ids = (flag) => flag.categories.map((item) => `${item.id}${item.likely ? '?' : ''}`);
 const screen = (task, extra = {}, said = '') => screenHighRisk({ state: 'qld', task, ...extra }, said);
@@ -113,7 +114,10 @@ test('steps the scope gives to others are left out of the flag, as the card leav
   assert.equal(flag.package, 'Communications');
   const task = packageTask(reading.activities);
   const left = screenHighRisk({ state: 'qld', task, kinds: ['cablePull'], leaveOut: ['Pull cables'] }, 'Install all data cabling.');
-  assert.deepEqual({ categories: flag.categories, dependsOn: flag.dependsOn }, left);
+  // Moving plant from the step groups alone, where the package's own words move nothing, is "may" (sl6
+  // decision 3, D307): the same rule as SiteLink's list.
+  assert.deepEqual({ categories: flag.categories, dependsOn: flag.dependsOn }, plantFromWords(left, `Communications ${packWords({ rows: reading.activities })}`));
+  assert.ok(flag.dependsOn.some((item) => item.id === 'plant'));
 });
 
 test('the wording: high risk, likely, may be, none found, in plain words', () => {

@@ -5,7 +5,7 @@ const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./
 const { tableRows: substanceRows, notRequiredLine, TABLE_TITLE: SUBSTANCES_TITLE, TABLE_HEAD: SUBSTANCES_HEAD, TABLE_NOTE: SUBSTANCES_NOTE } = require('./substances');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
-const { revisionText, sharedNote, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines } = require('./docx-draft');
+const { revisionText, sharedNote, reviewInvite, reviewedNote, PC_OUTCOMES, PC_TEXT, conditionLines, notApplyLines } = require('./docx-draft');
 const { checkedRows, preparedFromCheck } = require('./human-check');
 const { stepPpeRows } = require('./step-ppe');
 
@@ -285,8 +285,11 @@ function draftToPdf(draft, options = {}) {
     });
 
     heading(doc, 'High risk construction work');
+    const notApply = notApplyLines(draft);
     if ((draft.highRisk || []).length) for (const item of draft.highRisk) text(doc, item);
-    else text(doc, 'This task is not identified as high risk construction work.');
+    else if (!notApply.length) text(doc, 'This task is not identified as high risk construction work.');
+    // Work SiteWrite found that the user says does not apply, with their reason, printed as their call (D311).
+    for (const line of notApply) text(doc, line);
 
     // The designs the job steps rely on and the written methods the work follows (designs.js), only
     // where there are any.

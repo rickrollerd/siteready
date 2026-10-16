@@ -14,6 +14,7 @@ const { validAbn } = require('./accounts');
 const abnRegister = require('./abn');
 const answers = require('./sitelink-answers');
 const testHooks = require('./testhooks');
+const mailer = require('./mailer');
 const { stateFromTyped } = require('./public/address');
 
 const router = express.Router();
@@ -193,8 +194,12 @@ async function checkAbn(abn, name, kept = []) {
 
 const duplicateKey = (error) => Boolean(error) && (error.code === '23505' || /duplicate key/i.test(String(error.message || '')));
 
+// A second account for an ABN is refused, naming no one. The person can ask SiteLink to tell that
+// account's lead, or tell SiteWrite when no one at their company set it up (D307, stage 3 decisions 3
+// and 4).
+const takenError = () => Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true, support: supportEmail() });
 async function refuseTakenAbn(abn) {
-  if (await db.one('SELECT id FROM orgs WHERE abn = $1', [abn])) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
+  if (await db.one('SELECT id FROM orgs WHERE abn = $1', [abn])) throw takenError();
 }
 
 // Staging testers (messy round 6): with the test hooks on (testhooks.js), an account set up by a test
@@ -218,10 +223,12 @@ async function newAbn(body, name, reviewer) {
   const result = await checkAbn(abn, name);
   if (result.check === 'missing') throw Object.assign(fail(400, notListed(abn)), { field: 'abn' });
   if (result.check === 'cancelled') throw Object.assign(fail(400, 'The ABN register shows that ABN as cancelled. Check the 11 digits, or enter the company\'s current ABN.'), { field: 'abn' });
+  // The register's name is said, not offered as a one-click rename (D307, messy round 6 decision 5): an
+  // account that is not that company must not take its name. The company writes to SiteWrite.
   if (result.check === 'name' && !body.keepName) {
     const listedName = readableCompany(result.names[0]);
-    throw Object.assign(fail(409, `The ABN register lists ABN ${formatAbn(abn)} under ${listedName}, not ${name}. Check the ABN. If it is right, use the name on the register.`), {
-      field: 'abn', register: { name: listedName },
+    throw Object.assign(fail(409, `The ABN register lists ABN ${formatAbn(abn)} under ${listedName}, not ${name}. Check the ABN. If this account is for ${listedName}, contact SiteWrite at ${supportEmail()} to have it checked.`), {
+      field: 'abn', register: { name: listedName }, support: supportEmail(),
     });
   }
   return { abn, ...result };
@@ -413,7 +420,7 @@ router.post('/hse/orgs', route(async (req, res) => {
       [id, name, checked.abn, req.reviewer.id, 'hse-page', now, ...checkColumns(checked, null, now)]);
   } catch (error) {
     // Two people set up the same ABN at the same moment: the first is kept.
-    if (duplicateKey(error)) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
+    if (duplicateKey(error)) throw takenError();
     throw error;
   }
   await db.query('INSERT INTO org_members (id, org_id, email, reviewer_id, role, invited_by, invited_at, joined_at, lead_of) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $2)',
@@ -423,6 +430,44 @@ router.post('/hse/orgs', route(async (req, res) => {
     org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [id]), 'lead'),
     message: `Your account is set up. ${checkMessage(checked.check)} ${SET_UP_NEXT}`,
   });
+}));
+
+// "Ask the lead for me" (D307, stage 3 decision 4): someone refused a second account for an ABN already
+// on SiteLink asks SiteLink to tell that account's lead. The lead is emailed the person's name and email
+// and how to add them. Nothing about the account or its lead is said back to the person. One ask for
+// each person and account a day, and a few for each account a day, so a lead is not flooded.
+const ASKS_PER_DAY = 5;
+const DAY = 24 * 60 * 60 * 1000;
+const ASKED = 'SiteLink has emailed that account\'s lead your name and email, and asked them to add you to the team. When they have, sign in again with this email to see the account.';
+router.post('/hse/ask-lead', route(async (req, res) => {
+  needName(req);
+  const abn = abnDigits(req.body && req.body.abn);
+  if (!validAbn(abn)) throw Object.assign(fail(400, 'That ABN is not valid. Check the 11 digits.'), { field: 'abn' });
+  const org = await db.one('SELECT * FROM orgs WHERE abn = $1', [abn]);
+  if (!org) throw Object.assign(fail(404, 'No SiteLink account has this ABN now. Set up your account instead.'), { field: 'abn' });
+  const mine = await db.one('SELECT id FROM org_members WHERE org_id = $1 AND (reviewer_id = $2 OR email = $3)', [org.id, req.reviewer.id, req.reviewer.email]);
+  if (mine) throw fail(409, 'You are already in that account\'s team, or invited to it. Sign out, then sign in again with this email.');
+  const since = new Date(Date.now() - DAY);
+  if (await db.one('SELECT id FROM lead_asks WHERE org_id = $1 AND reviewer_id = $2 AND created_at > $3', [org.id, req.reviewer.id, since])) {
+    res.json({ ok: true, message: `You asked in the last day. ${ASKED}` });
+    return;
+  }
+  const asked = await db.query('SELECT COUNT(*) AS n FROM lead_asks WHERE org_id = $1 AND created_at > $2', [org.id, since]);
+  if (Number(asked[0].n) >= ASKS_PER_DAY) throw fail(429, 'SiteLink cannot ask that account\'s lead again today. Try again tomorrow, or contact the company another way.');
+  const lead = await db.one("SELECT reviewers.email FROM org_members JOIN reviewers ON reviewers.id = org_members.reviewer_id WHERE org_members.org_id = $1 AND org_members.role = 'lead'", [org.id]);
+  if (!lead) throw fail(409, 'SiteLink could not reach that account\'s lead just now. Try again later.');
+  const who = personName(req.reviewer);
+  const page = `${auth.appUrl(req)}/sitelink`;
+  await mailer.sendMail({
+    to: lead.email,
+    subject: `${who} asks to join ${org.name} on SiteLink`,
+    replyTo: req.reviewer.email,
+    text: `${who} (${req.reviewer.email}) tried to set up a SiteLink account with ${org.name}'s ABN, ${formatAbn(abn)}, and asked to be added to your team instead.\n\nIf they work with you, sign in at ${page}, open Team and add ${req.reviewer.email}.\n\nIf you do not know them, you need do nothing. SiteLink has not told them who you are. If you think someone is using your company's details, contact SiteWrite at ${supportEmail()}.`,
+  });
+  await db.query('INSERT INTO lead_asks (id, org_id, reviewer_id, created_at) VALUES ($1, $2, $3, $4)', [auth.newId(), org.id, req.reviewer.id, new Date()]);
+  await logEvent({ orgId: org.id, who: req.reviewer.id, text: `${who} (${req.reviewer.email}) asked to be added to the team, after trying to set up a second account with its ABN.` });
+  record('org_lead_asked', null);
+  res.json({ ok: true, message: ASKED });
 }));
 
 router.get('/hse/orgs/:orgId', route(async (req, res) => {
@@ -459,7 +504,7 @@ router.put('/hse/orgs/:orgId', route(async (req, res) => {
         [name, checked.abn, ...checkColumns(checked, org, now), org.id]);
     });
   } catch (error) {
-    if (duplicateKey(error)) throw Object.assign(fail(409, ABN_TAKEN), { field: 'abn', taken: true });
+    if (duplicateKey(error)) throw takenError();
     throw error;
   }
   const saved = await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]);
@@ -484,6 +529,23 @@ router.post('/hse/orgs/:orgId/abn-check', route(async (req, res) => {
     message: saved.abn_verified_at ? 'The account is verified: its ABN matches the ABN register.' : checked.check === 'unavailable' ? 'The ABN register could not be checked just now. Try again later.' : abnNote(saved),
   });
 }));
+
+// The two emails when the lead role is handed over: one to the new lead, one to the old.
+async function handoverMail(req, org, next) {
+  const old = { name: personName(req.reviewer), email: req.reviewer.email };
+  const page = `${auth.appUrl(req)}/sitelink`;
+  const on = longDate(new Date());
+  await mailer.sendMail({
+    to: next.email,
+    subject: `You are now the lead of ${org.name} on SiteLink`,
+    text: `${old.name} made you the lead of ${org.name} on SiteLink by SiteWrite on ${on}. As the lead, you add and remove people, change the account settings and can hand the lead role on.\n\n${page}\n\nIf you did not expect this, contact ${old.name} (${old.email}) or SiteWrite at ${supportEmail()}.`,
+  });
+  await mailer.sendMail({
+    to: old.email,
+    subject: `${next.name} is now the lead of ${org.name} on SiteLink`,
+    text: `You made ${next.name} the lead of ${org.name} on SiteLink by SiteWrite on ${on}. You are now a member. Only ${next.name} can now add or remove people, change the account settings or hand the lead role on.\n\nIf you did not do this, contact SiteWrite at ${supportEmail()} straight away.`,
+  });
+}
 
 // The lead hands the lead role to someone who has joined the team. The old lead becomes a member.
 // The account's row is locked while the roles change, so two handovers at once cannot both pass,
@@ -511,11 +573,16 @@ router.post('/hse/orgs/:orgId/members/:memberId/lead', route(async (req, res) =>
       throw error;
     }
     if (made.length !== 1) throw fail(409, changed);
-    const person = await tx.one('SELECT name FROM reviewers WHERE id = $1', [target.reviewer_id]);
-    return `${(person && person.name) || target.email} is now the lead. You are now a member.`;
+    const person = await tx.one('SELECT name, email FROM reviewers WHERE id = $1', [target.reviewer_id]);
+    const name = (person && person.name) || target.email;
+    return { text: `${name} is now the lead. You are now a member.`, name, email: (person && person.email) || target.email };
   });
   record('org_lead_changed', null);
-  res.json({ ok: true, message, org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]), 'member'), team: await teamOf(org.id) });
+  // A short email to the new lead and the old lead (D307, stage 3 decision 5). The handover stands
+  // whether or not the emails go.
+  await handoverMail(req, org, { name: message.name, email: message.email }).catch(() => {});
+  await logEvent({ orgId: org.id, who: req.reviewer.id, text: `${personName(req.reviewer)} made ${message.name} the lead.` });
+  res.json({ ok: true, message: message.text, org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [org.id]), 'member'), team: await teamOf(org.id) });
 }));
 
 router.post('/hse/orgs/:orgId/members', route(async (req, res) => {
@@ -709,6 +776,6 @@ const scopes = require('./sitelink-scopes').install(router, { projectFor, needNa
 
 // ---- Sending the list, the list page, reminders and the project log (stage 5, sitelink-send.js) ----
 
-require('./sitelink-send').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, versionsOf, detailsView, FIELDS, dateTime, zones: ZONES });
+require('./sitelink-send').install(router, { subcontractFor: scopes.subcontractFor, subcontractPage: scopes.subcontractPage, versionsOf, detailsView, FIELDS, dateTime, zones: ZONES, supportEmail });
 
 module.exports = { router, FIELDS, cleanDetails, EMPTY, readableCompany, companyKey, tidyAddress, supportEmail };

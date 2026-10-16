@@ -49,7 +49,7 @@
     });
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && token) signedOut('You have been signed out. Sign in again to carry on.');
-    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch, preview: data.preview });
+    if (!response.ok) throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status, field: data.field, fields: data.fields, conflict: data.conflict, register: data.register, taken: data.taken, support: data.support, unverified: data.unverified, limit: data.limit, replace: data.replace, tradeMismatch: data.tradeMismatch, preview: data.preview });
     return data;
   }
 
@@ -203,14 +203,21 @@
         go('#/', esc(data.message));
       } catch (error) {
         if (error.register && error.register.name) {
+          // The register's name is said, not offered as a one-click rename (D307): the company itself
+          // writes to SiteWrite to have the account checked.
           fieldError('setup-abn', 'Check this ABN.');
-          box('setup-status', `<strong>${esc(error.message)}</strong>
-            <div class="actions"><button type="button" class="light" id="setup-use">Use ${esc(error.register.name)}</button><button type="button" class="light" id="setup-keep">Keep ${esc($('setup-name').value.trim())} and set up</button></div>
-            <p>If you keep your own name, the account shows Unverified until its name matches the ABN register.</p>`, 'warn');
-          $('setup-use').dataset.name = error.register.name;
+          box('setup-status', `<strong>${withMail(error.message, error.support)}</strong>
+            <div class="actions"><button type="button" class="light" id="setup-keep">Keep ${esc($('setup-name').value.trim())} and set up</button></div>
+            <p>If you keep your own name, the account shows Unverified until its name matches the ABN register. An Unverified account cannot send SWMS lists to subcontractors.</p>`, 'warn');
         } else if (error.taken) {
+          // Ask the lead for me, or tell SiteWrite when no one at the company set that account up (D307).
           fieldError('setup-abn', 'This ABN already has an account.');
-          box('setup-status', `<strong>${esc(error.message)}</strong>`, 'warn');
+          const tell = error.support ? `mailto:${error.support}?subject=${encodeURIComponent(`SiteLink account with our ABN ${formatAbn($('setup-abn').value)}`)}&body=${encodeURIComponent(`Someone has already set up a SiteLink account with our company's ABN, ${formatAbn($('setup-abn').value)}. No one at our company set it up.\n\nCompany name: ${$('setup-name').value.trim()}\nMy name: ${(me && me.name) || ''}\n`)}` : '';
+          box('setup-status', `<strong>${esc(error.message)}</strong>
+            <div class="actions"><button type="button" class="light" id="setup-ask" data-abn="${esc($('setup-abn').value)}">Ask the lead for me</button></div>
+            <div id="setup-ask-status" role="status"></div>
+            <p class="meta">SiteLink emails that account's lead your name and email, and asks them to add you. It does not tell you who they are.</p>
+            ${tell ? `<p>If no one at your company set up that account, <a href="${esc(tell)}" id="setup-tell">tell SiteWrite</a>. SiteWrite checks and moves the account to your company.</p>` : ''}`, 'warn');
         } else if (error.field === 'abn' && /contact SiteWrite at/.test(error.message)) {
           // Not on the register: said in full under the box, with the address as a link.
           fieldError('setup-abn', 'The ABN register does not list this ABN.');
@@ -221,9 +228,21 @@
     });
   }
   $('setup').addEventListener('submit', (event) => { event.preventDefault(); setUp(false); });
-  $('setup-status').addEventListener('click', (event) => {
-    if (event.target.closest('#setup-use')) { $('setup-name').value = event.target.closest('#setup-use').dataset.name; setUp(false); }
+  $('setup-status').addEventListener('click', async (event) => {
     if (event.target.closest('#setup-keep')) setUp(true);
+    const ask = event.target.closest('#setup-ask');
+    if (!ask) return;
+    await busy(ask, 'Asking...', async () => {
+      try {
+        const data = await call('POST', '/api/hse/ask-lead', { abn: ask.dataset.abn });
+        box('setup-ask-status', esc(data.message), 'ok');
+        // Asked: the reply takes the button's place, so it is seen on a phone and not asked twice.
+        ask.closest('.actions').style.display = 'none';
+      } catch (error) {
+        box('setup-ask-status', esc(error.message), 'bad');
+      }
+    });
+    $('setup-ask-status').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 
   // ---- Your projects ----
@@ -1200,16 +1219,20 @@
     const due = typed && typeof typed.due === 'string' ? typed.due : sending.dueDate;
     const to = sending.email ? `<p>To <strong>${esc(sending.email)}</strong>. <a href="#/sub/${esc(id)}/edit">Change details</a></p>` : `<p class="warn">No contact email yet. <a href="#/sub/${esc(id)}/edit">Add it under Change details</a>.</p>`;
     const checkLabel = !sending.sent || sending.emailChanged ? 'Check the email' : sending.changes ? 'Check the updated email' : 'Check the email with a new due date';
+    // An Unverified account sends nothing (D311): said at the top of the card, and the buttons wait.
+    const blocked = sending.blocked;
+    if (blocked) warn = `<div class="warn" id="s-unverified"><strong>${withMail(blocked.message, (/at (\S+@\S+?)\.?$/.exec(blocked.message) || [])[1])}</strong> <a href="#/account/${esc(blocked.orgId)}">Account settings</a></div>${warn}`;
+    const off = blocked ? ' disabled' : '';
     // Reminders go to the address the list went to; after the address changes, the list goes first.
     const remind = sending.sent && !sending.emailChanged && !sending.stopped ? `<h3>Remind</h3><p class="meta">Sends ${esc(sending.sent.to)} the SWMS on the list with no file uploaded yet. At most once every ${esc(Math.round(sending.reminderHours / 24))} days, ${esc(sending.remind.max)} times after each list, so they are not flooded.${sending.remind.used ? ` ${esc(sending.remind.used)} sent so far.` : ''}</p>
       ${sending.remind.why ? `<p class="meta"><strong>${esc(sending.remind.why)}</strong></p>` : ''}
-      <div class="actions"><button type="button" class="light" id="s-remind"${sending.remind.can ? '' : ' disabled'}>Remind</button></div>` : '';
+      <div class="actions"><button type="button" class="light" id="s-remind"${sending.remind.can && !blocked ? '' : ' disabled'}>Remind</button></div>` : '';
     card.innerHTML = `<h2>Send the list</h2><div class="send-state">${lines.join('')}</div>${warn}
       ${to}
       <label for="s-due">Submission due date <span class="hint">The date the SWMS are due back to you. It is in the email.</span></label>
       <input id="s-due" type="date" min="${esc(sending.today)}" value="${esc(due)}">
       <p class="field-error hidden" id="s-due-error"></p>
-      <div class="actions"><button type="button" id="s-check">${checkLabel}</button></div>
+      <div class="actions"><button type="button" id="s-check"${off}>${checkLabel}</button></div>
       <div id="s-confirm"></div>${remind}<div id="s-send-status" role="status"></div>`;
     if (checking && checking.id === id) showEmail(checking);
   }

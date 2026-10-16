@@ -161,6 +161,9 @@ function itemFields(item, pack, flag) {
     highRisk: flag ? hrcwSummary(flag) : null,
     offSite: Boolean(flag && flag.offSite),
     activities: pack.rows.map((row) => ({ activity: clean(row.activity), clause: clean(row.clause), where: clean(row.where), quotes: quotes(row.quotes) })).filter((row) => row.activity),
+    // The scope's open notes on this work that are not about who does or supplies what (D307): kept for
+    // the subcontractor's draft, not asked of the lead and not shown to the subcontractor here.
+    draftNotes: draftNotes(pack.rows),
   };
 }
 
@@ -199,7 +202,8 @@ function plantFromWords(flag, words) {
     dependsOn: [...(flag.dependsOn || []).filter((item) => item.id !== 'plant'), { id: 'plant', short: plant.short, on: 'whether powered mobile plant moves where the work is done' }],
   };
 }
-const packWords = (pack) => pack.rows.map((row) => `${row.activity || ''} ${row.plant || ''} ${row.where || ''}`).join(' ');
+// The package's own words: each activity, its plant, where it is done and its conditions.
+const packWords = (pack) => pack.rows.map((row) => `${row.activity || ''} ${row.plant || ''} ${row.where || ''} ${row.conditions || ''}`).join(' ');
 
 // The SWMS a reading lists for a subcontract, as the main contractor first sees them. Goal 12: it is
 // the list, with no second guessing, so only work the subcontractor must give a SWMS for is on it
@@ -290,14 +294,60 @@ function sentence(text) {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
 }
 
+// Words that make an open point about who does the work or who supplies what (messy round 6 decision 6,
+// D307): who, by whom, the builder or the subcontractor, supplied, provided, included, in the scope. A
+// power, water or gas "supply" is a service, not who supplies it.
+const WHO_SUPPLIES = /\b(?:who|whom|whose|by others|(?:the |this |that )?(?:builder|client|principal(?: contractor)?|head contractor|main contractor|contractor)(?:['’]s)?|(?:the |this |that )?sub-?contractors?(?!['’])|(?<!\b(?:power|energised|live|mains|water|gas|air|electricity|electrical|temporary) )suppl(?:y|ies|ied|ier|iers)(?!\s+(?:is|are|was|were)\s+(?:energised|live|isolated|on|off|dead|available|connected)\b)|(?<!\b(?:not|to be|yet to be|not yet) )provid\w*|furnish\w*|responsib\w*|free[- ]issue\w*|in (?:the |this |base )?scope|(?:base|subcontract|sub-contract) scope|scope (?:in|of (?:this|the) (?:sub-?)?contract)|out of scope|not itemised|includ(?:ed|es)|exclud(?:ed|es))\b/i;
+// An open point split in two: the parts about who does or supplies what, asked of the lead, and the
+// other notes (a height, a weight, a product), which are for the subcontractor's own draft instead.
+// The AI's point lists its parts with semicolons, and sometimes commas: a comma list is split only
+// where it does not start with the question about who.
+// Text split at a separator, but not inside brackets ("Lifting method (cranage excluded; see 4.2)").
+function splitOutside(text, separator) {
+  const out = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    if (text[i] === '(') depth += 1;
+    else if (text[i] === ')') depth = Math.max(0, depth - 1);
+    else if (!depth && text.startsWith(separator, i)) { out.push(text.slice(start, i)); start = i + separator.length; }
+  }
+  out.push(text.slice(start));
+  return out.map((one) => tidy(one)).filter(Boolean);
+}
+// What a part asks about, without its bracketed asides: "Lifting method (cranage excluded)" asks about the
+// lifting method, not about who supplies the crane.
+const asksWho = (part) => WHO_SUPPLIES.test(String(part).replace(/\([^()]*\)/g, ' '));
+function splitPoint(text) {
+  const asks = [];
+  const notes = [];
+  for (const part of splitOutside(String(text || ''), ';')) {
+    if (!asksWho(part)) { notes.push(part); continue; }
+    const pieces = splitOutside(part, ', ').map((one) => one.replace(/^and\s+/i, ''));
+    if (pieces.length < 2 || asksWho(pieces[0])) { asks.push(part); continue; }
+    for (const piece of pieces) (asksWho(piece) ? asks : notes).push(piece);
+  }
+  return { asks, notes };
+}
+// The notes for the subcontractor's draft of a SWMS: the open points of its work that are not about who
+// does or supplies what, once each, for stage 6 to put on the draft.
+function draftNotes(rows) {
+  const out = [];
+  for (const row of rows || []) {
+    for (const note of splitPoint(wordsWithoutPrices(row.unknowns)).notes.map(sentence)) if (note && !out.includes(note)) out.push(note);
+  }
+  return out.slice(0, 20);
+}
+
 // The points the scope leaves open about who does the work or what the main contractor provides
 // (the brief's "Unknowns"), one for each activity that has one. The lead may answer them; only the
-// answered ones go to the subcontractor (D302, K12).
+// answered ones go to the subcontractor (D302, K12). Only the parts about who does or supplies what are
+// asked (D307): the rest are notes for the subcontractor's draft (draftNotes).
 function listPoints(reading) {
   const safe = scrubReading(reading);
   const out = [];
   for (const row of safe.activities || []) {
-    const question = sentence(row.unknowns);
+    const question = sentence(splitPoint(row.unknowns).asks.join('; '));
     if (!question) continue;
     if (out.some((point) => point.question === question && point.activity === row.activity)) continue;
     out.push({ activity: wordsWithoutPrices(row.activity), clause: wordsWithoutPrices(row.clause), question, duty: row.type === 'Duty' });
@@ -363,4 +413,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView };
+module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView };

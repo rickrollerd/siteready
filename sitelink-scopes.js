@@ -180,7 +180,8 @@ function install(router, deps) {
     const sub = id && await db.one('SELECT * FROM subcontracts WHERE id = $1 AND removed_at IS NULL', [String(id || '')]);
     if (!sub) throw fail(404, NOT_FOUND);
     try {
-      return { sub, ...(await projectFor(req, sub.project_id)) };
+      // viewer: who is signed in, for what this person may do (sending, stage 5).
+      return { sub, ...(await projectFor(req, sub.project_id)), viewer: req.reviewer };
     } catch {
       throw fail(404, NOT_FOUND);
     }
@@ -360,7 +361,7 @@ function install(router, deps) {
     record('subcontract_added', null);
     const sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [id]);
     await log({ org, project }, req, `added the subcontract ${fields.name} (${fields.trade}).`);
-    res.status(201).json(await subcontractPage({ sub, project, org, role }));
+    res.status(201).json(await subcontractPage({ sub, project, org, role, viewer: req.reviewer }));
   }));
 
   router.get('/hse/subcontracts/:subId', route(async (req, res) => {

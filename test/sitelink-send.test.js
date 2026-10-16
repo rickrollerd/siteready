@@ -17,7 +17,8 @@ const abnRegister = require('../abn');
 const { validAbn } = require('../accounts');
 const { setupAccounts, mailbox, lastLinkToken } = require('./helpers');
 
-// The register is not reachable here, so each builder's account is set up Unverified.
+// The register is not reachable here, so each builder's account is set up Unverified. Only a verified
+// account sends list emails (D311), so builder() marks each account verified, as the register would.
 abnRegister.lookupAbn = async () => ({ enabled: false });
 let abnSeed = 51824753000;
 function nextAbn() {
@@ -63,11 +64,12 @@ async function leadSignIn(email, name = 'Dana Whitfield') {
 }
 
 // A builder's account, a project with its site details, and a subcontract with two SWMS on its list.
-async function builder(prefix, orgName = 'Corbel Build Pty Ltd', { abn = '', email = `office@${prefix}-sub.example` } = {}) {
+async function builder(prefix, orgName = 'Corbel Build Pty Ltd', { abn = '', email = `office@${prefix}-sub.example`, verified = true } = {}) {
   const leadEmail = `dana@${prefix}.example`;
   const lead = await leadSignIn(leadEmail);
   const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: orgName, abn: nextAbn() } });
   assert.equal(org.status, 201, JSON.stringify(org.data));
+  if (verified) await db.query("UPDATE orgs SET abn_check = 'verified', abn_verified_at = $1 WHERE id = $2", [new Date(), org.data.org.id]);
   const project = await call('POST', `/api/hse/orgs/${org.data.org.id}/projects`, { reviewer: lead, body: { name: 'Northgate Health Hub', workplace: '12 Wattle Road, Hamilton QLD 4007', state: 'qld' } });
   const projectId = project.data.project.id;
   const details = await call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: lead, body: { baseRev: 0, details: { musterPoint: 'Assembly area A at the Wattle Road gate', hospital: 'Northside General Hospital, Emergency Department', siteRules: ['Sign in at the site office before starting.'] } } });
@@ -342,7 +344,7 @@ test('the list page works with no account, shows only its own subcontract, and r
   const view = await call('GET', `/api/list/${token}`);
   assert.equal(view.status, 200);
   assert.equal(view.data.builder.name, 'Corbel Build Pty Ltd');
-  assert.equal(view.data.builder.verified, false);
+  assert.equal(view.data.builder.verified, true);
   assert.equal(view.data.project.name, 'Northgate Health Hub');
   assert.deepEqual(view.data.swms.map((item) => item.title), ['Formwork to suspended slabs', 'Edge protection to slab edges']);
   assert.ok(view.data.siteDetails.list.some((entry) => entry.label === 'Muster point'));
