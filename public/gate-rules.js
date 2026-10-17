@@ -68,12 +68,15 @@
   // Why a typed answer is no answer at all ("dont know", "me", "as per eng"), or '' when it says
   // something. The answers to the questions about the work are judged by the same words (draft.js
   // hasSubstance), so one answer gets one message wherever it is typed.
-  function notAnswer(value) {
+  // kind: the kind of box, where it is a person's ('person', 'firstAider'). There "me" is asked for a name
+  // and role, as a role alone is refused there (messy round 10, run 2: the hint's own example "The site
+  // supervisor" was then refused as a role).
+  function notAnswer(value, kind) {
     const text = clean(value);
     if (!text) return '';
     const quoted = `"${text}"`;
     if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet.`;
-    if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor".`;
+    if (PRONOUN.test(text)) return PERSON_KINDS.has(kind) ? `${quoted} does not say who. Give their name and role, for example "Sam Lee, site supervisor".` : `${quoted} does not say who. Name the role, for example "The site supervisor".`;
     if (AMOUNT_ONLY.test(text)) return `${quoted} gives an amount, not who or what. Name them, or say what applies on this job.`;
     if (ASKED_BACK.test(text)) return `${quoted} is a question, not an answer. Say what applies on this job.`;
     const me = BY_ME.exec(text);
@@ -88,7 +91,7 @@
   // 2026): a muster point of "gate" or "out the front", a first aider of "builder" or "supervisor", a
   // principal contractor of "the builder". Each kind of box says what would do.
   // A vehicle is not a place to meet: it moves (messy round 9, run 5: "the ute" was accepted).
-  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area|(?:at |by |near |beside )?(?:the |our |my |his |a |site |work )?(?:site |work )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?))\.?$/i;
+  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area|(?:at |by |near |beside )?(?:the |our |my |his |a |site |work )?(?:site |work )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?)|(?:at |out )?(?:the )?(?:front|back|rear|side|middle|centre|end)(?: of)?(?: the)? (?:site|job|building|block|property|work area|lot)|(?:the )?site (?:entrance|exit|front))\.?$/i;
   const NOT_A_FIRST_AIDER = /^(?:the |a |our |site )?(?:builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
   // A person's box holding a thing, a place or a crowd, not a person (messy round 8, run 5: "gloves").
   const NOT_A_PERSON = /^(?:the |a |our |my )?(?:gloves?|glasses|safety glasses|goggles|boots|helmets?|hard ?hats?|hi-?vis(?: vests?)?|vests?|harness(?:es)?|lanyards?|masks?|p2 masks?|respirators?|ear ?muffs?|ear ?plugs?|ppe|ladders?|scaffold\w*|ute|truck|van|car|site|office|site office|gate|stairs?|crew|workers?|anyone|everyone|everybody|all|all of us|whoever|staff|team|the boys|boys|lads|guys)\.?$/i;
@@ -107,12 +110,15 @@
     if (/^\s*\+?61/.test(String(text || '')) && digits.startsWith('61')) digits = `0${digits.slice(2).replace(/^0/, '')}`;
     return (digits.length === 10 && /^(?:0[2-478]|1[38]00)/.test(digits)) || (digits.length === 8 && /^[2-9]/.test(digits)) || (digits.length === 6 && /^13/.test(digits));
   }
+  const PERSON_KINDS = new Set(['person', 'firstAider']);
   function fieldWeak(kind, text) {
     const quoted = `"${text}"`;
+    // One rule in every person's box: a role with no name is refused, the first aider's box too (messy
+    // round 10, run 3: "The site supervisor" was accepted as first aider and refused elsewhere).
+    if (PERSON_KINDS.has(kind) && ROLE_ONLY.test(text)) return `${quoted} is a role, not a person. Give their name and role, for example "Sam Lee, ${clean(text).replace(/^(?:the|our|my|a|site|project) /i, (word) => (/^(?:site|project) $/i.test(word) ? word : '')).toLowerCase()}".`;
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
     if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
-    if (kind === 'person' && ROLE_ONLY.test(text)) return `${quoted} is a role, not a person. Give their name and role, for example "Sam Lee, ${clean(text).replace(/^(?:the|our|my|a) /i, '').toLowerCase()}".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (kind === 'phone' && !phoneNumber(text)) return text.replace(/\D/g, '').length < 6 ? `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.` : `${quoted} is not a full phone number. A mobile has 10 digits, for example 0412 345 678.`;
     return '';
@@ -154,7 +160,7 @@
     const quoted = `"${text}"`;
     if (rule.optional) return text && leftOpen(text) ? `${quoted} is not an answer. Fill it in, or leave the box empty.` : '';
     if (!text) return rule.ask;
-    const not = notAnswer(text);
+    const not = notAnswer(text, rule.kind);
     if (not) return `${not} ${rule.ask}`;
     if (rule.emergency) {
       if (NO_ANSWER.test(text)) return `${quoted} is not an answer here: this SWMS involves ${rule.involves}. ${rule.ask}`;

@@ -7,6 +7,9 @@ const { localControl, withoutStateCodes } = require('./citations');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
+// Names typed in lower case print with their capitals (messy round 10). Required when used, as
+// sitelink-answers.js is loaded by modules that load this one.
+const nameCase = new Proxy({}, { get: (_target, key) => require('./sitelink-answers')[key] });
 // What the spelling fixer leaves as the user typed it: the job address (whose place names a slip in the
 // task takes), and every other name typed (messy round 8, run 8: "stuart hwy" became "start hwy").
 const NAME_FIELDS = ['principalContractor', 'company', 'subcontractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'worksManager', 'complianceResponsible', 'reviewer', 'preparedBy'];
@@ -46,7 +49,11 @@ const DRAWING_POINTER = /,?[ \t]*(?:(?:as|where)[ \t]+(?:specified|detailed|show
 // subcontract is the builder, whose work is not ours, so only the subcontractor's words go. Nor is a price label
 // after the work it prices (run 3: "... to cover roof space: Variation Price Option.").
 const SCOPE_LEAD_IN = /(^|[.;]\s+|\n)[ \t]*(?:(?:the|this|our)[ \t]+)?(?:(?:sub-?contract(?:or(?:'s|s)?)?|trade|contract)[ \t]+)?(?:scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?(?:works?|services))?|works?|services)[ \t]+(?:includes?|comprises?|consists?[ \t]+of|covers?|(?:is|are)[ \t]+as[ \t]+follows)(?:,?[ \t]*but[ \t]+(?:is[ \t]+|are[ \t]+)?not[ \t]+(?:necessarily[ \t]+)?limited[ \t]+to,?)?(?:[ \t]+the[ \t]+following)?(?:[ \t]+(?:principal|main|key|general))?(?:[ \t]+(?:areas|items|works?|elements|tasks|activities))?[ \t]*:[ \t]*(?:[-\u2013\u2014][ \t]*)?/gi;
-const SCOPE_HEADING = /^[ \t]*(?:the[ \t]+)?(?:(?:sub-?contract|trade)[ \t]+)?scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?works?)?[ \t]*:?[ \t]*$/gim;
+// "DESCRIPTION OF WORK:", "Summary of works" and the like are headings too, on a line of their own or
+// before the work on the same line (messy round 10, run 7: "DESCRIPTION OF WORK: All builders plus final
+// cleaning" named the SWMS, its file and its task line).
+const SCOPE_HEADING = /^[ \t]*(?:the[ \t]+)?(?:(?:(?:sub-?contract|trade)[ \t]+)?scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?works?)?|(?:description|summary|outline|details?)[ \t]+of[ \t]+(?:the[ \t]+)?works?|works?[ \t]+(?:description|summary|scope|inclusions)|(?:scope[ \t]+)?inclusions)[ \t]*:?[ \t]*$/gim;
+const SCOPE_LABEL = /^[ \t]*(?:the[ \t]+)?(?:(?:(?:sub-?contract|trade)[ \t]+)?scope[ \t]+of[ \t]+(?:the[ \t]+)?works?|(?:description|summary|outline|details?)[ \t]+of[ \t]+(?:the[ \t]+)?works?|works?[ \t]+description)[ \t]*[:\u2013\u2014-][ \t]*(\S)/gim;
 const WHO_SHALL = /(^|[.;:]\s+|\n)[ \t]*(?:the[ \t]+)?(?:sub-?contractor|trade[ \t]+contractor)[ \t]+(?:shall|will|must|is[ \t]+to|is[ \t]+required[ \t]+to|has[ \t]+allowed[ \t]+(?:to|for)|allows?[ \t]+(?:to|for)|to)[ \t]+(?=[a-z])/gi;
 const PRICE_LABEL_AFTER = /[ \t]*[:,\u2013\u2014-][ \t]*(?:variation(?:[ \t]+price)?(?:[ \t]+option)?|provisional[ \t]+sum|p\.?c\.?[ \t]+(?:sum|item)|prime[ \t]+cost(?:[ \t]+(?:sum|item))?|price[ \t]+option|optional[ \t]+(?:item|extra|price)|separable[ \t]+portion(?:[ \t]+\d+)?|alternative[ \t]+price|option[ \t]+\d+)(?:[ \t]*\([^)]*\))?[ \t]*(?=[.;]|\n|$)/gi;
 // A pointer to a section or clause of the contract, or to its price breakdown, and "including but not
@@ -58,9 +65,10 @@ const PRICE_POINTER = /,?[ \t]*(?:(?:and|&)[ \t]+)?(?:(?:as[ \t]+)?per[ \t]+|in[
 const NOT_LIMITED = /,?[ \t]*\(?[ \t]*(?:but|and)[ \t]+(?:is[ \t]+|are[ \t]+)?not[ \t]+(?:necessarily[ \t]+)?limited[ \t]+to[ \t]*\)?,?/gi;
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
-  const lines = String(value || '').replace(SCOPE_HEADING, '').split(/\r?\n/).map((line) => {
+  // A word ending in an accent ("Café") ends its line too (messy round 10, run 7: "Café Bars.").
+  const lines = String(value || '').replace(SCOPE_HEADING, '').replace(SCOPE_LABEL, (_whole, first) => first.toUpperCase()).split(/\r?\n/).map((line) => {
     const bare = line.replace(CLAUSE_NUMBER, '').replace(LIST_BULLET, '');
-    return bare !== line && /\w$/.test(bare.trim()) ? `${bare.trim()}.` : bare;
+    return bare !== line && /[\p{L}\p{N})]$/u.test(bare.trim()) ? `${bare.trim()}.` : bare;
   });
   const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(SECTION_POINTER, '').replace(PRICE_POINTER, '').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(PRICE_LABEL_AFTER, '')
     .replace(SCOPE_LEAD_IN, (_whole, lead) => `${lead}\u0000`).replace(WHO_SHALL, (_whole, lead) => `${lead}\u0000`)
@@ -795,6 +803,8 @@ function fallMetres(state) {
   return (state && state.fallMetres) || 2;
 }
 
+// A fall control read from the task that only names what the work is done from.
+const onlyAccessFrom = (line) => sentences(line).every((part) => /^Work at height is done from the [^.]*\.$/.test(part));
 function fallControlText(text) {
   const lines = sentences(text).filter((line) => {
     // A contract clause about who supplies, installs or signs off edge protection is scope, not a control.
@@ -1177,6 +1187,11 @@ function highRiskMatches(raw, answer, state) {
 function fallLineFor(source, facts) {
   return keptFact(facts.fallControl) || fallControlText(acceptedText(source));
 }
+// What the fall control is read from: the task and the answers about the work, not the site answers. An
+// answer is never spliced into a control (messy round 10, run 8: the Access answer "drive in off mcminn st
+// gate, scissor and EWP on a float" printed as "Isolate or engineer: Work at height is done from the ewp.
+// drive in gate, scissor and EWP on a float.").
+const fallSource = (task, facts) => combinedFacts(task, { ...(facts || {}), siteConditions: '' });
 
 // Where a fall control sits in the hierarchy.
 function fallControlLevel(line) {
@@ -1388,6 +1403,17 @@ const PLUMBING_WORK = /\b(plumb\w*|hydraulic (?:services|risers?|pipework|pipes?
 
 // A fall control that relies on a harness.
 const HARNESS_WORDS = /\b(harness\w*|travel restraint|fall arrest|restraint lanyards?|static lines?|lifelines?)\b/i;
+// A sentence that says a harness is not used, or only with approval, is not a harness in use (messy round
+// 10, run 4: the doors scope's site rule "Harnesses are not to be used at any time without prior approval"
+// ticked a harness for all work in a materials SWMS with falls No, and asked "Harness and anchors").
+const HARNESS_DENIED = /\bno (?:[\w-]+ ){0,2}(?:harness\w*|fall arrest|travel restraint)\b|\bno one (?:works|is) in a harness\b|\b(?:harness\w*|fall arrest|travel restraint)\b[^.;]*\b(?:(?:is|are|be) not|not (?:to be |be )?(?:used|worn|needed|required|permitted|allowed)|never (?:be )?(?:used|worn)|prohibited|banned|without (?:prior |written )?(?:approval|permission))\b|^\s*(?:not used|not needed|not required|none|nil|n\/?a|not applicable)\b/i;
+const withoutHarnessDenials = (text) => String(text || '').split(/\n+/).map((line) => line.split(/(?<=[.;])\s+/).filter((part) => !(HARNESS_DENIED.test(part) && HARNESS_WORDS.test(part))).join(' ')).join('\n');
+// The answer to "Harness and anchors" says no harness is used ("No harness is used. The plant deck has
+// permanent guardrails", "Not used. Unloading is done from the ground"): messy round 10, A fault 2.
+function harnessDenied(facts) {
+  const first = sentences(keptFact((facts || {}).harnessSystem))[0] || '';
+  return Boolean(first) && HARNESS_DENIED.test(first);
+}
 
 // A fall control answer that relies on a harness brings the harness question.
 // A harness or life jacket in use brings questions on the equipment, its checks and the
@@ -1405,7 +1431,9 @@ function withHarness(list, facts, ppeIds = []) {
     out.push({ id: item.id, label: item.label, prompt: item.prompt });
   };
   const fallAsked = list.some((item) => item.id === 'fallControl');
-  if ((fallAsked && HARNESS_WORDS.test(String((facts && facts.fallControl) || ''))) || ppeIds.includes('harness')) add('harnessSystem');
+  // An answer saying no harness is used keeps its question asked, so the answer is kept once the harness
+  // it takes off is no longer ticked (messy round 10, run 1: unticking the harness dropped the answer).
+  if ((fallAsked && HARNESS_WORDS.test(withoutHarnessDenials((facts && facts.fallControl) || ''))) || ppeIds.includes('harness') || harnessDenied(facts)) add('harnessSystem');
   if (ppeIds.includes('lifeJacket')) add('lifeJacketDetails');
   return out;
 }
@@ -1736,7 +1764,8 @@ const CATEGORY_FACTS = [
     label: 'Harness and anchors',
     prompt: 'The harness and lanyard or line used, the anchor points and who rated or installed them, when the harness was last inspected, who trained the users, and the rescue plan.',
     level: 'Administrative',
-    applies: (text) => HARNESS_WORDS.test(String(text || '')),
+    // Not from words saying no harness is used, or none without approval (messy round 10, run 4).
+    applies: (text) => HARNESS_WORDS.test(withoutHarnessDenials(text)),
     // Asked also for a harness in the PPE (withHarness): the answer given then prints in the controls,
     // whatever the task's words (messy round 5, run 8: it printed nowhere).
     printsWhenAsked: true,
@@ -2254,7 +2283,7 @@ const ACCESS_NAMED = [
   ['ladder', /\bladders?\b/i],
 ];
 function namedAccess(task, facts) {
-  const line = fallLineFor(combinedFacts(task, facts || {}), facts || {});
+  const line = fallLineFor(fallSource(task, facts), facts || {});
   return line ? (ACCESS_NAMED.find(([, pattern]) => pattern.test(line)) || [''])[0] : '';
 }
 
@@ -2310,7 +2339,10 @@ function allRequiredFacts(fullTask, answer, state) {
       prompt: SDS_PROMPT,
     });
   }
-  if (fallRiskFor(task, answer) && !withoutTaskSentences(fallControlText(task), task)) {
+  // With Yes, a task that only says where the work is done from ("from the EWP", "from a ladder") is asked
+  // how a fall is prevented (messy round 10, run 8: no fall control question was asked).
+  const fromTask = withoutTaskSentences(fallControlText(task), task);
+  if (fallRiskFor(task, answer) && (!fromTask || (answer === 'yes' && onlyAccessFrom(fromTask)))) {
     facts.push({
       id: 'fallControl',
       label: 'Fall control',
@@ -2436,8 +2468,13 @@ function hasSubstance(id, text) {
   // A load limit given as a figure ("3kpa", "5 kN point load") says what is needed (messy-user testing:
   // "3kpa" was refused and "3 kPa max on deck" accepted).
   if (id === 'loadLimits' && /\b\d+(?:\.\d+)?\s*(?:kpa|kn|t|tonnes?|kg)\b/i.test(value)) return true;
+  // Product names alone ("glue n primer") do not say how they are handled or where their safety data
+  // sheets are (messy round 10, run 2: taken with no note).
+  if (id === 'safetyDataSheet' && sdsNamesOnly(value)) return false;
   return meaningfulWords(value).length >= 2;
 }
+const SDS_HANDLING = /\b(?:sds|safety data|data sheets?|sheets?|kept|keep|stored|store|storage|folder|register|binder|ute|office|gloves?|ventilat\w*|air ?flow|airflow|masks?|respirators?|goggles|glasses|handl\w*|mix\w*|wear\w*|worn|decant\w*|label\w*|bunded|spill|cure|curing|dry|apply|applied|brush\w*|roll\w*|spray\w*|water[- ]based|solvent[- ]free|low voc|not used|none|no )\b/i;
+const sdsNamesOnly = (text) => cleanLine(text).split(/\s+/).length <= 5 && !SDS_HANDLING.test(text);
 
 // The clause of the task that names the topic, so a bare "design supplied" does not count.
 function topicClauses(task, pattern) {
@@ -2475,10 +2512,10 @@ function factState(item, task, facts, state) {
   if (item.id === 'confinedSpace' && !/\bconfined space\b/i.test(task) && choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined') return 'supplied';
   // Only needed when the fall control is administrative or PPE.
   if (item.id === 'controlsConsidered') {
-    const fallLine = fallLineFor(combinedFacts(task, facts), facts);
+    const fallLine = fallLineFor(fallSource(task, facts), facts);
     if (!fallLine || ['Eliminate', 'Isolate or engineer'].includes(fallControlLevel(fallLine))) return 'supplied';
   }
-  if (item.id === 'fallControl' && withoutTaskSentences(fallControlText(acceptedText(combinedFacts(task, facts))), task)) return 'supplied';
+  if (item.id === 'fallControl' && withoutTaskSentences(fallControlText(acceptedText(fallSource(task, facts))), task)) return 'supplied';
   if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return 'supplied';
   if (item.id === 'trenchSupport' && trenchSupportOf(task, { ...facts, siteConditions: '' })) return 'supplied';
   if (TOPIC_PATTERNS[item.id]) return topicState(item.id, task, facts[item.id], TOPIC_PATTERNS[item.id]);
@@ -2539,7 +2576,8 @@ function weakAnswers(input) {
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
       const typed = cleanLine(facts[item.id]);
-      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '');
+      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
+        || (item.id === 'safetyDataSheet' && sdsNamesOnly(typed) ? `"${typed}" names the products but not how they are handled. Say how, and where their safety data sheets are kept, for example "Adhesive and primer: nitrile gloves and good airflow, safety data sheets in the site folder".` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });
 }
@@ -2639,7 +2677,7 @@ function controlsFor(task, facts, pack) {
     push('Isolate or engineer', pack.state.overheadLineControl);
   }
 
-  const fallLine = fallLineFor(source, facts);
+  const fallLine = fallLineFor(fallSource(task, facts), facts);
   if (fallRiskFor(source, pack && pack.fallAnswer) && fallLine) {
     const level = fallControlLevel(fallLine);
     const considered = keptFact(facts.controlsConsidered);
@@ -2875,12 +2913,13 @@ const CONDITION_LABELS = { liveServices: 'live services', publicInterface: 'the 
 const listed = (items) => (items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0] || '');
 // "Sam Lee, supervisor" in the middle of a sentence closes with a comma.
 const named = (who) => (who.includes(',') ? `${who},` : who);
-const plantName = (name) => name.replace(/\s*\([^)]*\)/g, '').split(' ').map((word, index) => (index === 0 && !/^[A-Z]{2,}/.test(word) ? word.toLowerCase() : word)).join(' ');
+// Plant the user added keeps the capitals typed ("Hilti hammer drill"; messy round 10, run 5).
+const plantName = (name, own = false) => name.replace(/\s*\([^)]*\)/g, '').split(' ').map((word, index) => (index === 0 && !own && !/^[A-Z]{2,}/.test(word) ? word.toLowerCase() : word)).join(' ');
 function reviewFor(draft, facts = {}) {
   const who = draft.reviewer || draft.complianceResponsible || draft.siteManager || 'the supervisor';
   // Every item is named, or the plant table is pointed to where there are more than four (messy round 5: the
   // plant the user added was left out of a list cut at four).
-  const allPlant = [...new Set((draft.plant || []).map((item) => plantName(item.item)))];
+  const allPlant = [...new Set((draft.plant || []).map((item) => plantName(item.item, Boolean(item.own))))];
   const plant = allPlant.length > 4 ? [] : allPlant;
   const conditions = (draft.site || []).filter((row) => row.text && !/^(?:none|not applicable)$/i.test(row.text)).map((row) => CONDITION_LABELS[row.id]).filter(Boolean);
   if (OUTDOOR_NAMED.test(combinedFacts(draft.task || '', facts))) conditions.push('the weather');
@@ -3357,7 +3396,8 @@ function hasObject(text, verbs) {
 // A word's stem, so "tested" finds "test" and "cutting" finds "cut".
 const stem = (word) => word.toLowerCase().replace(/(?:ies|ied|ying)$/, 'y').replace(/(?:ing|ed|es|s)$/, '').replace(/([^aeiou])\1$/, '$1').replace(/e$/, '');
 // Verbs that name the same work in step names: "Install brackets" is done in "Fix hangers and supports".
-const SAME_WORK = [['install', 'fix', 'fit', 'mount', 'hang', 'place', 'erect'], ['construct', 'build', 'form'], ['remov', 'strip', 'dismantl'], ['connect', 'terminat', 'wir'], ['test', 'commission']];
+// "Hung" is hanging (messy round 10, run 8: "hang the gates" beside "Heavy gate leaves are hung with lifting aids").
+const SAME_WORK = [['install', 'fix', 'fit', 'mount', 'hang', 'hung', 'place', 'erect'], ['construct', 'build', 'form'], ['remov', 'strip', 'dismantl'], ['connect', 'terminat', 'wir'], ['test', 'commission']];
 const workStem = (word) => { const found = stem(word); return (SAME_WORK.find((group) => group.includes(found)) || [found])[0]; };
 
 // The text without notes in brackets, nested or left open. A note that keeps (keep) stays in the
@@ -3434,7 +3474,9 @@ function stepNamesPart(part, steps, verbs) {
 }
 
 // Things the library names in other words: a canopy is a hood, a join is a seam.
-const SAME_THING = [['canopy', 'canopie', 'hood'], ['join', 'joint', 'seam'], ['doorframe', 'frame'], ['benchtop', 'bench'], ['sheet', 'panel']];
+// A footpath or pavement made good is the surface (messy round 10, run 6: "reinstate the footpath" beside
+// "Reinstate the surface").
+const SAME_THING = [['canopy', 'canopie', 'hood'], ['join', 'joint', 'seam'], ['doorframe', 'frame'], ['benchtop', 'bench'], ['sheet', 'panel'], ['surfac', 'footpath', 'pavement', 'driveway', 'verge']];
 const thingStem = (word) => { const found = stem(word); return (SAME_THING.find((group) => group.includes(found)) || [found])[0]; };
 // Verbs the library uses for the same work as the task's: lifting in is placing, priming is coating.
 const SAME_DOING = [['lift', 'hoist', 'land', 'plac', 'position', 'set'], ['seal', 'caulk', 'silicon'], ['cut', 'rout', 'trim'], ['compact', 'roll'], ['weld', 'fus']];
@@ -3468,7 +3510,8 @@ function stepCoveringPart(part, steps) {
   const found = steps.find((step) => !['Before starting', 'Finish and clean up'].includes(step.step) && [step.step, ...(step.hazards || []), ...(step.controls || []).map(withoutStateCodes)].some((line) => {
     const words = lineWords(line);
     const did = words.some((word) => doing.includes(doingStem(word)));
-    const on = words.map(thingStem).filter((word) => word.length >= 4 && !PART_GENERIC.test(word));
+    // Words of four letters or more, judged before the stem is taken ("gates" is "gat").
+    const on = words.filter((word) => word.length >= 4 && !PART_GENERIC.test(word)).map(thingStem);
     return did && things.some((thing) => on.some((word) => sameWord(thing, word)));
   }));
   return found ? found.step : '';
@@ -3478,7 +3521,10 @@ function stepCoveringPart(part, steps) {
 // saw, ag drain and gravel backfill") is named by the pieces no step covers, or not at all.
 function uncoveredPieces(part, steps, verbs) {
   const pieces = part.split(/,\s*(?:and\s+|then\s+)?/).map((piece) => piece.trim()).filter(Boolean);
-  const covered = (piece) => Boolean(stepCoveringPart(piece, steps)) || stepNamesPart(piece, steps, verbs);
+  // A verb on its own ("Backfill, compact and reinstate the footpath") is covered by a step named for that
+  // work ("Backfill the trench"): messy round 10, run 6.
+  const named = (piece) => !hasObject(piece, verbs) && /^[A-Za-z-]+$/.test(piece) && steps.some((step) => workStem(String(step.step).split(/\s+/)[0]) === workStem(piece));
+  const covered = (piece) => Boolean(stepCoveringPart(piece, steps)) || stepNamesPart(piece, steps, verbs) || named(piece);
   if (pieces.length < 2) return covered(part) ? [] : [part];
   const left = pieces.filter((piece) => !covered(piece));
   return left.length === pieces.length ? [part] : left;
@@ -3752,9 +3798,8 @@ function coverCheck(input) {
   try { out = buildDraft(scopeWords(input), 'cover'); } catch { out = null; }
   const notCovered = out && Array.isArray(out.notCovered) ? out.notCovered : [];
   const main = out && Array.isArray(out.notCoveredMain) ? out.notCoveredMain : [];
-  const written = new Set(ownStepsOf(input).map((item) => sameText(item.part)).filter(Boolean));
   const confirmed = Array.isArray(input && input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
-  const left = notCovered.filter((part) => !written.has(sameText(part)) && (main.includes(part) || !confirmed.includes(part)));
+  const left = notCovered.filter((part) => !ownStepFor(part, input) && (main.includes(part) || !confirmed.includes(part)));
   return { notCovered, notCoveredMain: main, left };
 }
 
@@ -3808,13 +3853,17 @@ const LOW_ACCESS_ONLY = (line) => /\binto (?:the )?water\b/i.test(line) || (/\b(
 // ladder, platform or EWP the step rates High counts too (messy round 9, run 3: only the note under the
 // question was shown, and the file said no one could fall 2 m beside harness and anchor lines). A fall into
 // a hole, a trench or water does not.
+const PLATFORM_FALL = /^(?:an? |the )?(?:(?:elevating )?(?:work )?platforms?|ewps?|scissor lifts?|boom lifts?|baskets?|work ?box(?:es)?|mobile scaffolds?|scaffold towers?)\b[^.]*\b(?:overturns?|tips? over|topples?|falls? (?:from|off|over|through))\b/i;
 const PERSON_FALL_FROM = /^(?:an? |the )?(?:person |worker )?(?:falls?|falling) (?:from|off|through)\b/i;
 function withFallCheck(out, input) {
   if (!out || out.kind !== 'draft' || fallAnswer(input && input.fallRisk) !== 'no') return out;
   const { fallEdgeLeftOut: leftOut = [], ...rest } = out;
   const metres = out.fallMetres || 2;
   const taskHigh = fallRisk(taskLine((input && (input.task || input.jobDescription)) || ''), metres);
-  const fallLine = (line) => (FALL_HAZARD.test(line) && !LOW_ACCESS_ONLY(line)) || (taskHigh && PERSON_FALL_FROM.test(line) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b/i.test(line));
+  // A person going over with the platform is a person's fall too (messy round 10, run 8: SiteWrite's own
+  // "Use an elevating work platform", High for "The platform overturns or falls from an edge", brought no
+  // check).
+  const fallLine = (line) => (FALL_HAZARD.test(line) && !LOW_ACCESS_ONLY(line)) || (taskHigh && (PERSON_FALL_FROM.test(line) || PLATFORM_FALL.test(line)) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b/i.test(line));
   // Every step that rates such a fall High is named (messy round 9, run 8: "Install the green roof layers"
   // and "Plant the green roof" were not).
   const steps = (out.jobSteps || []).filter((step) => ['High', 'Extreme'].includes(step.risk && step.risk.before && step.risk.before.level)
@@ -4066,31 +4115,34 @@ function buildDraft(input, screen) {
     sectionTitle: state.sectionTitle,
     contents: state.contents,
     // "Not applicable" prints as given, where no principal contractor is appointed for the work.
-    principalContractor: keptFact(input.principalContractor) || noneAnswer(input.principalContractor),
+    // Typed all in lower case, a name prints with its capitals, as the company's own does (messy round 10:
+    // "batavia coast builders", "brookfield build co", "tanya" as Prepared by, "declan furlong" as works
+    // manager). Capitals typed are never lowered.
+    principalContractor: nameCase.tidyName(keptFact(input.principalContractor)) || noneAnswer(input.principalContractor),
     // Typed all in lower case, it prints with its capitals, as SiteLink and the saved profile give them
     // (messy round 9, run 3: "lockwise security" in the header).
-    subcontractor: require('./sitelink-answers').tidyName(blankName(input.company || input.subcontractor)),
+    subcontractor: nameCase.tidyName(blankName(input.company || input.subcontractor)),
     companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
-    siteManager: keptFact(input.siteManager),
+    siteManager: nameCase.tidyPersonRole(keptFact(input.siteManager)),
     // Set again once the job steps and plant are known (scaffoldRow).
     scaffoldSupervisor: scaffoldRow({ task }, input),
     hospital: keptFact(input.hospital),
-    firstAider: keptFact(input.firstAider),
-    musterPoint: keptFact(input.musterPoint) || TO_COMPLETE,
+    firstAider: nameCase.tidyPersonRole(keptFact(input.firstAider)),
+    musterPoint: (keptFact(input.musterPoint) && nameCase.tidyPlace(keptFact(input.musterPoint))) || TO_COMPLETE,
     // Set by the main contractor for its project (Goal 12 stage 6), printed when given.
     firstAidLocation: keptFact(input.firstAidLocation) || undefined,
     siteRules: Array.isArray(input.siteRules) && input.siteRules.map(keptFact).filter(Boolean).length ? input.siteRules.map(keptFact).filter(Boolean) : undefined,
     craneOperator: isCraneOrLift(task) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
-    worksManager: keptFact(input.worksManager),
+    worksManager: nameCase.tidyPersonRole(keptFact(input.worksManager)),
     worksManagerPhone: keptFact(input.worksManagerPhone),
-    complianceResponsible: keptFact(input.complianceResponsible),
-    reviewer: keptFact(input.reviewer),
+    complianceResponsible: nameCase.tidyPersonRole(keptFact(input.complianceResponsible)),
+    reviewer: nameCase.tidyPersonRole(keptFact(input.reviewer)),
     // Left empty, the review date is three months after the SWMS's date, as My SWMS shows it (D289).
     reviewDate: keptFact(input.reviewDate) || reviewDateAfter(input.date),
     // Filled from the date, it moves on with the date: it is not part of what is ticked as checked (D286).
     reviewDateFilled: keptFact(input.reviewDate) ? undefined : true,
-    preparedBy: keptFact(input.preparedBy),
+    preparedBy: nameCase.tidyPersonRole(keptFact(input.preparedBy)),
     swmsRef: keptFact(input.swmsRef),
     // A draft not yet saved is revision 1. A saved SWMS carries its own revision and date.
     revision: '1',
@@ -4329,6 +4381,10 @@ function buildDraft(input, screen) {
     const still = [noLines(riskText), noLines((draft.jobSteps || []).map((step) => step.step).join('\n'))].some((text) => highRiskMatches(text, pack.fallAnswer, state).some((item) => item.check === 'electrical'));
     if (!still) draft.electricalLinesOnly = true;
   }
+  // "No harness is used" takes the harness, its lines and so its training off, unless a step cannot be
+  // done without one (messy round 10, A fault 2).
+  const harnessSource = `${combinedFacts(task, facts)}\n${plantChoiceNames(input)}`;
+  ({ jobSteps: draft.jobSteps, ppe: draft.ppe } = withoutDeniedHarness(draft.jobSteps, draft.ppe, facts, harnessSource));
   // Plant, substances, licences, emergency arrangements, sources and a suggested
   // risk rating for each step, worked out from the finished steps.
   let registers = registersFor(draft, input);
@@ -4401,7 +4457,7 @@ function buildDraft(input, screen) {
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
-  const ppe = splitPpe(edited.ppe, kindSteps, { suggest: !chosenPpe, placed: input.ppeSteps });
+  const ppe = splitPpe(withoutDeniedHarness(kindSteps, edited.ppe, facts, harnessSource).ppe, kindSteps, { suggest: !chosenPpe, placed: input.ppeSteps });
   // Work the user says another SWMS covers, by that SWMS's name: the builder check does not mark it down.
   const elsewhere = (input && input.notCoveredElsewhere) || {};
   const notCoveredNamed = (Array.isArray(notCovered) ? notCovered : []).filter((part) => cleanLine(elsewhere[part]));
@@ -5482,6 +5538,15 @@ function highRiskOffOf(input, state) {
 function ownStepsOf(input) {
   return (Array.isArray(input && input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name && (item.hazards || []).length && (item.controls || []).length);
 }
+// Whether a step the user wrote is for a part of the task: written for it, or its own words name the part's
+// work and what it is done to (messy round 10, run 2: "Heat weld the vinyl joins with the hot air welding
+// gun", written for the SWMS as a whole, left "Heat weld vinyl joins" listed as having no job steps).
+function ownStepCovers(item, part) {
+  if (!item || !part) return false;
+  if (item.part && sameText(item.part) === sameText(part)) return true;
+  return Boolean(stepCoveringPart(part, [{ step: String(item.name || ''), hazards: item.hazards || [], controls: item.controls || [] }]));
+}
+const ownStepFor = (part, input) => ownStepsOf(input).find((item) => ownStepCovers(item, part));
 
 // What the page says about a step the user wrote, shown beside it and not printed: what keeps it
 // from printing, and what a reviewer marks down (vague wording, controls out of hierarchy order), as
@@ -5564,12 +5629,13 @@ function withOwnSteps(draft, input) {
     return { ...step, responsible: item.who || positionFor({ step: item.name }), risk: riskFor(step) };
   });
   const jobSteps = placeOwnSteps(draft.jobSteps, made, ownStepsOf(input));
-  // The parts of the task the user wrote a printed step for.
-  const parts = new Set(ownStepsOf(input).map((item) => sameText(item.part)).filter(Boolean));
+  // The parts of the task the user wrote a printed step for, or whose own step's words cover them.
   return {
     ...draft,
     jobSteps: made.length ? inOrder(jobSteps, input.stepOrder) : draft.jobSteps,
-    notCoveredWritten: (draft.notCovered || []).filter((part) => parts.has(sameText(part))),
+    notCoveredWritten: (draft.notCovered || []).filter((part) => ownStepFor(part, input)),
+    // The own step that deals with each, by its name, so the page can say "Done" beside it.
+    notCoveredOwn: Object.fromEntries((draft.notCovered || []).filter((part) => ownStepFor(part, input)).map((part) => [part, ownStepFor(part, input).name])),
     ownStepNotes: written.map((item) => ({ name: item.name, part: item.part, prints: ownStepsOf({ ownSteps: [item] }).length > 0, notes: ownStepNotes(item) })),
   };
 }
@@ -5580,7 +5646,8 @@ function withOwnSteps(draft, input) {
 function withStepCover(draft, input) {
   const named = (input && input.notCoveredInStep) || {};
   if (!Object.keys(named).length || !Array.isArray(draft.notCovered)) return draft;
-  const library = new Set((draft.jobSteps || []).filter((step) => !step.own && !['Before starting', CLOSING_STEP].includes(step.step)).map((step) => step.step));
+  // Your own steps can be named too (messy round 10, run 2).
+  const library = new Set((draft.jobSteps || []).filter((step) => !['Before starting', CLOSING_STEP].includes(step.step)).map((step) => step.step));
   // Work that is all the task's work (D211), or moved here from another SWMS (D289), needs the user's own step.
   const moved = new Set([...movedInParts(input), ...(draft.notCoveredMain || [])].map(sameText));
   const covered = draft.notCovered.filter((part) => library.has(cleanLine(named[part])) && !moved.has(sameText(part))).map((part) => ({ part, step: cleanLine(named[part]) }));
@@ -8460,20 +8527,55 @@ const FACT_STEP = {
 // The harness answer prints whole, once, in the first step that uses a harness, or else the first step at
 // height, or Before starting: not as a line of the Controls table (messy round 9, A fault 10). It prints where
 // it printed before: where the task names a harness, or where it was asked.
+// An answer that does not say what it is about ("Not used. Unloading is done from the ground") says it is
+// the harness (messy round 10, run 4: it printed as a bare control in Before starting).
+function harnessAnswerLine(value) {
+  const line = asSentence(value);
+  if (HARNESS_WORDS.test(line) || /\b(?:anchor\w*|lanyards?)\b/i.test(line)) return line;
+  const bare = /^(?:not used|not needed|not required|none|nil|n\/?a|not applicable)\b[.,;:]?\s*/i.exec(line);
+  return bare ? `No harness is used.${line.slice(bare[0].length) ? ` ${line.slice(bare[0].length)}` : ''}` : `Harness and anchors: ${line}`;
+}
 function withHarnessAnswer(steps, facts, pack, source) {
   const item = CATEGORY_FACTS.find((entry) => entry.id === 'harnessSystem');
   const value = keptFact((facts || {}).harnessSystem);
   if (!Array.isArray(steps) || !steps.length || !item || !value) return steps;
   if (!(item.applies(source) || (pack && pack.asked && pack.asked.has('harnessSystem')))) return steps;
-  const line = asSentence(value);
+  const line = harnessAnswerLine(value);
   const flat = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  if (steps.some((step) => (step.controls || []).some((other) => flat(other).includes(flat(line))))) return steps;
+  if (steps.some((step) => (step.controls || []).some((other) => flat(other).includes(flat(asSentence(value)))))) return steps;
   const work = (step) => !['Before starting', 'Finish and clean up'].includes(step.step);
-  let at = steps.findIndex((step) => work(step) && (step.controls || []).some((other) => /\bharness/i.test(other)));
+  // An answer saying no harness is used goes in the first step at height, not beside harness lines.
+  let at = harnessDenied(facts) ? -1 : steps.findIndex((step) => work(step) && (step.controls || []).some((other) => /\bharness/i.test(other)));
   if (at < 0) at = steps.findIndex((step) => work(step) && /\b(?:elevating work platforms?|ewps?|boom|roofs?|edges?|heights?|scaffold\w*|swing stages?)\b/i.test(step.step));
   if (at < 0) at = steps.findIndex((step) => step.step === 'Before starting');
   if (at < 0) at = 0;
   return steps.map((step, index) => (index === at ? { ...step, controls: [...(step.controls || []), line] } : step));
+}
+
+// "No harness is used" takes the harness off (messy round 10, A fault 2: the file printed a harness for the
+// roof step, harness training and the harness, snap hook and suspension lines beside that answer). Its
+// lines go from every step but one the work cannot be done without a harness in: a boom-type EWP, a swing
+// stage, rope access, or a step that is itself work in a harness. With no such step the harness is
+// unticked, so its training goes too. The user's own steps are left as written.
+const HARNESS_STEP = /\b(?:boom(?:-type)? (?:lifts?|EWPs?|elevating work platforms?|platforms?)|knuckle booms?|cherry pickers?|swing stages?|rope access|abseil\w*|bosun'?s chairs?|in a harness|harness work)\b/i;
+const HARNESS_LINE = /\bharness\w*|\bfall arrest (?:equipment|systems?|devices?|is used)\b|\bsnap hooks?\b|(?<!tool )\blanyards?\b|\binertia reels?\b|\bsuspension trauma\b|\bsuspended (?:worker|person)\b/i;
+function harnessNeededIn(step, source) {
+  if (HARNESS_STEP.test(String(step.step || ''))) return true;
+  return /^Use an elevating work platform$/.test(step.step) && /\b(?:boom(?:-type)? (?:lifts?|EWPs?|platforms?)|knuckle booms?|cherry pickers?)\b/i.test(withoutHarnessDenials(source));
+}
+function withoutDeniedHarness(steps, ppe, facts, source) {
+  if (!harnessDenied(facts) || !Array.isArray(steps)) return { jobSteps: steps, ppe };
+  const flat = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const answers = [asSentence(keptFact(facts.harnessSystem)), harnessAnswerLine(keptFact(facts.harnessSystem))].map(flat);
+  const own = (line) => answers.some((answer) => flat(line).includes(answer));
+  const harnessLine = (line) => typeof line === 'string' && !own(line) && (HARNESS_ONLY.test(line) || HARNESS_LINE.test(line));
+  const jobSteps = steps.map((step) => (step.own || harnessNeededIn(step, source) ? step : {
+    ...step,
+    hazards: (step.hazards || []).filter((line) => !(typeof line === 'string' && /\bsuspen\w* (?:in a harness|trauma)\b|\bharness\w*/i.test(line) && !own(line))),
+    controls: (step.controls || []).filter((line) => !harnessLine(line)),
+  }));
+  const needed = jobSteps.some((step) => harnessNeededIn(step, source));
+  return { jobSteps, ppe: needed || !Array.isArray(ppe) ? ppe : ppe.map((group) => ({ ...group, items: group.items.map((item) => (item.id === 'harness' ? { ...item, ticked: false } : item)) })) };
 }
 
 function withAskedFacts(steps, required, facts, elsewhere) {
@@ -8525,8 +8627,12 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
     if (id === 'asbestosAirMonitoring') return choiceAnswer(id, facts[id]) || 'no';
     if (id === 'asbestosQuantity') return choiceAnswer(id, facts[id]) || 'large';
     const given = keptFact(facts[id]);
+    // An answer saying the document is not needed for this work prints as that in its Documents row,
+    // not as a control in a step (messy round 10, A fault 12: "slab on ground only" for load limits printed
+    // in its row and in the pallet jack step).
+    if (given && !['safetyDataSheet', 'silicaControls'].includes(id) && REFERENCE_FACTS.some(([ref]) => ref === id) && NOT_NEEDED_ANSWER.test(given)) return '';
     if (given) return asSentence(given);
-    if (id === 'fallControl') return asSentence(withoutTaskSentences(fallControlText(source), task));
+    if (id === 'fallControl') return asSentence(withoutTaskSentences(fallControlText(acceptedText(fallSource(task, facts))), task));
     if (id === 'trenchSupport') return asSentence(trenchSupportOf(task, { ...facts, siteConditions: '' }));
     if (id === 'asbestosArrangement') return asSentence(asbestosArrangement(source));
     return '';
@@ -8716,7 +8822,8 @@ const HARNESS_USED = /\b(harness\w*|fall arrest|travel restraint|restraint syste
 // A harness is in use with fall arrest or restraint, in a boom lift or on a swing stage.
 // An elevating work platform of unstated type may be a boom lift, so it counts too.
 function harnessInUse(source) {
-  const text = String(source || '');
+  // A sentence saying no harness is used is not one in use (messy round 10, run 4).
+  const text = withoutHarnessDenials(source);
   return HARNESS_USED.test(text) || (/\b(elevating work platforms?|ewps?)\b/i.test(text) && !/\bscissor\b/i.test(text));
 }
 

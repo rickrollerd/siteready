@@ -528,7 +528,8 @@ test('site details: the first aider by name and phone, the details tidied, and a
   assert.equal(saved.status, 200, JSON.stringify(saved.data));
   const now = (await call('GET', `/api/hse/projects/${b.projectId}`, { reviewer: b.lead })).data.siteDetails.details;
   assert.equal(now.firstAider, 'Tom Keane 0413 222 908');
-  assert.equal(now.musterPoint, 'Front gate on pademelon road');
+  // The street named takes its capitals too (SiteLink round 10, wording 11: "henry st").
+  assert.equal(now.musterPoint, 'Front gate on Pademelon Road');
   assert.equal(now.hospital, 'Camperdown General Hospital, Emergency Department');
   assert.equal(now.firstAidLocation, 'Site office, ground floor');
   assert.deepEqual(now.siteRules, ['Hi vis at all times']);

@@ -572,7 +572,7 @@ async function listView(found, viewer = null) {
     builder: { name: org.name, verified: Boolean(org.abn_verified_at) },
     from: { name: from.name, position: from.position, phone: from.phone, email: from.email },
     project: view.project,
-    subcontractor: { name: sub.name, trade: sub.trade },
+    subcontractor: { name: require('./sitelink-answers').tidyName(sub.name), trade: sub.trade },
     due: { date: due, shown: listMail.longDue(due), past: due < todayIn(project.state) },
     // Each SWMS as the preview shows it, with its id for uploads, and the files uploaded for it.
     swms: view.swms.map((item, i) => {

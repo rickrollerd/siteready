@@ -210,7 +210,9 @@ async function progressView(found, company, list) {
   };
 }
 // A name kept before this rule may be an email address: it is not shown.
-const nameOnly = (value) => (String(value || '').includes('@') ? '' : String(value || ''));
+// A name saved in lower case shows with its capitals (SiteLink round 10, wording 5: "Last saved on ... by
+// kirra pendlebury").
+const nameOnly = (value) => (String(value || '').includes('@') ? '' : require('./sitelink-answers').tidyName(String(value || '')));
 
 // How far the company has got, for its list of lists: from its own saved work only.
 function progressSummary(row, total) {

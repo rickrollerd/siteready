@@ -164,7 +164,8 @@ test('EWP work at roof edges with falls No gets the "Keep No" check, not only th
   const input = draftBody(ready({ ...ANSWERED, state: 'qld', residential: 'no', fallRisk: 'no', crane: 'own', task: CCTV, facts: CCTV_FACTS }));
   const draft = prepareDraft(input);
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.deepEqual(draft.fallConflict, { steps: ['Install security devices'], metres: 2, kept: false });
+  // The EWP step's own fall, a person going over with the platform, counts too (messy round 10, run 8).
+  assert.deepEqual(draft.fallConflict, { steps: ['Use an elevating work platform', 'Install security devices'], metres: 2, kept: false });
   assert.ok(downloadGaps(input, draft).some((gap) => gap.kind === 'fall'));
   // Kept as No, the download goes on.
   const kept = prepareDraft({ ...input, fallNoKept: true });
@@ -179,15 +180,15 @@ test('the falls check names every step that rates a fall High, and says when No 
   const input = draftBody(ready({ ...ANSWERED, state: 'nt', residential: 'no', fallRisk: 'no', crane: 'company', slinging: 'crane', task: PODIUM }));
   const draft = prepareDraft(input);
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.deepEqual(draft.fallConflict.steps, ['Get onto the roof', 'Set up roof fall protection', 'Install the green wall', 'Install the green roof layers', 'Plant the green roof']);
+  assert.deepEqual(draft.fallConflict.steps, ['Get onto the roof', 'Set up roof fall protection', 'Use an elevating work platform', 'Install the green wall', 'Install the green roof layers', 'Plant the green roof']);
   assert.deepEqual(draft.fallConflict.leftOut, ['Work at podium edges']);
   assert.ok(!draft.jobSteps.some((step) => step.step === 'Work at podium edges'));
   const need = downloadGaps(input, draft).find((gap) => gap.kind === 'fall').need;
-  assert.equal(need, 'You answered No to a fall of more than 2 metres, but the steps "Get onto the roof", "Set up roof fall protection", "Install the green wall", "Install the green roof layers" and "Plant the green roof" rate a fall from height High, and with No the step "Work at podium edges" is left out of this SWMS. Answer Yes if anyone could fall more than 2 metres. If the step is not part of this job, untick it. If no one can fall that far, press Keep No.');
+  assert.equal(need, 'You answered No to a fall of more than 2 metres, but the steps "Get onto the roof", "Set up roof fall protection", "Use an elevating work platform", "Install the green wall", "Install the green roof layers" and "Plant the green roof" rate a fall from height High, and with No the step "Work at podium edges" is left out of this SWMS. Answer Yes if anyone could fall more than 2 metres. If the step is not part of this job, untick it. If no one can fall that far, press Keep No.');
   // The same words on the page, above the draft.
   const p = loadPage(['gate-rules.js', 'app.js'], () => ({ body: {} }));
   const block = p.run(`fallCheckBlock(${JSON.stringify({ kind: 'draft', fallConflict: draft.fallConflict })})`);
-  assert.match(block, /the steps "Get onto the roof", "Set up roof fall protection", "Install the green wall", "Install the green roof layers" and "Plant the green roof" rate a fall from height High, and with No the step "Work at podium edges" is left out of this SWMS\./);
+  assert.match(block, /the steps "Get onto the roof", "Set up roof fall protection", "Use an elevating work platform", "Install the green wall", "Install the green roof layers" and "Plant the green roof" rate a fall from height High, and with No the step "Work at podium edges" is left out of this SWMS\./);
   // Answered Yes, the edge step is in and nothing is asked.
   const yes = prepareDraft(draftBody(ready({ ...ANSWERED, state: 'nt', residential: 'no', fallRisk: 'yes', crane: 'company', slinging: 'crane', task: PODIUM, facts: { fallControl: 'Builder\'s glass balustrade on the podium edge; temporary guardrails where panels are out.' } })));
   assert.equal(yes.fallConflict, undefined);

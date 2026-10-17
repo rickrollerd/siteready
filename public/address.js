@@ -45,9 +45,10 @@
       }
     }
     if (best.state) return { state: best.state, from: best.from };
-    const postcodes = address.match(/\b\d{4}\b/g) || [];
-    const last = postcodes[postcodes.length - 1];
-    const state = last ? stateFromPostcode(last) : '';
+    // A postcode is a 4-digit number at the end, after the street and suburb; not a street number (messy
+    // round 10, run 3: "2050 moggill rd kenmor" ticked New South Wales while it was typed).
+    const code = /(?:^|[\s,])(\d{4})(?:\s*,?\s*australia)?\s*$/i.exec(address);
+    const state = code && /[a-z]/i.test(address.slice(0, code.index)) ? stateFromPostcode(code[1]) : '';
     return state ? { state, from: 'postcode' } : { state: '', from: '' };
   }
 
@@ -78,9 +79,8 @@
     const short = SHORT.exec(typed);
     if (short) return { state: short[1].toLowerCase(), from: 'name' };
     for (const [id, pattern] of LONG) if (pattern.test(typed)) return { state: id, from: 'name' };
-    // A postcode is the last word, not the street number at the front.
-    const code = /(?:^|\s)(\d{4})\s*$/.exec(typed);
-    if (code && !/^\d{4}\s*$/.test(typed)) { const state = stateFromPostcode(code[1]); if (state) return { state, from: 'postcode' }; }
+    // A postcode is the last word, not the street number at the front (stateFromAddress).
+    if (named.from === 'postcode') return named;
     // The last place named that is not a street's name ("88 adelaide st" is a street).
     let best = { state: '', from: '', at: -1 };
     for (const [id, names] of PLACES) {

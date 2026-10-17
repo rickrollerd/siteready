@@ -300,8 +300,13 @@
     const lower = (text) => !/[A-Z]/.test(text);
     const rawName = $(`${prefix}-name`).value.replace(/\s+/g, ' ').trim();
     const rawRole = $(`${prefix}-role`).value.replace(/\s+/g, ' ').trim();
-    const name = lower(rawName) ? rawName.replace(/(^|[\s'’-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`) : rawName;
-    const role = lower(rawRole) ? rawRole.charAt(0).toUpperCase() + rawRole.slice(1) : rawRole;
+    // Small words stay in lower case unless first, as company names do (messy round 10).
+    const SMALL = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by']);
+    const name = lower(rawName) ? rawName.replace(/(^|[\s'’-])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && SMALL.has(`${letter}${rest}`) ? whole : `${before}${letter.toUpperCase()}${rest}`)) : rawName;
+    // A short title keeps its capitals, as SiteLink gives them ("hse advisor" reads "HSE advisor").
+    const SHORT = new Set(['hse', 'whs', 'ohs', 'ohse', 'hseq', 'qhse', 'she', 'sheq', 'ehs', 'pm', 'cm', 'ceo', 'cfo', 'coo', 'md', 'gm', 'hr', 'qa', 'qs', 'it']);
+    const roleWords = lower(rawRole) ? rawRole.replace(/[a-z]+/g, (word) => (SHORT.has(word) ? word.toUpperCase() : word)) : rawRole;
+    const role = lower(rawRole) ? roleWords.charAt(0).toUpperCase() + roleWords.slice(1) : rawRole;
     if (keep) { write(NAME_KEY, name); write(ROLE_KEY, role); }
     return { check: { parts: Object.fromEntries(P().IDS.map((id) => [id, true])), partHashes: { ...panel.ticks }, name, role, ack: true } };
   }

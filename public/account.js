@@ -877,6 +877,28 @@
       S.editing = { id, title: swms.title, revision: swms.revision, ...(review ? { review } : {}), ...(reason ? { reason } : {}) };
       S.showSite(swms.siteId || '');
       if (S.prepare) await S.prepare();
+      // The review being fixed is what the person reads first: its banner is brought to the top once the
+      // draft is drawn, after the draft's own scrolling (messy round 10, run 8: on the phone the draft
+      // opened at "Your own steps", with "Fixing for" out of view).
+      // Boxes above it that fill in a moment later would push it out of view again, so it is held at the
+      // top for a short while, until the person scrolls or taps.
+      if (review) {
+        const top = document.getElementById('fix-review-top');
+        if (top) {
+          top.setAttribute('tabindex', '-1');
+          if (top.focus) top.focus({ preventScroll: true });
+          let moved = false;
+          const stop = () => { moved = true; };
+          ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach((type) => window.addEventListener(type, stop, { once: true, passive: true }));
+          const until = Date.now() + 3000;
+          const hold = () => {
+            if (moved || Date.now() > until || !document.body.contains(top)) return;
+            if (Math.abs(top.getBoundingClientRect().top) > 4) top.scrollIntoView({ block: 'start' });
+            requestAnimationFrame(hold);
+          };
+          hold();
+        }
+      }
     });
     $('saved-edit').addEventListener('click', () => change());
     // The principal contractor's conditions or changes are fixed the same way (D283: on the page, not in
