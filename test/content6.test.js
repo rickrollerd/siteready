@@ -293,7 +293,7 @@ test('"Not required" needs a reason where a step\'s lines use the product or pla
   assert.match(coolroom['Sealants, mastics and silicone'] || '', /the job steps name/);
   const saw = need({ state: 'qld', fallRisk: 'no', crane: 'none', task: 'Build a concrete sleeper retaining wall, digging the post holes with a 5t excavator.', plantChoice: added(['petrol quick cut saw', 'No']) });
   assert.match(saw['Fuels (diesel, petrol)'] || '', /name "petrol"/);
-  const doors = need({ state: 'wa', fallRisk: 'no', crane: 'none', task: 'Install stainless steel door frames. Seal: paint bottoms of doors before hanging.', facts: { safetyDataSheet: 'The products used are Sikaflex 11FC sealant, door bottom primer' }, why: { 'Sealants, mastics and silicone': 'supplied and applied by others' } });
+  const doors = need({ state: 'wa', fallRisk: 'no', crane: 'none', task: 'Install stainless steel door frames. Seal: paint bottoms of doors before hanging.', facts: { safetyDataSheet: 'The products used are Sikaflex 11FC sealant, door bottom primer. Nitrile gloves and good airflow.' }, why: { 'Sealants, mastics and silicone': 'supplied and applied by others' } });
   assert.match(doors['Sealants, mastics and silicone'] || '', /your safety data sheet answer names "sealant" as a product used, but it is ticked "Not required"/);
 });
 

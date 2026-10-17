@@ -141,7 +141,7 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   assert.ok(solar.jobSteps.some((step) => step.step === 'Get onto the roof') && solar.jobSteps.some((step) => step.step === 'Set and connect the water heater'));
   assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof'));
   // Knee pads called for in the steps are ticked.
-  const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });
+  const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive. Nitrile gloves, safety data sheet at the work area.' } });
   assert.ok(vinyl.ppe.flatMap((group) => group.items).find((item) => item.id === 'kneePads').ticked);
 });
 

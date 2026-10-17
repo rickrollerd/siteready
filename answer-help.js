@@ -6,6 +6,13 @@
 // Each example passes the same check the draft makes (draft.js factState), so a user who writes an
 // answer like it is not stood down again. Answers that are a choice need no help: they are picked.
 const HELP = {
+  // Asked only where the fall control is a procedure or a harness (Qld s 299(4)); its prompt starts with
+  // when it is needed, so it has its own need (messy round 11, run 3: "Give only needed if the fall
+  // control is ...").
+  controlsConsidered: {
+    need: 'Your fall control is a procedure or a harness, so list the other fall controls considered, such as edge protection, a scaffold or an elevating work platform, and why each was not used.',
+    example: 'Edge protection was considered but cannot be fixed to the parapet; a scaffold cannot stand on the neighbour\'s land; an EWP cannot reach the rear roof.',
+  },
   formworkDesign: {
     need: 'Name the formwork design (its drawing number), who designed it, and who inspects the formwork before the pour.',
     example: 'Formwork to the engineer\'s design FW-101 rev B, inspected and signed off by the formwork supervisor before the pour.',

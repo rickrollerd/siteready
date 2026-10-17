@@ -84,7 +84,8 @@ test('choosing an EWP and a fall control that names a harness brings Harness and
   await page.click('[data-pick-for="fallControl"]:has-text("Boom lifts")');
   // Shown without pressing Continue.
   await page.waitForSelector('#fact-harnessSystem');
-  await page.fill('#fact-controlsConsidered', 'A scaffold was considered but the floor below stays in use, so boom lifts are used.');
+  // A boom lift is an EWP, so "Other fall controls considered" is not asked (messy round 11, run 3).
+  assert.equal(await asked(page, 'controlsConsidered'), false);
   await page.fill('#fact-safetyDataSheet', 'Intumescent coating, safety data sheet at the work area, used with ventilation and away from ignition sources.');
   await page.fill('#fact-harnessSystem', 'Full body harness and short lanyard clipped to the basket anchor, inspected every 6 months by the hire company, users trained by the hire company, rescue by lowering the basket from the ground controls.');
   for (const id of ['liveServices', 'publicInterface', 'otherTrades', 'ground']) await page.fill(`#site-${id}`, 'None');

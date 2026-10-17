@@ -14,6 +14,8 @@
   const { esc } = S;
   const $ = (id) => document.getElementById(id);
   const P = () => window.SiteWriteCheckParts;
+  // Why the name typed is not a person's name, as the server judges it (public/gate-rules.js), or ''.
+  const nameNote = (name) => (window.SiteWriteGate && window.SiteWriteGate.checkerNameNeed ? window.SiteWriteGate.checkerNameNeed(name) : '');
   const STORE = 'sitewrite.check';
   const NAME_KEY = 'sitewrite-reviewer';
   const ROLE_KEY = 'sitewrite-role';
@@ -55,7 +57,8 @@
       <p class="check-step"><strong>3. Who checked it</strong></p>
       <div class="field">
         <label for="${prefix}-name">Your name (printed on the SWMS)</label>
-        <input id="${prefix}-name" type="text" autocomplete="name" maxlength="120" value="${esc(name)}">
+        <input id="${prefix}-name" type="text" autocomplete="name" maxlength="120" value="${esc(name)}" aria-describedby="${prefix}-name-note">
+        <p class="answer-note" id="${prefix}-name-note" role="alert"${nameNote(name) ? '' : ' hidden'}>${esc(nameNote(name))}</p>
       </div>
       <div class="field">
         <label for="${prefix}-role">Your role (printed on the SWMS)</label>
@@ -284,6 +287,12 @@
     const need = [];
     if (left.length) need.push(left.length === parts.length ? 'tick each part as checked' : left.length === 1 ? `tick ${left[0].label} as checked` : `tick the ${left.length} parts left as checked`);
     if (!name.trim()) need.push('give your name');
+    // The one person rule for the checker's name too (messy round 11, run 5: "Checked by Me, Foreman").
+    const weak = nameNote(name);
+    const note = $(`${prefix}-name-note`);
+    if (note && note.textContent !== weak) note.textContent = weak;
+    if (note) note.hidden = !weak;
+    if (weak) return { ready: false, why: weak };
     if (!role.trim()) need.push('give your role');
     if (!panel.ack) need.push('tick the last box');
     const what = verb || (panel.initial ? 'mark it as checked' : 'download or save');
