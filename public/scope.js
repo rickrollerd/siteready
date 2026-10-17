@@ -927,13 +927,17 @@
     });
     return out.length ? out : undefined;
   }
-  // The SWMS open to check takes the site answers every SWMS of the project shares (not its own).
+  // The SWMS open to check takes the site answers every SWMS of the project shares (not its own): true for
+  // all, or the ids of those still as the project gave them when this SWMS changed others for itself
+  // (messy round 10, SiteLink blocker 4).
   S.projectSiteShared = (site) => {
     if (!project || paused || project.stage !== 'check' || project.items.length < 2) return undefined;
     const item = project.items[project.current];
+    if (!item) return undefined;
     const shared = (project.shared && project.shared.site) || {};
-    const same = ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].every((id) => String((site || {})[id] || '').trim() === String(shared[id] || '').trim());
-    return item && !item.siteOwn && same ? true : undefined;
+    const ids = ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].filter((id) => String((site || {})[id] || '').trim() && String((site || {})[id] || '').trim() === String(shared[id] || '').trim());
+    if (ids.length === 5 && !item.siteOwn) return true;
+    return ids.length ? ids : undefined;
   };
   // Falls changed to Yes on the draft of a project SWMS ("Change my answer to Yes"): the draft waits for
   // the fall questions, so the project keeps the new answer now, and the SWMS needs preparing again. It

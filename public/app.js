@@ -3083,7 +3083,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
     : `<li data-hrcw-item="${esc(foundRisk.get(item) || '')}">${esc(item)}${riskFrom(item)}${movable && foundRisk.has(item) ? ` <button type="button" class="link" data-hrcw-off="${esc(foundRisk.get(item))}">Does not apply</button>` : ''}</li>`);
   const notApply = draft.highRiskNotApply || [];
   const notApplyList = notApply.length
-    ? `<ul class="hrcw-notapply">${notApply.map((item) => `<li>Does not apply (our call): ${esc(item.label)}. Reason: ${esc(String(item.reason).trim().replace(/[.\s]+$/, ''))}.${movable ? ` <button type="button" class="link" data-hrcw-back="${esc(item.id)}">Put back</button>` : ''}</li>`).join('')}</ul>` : '';
+    ? `<ul class="hrcw-notapply">${notApply.map((item) => `<li>Does not apply (our call): ${esc(item.label)}. Reason: ${esc(String(item.reason).trim().replace(/[.\s]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase()))}.${movable ? ` <button type="button" class="link" data-hrcw-back="${esc(item.id)}">Put back</button>` : ''}</li>`).join('')}</ul>` : '';
   const riskChoices = movable ? draft.highRiskChoices || [] : [];
   const risks = (draft.highRisk.length
     ? `<ul>${draft.highRisk.map(riskItem).join('')}</ul>`

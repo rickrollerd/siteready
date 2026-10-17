@@ -155,7 +155,7 @@ async function itemStates(sub, project, { forLead = false } = {}) {
 
 // What the company's one-go page shows of each SWMS it submitted: when, which revision, the response
 // and each condition, and the log entries both sides see.
-const SUBBIE_LOG = new Set(['submitted_mail', 'list_sent', 'list_resent', 'reminder', 'list_opened', 'uploaded', 'upload_removed', 'claimed', 'submitted', 'review_sent', 'condition_done', 'condition_undone', 'condition_confirmed', 'condition_back', 'outside_recorded', 'stopped', 'restarted']);
+const SUBBIE_LOG = new Set(['submitted_mail', 'list_sent', 'list_resent', 'reminder', 'list_opened', 'uploaded', 'upload_removed', 'claimed', 'submitted', 'review_sent', 'condition_done', 'condition_undone', 'condition_confirmed', 'condition_back', 'outside_recorded', 'stopped', 'restarted', 'taken_off', 'put_back']);
 async function forCompany(found) {
   const { sub, project } = found;
   const items = await itemStates(sub, project);

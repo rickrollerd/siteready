@@ -340,7 +340,7 @@ function install(router, deps) {
       items: rows.map((row) => itemView(row, rows)),
       points: points.filter(asked).map((row) => pointView(row, project.state, rows)),
       readings: await readingsLeft(project),
-      preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS }),
+      preview: handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: FIELDS, withNotes: true }),
       // Stage 5: sending the list, reminders, the files uploaded, the claim and the log.
       sending: await send.sendingFor(ctx),
       // Stage 7: what has been submitted or received for each SWMS on the list.
@@ -494,7 +494,12 @@ function install(router, deps) {
     let message = '';
     if (typeof body.removed === 'boolean' && body.removed !== Boolean(row.removed_at)) {
       const rev = await bumpList(ctx);
-      await db.query("UPDATE required_swms SET removed_at = $1, removed_why = '', list_rev = $2, updated_at = $3 WHERE id = $4", [body.removed ? now : null, rev, now, row.id]);
+      // Work that was part of another SWMS takes its work title when it goes on the list (messy round 10,
+      // blocker 7), unless the lead named it or another SWMS on the list has that title.
+      const listTitle = !body.removed && row.item && row.item.listTitle && !row.item.titleChanged && row.title === row.package ? row.item.listTitle : '';
+      const free = listTitle && !(await itemsOf(ctx.sub.id)).some((other) => other.id !== row.id && !other.removed_at && other.title.trim().toLowerCase() === listTitle.toLowerCase());
+      if (free) row.title = listTitle;
+      await db.query("UPDATE required_swms SET removed_at = $1, removed_why = '', title = $2, list_rev = $3, updated_at = $4 WHERE id = $5", [body.removed ? now : null, row.title, rev, now, row.id]);
       await recordListEdit(ctx, { kind: body.removed ? 'removed' : 'restored', pack: row.package || row.title, wording: row.task });
       const moved = !body.removed && row.removed_why === 'noLaw';
       message = body.removed ? `${row.title} is removed from the list.` : moved ? `${row.title} is moved to the list.` : `${row.title} is back on the list.`;
@@ -541,7 +546,8 @@ function install(router, deps) {
         await db.query('UPDATE required_swms SET task = $1, item = $2, task_changed = TRUE, list_rev = $3, updated_at = $4 WHERE id = $5', [task, JSON.stringify(item), rev, now, row.id]);
         // Work folded into it from the scope is no longer part of it: the lead's words say what it covers
         // now, so "Also covers" and that work's high risk go with it. It is under Removed, to put back.
-        const folded = (await itemsOf(ctx.sub.id)).filter((other) => other.removed_at && other.removed_why === 'folded' && row.package && other.item && other.item.foldedInto === row.package);
+        // Work the new words still name stays part of it (messy round 10, blocker 5).
+        const folded = (await itemsOf(ctx.sub.id)).filter((other) => other.removed_at && other.removed_why === 'folded' && row.package && other.item && other.item.foldedInto === row.package && !handover.foldedNamed(task, other));
         if (folded.length) {
           for (const other of folded) await db.query("UPDATE required_swms SET removed_why = 'unfolded', list_rev = $1, updated_at = $2 WHERE id = $3", [rev, now, other.id]);
           // Named as "Also covers" names them, not by the reading's package names (messy round 9, wording 3:
@@ -565,8 +571,9 @@ function install(router, deps) {
     const row = await db.one('SELECT * FROM subcontract_points WHERE id = $1 AND subcontract_id = $2', [String(req.params.pointId || ''), ctx.sub.id]);
     if (!row) throw fail(404, 'That point is not on this subcontract.');
     // Each sentence with its capital (messy round 8, wording 2: "... boards. wallaroo installs them").
-    // The companies' own names take their capitals (SiteLink round 10, wording 7: "Potoroo bend builds").
-    const answer = answers.withCompanyNames(answers.capitalSentences(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true })), [ctx.org && ctx.org.name, ctx.project && ctx.project.pc_name, ctx.sub.name, ctx.sub.claimed_name]);
+    // The companies' own names take their capitals, and a full stop at the end (messy round 10, wording 7:
+    // "Potoroo bend builds", "Approval is a hold point before install").
+    const answer = answers.withCompanyNames(answers.capitalSentences(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }), { stop: true }), [ctx.org && ctx.org.name, ctx.project && ctx.project.pc_name, ctx.sub.name, ctx.sub.claimed_name]);
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));

@@ -101,7 +101,7 @@
       ${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}
       ${item.task ? `<p class="work">${esc(item.task)}</p>` : ''}
       ${item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</p>` : ''}
-      ${item.clauses.length ? `<p class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</p>` : ''}
+      ${item.clauses.length ? `<p class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join('; '))}.</p>` : ''}
       ${files}${hidden}${upload}<div id="item-${esc(item.id)}-status" role="status"></div></div>`;
   }
 

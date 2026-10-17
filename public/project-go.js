@@ -116,7 +116,7 @@
       return `<p class="meta go-item-from">Your own SWMS. ${was}It is saved under your company and downloads with the others, but it is not sent to ${name}. <button type="button" class="link" data-go-own-swms-remove="${index}" aria-label="${esc(`Remove your SWMS ${item.title}`)}">Remove it</button></p>`;
     }
     const risk = item.highRisk && item.highRisk.heading ? ` <strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(String(item.highRisk.line).replace(/([^.])$/, '$1.'))}` : ''}` : '';
-    const clauses = (item.clauses || []).length ? ` From scope ${item.clauses.length === 1 ? 'clause' : 'clauses'} ${esc(item.clauses.join(', '))}.` : '';
+    const clauses = (item.clauses || []).length ? ` From scope ${item.clauses.length === 1 && !/[,;&]|\band\b/.test(item.clauses[0]) ? 'clause' : 'clauses'} ${esc(item.clauses.join('; '))}.` : '';
     const coversNames = (item.alsoCovers || []).map((one) => String(one).replace(/^trade installation:\s*/i, '').replace(/^./, (letter) => letter.toLowerCase()));
     const also = coversNames.length ? ` Also covers: ${esc(coversNames.length > 1 ? `${coversNames.slice(0, -1).join(', ')} and ${coversNames[coversNames.length - 1]}` : coversNames[0])}.` : '';
     return `${item.workChanged ? `<p class="note">${esc(item.workChanged)} The task below is the work as it is now.</p>` : item.newOnList ? `<p class="note">New on ${poss(name)} list.</p>` : ''}
@@ -182,13 +182,13 @@
     const status = `<span class="pill cond-${esc(entry.status)}">${CONDITION_STATE[entry.status] || esc(entry.status)}</span>`;
     let more = '';
     if (entry.status === 'outstanding') {
-      more = `${entry.backNote ? `<span class="meta">Sent back by ${esc(entry.backBy)} on ${esc(entry.backOn)}: ${esc(entry.backNote)}</span>` : ''}
+      more = `${entry.backNote ? `<span class="meta">Sent back by ${esc(entry.backBy)} on ${esc(entry.backOn)}: ${esc(entry.backNote)}${/[.!?]$/.test(entry.backNote) ? '' : '.'}</span>` : ''}
         <span class="cond-do"><label class="meta" for="cond-note-${esc(entry.id)}">What you did (optional)</label><input type="text" id="cond-note-${esc(entry.id)}" maxlength="500" data-cond-note="${esc(entry.id)}" autocomplete="off" value="${esc(condNotes[entry.id] || '')}">
         <button type="button" class="small" data-cond-done="${esc(entry.id)}">Mark as done</button></span>`;
     } else if (entry.status === 'done') {
       more = `<span class="meta">Marked done by ${esc(entry.doneBy)} on ${esc(entry.doneOn)}${entry.doneNote ? `: ${esc(entry.doneNote.replace(/[.\s]+$/, ''))}` : ''}. Waiting for ${name} to confirm. <button type="button" class="link" data-cond-undo="${esc(entry.id)}">Not done after all</button></span>`;
     } else if (entry.status === 'closed') {
-      more = `<span class="meta">${name} confirmed it on ${esc(entry.closedOn)}.</span>`;
+      more = `${entry.doneBy ? `<span class="meta">Marked done by ${esc(entry.doneBy)} on ${esc(entry.doneOn)}${entry.doneNote ? `: ${esc(entry.doneNote.replace(/[.\s]+$/, ''))}` : ''}.</span>` : ''}<span class="meta">${name} confirmed it on ${esc(entry.closedOn)}.</span>`;
     }
     return `<li class="cond" id="cond-${esc(entry.id)}"><span>${status} ${esc(entry.text)}${entry.revision ? ` <span class="meta cond-rev">(revision ${esc(entry.revision)})</span>` : ''}</span>${more}</li>`;
   }
@@ -350,6 +350,13 @@
   // The site answers for every SWMS start empty. The scope's conditions (D252) are offered under each
   // box, cleaned and each once, for the user to accept (messy round 3: fragments and run-on repeats
   // were filled in as finished answers and printed in every SWMS).
+  // The site answers a SWMS with its own still has as the project gave them: those still count as given
+  // once for every SWMS (messy round 10, SiteLink blocker 4).
+  function sharedIds(own) {
+    const shared = sharedSite();
+    const ids = SITE.map(([id]) => id).filter((id) => String((own || {})[id] || '').trim() && String((own || {})[id] || '').trim() === String(shared[id] || '').trim());
+    return ids.length ? ids : undefined;
+  }
   function sharedSite() {
     const site = shared();
     if (!site.site) {
@@ -429,7 +436,7 @@
       site: { ...(item.siteOwn || sharedSite()) },
       // Filled across to every SWMS: the high risk work these answers alone bring is not this SWMS's own
       // (messy round 8: "Open trenches near building 5 during pit work" made every SWMS trench work).
-      siteShared: !item.siteOwn && project.items.length > 1 ? true : undefined,
+      siteShared: project.items.length < 2 ? undefined : !item.siteOwn ? true : sharedIds(item.siteOwn),
       designs: designs.length ? designs.map((row) => ({ ...row })) : undefined,
       emergency: Object.keys(emergency).length ? { ...emergency } : undefined,
       substancesNotUsed: notUsedOf(item).length ? notUsedOf(item) : undefined,
