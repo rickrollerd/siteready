@@ -727,7 +727,7 @@ function install(hseRouter, deps) {
     await send.logEntry({
       projectId: project.id, subId: sub.id, itemId: row.required_swms_id, kind: 'review_sent', actorKind: 'org', actorName: name,
       summary: `${name} returned "${review.label}" on ${what} for ${sub.name}${lines.length ? `, with ${lines.length === 1 ? 'one condition' : `${lines.length} conditions`}` : ''}.${emailed ? ` ${company} was emailed that its review is back.` : ''}`,
-      refs: { submission: row.id, review: id },
+      refs: { submission: row.id, review: id, emailed: emailed > 0 },
     });
     res.status(201).json({ review, emailed: emailed > 0, company });
   }));

@@ -32,6 +32,8 @@ function nextAbn() {
 
 const row = (activity, pack, clause, unknowns = '', extra = {}) => ({ activity, type: 'Site work', package: pack, crew: 'Mechanical fitters', clause, quotes: [`${activity}.`], where: '', plant: '', conditions: '', unknowns, matrixColumn: '', ...extra });
 const MAIN = 'Plant delivery and lifting: whole project';
+// Its title on the list: ": whole project" is not part of it (messy round 11, blocker 6).
+const MAIN_TITLE = 'Plant delivery and lifting';
 const ROUND7 = {
   activities: [
     row('Install cast-in sleeves, holding bolts and conduits in formwork before the pour', 'Trade installation: cast-in items', 'C-1.08'),
@@ -109,7 +111,7 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
     'Trade installation: cast-in items': `folded:${MAIN}`,
     'Penetrations and core drilling': 'list',
     'Roof works': 'list',
-    [MAIN]: 'list',
+    [MAIN_TITLE]: 'list',
     'Access equipment': `folded:${MAIN}`,
     'Trade installation: services walkways': `folded:${MAIN}`,
     // Messy round 8: a bare or area title on the list gets a work title from the reading's own words.
@@ -117,7 +119,7 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
     Controls: 'folded:Electrical',
     'Work in an existing or live facility': 'list',
     'Electrical installation': 'list',
-    'Ductwork and mechanical units: whole project': 'list',
+    'Ductwork and mechanical units': 'list',
     'Testing and commissioning': 'list',
     'Trade installation: louvres': `folded:${MAIN}`,
     // Messy round 9, blocker 6: "In-ground civil" is titled by its work.
@@ -144,7 +146,7 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
 test('the main SWMS takes in the high risk work, step groups and words of the work folded into it', () => {
   const list = handover.listItems(round7Reading());
   const rows = list.map((item, i) => ({ id: `r${i}`, title: item.title, task: item.task, package: item.package, source: 'reading', item, removed_at: item.removedWhy ? new Date() : null, removed_why: item.removedWhy }));
-  const main = rows.find((one) => one.title === MAIN);
+  const main = rows.find((one) => one.title === MAIN_TITLE);
   const joined = handover.withFolded(main, rows);
   // Access equipment's certain fall and plant make the main SWMS's fall certain too.
   assert.equal(joined.highRisk.status, 'yes');
@@ -156,7 +158,7 @@ test('the main SWMS takes in the high risk work, step groups and words of the wo
   assert.match(joined.extraTask, /cell risers/);
   // The preview names it, in the same words, and says what else it covers.
   const view = handover.subcontractorView({ project: { name: 'P', workplace: 'W', state: 'nsw' }, org: { name: 'O' }, subcontract: { name: 'S' }, items: rows, points: [], siteDetails: null, fields: [] });
-  const sent = view.swms.find((one) => one.title === MAIN);
+  const sent = view.swms.find((one) => one.title === MAIN_TITLE);
   assert.equal(sent.highRisk.line, 'It is high risk construction work (Pressurised gas mains or piping; Fall of more than 2 m; Moving powered mobile plant)');
   assert.deepEqual(sent.alsoCovers.sort(), ['Access equipment', 'Trade installation: cast-in items', 'Trade installation: cells', 'Trade installation: louvres', 'Trade installation: services walkways']);
 });
@@ -199,7 +201,7 @@ test('points to confirm: statements go to the draft notes; only who does or supp
     'The document does not say who controls, inspects and checks operator competency when other trades use the lifts.',
     'Who gives access to the plant in the defects period',
   ]);
-  const notes = handover.listItems(round7Reading()).find((item) => item.title === MAIN).draftNotes;
+  const notes = handover.listItems(round7Reading()).find((item) => item.title === MAIN_TITLE).draftNotes;
   assert.ok(notes.includes('Shop drawings need builder approval before fabrication.'));
   assert.ok(notes.includes('The photo system needs builder approval.'));
   assert.ok(notes.includes('The precast suppliers are yet to be determined.'));
@@ -338,7 +340,7 @@ test('on the lead\'s page: 10 SWMS, the log says SiteLink read the scope only on
   assert.ok(onList.length <= 10, JSON.stringify(onList));
   for (const title of ['Access equipment', 'Controls', 'Maintenance', 'Maintenance in the defects period', 'Trade installation: cells', 'Trade installation: services walkways']) assert.ok(!onList.includes(title), title);
   assert.equal(page.subcontract.trade, 'Mechanical', 'typed case tidied');
-  const main = page.items.find((item) => item.title === MAIN);
+  const main = page.items.find((item) => item.title === MAIN_TITLE);
   assert.equal(main.highRisk.heading, 'This work needs a SWMS by law');
   assert.doesNotMatch(main.highRisk.lines[0], /depending on/);
   // Every point shown asks who does or supplies what.
@@ -385,7 +387,7 @@ test('a SWMS with no job steps is marked, and the list cannot be sent until its 
 test('the lead renames a SWMS: a capital first letter, no price, no second SWMS of that title, logged and in the email', async () => {
   const b = await setUp('r7title');
   const { subId, email, page } = await readScope(b);
-  const main = page.items.find((item) => item.title === MAIN);
+  const main = page.items.find((item) => item.title === MAIN_TITLE);
   const priced = await call('PUT', `/api/hse/subcontracts/${subId}/items/${main.id}`, { reviewer: b.lead, body: { title: 'Mechanical installation $45,000' } });
   assert.equal(priced.status, 400);
   assert.equal(priced.data.field, 'title');
@@ -399,7 +401,7 @@ test('the lead renames a SWMS: a capital first letter, no price, no second SWMS 
   assert.equal(item.highRisk.status, 'yes', 'the reading\'s high risk work stays with a new title');
   assert.ok(renamed.data.preview.swms.some((one) => one.title === 'Mechanical installation: whole project'));
   const log = (await call('GET', `/api/hse/projects/${b.projectId}`, { reviewer: b.lead })).data.log.map((entry) => entry.text);
-  assert.ok(log.includes(`Priya Nandakumar changed the title of ${MAIN} to Mechanical installation: whole project on the SWMS list for Quoll Mechanical.`));
+  assert.ok(log.includes(`Priya Nandakumar changed the title of ${MAIN_TITLE} to Mechanical installation: whole project on the SWMS list for Quoll Mechanical.`));
   await sendList(b, subId, inDays(14));
   assert.match([...mailbox].reverse().find((one) => one.to === email).text, /• Mechanical installation: whole project\n/);
   // Only someone in the account can rename it.
@@ -510,7 +512,7 @@ test('the subcontractor\'s draft of the main SWMS takes in the folded work\'s st
   const office = await subbie('admin@quokka.example', 'Quokka Mechanical Pty Ltd', nextAbn());
   assert.equal((await call('POST', `/api/list/${linkOf(email)}/claim`, { session: office })).status, 200);
   const { list } = (await call('GET', `/api/from-builders/${subId}`, { session: office })).data;
-  const main = list.items.find((one) => one.title === MAIN);
+  const main = list.items.find((one) => one.title === MAIN_TITLE);
   for (const kind of ['ductwork', 'scaffold', 'ewp']) assert.ok(main.kinds.includes(kind), kind);
   assert.match(main.task, /scissor lifts/);
   assert.equal(main.highRisk.heading, 'This work needs a SWMS by law');

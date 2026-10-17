@@ -896,7 +896,9 @@
   const coversList = (list) => { const names = list.map((name) => String(name).replace(/^trade installation:\s*/i, '').replace(/^./, (letter) => letter.toLowerCase())); return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || ''; };
   // Every line of the flag: "needs a SWMS by law" names only what is certain, and what may also be high
   // risk work follows with what it depends on (messy round 7).
-  const hrcwLine = (flag) => (flag ? `<span class="hrcw hrcw-${esc(flag.status)}"><strong>${esc(flag.heading)}.</strong>${(flag.lines || []).filter(Boolean).map((line) => ` ${esc(line)}.`).join('')}</span>` : '');
+  // The lead is the builder: "The builder may still ask for a SWMS" is never said to it, on the list either
+  // (messy round 11, SiteLink wording 4: an item moved onto the list still said it).
+  const hrcwLine = (flag) => (flag ? `<span class="hrcw hrcw-${esc(flag.status)}"><strong>${esc(flag.heading)}.</strong>${(flag.lines || []).filter((line) => line && !/^the builder may still ask\b/i.test(line)).map((line) => ` ${esc(line)}.`).join('')}</span>` : '');
 
   function uploadBlock(again) {
     return `<label for="s-file">${again ? 'A different scope for this subcontract' : 'The scope of works'} <span class="hint">A Word file (.docx) or a PDF with typed text.</span></label>
@@ -1025,6 +1027,9 @@
     if (removed.length) html += `<details class="removed-group" id="s-removed"${kept.length && !openGroups.removed ? '' : ' open'}><summary>Removed (${removed.length})</summary>${removed.map(itemCard).join('')}</details>`;
     const duties = sub.reading.duties || [];
     if (duties.length) html += `<details><summary>${duties.length} ${duties.length === 1 ? 'duty' : 'duties'} in the scope ${duties.length === 1 ? 'needs' : 'need'} no SWMS</summary><ul>${duties.map((duty) => `<li>${esc(duty)}</li>`).join('')}</ul></details>`;
+    // Testing and commissioning the crew does on site is work, said apart (messy round 11, SiteLink).
+    const testing = sub.reading.testing || [];
+    if (testing.length) html += `<details><summary>${testing.length === 1 ? 'Testing or commissioning work' : `${testing.length} pieces of testing or commissioning work`} the scope lists as ${testing.length === 1 ? 'a duty' : 'duties'}</summary><p class="meta">Testing and commissioning done on site needs a SWMS where it is high risk construction work. Check a SWMS on the list covers it, or add one.</p><ul>${testing.map((duty) => `<li>${esc(duty)}</li>`).join('')}</ul></details>`;
     // What is typed in an open box, and where the cursor is, before the list is drawn again.
     const active = document.activeElement;
     const focus = active && active.closest && active.closest('#s-list') && (active.dataset.work || active.dataset.titleEdit) ? { id: active.id, start: active.selectionStart, end: active.selectionEnd } : null;

@@ -343,6 +343,26 @@ function retitle(out, work, { all = false, folded = false } = {}) {
     }
     if (!inOther(item) || item.listTitle) titles.add((item.listTitle || item.title).toLowerCase());
   }
+  // No two SWMS of one list read as the same: a trade's plain title ("Plumbing installation") beside the
+  // same title with an area ("Plumbing installation, buildings") takes the words of its own work (messy round
+  // 11, SiteLink blocker 6: the sewer pump stations and temporary services work and the building plumbing).
+  const shown = (item) => (inOther(item) ? item.listTitle || '' : item.title);
+  const used = () => out.map((item) => shown(item).toLowerCase()).filter(Boolean);
+  // The trade's main SWMS (more work in it than the others with its title) keeps the plain title.
+  const size = (index) => ((work[index] && work[index].rows) || []).length;
+  out.forEach((item, index) => {
+    const title = shown(item);
+    if (!title || title === item.package) return;
+    const beside = out.map((other, at) => at).filter((at) => out[at] !== item && shown(out[at]).toLowerCase().startsWith(`${title.toLowerCase()}, `));
+    if (!beside.length || beside.every((at) => size(at) < size(index))) return;
+    const named = ((work[index] && work[index].rows) || []).map((row) => activityTitle(row.activity)).filter(Boolean);
+    const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
+    const area = /^trade installation:\s*(.+)$/i.exec(item.package);
+    const place = area && !/^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i.test(area[1].trim()) ? area[1].trim() : '';
+    const from = place ? `${title}, ${place}` : named.length === 1 ? named[0] : named.length === 2 ? `${named[0]} and ${later(named[1])}` : named.length ? `${named[0]} and other work` : '';
+    if (!from || used().includes(from.toLowerCase())) return;
+    if (inOther(item)) item.listTitle = from; else item.title = from;
+  });
 }
 
 // SiteWrite's own scope reading: each package's SWMS title, by sl8's work-title rules (messy round 9:
@@ -415,9 +435,16 @@ function inGroundTitle(pack) {
 // vinyl joins). Only the title: SiteLink's list sorts it as before.
 const HAZARD_NAME = /^(?:hot works?|hot work permits?|work(?:ing)? at heights?|heights? work|confined spaces?|manual handling|hazardous (?:substances|materials|chemicals))$/i;
 const BARE_TRADE = /^(?:mechanical|hydraulic|plumbing|fire|fire protection|electrical|communications|comms|security|hvac|air conditioning|medical gas|lift|vertical transport)\s+(?:services|works?)$/i;
+const WHOLE_PROJECT = /:\s*whole (?:project|site|building)$/i;
 function workTitle(item, pack) {
   const name = String(item.title || '').trim();
   const rows = (pack && pack.rows) || [];
+  // "Risers and pipework at height: whole project" is titled by its work alone (messy round 11, SiteLink
+  // blocker 6, sl10 decision 5 A): the SWMS covers the whole project anyway (D187).
+  if (WHOLE_PROJECT.test(name) && !/^trade installation:/i.test(name)) {
+    const plain = name.replace(WHOLE_PROJECT, '').trim();
+    return (plain && workTitle({ ...item, title: plain }, pack)) || plain;
+  }
   if (HAZARD_NAME.test(name)) {
     const named = rows.map((row) => activityTitle(row.activity)).filter(Boolean);
     const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
@@ -637,12 +664,17 @@ function clausesOf(row) {
 function clauseList(list) {
   const out = [];
   let prefix = '';
+  let prefixCode = '';
   for (const entry of list || []) {
     for (const raw of String(entry || '').split(/\s*[;,]\s*/)) {
       const part = raw.trim();
       if (!part) continue;
-      const named = /^(.*?)\s*(\d[\w.]*)$/.exec(part);
-      if (named && named[1]) prefix = named[1];
+      // A clause number keeps its letter ("C-1.05"), so it is never said "C- 1.05" (messy round 11, wording 3).
+      const named = /^(.*?)\s*((?:[A-Z]{1,4}-)?\d[\w.]*)$/.exec(part);
+      const code = named ? (/^([A-Z]{1,4})-/.exec(named[2]) || [])[1] || '' : '';
+      // A lettered number goes under the heading before it only when that heading's numbers carry the same letter.
+      if (named && !named[1] && code !== prefixCode) prefix = '';
+      if (named && named[1]) { prefix = named[1]; prefixCode = code; }
       // The scope's exclusions are not where the work comes from (messy round 9, wording 2: the
       // in-ground work cited "Exclusions 3").
       if (/^exclu/i.test(named && !named[1] && prefix ? prefix : part)) continue;
@@ -700,11 +732,14 @@ const asksWho = (part) => WHO_SUPPLIES.test(String(part).replace(/\([^()]*\)/g, 
 // A part that only follows on from the one before ("If it does, the welding procedure applies",
 // "This depends on whether an exemption is granted") goes with it, so a note never reaches the
 // subcontractor without the question it answers (messy round 7).
-const FOLLOWS_ON = /^(?:if (?:it|so|not|they|this|that|one|there)\b|if so\b|otherwise\b|(?:this|that|it|which) (?:depends|applies|means|would|will|is needed|affects)\b|in which case\b|in that case\b|then\b)/i;
+// "Which gives precast conduits to the Electrical subcontractor" goes on from the part before it, as a
+// relative clause, and is not a question of its own (messy round 11, SiteLink wording 1).
+const FOLLOWS_ON = /^(?:if (?:it|so|not|they|this|that|one|there)\b|if so\b|otherwise\b|(?:this|that|it|which) (?:depends|applies|means|would|will|is needed|affects)\b|which (?:gives|makes|puts|leaves|sets|places|moves|shifts|passes|assigns|allocates|transfers|keeps|means|is|are|has|have|was|were|could|may|might)\b|in which case\b|in that case\b|then\b)/i;
 function joinFollowOns(parts) {
   const out = [];
   for (const part of parts) {
-    if (out.length && FOLLOWS_ON.test(part)) out[out.length - 1] = `${out[out.length - 1].replace(/[.\s]*$/, '')}. ${part.charAt(0).toUpperCase()}${part.slice(1)}`;
+    if (out.length && /^which\b/i.test(part) && FOLLOWS_ON.test(part)) out[out.length - 1] = `${out[out.length - 1].replace(/[.,;\s]*$/, '')}, ${part.charAt(0).toLowerCase()}${part.slice(1)}`;
+    else if (out.length && FOLLOWS_ON.test(part)) out[out.length - 1] = `${out[out.length - 1].replace(/[.\s]*$/, '')}. ${part.charAt(0).toUpperCase()}${part.slice(1)}`;
     else out.push(part);
   }
   return out;
@@ -717,7 +752,9 @@ function splitPoint(text) {
     // A part whose follow-on sentence was the only thing left after the question goes with it whole.
     if (FOLLOWS_ON.test(part)) continue;
     if (!asksWho(part)) { notes.push(part); continue; }
-    const pieces = splitOutside(part, ', ').map((one) => one.replace(/^and\s+/i, ''));
+    // A piece that only goes on from the one before ("..., which gives precast conduits to the Electrical
+    // subcontractor") stays with it, never a point of its own (messy round 11, SiteLink wording 1).
+    const pieces = splitOutside(part, ', ').map((one) => one.replace(/^and\s+/i, '')).reduce((list, one) => (list.length && /^(?:which|who|whose|whom|that|where)\b/i.test(one) ? [...list.slice(0, -1), `${list[list.length - 1]}, ${one}`] : [...list, one]), []);
     if (pieces.length < 2 || asksWho(pieces[0])) { asks.push(part); continue; }
     for (const piece of pieces) (asksWho(piece) ? asks : notes).push(piece);
   }
@@ -729,14 +766,19 @@ function splitPoint(text) {
 // is said with the work it is about (messy round 8, wording 16).
 const LOOSE_NOTE = /^(?:the\s+)?[a-z]+(?:\s+[a-z]+)?\s+(?:to be|not|is not|are not|tbc|tba|unknown|unclear)\b/i;
 const BARE_NOTE = /^[A-Za-z-]+(?:\s+(?:and\s+)?[A-Za-z-]+){0,2}\.?$/;
+// A note whose subject is only "they" or "it" ("Whether they will be instructed is open.") is said with the
+// work it is about too (messy round 11, SiteLink wording 2).
+const PRONOUN_NOTE = /^(?:whether\s+)?(?:they|it|this|these|those|its|their)\b/i;
 function draftNotes(rows) {
   const out = [];
   for (const row of rows || []) {
     const activity = wordsWithoutPrices(row.activity).replace(/[.\s]+$/, '');
     for (let note of splitPoint(wordsWithoutPrices(row.unknowns)).notes.map(sentence)) {
-      if (note && activity && LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
+      if (note && activity && ((LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) || PRONOUN_NOTE.test(note))) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
       // A bare word or two ("Dewatering.") says neither the work nor what is open (messy round 9, wording 8).
       else if (note && activity && BARE_NOTE.test(note)) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
+      // Every note ends with a full stop (messy round 11, SiteLink wording 2).
+      if (note) note = note.replace(/([^.!?])$/, '$1.');
       if (note && !out.includes(note)) out.push(note);
     }
   }
@@ -757,6 +799,13 @@ function listPoints(reading) {
     out.push({ activity: wordsWithoutPrices(row.activity), clause: wordsWithoutPrices(row.clause), question, duty: row.type === 'Duty' });
   }
   return out;
+}
+
+// Testing or commissioning the crew does on site ("hydraulic test and commissioning", "pressure test and
+// flush the mains"), not managing, witnessing or documenting it.
+function handsOnTesting(text) {
+  return /\b(?:test\w*,?\s+(?:and\s+)?commission\w*|commission\w*\s+and\s+test\w*|pressure test\w*|(?:hydraulic|hydrostatic|leak|flow|water|gas) test\w*|flush\w*)\b/i.test(String(text || ''))
+    && !/\b(?:witness\w*|attend\w*|manag\w*|plans?|itps?|documents?|documentation|records?|manuals?|audit\w*|train\w*|certif\w*|reports?|schedules?|submissions?)\b/i.test(String(text || ''));
 }
 
 // ---- What the subcontractor sees ----
@@ -804,7 +853,10 @@ function sentHighRisk(flag) {
 // point asked.
 const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'there', 'which', 'while', 'where', 'whether', 'when', 'what', 'have', 'been', 'will', 'shall', 'must', 'also', 'into', 'only', 'other', 'others', 'than', 'said', 'says', 'listed', 'stated', 'given', 'scope', 'works', 'work', 'subcontractor', 'contractor', 'contractors', 'builder', 'clause', 'clauses', 'item', 'items', 'install', 'installs', 'installed', 'installation', 'provide', 'provides', 'provided', 'confirm', 'confirmed', 'includ', 'include', 'includes', 'included', 'exclud', 'yes',
   'requirement', 'defin', 'define', 'detail', 'specifi', 'specify', 'advis', 'advise', 'known', 'unknown', 'clear', 'unclear', 'state', 'note', 'supply', 'suppli', 'supplie',
-  'through', 'exclusion', 'inclusion', 'specific', 'general', 'about', 'under', 'over', 'before', 'after', 'around', 'between', 'against', 'each', 'every', 'them', 'these', 'those', 'mechanical', 'hydraulic', 'servic', 'service', 'system', 'trade', 'trades']);
+  'through', 'exclusion', 'inclusion', 'specific', 'general', 'about', 'under', 'over', 'before', 'after', 'around', 'between', 'against', 'each', 'every', 'them', 'these', 'those', 'mechanical', 'hydraulic', 'servic', 'service', 'system', 'trade', 'trades',
+  // Words that say only that something is open, never what (messy round 11, SiteLink blocker 2: the manholes
+  // answer settled "Whether they will be instructed is open." on the storage tanks and the gas meter).
+  'instruct', 'instruction', 'open', 'decid', 'decision', 'determin', 'pend', 'pending', 'option', 'variation', 'price', 'pric', 'yet', 'still', 'now', 'later', 'need', 'requir', 'whom', 'whose']);
 const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').split(/[^a-z0-9]+/)
   .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
 // The note's own subject: the words after "{the work}: ", when the note starts with the work it is about.
@@ -815,10 +867,27 @@ function noteSubject(entry) {
   const at = text.indexOf(': ');
   return at > 0 && at <= 80 && !/[.;]/.test(text.slice(0, at)) ? text.slice(at + 2) : text;
 }
+// The work a note names before its subject ("{the work}: ..."), or the work it is kept with.
+function noteWork(entry) {
+  const text = String((entry && entry.text) || '');
+  const subject = noteSubject(entry);
+  return subject.length < text.length ? text.slice(0, text.length - subject.length).replace(/:\s*$/, '').trim() : String((entry && entry.activity) || '').trim();
+}
+const sameWords = (a, b) => String(a || '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase() === String(b || '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
 function withSettled(item, answers) {
   if (!item || !(item.draftNotes || []).length || !(answers || []).length) return item;
   const draftNotes = item.draftNotes.map((entry) => {
     const own = stems(noteSubject(entry));
+    // A note that says only that something is open ("Whether they will be instructed is open.") has no
+    // subject of its own: no answer settles it, unless the work it names is what the point was asked about,
+    // by name or by two of its words, one of them in what the point asked (messy round 11, SiteLink blocker 2:
+    // the manholes answer settled such notes on the storage tanks and the boundary gas meter).
+    if (!own.size) {
+      const work = noteWork(entry);
+      const named = stems(work);
+      const same = named.size && answers.find((answer) => sameWords(answer.activity, work) || ([...stems(`${answer.question} ${answer.activity}`)].filter((word) => named.has(word)).length >= 2 && [...stems(answer.question)].some((word) => named.has(word))));
+      return same ? { ...entry, settled: same.answer } : entry;
+    }
     const found = answers.find((answer) => {
       const work = stems(answer.activity);
       const subject = (text) => [...stems(text)].filter((word) => own.has(word) && !work.has(word));
@@ -839,7 +908,7 @@ function notesOf(list) {
   const out = [];
   for (const entry of Array.isArray(list) ? list : []) {
     const raw = typeof entry === 'string' ? entry : entry && typeof entry === 'object' ? entry.note || entry.text || entry.question || '' : '';
-    const text = sentence(quoteWithoutPrices(String(raw || '')));
+    const text = sentence(quoteWithoutPrices(String(raw || ''))).replace(/([^.!?])$/, '$1.');
     if (!text || out.some((one) => one.text === text)) continue;
     out.push({ text, clause: entry && typeof entry === 'object' ? wordsWithoutPrices(entry.clause || '') : '', ...(entry && typeof entry === 'object' && entry.activity ? { activity: wordsWithoutPrices(entry.activity) } : {}) });
   }
@@ -884,4 +953,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { withSettled, notesOf, packageTitles, clausesOf, activityNamed, foldedNamed, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };
+module.exports = { handsOnTesting, withSettled, notesOf, packageTitles, clausesOf, activityNamed, foldedNamed, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };

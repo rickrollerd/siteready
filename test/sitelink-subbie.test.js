@@ -297,7 +297,8 @@ test('the scope\'s notes kept on a list item (rec7) reach the company as plain n
   // As rec7 keeps them from a reading (handover.draftNotes): words, already one to a note.
   const handover = require('../handover');
   const fromReading = handover.draftNotes([{ unknowns: 'Working heights; who supplies the fan coil units' }, { unknowns: 'Roof height, pitch, edge protection' }]);
-  assert.deepEqual(fromReading, ['Working heights', 'Roof height, pitch, edge protection']);
+  // Each ends with a full stop (messy round 11, wording 2).
+  assert.deepEqual(fromReading, ['Working heights.', 'Roof height, pitch, edge protection.']);
   await db.query('UPDATE required_swms SET item = $1 WHERE id = $2', [JSON.stringify({ ...row.item, draftNotes: fromReading }), row.id]);
   const again = (await call('GET', `/api/from-builders/${c.subId}`, { session: c.office })).data.list;
   assert.deepEqual(again.items[0].draftNotes.map((note) => note.text), fromReading);

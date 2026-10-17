@@ -338,7 +338,7 @@ test('wording: brackets that leave work out, one word alone, exclusion clauses, 
 
 test('wording: after "Change the work", the reply names the work it no longer holds, and the clauses follow the new words (wording 3)', async () => {
   const { lead, subId, page } = await readScope('r9work');
-  const main = page.items.find((item) => item.title === 'Ductwork and mechanical units: whole project');
+  const main = page.items.find((item) => item.title === 'Ductwork and mechanical units');
   assert.deepEqual(main.clauses, ['Installation 1, 2'], 'each heading once (messy round 10, wording 2)');
   const next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${main.id}`, { reviewer: lead, body: { task: 'install the ductwork, dampers and grilles in the ceiling spaces on levels 1 to 4' } })).data;
   assert.match(next.message, / Access equipment is no longer part of it: it is under Removed\./);
