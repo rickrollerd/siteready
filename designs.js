@@ -33,6 +33,17 @@ const KINDS = [
   {
     id: 'shoring', label: 'Shoring design',
     steps: /^(Install the shoring wall|Install and later remove ground anchors|Stress the ground anchors|Install and later remove props|Spray the shotcrete|Drill with the drill rig|Dewater the excavation)$/,
+    // Where a step relies on the shoring design, the trench is dug and worked in to it too, so its hold point is on those
+    // steps (messy round 11, run 2: only "Dewater the excavation" printed it).
+    joins: {
+      steps: /^(Excavate|Dig the trench|Work in the trench)$/,
+      lines: [
+        /^Trenches 1\.5 m deep or more are shored with a trench shield rated for\b/,
+        /^Shoring, trench shields and boxes are installed, moved and removed only by workers trained and competent in that system, to its manufacturer's or designer's instructions\b/,
+        /^Trench shields and boxes are installed, used, removed and maintained to the manufacturer's instructions, never loaded beyond their design\b/,
+        /^A trench 1\.5 m deep or more has all sides supported by shoring, benching or battering\b/,
+      ],
+    },
     lines: [
       /\bThe shoring is designed by an engineer and installed in the sequence on the drawings\b/,
       /\bGround anchors are designed by a competent person\b/,
@@ -253,6 +264,15 @@ function designsNeeded(draft) {
       const holds = /^(?:Erect|Stand|Form|Build)\b/.test(step.step || '') || (step.controls || []).some((line) => relies(line) && !(kind.limits || []).some((pattern) => pattern.test(withoutCitation(line))));
       found.get(kind.id).steps.push({ step: step.step, line: step.controls[at], holds });
     }
+  }
+  // Steps that join a design another step relies on, in the order the steps print.
+  for (const kind of KINDS.filter((item) => item.joins && found.has(item.id))) {
+    const entry = found.get(kind.id);
+    const at = (step) => (step.controls || []).findIndex((line) => typeof line === 'string' && !isHoldPoint(line) && kind.joins.lines.some((pattern) => pattern.test(withoutCitation(line))));
+    const joined = ((draft && draft.jobSteps) || []).filter((step) => !step.own && kind.joins.steps.test(step.step || '') && at(step) >= 0 && !entry.steps.some((item) => item.step === step.step));
+    if (!joined.length) continue;
+    const order = ((draft && draft.jobSteps) || []).map((step) => step.step);
+    entry.steps = [...entry.steps, ...joined.map((step) => ({ step: step.step, line: step.controls[at(step)], holds: true }))].sort((a, b) => order.indexOf(a.step) - order.indexOf(b.step));
   }
   return [...found.values()];
 }

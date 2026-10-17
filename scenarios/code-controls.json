@@ -9980,7 +9980,8 @@
   "step": "Install edge protection",
   "text": "Perimeter screens are assembled and installed by workers trained by the screen supplier, and rigging work on the screens is done by a licensed rigger.",
   "code": "NSW Formwork",
-  "section": "s 6.2"
+  "section": "s 6.2",
+  "unless": "noOwnScreens"
  },
  {
   "op": "add",

@@ -152,7 +152,8 @@ test('air shaft voids and sewer pump station inspections are not trench work; pr
   const sds = { safetyDataSheet: 'The products are used with good ventilation, with the gloves and eye protection their safety data sheets list.' };
   const inspect = drafted('qld', { task: 'Maintain site accommodation plumbing including monthly sewer pump station inspections (Site accommodation). Interim maintenance of commissioned systems (Commissioned buildings).', kinds: ['cleaning'], facts: sds });
   assert.ok(!inspect.highRisk.some((item) => /shaft or trench/i.test(item)));
-  const install = drafted('qld', { task: 'Install new sewer pump stations with control panels and covers.' });
+  // Installing one now also asks whether the station is a confined space (SiteLink messy round 11, blocker 4).
+  const install = drafted('qld', { task: 'Install new sewer pump stations with control panels and covers.', facts: { spaceAssessment: 'notConfined' } });
   assert.ok(install.highRisk.some((item) => /shaft or trench/i.test(item)));
 });
 

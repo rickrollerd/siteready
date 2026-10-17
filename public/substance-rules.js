@@ -26,15 +26,20 @@
     ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone)\b/i, 'Sealant'],
     ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i, 'Waterproofing product'],
     ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack|chem-?set|chemical anchors?)\b/i, 'Epoxy or resin'],
-    ['Cement, concrete, grout and mortar', /\b((?<!solvent |pvc )cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
+    // Fibre cement sheet is not a cement product (messy round 11, run 6: cement asked for CFC cladding).
+    ['Cement, concrete, grout and mortar', /\b((?<!solvent |pvc |fibre[- ]|compressed fibre[- ])cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
     // Plasterboard that is painted over, or swept up, is not plaster work: plasterboard brings the type
     // only where it is fixed, set or jointed (messy round 4).
     ['Plaster, jointing and setting compounds', /\b(plaster(?!board)\w*|jointing|setting compounds?|set(?:ting)? and sand\w*|(?:fix|hang|install|set|stop|joint|sheet)\w* [^.\n]{0,30}\bplasterboard|plasterboard (?:fix|hang|install|lining|setting|stopping|jointing)\w*)\b/i, 'Plaster or setting compound'],
-    ['Synthetic mineral fibres (insulation)', /\b(insulation(?! boards?)(?!,? where)|glasswool|glass wool|batts|rockwool)\b/i, 'Insulation'],
-    ['Curing compounds and form release agents', /\b(curing compounds?|cur(?:e|ing) (?:the )?concrete|form oil|release agents?)\b/i, 'Curing compound or release agent'],
+    // Insulation resistance testing and insulation failure are electrical words, not an insulation product (messy round 11,
+    // run 2); lagging is insulation (run 3).
+    ['Synthetic mineral fibres (insulation)', /\b(insulation(?! boards?)(?!,? where)(?! (?:resistance|failure|fault|test\w*|breakdown|of (?:the )?(?:cables?|conductors?)))|glasswool|glass wool|batts|rockwool|lagg(?:ing|ed))\b/i, 'Insulation'],
+    // A formwork deck or forms are oiled with a release agent (messy round 11, run 1: formwork asked only for cement).
+    ['Curing compounds and form release agents', /\b(curing compounds?|cur(?:e|ing) (?:the )?concrete|form oil|release agents?|lay the formwork deck|stand and brace wall and column forms|form the (?:retaining wall|tank walls))\b/i, 'Curing compound or release agent'],
     ['Respirable crystalline silica (concrete, masonry, tile and stone dust)', /\bsilica\b/i, 'Product with crystalline silica'],
     ['PVC primer and solvent cement', /\b(solvent cement|pvc primer)\b/i, 'PVC primer or solvent cement'],
-    ['Fuels (diesel, petrol)', /\b(diesel|petrol|fuel\w*|refuel\w*|generators?|chainsaws?|excavators?)\b/i, 'Fuel'],
+    // A telehandler and a forklift run on fuel too (messy round 11, run 1: no fuel asked in the cranage SWMS).
+    ['Fuels (diesel, petrol)', /\b(diesel|petrol|fuel\w*|refuel\w*|generators?|chainsaws?|excavators?|telehandlers?|forklifts?)\b/i, 'Fuel'],
     // Brazing is done with a gas torch: "Braze refrigerant pipework" brings the gas type (messy round 10, run 1).
     ['Gases (LPG, acetylene, oxygen)', /\b(lpg|propane|acetylene|oxy-\w*|oxyacetylene|gas cylinders?|braz(?:e|es|ed|ing)|gas torch\w*|torch-on)\b/i, 'Gas'],
     ['Refrigerants', /\brefrigerants?\b/i, 'Refrigerant'],
@@ -104,7 +109,9 @@
     }
     // A step that uses the product before one that prepares for it or cleans up after it (messy round 4:
     // paint matched to "Prepare to paint", not "Paint").
-    const named = usable.filter((step) => pattern.test(step.step || ''));
+    // A step done before the pour names the pour only as when it is done (messy round 11, run 1: concrete went to "Install
+    // cast-in conduits on the deck before the pour").
+    const named = usable.filter((step) => pattern.test(String(step.step || '').replace(/\bbefore the pour\b/gi, ' ')));
     const byName = named.find((step) => !PREPARES.test(step.step || '')) || named[0];
     if (byName) return byName.step;
     // Fuel goes with the step that runs the fuelled plant (messy round 4: diesel matched to "Paint line marking").
@@ -170,7 +177,7 @@
     // the SDS answer named "two part epoxy mortar", already listed as an epoxy).
     'Cement, concrete, grout and mortar': /\b(?:(?<!solvent |pvc |fibre[- ])cement\w*|(?<!\b(?:epoxy|resin|polyurethane|polymer)\s+(?:\w+\s+)?)(?:grout\w*|mortars?)|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
     'Plaster, jointing and setting compounds': /\b(?:plaster(?!board)\w*|setting compounds?|jointing compounds?|base coat)\b/i,
-    'Synthetic mineral fibres (insulation)': /\b(?:insulation|insulaton|glass ?wool|batts|rock ?wool|mineral wool)\b/i,
+    'Synthetic mineral fibres (insulation)': /\b(?:insulation(?! (?:resistance|failure|fault|test\w*|breakdown))|insulaton|insulat(?:e|es|ing)(?= (?:the |all )?(?:duct\w*|pip\w*|roofs?|walls?|ceilings?|floors?|slabs?|soffits?))|lagg(?:ing|ed)|glass ?wool|batts|rock ?wool|mineral wool)\b/i,
     'Curing compounds and form release agents': /\b(?:curing compounds?|form oil|release agents?)\b/i,
     'Respirable crystalline silica (concrete, masonry, tile and stone dust)': /\b(?:silica|engineered stone)\b/i,
     'PVC primer and solvent cement': /\b(?:solvent cement|pvc primer|pvc glue|pvc cement)\b/i,
@@ -245,7 +252,16 @@
   // Fuel for the petrol-driven plant the lines name, and for a generator or petrol plant in the plant list (messy
   // round 7: fuel "Not required" with no reason beside "Petrol-driven saws, trowels and generators").
   const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)'];
-  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?)\b/i;
+  // Earthmoving and other engine-driven plant runs on diesel or petrol too (messy round 11, run 2: fuel "Not required"
+  // taken with no reason beside the crew's own excavator, compactor, dewatering pump and directional drill). A reason
+  // that says why ("battery and electric plant only") still settles it.
+  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?|excavators?|compactors?|rollers?|(?:dewatering|trash|concrete|line) pumps?|directional (?:drills?|drilling rigs?)|drill(?:ing)? rigs?|skid steers?|bobcats?|posi-?tracks?|(?:wheel |front[- ]end |backhoe )?loaders?|backhoes?|graders?|dozers?|bulldozers?|tippers?|(?:tipper |dump |water |vacuum )?trucks?|water carts?|forklifts?|telehandlers?|(?:mobile |crawler |franna |pick and carry )?cranes?|chainsaws?|mulchers?|(?:concrete|road|cut-?off|quick ?cut) saws?|augers?|compressors?)\b/i;
+  const FUEL = 'Fuels (diesel, petrol)';
+  // The first engine-driven plant item in the draft's plant list, or ''.
+  function fuelledPlant(draft) {
+    const found = [...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || '')).find((name) => FUELLED_PLANT.test(name) && !/\b(?:electric|battery|hand)\b/i.test(name));
+    return found || '';
+  }
   function stepWords(draft) {
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step));
     const products = steps.flatMap((step) => (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line)).map(withoutSource))
@@ -324,6 +340,16 @@
   // the user's own step uses (messy round 7: paint "painters do it" beside the user's own "Paint shadowline
   // packers"). Beside SiteWrite's own steps a short reason still settles it (D292), silica apart.
   const BY_OTHERS = /\b(?:by others|others? (?:do|does|will|supply|supplies|apply|applies|install)\w*|(?:by|done by) (?:the )?(?:builder|principal contractor|client|another trade|other trades|painters?|electricians?|plumbers?|fire stoppers?|sealant contractors?)|(?:painters?|electricians?|plumbers?|the builder|another trade|other trades|fire stoppers?)\b[^.]{0,20}\b(?:do|does|doing|will|supply|supplies|apply|applies|install)\w*|not (?:in )?our (?:work|scope))\b/i;
+  // A reason that says another trade does it, by name ("the roofer does it", "lagging by others").
+  const OTHERS_REASON = new RegExp(`${BY_OTHERS.source}|\\b(?:roofers?|tilers?|waterproofers?|renderers?|glaziers?|carpenters?|chippies|spark(?:y|ies)|laggers?|insulators?|another (?:trade|contractor|sub(?:contractor|bie)?))\\b|\\bthe \\w+ (?:does|do|will do|is doing|handles?) (?:it|that|this|them)\\b`, 'i');
+  // Words in a sentence that say the work is not the crew's own.
+  const OTHERS_SAID = /\b(?:by others|others?|by (?:the |an? )?(?!our\b|us\b|hand\b|machine\b)\w+(?:er|ers|or|ors|ian|ians|ies|y)\b|not (?:in )?(?:our|ours|us)\b|(?:supplied|done|installed|applied) by\b|no\b|not\b|without\b|existing|old)\b/i;
+  // The first sentence of the user's own task that names the type as the crew's work: { word, sentence } or ''.
+  function ownTaskUse(type, words) {
+    const task = String(words || '').split('\n')[0];
+    const sentence = task.split(/(?<=[.;!?:])\s+/).find((text) => namedIn(type, text) && !OTHERS_SAID.test(text));
+    return sentence ? { word: namedIn(type, sentence), sentence: sentence.trim() } : '';
+  }
   function usedByOwnSteps(type, draft) {
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step));
     for (const step of steps) {
@@ -397,6 +423,8 @@
     for (const type of TYPES) {
       const used = usedByStep(type, draft) || usedByOwnSteps(type, draft);
       if (used) out[type] = used;
+      // Fuel for the plant list's engine-driven plant: a reason is asked, as for a word in the task.
+      else if (type === FUEL && fuelledPlant(draft)) out[type] = { step: fuelledPlant(draft), word: 'diesel or petrol', plant: true };
     }
     return out;
   }
@@ -427,7 +455,7 @@
     // A step whose lines use the product only on a condition ("when cleaning with solvents") is settled by a reason that
     // says why it is not used here ("water-based sealer only"), but not by one that says others do it: the crew cleans
     // its own brushes (messy round 10, run 4; content8).
-    const found = type === SILICA ? null : draft ? usedByStep(type, draft) : known && !known.own ? known : null;
+    const found = type === SILICA ? null : draft ? usedByStep(type, draft) : known && !known.own && !known.plant ? known : null;
     const mine = found && found.conditional && !BY_OTHERS.test(clean(reason)) ? null : found;
     if (mine) return `${SHORT.get(type)}: the job step "${mine.step}" in this SWMS uses "${mine.word.toLowerCase()}", so it cannot be "Not required". Add the product you use with its safety data sheet, or take that step off if your crew does not do it.`;
     // While that step is in the SWMS, no reason settles it: the product being cut is asked for.
@@ -435,7 +463,13 @@
     // A step whose own hazard is the silica dust it makes ("Silica dust from ballast": messy round 9, run 5).
     const dust = type === SILICA ? (draft ? usedByStep(type, draft) : known && !known.own ? known : null) : null;
     if (dust) return `${SHORT.get(type)}: the job step "${dust.step}" makes silica dust, so it cannot be "Not required". Add the material that gives off the dust, for example the ballast or the concrete, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
-    const asked = reasonAsked(type, words, steps);
+    // The user's own task names the work as the crew's ("Make roof penetrations, waterproof them"): a reason that says
+    // another trade does it does not settle it (messy round 11, run 2: "the roofer does it").
+    const ownSaid = OTHERS_REASON.test(clean(reason)) ? ownTaskUse(type, words) : '';
+    if (ownSaid) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says another trade does it, but your task names "${ownSaid.word}" as your crew's work ("${ownSaid.sentence.slice(0, 80)}"). Add the product you use, or take that work out of the task if another trade does it.`;
+    const plant = type === FUEL ? (draft ? fuelledPlant(draft) : known && known.plant ? known.step : '') : '';
+    const wordNamed = namedIn(type, words) || namedIn(type, String(steps || '').replace(/\([^()]*\(diesel or petrol\)\)|\(diesel or petrol\)/g, ' '));
+    const asked = wordNamed || !plant ? reasonAsked(type, words, steps) : { word: 'diesel or petrol', said: `your plant list has "${plant}", which runs on diesel or petrol` };
     if (!asked) return '';
     const named = asked.word;
     const need = reasonNeed(reason);
@@ -477,7 +511,13 @@
     [/\b(?:sealants?|silicone|caulk\w*|mastics?)\b/i, /\b(?:seal\w*|caulk\w*)\b/i],
     // Petrol runs the small plant (saws, compactors, generators), not the diesel earthmoving plant (messy round 9,
     // run 2: petrol for the concrete saw matched to "Run earthmoving plant").
-    [/\b(?:petrol|unleaded|ulp|two[- ]stroke|2[- ]stroke)\b/i, [/\brefuel\w*/i, /\bsaw\w*\b/i, /\bcut\b/i, /\bgenerators?\b/i, /\bcompact\w*/i, /\btrowel\w*|\bfinish the concrete\b/i]],
+    [/\b(?:petrol|unleaded|ulp|two[- ]stroke|2[- ]stroke)\b/i, [/\brefuel\w*/i, /\bsaw\w*\b/i, /\bcut\b/i, /\bgenerators?\b/i, /\bcompact\w*/i, /\btrowel\w*|\bfinish (?:the )?concrete\b/i]],
+    // Messy round 11: jointing compound went to moving the sheets, old batts to removing the old services, the form
+    // release agent to no step, and conduit glue to the labelling step.
+    [/\b(?:jointing|setting|base ?coat|top ?coat|topping|stopping|finishing) (?:compounds?|cements?|plasters?)\b|\bcornice (?:cement|adhesive)\b/i, [/^Set the joints$/i, /\bjoints?\b/i]],
+    [/\b(?:batts|glass ?wool|rock ?wool|insulation)\b/i, [/^Install insulation$/i, /\binsulat\w*/i, /^Strip out\b/i, /^Strip\b/i]],
+    [/\b(?:release agents?|form ?oil|form release)\b/i, [/^Lay the formwork deck$/i, /^Stand and brace wall and column forms$/i, /^Form the\b/i, /\bform(?:work)?\b/i]],
+    [/\bconduits?\b/i, [/^Lay conduits$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i, /^Rough-in$/i]],
   ];
   const PIPE_PRODUCT = /\b(?:c?pvc|u-?pvc|pipe (?:cement|glue|primer)|solvent cement)\b/i;
   const PIPE_STEP = /\b(?:pipe\w*|plumb\w*|drain\w*|sprinkler|hydrant|stacks?|sanitary|join\w*)\b/i;
@@ -488,7 +528,8 @@
     if (chosen && names.includes(chosen)) return chosen;
     if (PIPE_PRODUCT.test(clean(row && row.product))) {
       const piping = list.filter((step) => step && !step.own && !GENERAL.has(step.step) && PIPE_STEP.test(step.step || '') && !/^(?:Label|Test|Flush|Commission|Pressure test)\b/i.test(step.step || ''));
-      const joins = piping.find((step) => /\b(?:join\w*|solvent)\b/i.test(step.step || '')) || piping[0];
+      // The step that joins PVC, not one that joins PE by electrofusion (messy round 11, run 5).
+      const joins = piping.find((step) => /\b(?:pvc|solvent|primer)\b/i.test(step.step || '')) || piping.find((step) => /\b(?:join\w*|solvent)\b/i.test(step.step || '') && !/\belectrofusion|\bbutt fus/i.test(step.step || '')) || piping[0];
       if (joins) return joins.step;
     }
     // A product whose own name says what it is for goes in the step that does that: an epoxy grout in the

@@ -68,7 +68,7 @@ const { findState, highRiskList } = require('./legislation');
 const { highRiskMatches, domesticWork } = require('./draft');
 const { leftOpen } = require('./blanks');
 const { isHoldPoint } = require('./designs');
-const { orderFaults } = require('./step-stages');
+const { firmFaults } = require('./step-stages');
 
 const BANDS = { accepted: 'Accepted', changes: 'Accepted with changes', rejected: 'Not accepted' };
 
@@ -195,6 +195,8 @@ function normaliseSwms(input = {}) {
     notApply: (Array.isArray(input.notApply) ? input.notApply : []).filter((item) => item && typeof item === 'object' && typeof item.id === 'string' && text(item.reason)).map((item) => ({ id: text(item.id), label: text(item.label), reason: text(item.reason) })),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
       .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible), rating: ratingOf(item) })),
+    // The Controls table a SiteWrite draft prints under the steps (fromDraft); empty otherwise.
+    controls: list(input.controls).filter(filled),
     ppe: list(input.ppe),
     stepPpeLines: list(input.stepPpeLines),
     // Each hazardous product's line in its step (substances.js, D257).
@@ -863,14 +865,16 @@ function hardFails(swms, state, stage = 'review') {
   const falls = namedIds.has('fall') || implied.some((item) => item.id === 'fall');
   if (falls) {
     const fallSteps = swms.steps.filter((step) => /\b(falls?|falling|height|roofs?|edges?|ladders?|scaffold\w*|voids?|openings?|ewps?|elevat\w*|platforms?|harness\w*)\b/i.test(stepText(step, swms.task)));
-    const fallLines = [...new Set([...fallSteps.flatMap((step) => step.controls), ...allControls.filter((line) => ANSWERS.fall.test(line))])];
+    // The Controls table counts too: the fall answer prints there when no step carries it.
+    const fallControls = [...allControls, ...swms.controls];
+    const fallLines = [...new Set([...fallSteps.flatMap((step) => step.controls), ...fallControls.filter((line) => ANSWERS.fall.test(line))])];
     // Only a physical fall control, anywhere in the SWMS, counts: an isolation, a barricade under the
     // work or a ladder does not stop a fall. An EWP or scaffold in the plant list is the platform the
     // work is done from.
     // An option left open ("where required", "etc.") is not a chosen control, and a way
     // of lowering material to the ground is not a fall control for people.
-    const higher = [...allControls.filter((line) => !isVague(line) && !/\betc\b/i.test(line) && !/\b(?:lower|drop)\w*\b[^.]{0,40}\bto (?:the )?ground\b/i.test(line)), ...swms.plant.map((line) => line.split(':')[0]).filter((line) => PLANT_AT_HEIGHT.test(line))].some((line) => PHYSICAL_FALL.test(line) && !NO_FALL_CONTROL.test(line));
-    const justified = allControls.some((line) => /\bnot (?:reasonably )?practicable\b/i.test(line) && /\b(edge protection|guard ?rails?|scaffold\w*|ewps?|elevating work platforms?)\b/i.test(line));
+    const higher = [...fallControls.filter((line) => !isVague(line) && !/\betc\b/i.test(line) && !/\b(?:lower|drop)\w*\b[^.]{0,40}\bto (?:the )?ground\b/i.test(line)), ...swms.plant.map((line) => line.split(':')[0]).filter((line) => PLANT_AT_HEIGHT.test(line))].some((line) => PHYSICAL_FALL.test(line) && !NO_FALL_CONTROL.test(line));
+    const justified = fallControls.some((line) => /\bnot (?:reasonably )?practicable\b/i.test(line) && /\b(edge protection|guard ?rails?|scaffold\w*|ewps?|elevating work platforms?)\b/i.test(line));
     // A line that names fall arrest only as the last resort ("fall prevention comes before work
     // positioning or fall arrest") or as a condition ("Where harnesses are used, ...") does not say
     // a harness is the fall control.
@@ -1030,7 +1034,9 @@ function weighted(swms, state, context) {
     // Whole-building demolition lines (roof down, chutes, notice to the regulator) in a SWMS whose task keeps
     // the structure: internal, non-load-bearing or strip-out work (messy round 7: they passed).
     const keepsStructure = /\b(non[- ]load[- ]bearing|internal walls?|soft strip|strip[- ]?out|fit-?outs?|structur\w* (?:elements? )?(?:untouched|retained|kept|left))\b/i.test(swms.task)
-      && !/\b(?:demolish\w*|demolition of)\s+(?:the |a |an )?(?:whole |entire |existing |old )?(?:buildings?|houses?|structures?|sheds?|garages?|warehouses?)\b/i.test(swms.task);
+      // A building, annex or wing knocked down whole as well as the strip out is demolished (messy round 11, run 7: "then
+      // demo the 2 storey brick annex" was read as keeping the structure).
+      && !/\b(?:demolish\w*|demolition of|demo|knock\w* down|pull\w* down)\s+(?:[\w-]+\s+){0,4}?(?:buildings?|houses?|structures?|sheds?|garages?|warehouses?|annex(?:e|es)?|anex|extensions?|wings?)\b/i.test(swms.task);
     const wholeLines = keepsStructure ? steps.filter((step) => step.controls.some((line) => /\bfrom the roof down\b|\breverse order to its construction\b|\bGlass is taken out of windows\b|\bRoof timbers and timber floors are cut\b/i.test(line))).map((step) => step.step) : [];
     if (wholeLines.length) {
       points -= 2;
@@ -1437,9 +1443,11 @@ function weighted(swms, state, context) {
   // W17 Job steps in the order the work is done (messy round 10: the order was wrong in every run, and the check
   // passed it). Each step SiteWrite knows has a work stage (step-stages.js); a step printed after one from a later
   // stage is flagged, so an order SiteWrite could not put right (the user's own order) is seen. No points yet: a flag
-  // for the person to judge.
+  // for the person to judge. Only orders the map is sure of are flagged (messy round 11: W17 told people to put glass
+  // before the framing and doors before the sanding, after they had put them right): pairs the work can sensibly be
+  // done either way round are not.
   {
-    const faults = orderFaults(steps);
+    const faults = firmFaults(steps);
     if (faults.length) {
       const fixes = faults.slice(0, 3).map((item) => `"${item.step}" (step ${item.at}) is usually done before "${item.after}" (step ${item.afterAt}). Check the order of the job steps, and move the step if the work is done in that order.`);
       out.push({ rule: 'W17', title: 'Job steps in the order the work is done', hard: false, pass: false, points: 0, max: 0, message: fixes.join(' '), fixes, source: sourceFor('W17', state) });
@@ -1542,6 +1550,8 @@ function fromDraft(draft, extra = {}) {
     ...(draft.controls || []).map((item) => item && item.text).filter(leftOpen),
     ...(draft.references || []).map((item) => item && item.text).filter(leftOpen),
   ];
+  // The Controls table under the steps, as printed: a fall answer with no step of its own prints there.
+  const tableControls = (draft.controls || []).map((item) => item && item.text).filter((line) => text(line) && !leftOpen(line));
   // Each step's ratings as printed in its Risk rating column, with what is said about a High after the controls.
   const steps = (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [], responsible: step.responsible || '',
     ...(step.risk ? { risk: { before: step.risk.before && step.risk.before.level, after: step.risk.after && step.risk.after.level, response: step.risk.response || '' } } : { riskBefore: '', riskAfter: '', riskResponse: '' }) }));
@@ -1554,6 +1564,7 @@ function fromDraft(draft, extra = {}) {
     notApply: draft.highRiskNotApply || [],
     notRequired: ((draft.substances && draft.substances.notRequired) || []).map((item) => item.type),
     steps,
+    controls: tableControls,
     // Every PPE item ticked, for all work or for particular steps (D246): one a single step needs is
     // still in the SWMS's PPE.
     ppe: (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.label)),

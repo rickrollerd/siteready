@@ -532,13 +532,18 @@
     const products = ((item.body && item.body.substances) || []).filter((row) => row && String(row.product || '').trim());
     const rows = types.filter((type) => rules.TYPES.includes(type)).map((type) => {
       const added = products.filter((row) => row.type === type).map((row) => row.product);
-      const named = rules.namedIn ? rules.namedIn(type, wordsOf(index)) : '';
+      const said = rules.namedIn ? rules.namedIn(type, wordsOf(index)) : '';
+      // Fuel for the plant list's diesel or petrol plant asks a reason too (messy round 11, run 2).
+      const got = asked.get(index) || {};
+      const use = (item.substanceUses || got.substanceUses || {})[type];
+      const fromPlant = !said && use && use.plant ? use.step : '';
+      const named = said || fromPlant;
       const n = rules.TYPES.indexOf(type);
       // A tick refused whatever the reason (a step uses it, the SDS answer names it, a step cuts concrete)
       // says so under the tick, with or without a reason box.
       const need = ticked.has(type) && !added.length ? notUsedNeed(index, type) : '';
       const refused = need && !named ? `<p class="answer-note" id="go-why-need-${index}-${n}">${esc(need)}</p>` : '';
-      const why = refused || (ticked.has(type) && named && !added.length ? `<div class="field go-why"><label for="go-why-${index}-${n}">Why is it not required?<span class="hint">This SWMS's task or answers name "${esc(named)}". Give a short reason, ${esc(rules.reasonExample ? rules.reasonExample(type) : 'for example "not used by our crew on this job"')}. It prints in the substances section.</span></label><input id="go-why-${index}-${n}" type="text" maxlength="200" data-go-why="${index}" data-type="${esc(type)}" value="${esc(whyOf(item)[type] || '')}"><p class="answer-note" id="go-why-need-${index}-${n}"${notUsedNeed(index, type) ? '' : ' hidden'}>${esc(notUsedNeed(index, type))}</p></div>` : '');
+      const why = refused || (ticked.has(type) && named && !added.length ? `<div class="field go-why"><label for="go-why-${index}-${n}">Why is it not required?<span class="hint">${fromPlant ? `This SWMS's plant list has "${esc(fromPlant)}", which runs on diesel or petrol.` : `This SWMS's task or answers name "${esc(named)}".`} Give a short reason, ${esc(rules.reasonExample ? rules.reasonExample(type) : 'for example "not used by our crew on this job"')}. It prints in the substances section.</span></label><input id="go-why-${index}-${n}" type="text" maxlength="200" data-go-why="${index}" data-type="${esc(type)}" value="${esc(whyOf(item)[type] || '')}"><p class="answer-note" id="go-why-need-${index}-${n}"${notUsedNeed(index, type) ? '' : ' hidden'}>${esc(notUsedNeed(index, type))}</p></div>` : '');
       return `<li>${esc(type)}${added.length ? ` <span class="meta">Added: ${esc(added.join('; '))}.</span>` : `<label class="check go-notused"><input type="checkbox" data-go-notused="${index}" data-type="${esc(type)}"${ticked.has(type) ? ' checked' : ''}> Not required</label>`}${why}</li>`;
     }).join('');
     const open = item.kind === 'draft' ? ` <button type="button" class="link" data-project-open="${index}">Open this SWMS to add a product</button>` : ' After Prepare all, open this SWMS with Check this SWMS to add one.';

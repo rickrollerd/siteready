@@ -26,7 +26,8 @@ test('nearest hospitals and medical centres are found from the job address, near
   assert.ok(nearby.every((call) => !/phone|rating|opening/i.test(call.fields)));
   // The same address again comes from the cache.
   await places.nearbyCare('100 Queen St, Brisbane City QLD 4000', { fetchImpl });
-  assert.equal(calls.length, 7);
+  // The address, two nearby searches and five text searches (the nearest public emergency departments added in content11).
+  assert.equal(calls.length, 8);
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
 
@@ -114,7 +115,8 @@ test('the raw view lists every place Google returned with whether the filter kep
   };
   const raw = await places.nearbyCare('50 Darling Street, Dubbo NSW 2830', { fetchImpl, raw: true });
   assert.deepEqual(raw.hospitals.map((item) => [item.name, item.kept]), [['The Skin Hospital Dubbo', false], ['Dubbo Base Hospital', true]]);
-  assert.equal(raw.errors.length, 1);
+  // Both strictly typed text searches fail here.
+  assert.equal(raw.errors.length, 2);
   const result = await places.nearbyCare('50 Darling Street, Dubbo NSW 2830', { fetchImpl });
   assert.deepEqual(result.hospitals.map((item) => item.name), ['Dubbo Base Hospital']);
   delete process.env.GOOGLE_PLACES_API_KEY;
