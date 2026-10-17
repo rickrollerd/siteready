@@ -483,9 +483,13 @@
 
   // A control from the SDS as it reads inside the step's line: its own words, without the full stop,
   // and with a small first letter unless it starts with an abbreviation (PPE, P2).
+  // Only a plain first word takes a small letter: a name typed with its capital keeps it ("Hilti vac on the
+  // drill"; messy round 10, run 5).
+  const PLAIN_START = /^(?:wear|wearing|use|using|used|keep|kept|store|stored|avoid|do|don't|dont|never|always|only|no|not|wash|ensure|apply|handle|work|provide|ventilate|ventilation|dispose|clean|mix|open|close|remove|take|read|follow|check|if|in|on|when|where|after|before|all|any|a|an|the|good|adequate|local|mechanical|natural|gloves?|safety|eye|eyes|skin|face|chemical|nitrile|rubber|protective|respiratory|respirator|dust|on-tool|extraction|vacuum|wet|water|soap|first|rinse|flush|seek|call|get|move|cover|contain|clear|stop|turn|switch|isolate|label|labelled|decant|pour|spray|brush|roll|cure|allow|let|leave|minimise|limit|restrict|barricade|signs?|fire|hot|cold|heat|ignition|smoking|eating|drinking|wipe|vac|p2|ppe)$/i;
   const inLine = (text) => {
     const words = clean(text).replace(/[.;]+$/, '');
-    return /^[A-Z][a-z]/.test(words) ? `${words[0].toLowerCase()}${words.slice(1)}` : words;
+    const first = words.split(/\s+/)[0] || '';
+    return /^[A-Z][a-z]/.test(words) && PLAIN_START.test(first) ? `${words[0].toLowerCase()}${words.slice(1)}` : words;
   };
   // The step's one line for a product (D257): "Curing compound or release agent (Product X): wear
   // chemical resistant gloves; wear goggles; see its safety data sheet." '' until the product has a

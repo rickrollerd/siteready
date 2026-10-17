@@ -148,6 +148,20 @@
   }
   // The answer to a "by others" step: the user's, else Yes where the package's own work names it.
   const othersAnswer = (answers, pack, entry) => (answers[pack.name] || {})[entry.step] || (ownsStep(pack.rows, entry.step) ? 'yes' : 'no');
+  // The sentence of the package's own work, not given to others, that names a step's work, or '' (messy
+  // round 10, run 4: "No, leave it out" for final painting by others also took off the crew's own step for
+  // "Bottoms of doors are to be sealed (painted) prior to being hung"). That work keeps its step.
+  function ownWorkNaming(rows, step) {
+    const words = String(step || '').toLowerCase().replace(STEP_VERBS, ' ').split(/[^a-z]+/).filter((word) => word.length >= 4).map((word) => word.replace(/s$/, ''));
+    if (!words.length) return '';
+    for (const row of rows || []) {
+      for (const sentence of [row.activity, ...(row.quotes || [])].join('. ').split(/(?<=[.;])\s+/)) {
+        const lower = sentence.toLowerCase();
+        if (words.every((word) => new RegExp(`\\b${word}`).test(lower)) && !TO_OTHERS.test(sentence) && !/\b(?:excluded|not included|not part of|by the (?:builder|principal|head contractor|client))\b/i.test(sentence)) return sentence.trim();
+      }
+    }
+    return '';
+  }
 
   // One SWMS in the project for each package chosen. answers holds the scope review answers by
   // package name ({ [step]: 'yes' | 'no' }): Yes adds that step's group, No leaves the step out.
@@ -160,7 +174,7 @@
       const kinds = mapped ? [...(mapped.groups || [])] : null;
       const leaveOut = [];
       for (const entry of (mapped && mapped.byOthers) || []) {
-        if (othersAnswer(answers, pack, entry) === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else leaveOut.push(entry.step);
+        if (othersAnswer(answers, pack, entry) === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else if (!ownWorkNaming(pack.rows, entry.step)) leaveOut.push(entry.step);
       }
       return {
         // A work title where the package's name is bare or an area (handover.js packageTitles, messy round
@@ -190,7 +204,7 @@
     });
   }
 
-  const api = { packagesOf, ownsStep, othersAnswer, isCranage, craneClause, suppliesCranage, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
+  const api = { packagesOf, ownsStep, ownWorkNaming, othersAnswer, isCranage, craneClause, suppliesCranage, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteScopeChoice = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -133,7 +133,9 @@ function typed(value, max, label, field, { answer = false } = {}) {
 // The subcontractor's ABN is optional (D308). With it, only a company with that ABN can take up the list
 // in SiteWrite; its check digits must work.
 function cleanSubcontract(body) {
-  const name = oneLine(body && body.name, 200);
+  // A company typed in lower case takes its capitals, as the lead's own does (SiteLink round 10, wording 1:
+  // "echidna ductworks pty ltd" on the table, the log and the preview).
+  const name = answers.tidyName(oneLine(body && body.name, 200));
   // Typed case is tidied (messy round 7: "(mechanical)").
   const trade = answers.capitalFirst(oneLine(body && body.trade, 120));
   const rawEmail = oneLine(body && body.email, 200);
@@ -311,7 +313,7 @@ function install(router, deps) {
     // when it was chosen for this subcontract (messy round 6).
     const readAt = read && (read.finished_at || read.created_at);
     return {
-      id: sub.id, projectId: sub.project_id, name: sub.name, trade: sub.trade, email: sub.contact_email, status: sub.status,
+      id: sub.id, projectId: sub.project_id, name: answers.tidyName(sub.name), trade: sub.trade, email: sub.contact_email, status: sub.status,
       docName: sub.doc_name, scopeOn: sub.scope_at ? dateTime(sub.scope_at, state) : '', scopeBy: sub.scope_by_name, listRev: Number(sub.list_rev || 0),
       readOn: readAt ? dateTime(readAt, state) : '', readBefore: Boolean(readAt && sub.scope_at && new Date(readAt) < new Date(sub.scope_at) - 60000),
       tradeWarning: sub.trade_warning || '',
@@ -366,7 +368,7 @@ function install(router, deps) {
         scope = row ? row.status : 'none';
       }
       out.push({
-        id: sub.id, name: sub.name, trade: sub.trade, scope, status: sub.status,
+        id: sub.id, name: answers.tidyName(sub.name), trade: sub.trade, scope, status: sub.status,
         swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && !['noLaw', 'folded'].includes(row.removed_why)).length,
         // Work folded into another SWMS on the list, said apart from work removed (messy round 7).
         folded: items.filter((row) => row.removed_at && row.removed_why === 'folded').length,
@@ -563,7 +565,8 @@ function install(router, deps) {
     const row = await db.one('SELECT * FROM subcontract_points WHERE id = $1 AND subcontract_id = $2', [String(req.params.pointId || ''), ctx.sub.id]);
     if (!row) throw fail(404, 'That point is not on this subcontract.');
     // Each sentence with its capital (messy round 8, wording 2: "... boards. wallaroo installs them").
-    const answer = answers.capitalSentences(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }));
+    // The companies' own names take their capitals (SiteLink round 10, wording 7: "Potoroo bend builds").
+    const answer = answers.withCompanyNames(answers.capitalSentences(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true })), [ctx.org && ctx.org.name, ctx.project && ctx.project.pc_name, ctx.sub.name, ctx.sub.claimed_name]);
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));

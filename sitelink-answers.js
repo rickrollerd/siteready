@@ -24,10 +24,10 @@ function phoneProblem(text) {
 
 // Why an answer says nothing yet, or ''. The SWMS app's own words for "me", "dont know", a question
 // back, "as per site" and the like, then an answer that passes the question on.
-function notAnswer(text) {
+function notAnswer(text, kind) {
   const value = clean(text);
   if (!value) return '';
-  const said = gate.notAnswer(value);
+  const said = gate.notAnswer(value, kind);
   if (said) return said;
   if (PASSED_ON.test(value)) return `${quoted(value)} passes the question on instead of answering it. Write the answer here, or leave it empty until you know.`;
   return '';
@@ -39,7 +39,8 @@ function notAnswer(text) {
 function personProblem(text, { firstAider = false, example = 'Jo Park, 0412 345 678' } = {}) {
   const value = clean(text);
   if (!value) return '';
-  const not = notAnswer(value);
+  // "me" is asked for a name and role here, as in the SWMS app's person boxes (messy round 10).
+  const not = notAnswer(value, firstAider ? 'firstAider' : 'person');
   if (not) return not;
   if (firstAider) {
     const weak = gate.fieldWeak('firstAider', value);
@@ -82,7 +83,11 @@ function firstAiderProblem(text) {
 // (messy round 7: "tom keane 0413 222 908", "front gate" and "hi vis at all times" printed so on the
 // SWMS). A person or a hospital takes a capital on each word; a place or a rule on its first word.
 const tidyPerson = (text) => tidyName(text);
-const tidyPlace = (text) => capitalFirst(text);
+// A street named in a place takes its capitals ("meet at henry st gate" reads "Meet at Henry St gate";
+// SiteLink round 10, wording 11). Words typed with capitals are left as typed.
+const STREET = /(?<!\bthe\s)\b([a-z][a-z'’-]+)\s+(st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close)\b/g;
+const NOT_A_STREET_NAME = new Set(['the', 'a', 'an', 'this', 'that', 'our', 'side', 'back', 'front', 'same', 'next', 'each', 'on', 'at', 'of', 'off', 'in', 'to', 'by', 'from', 'near', 'and', 'or', 'site', 'local']);
+const tidyPlace = (text) => capitalFirst(clean(text).replace(STREET, (whole, name, kind) => (NOT_A_STREET_NAME.has(name) ? whole : `${name.charAt(0).toUpperCase()}${name.slice(1)} ${kind.charAt(0).toUpperCase()}${kind.slice(1)}`)));
 
 // A place a new worker can find: not "carpark", "gate" or "out the front" (the SWMS app's rule).
 function placeProblem(text) {
@@ -117,10 +122,42 @@ function phoneOnly(text) {
 }
 
 // A name typed all in lower case reads as typed in a hurry: "dana whitfield" becomes "Dana Whitfield".
+// Small words stay in lower case unless they come first: "swan coast doors and hardware" reads "Swan Coast
+// Doors and Hardware" (messy round 10, flow9 decision 4 B, recommended). Capitals the person typed are never
+// lowered: a name with any capital is left as typed.
+const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by']);
 function tidyName(text) {
   const value = clean(text);
   if (!value || /[A-Z]/.test(value)) return value;
-  return value.replace(/(^|[\s'’-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`);
+  return value.replace(/(^|[\s'’-])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && SMALL_WORDS.has(`${letter}${rest}`) ? whole : `${before}${letter.toUpperCase()}${rest}`));
+}
+// A person with their role, "name, role" ("declan furlong, foreman"): the name takes its capitals and the
+// role its first capital, as the checker's do ("Tanya Pirelli, Ops manager"). An answer typed with any
+// capital is left as typed ("Sam Lee, supervisor").
+function tidyPersonRole(text) {
+  const value = clean(text);
+  if (!value || /[A-Z]/.test(value)) return value;
+  const at = value.indexOf(',');
+  if (at < 0) return tidyName(value);
+  const rest = value.slice(at + 1).trim();
+  return `${tidyName(value.slice(0, at))}${rest ? `, ${tidyRole(rest)}` : ','}`;
+}
+// A company's name inside an answer takes its capitals, where two or more of its words are typed in a row
+// ("potoroo bend builds the plinths" reads "Potoroo Bend builds the plinths"; SiteLink round 10, wording 7).
+function withCompanyNames(text, names = []) {
+  let out = String(text || '');
+  for (const name of names) {
+    const words = String(name || '').split(/\s+/).filter(Boolean);
+    for (let size = words.length; size >= 2; size -= 1) {
+      for (let start = 0; start + size <= words.length; start += 1) {
+        const run = words.slice(start, start + size);
+        if (!run.every((word) => /^[A-Z0-9][\w'’&.-]*$/.test(word) || SMALL_WORDS.has(word))) continue;
+        const pattern = new RegExp(`\\b${run.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+')}\\b`, 'gi');
+        out = out.replace(pattern, (found) => (/[A-Z]/.test(found.slice(1)) ? found : run.join(' ')));
+      }
+    }
+  }
+  return out;
 }
 
 // The first letter of a title in capitals: "crane lift rooftop units" reads "Crane lift rooftop units".
@@ -168,4 +205,4 @@ function tidyRole(text) {
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPlace, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

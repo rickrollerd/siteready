@@ -20,7 +20,9 @@ const EMERGENCY = (extra) => ({ ask: 'Answer it.', emergency: true, involves: 'w
 
 test('weak answers from round 3 are refused with a plain reason, and full ones pass', () => {
   for (const value of ['gate', 'out the front', 'Outside', 'the gate']) assert.match(answerNeed(rule('musterPoint'), value), /does not say where/, value);
-  for (const value of ['builder', 'supervisor', 'the builder']) assert.match(answerNeed(rule('firstAider'), value), /does not name a first aider/, value);
+  for (const value of ['builder', 'the builder']) assert.match(answerNeed(rule('firstAider'), value), /does not name a first aider/, value);
+  // A role alone gets the role rule every person box has (messy round 10).
+  assert.match(answerNeed(rule('firstAider'), 'supervisor'), /is a role, not a person/);
   assert.match(answerNeed(rule('principalContractor'), 'the builder'), /does not name the company/);
   assert.match(answerNeed(rule('worksManagerPhone'), '0412'), /is not a phone number/);
   for (const [id, value] of [['musterPoint', 'Main gate on Smith Street, beside the site office'], ['musterPoint', 'Front gate on Smith Street'], ['firstAider', 'Jo Smith'], ['firstAider', 'Main contractor\'s site first aider'], ['principalContractor', 'ABC Builders Pty Ltd'], ['principalContractor', 'Not applicable'], ['worksManagerPhone', '0412 345 678']]) {

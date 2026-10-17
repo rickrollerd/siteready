@@ -253,7 +253,17 @@ document.getElementById('abn-found').addEventListener('click', (event) => {
   if (button) document.getElementById('profile-company').value = button.dataset.abnName;
 });
 
-async function saveProfile({ auto = false } = {}) {
+// One save at a time, in the order asked: leaving the ABN box saves the profile by itself, and the press
+// of Save profile that follows waits for that save, so its "Saved" is the last word (messy round 10, runs 2
+// and 8: the save started on leaving the box finished after the press and took "Saved" off the heading).
+// Signed out, the save is to this device and done at once.
+let profileSaving = Promise.resolve();
+function saveProfile(options = {}) {
+  if (!(window.SiteWrite && window.SiteWrite.saveCompany && window.SiteWrite.signedIn && window.SiteWrite.signedIn())) return saveProfileNow(options);
+  profileSaving = profileSaving.catch(() => {}).then(() => saveProfileNow(options));
+  return profileSaving;
+}
+async function saveProfileNow({ auto = false } = {}) {
   const next = {};
   Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { next[key] = document.getElementById(id).value.trim(); });
   if (pendingLogo) next.logo = pendingLogo;
@@ -276,7 +286,11 @@ async function saveProfile({ auto = false } = {}) {
       profileStatus(window.SiteWrite.lastCompanyNotice || (auto ? 'Saved for your company as you filled it in.' : 'Saved for your company.'));
       if (!auto) savedInSummary();
     } catch (error) {
-      profileStatus(auto ? `Not saved yet: ${error.message} Fix it, then press Save profile.` : error.message);
+      // What is wrong with the ABN is said once, at its box (messy round 10, runs 2 and 8: the sentence
+      // showed there and again in "Not saved yet: ...").
+      const atAbn = error.field === 'abn' || (/\bABN\b/.test(error.message || '') && Boolean(showAbnProblem()));
+      if (atAbn) showAbnProblem();
+      profileStatus(atAbn ? `Not saved yet: fix the ABN as the note under it says, then press Save profile.` : auto ? `Not saved yet: ${error.message} Fix it, then press Save profile.` : error.message);
     }
     if (shownDraft) showGate();
     draftWithProfile();
@@ -3339,7 +3353,10 @@ function coverDone(parts) {
   return parts.every((part) => ticked.includes(part));
 }
 const sameWords = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
-const ownFor = (part) => (ownSteps || []).find((item) => sameWords(item.part) === sameWords(part));
+// The step of your own for a part: written for it, or one the draft found covers it by its words (messy
+// round 10, run 2: a step written for the SWMS as a whole left its work listed).
+const ownFor = (part) => (ownSteps || []).find((item) => sameWords(item.part) === sameWords(part))
+  || (shownDraft && shownDraft.notCoveredOwn && shownDraft.notCoveredOwn[part] ? (ownSteps || []).find((item) => item.name === shownDraft.notCoveredOwn[part]) : undefined);
 // Each part SiteWrite has no job steps for is dealt with on its own line (messy-user testing, 13 October
 // 2026: one tick "or it is covered in a separate SWMS" was the easy way out). Saving your own step for a
 // part clears it by itself. Otherwise the user says which SWMS covers it: one of the project's other
@@ -3402,12 +3419,13 @@ function stepCovering(data, part) {
   const covered = (data.notCoveredInStep || []).find((item) => item.part === part);
   const step = named || (covered && covered.step);
   if (!step) return null;
-  const at = (data.jobSteps || []).findIndex((other) => other.step === step && !other.own);
+  const at = (data.jobSteps || []).findIndex((other) => other.step === step);
   return at < 0 ? null : { step, number: at + 1 };
 }
-// "A step in this SWMS covers it": the SWMS's own job steps to choose from, by number and name.
+// "A step in this SWMS covers it": the SWMS's own job steps to choose from, by number and name, the
+// steps you wrote included (messy round 10, run 2: only SiteWrite's steps were listed, so none was shown).
 function coverStep(data, part, index) {
-  const steps = (data.jobSteps || []).map((step, at) => ({ step: step.step, number: at + 1, own: step.own })).filter((item) => !item.own && !['Before starting', 'Finish and clean up'].includes(item.step));
+  const steps = (data.jobSteps || []).map((step, at) => ({ step: step.step, number: at + 1, own: step.own })).filter((item) => !['Before starting', 'Finish and clean up'].includes(item.step));
   if (!steps.length) return '';
   return `<div class="cover-where cover-step"><label for="cover-step-${index}">A step in this SWMS covers it</label><select id="cover-step-${index}" data-cover-step="${index}" class="plain"><option value="">Choose the step that covers it</option>${steps.map((item) => `<option value="${esc(item.step)}">Step ${item.number}: ${esc(item.step)}</option>`).join('')}</select></div>`;
 }
@@ -3882,7 +3900,20 @@ resultEl.addEventListener('click', async (event) => {
   }
   const stepBack = event.target.closest('[data-step-back]');
   if (stepBack) {
-    leaveOut = (leaveOut || []).filter((name) => name !== stepBack.dataset.stepBack);
+    const name = stepBack.dataset.stepBack;
+    leaveOut = (leaveOut || []).filter((other) => other !== name);
+    // A step whose kind of work is not among the steps picked is picked again with it, so Put back holds
+    // when the picks are next read from the boxes (messy round 10, run 4: "Paint", left out by the scope
+    // review, was put back, then went again at "Prepare the statement"). Only that step comes back: the
+    // kind's other steps not in the draft stay out.
+    if (Array.isArray(stepPicks) && !stepPicks.some((id) => ((stepById.get(id) || {}).steps || []).includes(name))) {
+      const kind = [...stepById.values()].find((item) => (item.steps || []).includes(name));
+      if (kind) {
+        const shown = new Set(((shownDraft && shownDraft.jobSteps) || []).map((step) => step.step));
+        stepPicks = [...stepPicks, kind.id];
+        leaveOut = [...new Set([...leaveOut, ...kind.steps.filter((other) => other !== name && !shown.has(other))])];
+      }
+    }
     if (!leaveOut.length) leaveOut = null;
     await prepareDraft({ scroll: false, keep: '#steps-head' });
     return;
@@ -4339,7 +4370,10 @@ const OWN_HIERARCHY = 'Write them in hierarchy order: first remove the hazard, t
 const linesOf = (text) => String(text || '').split(/\n+/).map((line) => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
 const startName = (part) => String(part || '').replace(/\s+/g, ' ').trim().replace(/^[a-z]/, (letter) => letter.toUpperCase());
 function closeOwnForm() {
+  const open = document.querySelector('.own-step-form:not(.go-own-form)');
   document.querySelectorAll('.own-step-form, .own-form-row').forEach((el) => el.remove());
+  // A form saved or cancelled is no longer kept to come back after a reload.
+  if (open && !restoring) { clearTimeout(keepTimer); keepTimer = setTimeout(keepUnsaved, 400); }
 }
 // holder: the element the form goes after. item: the step being changed, or null for a new one for part.
 function ownStepForm(holder, item, part) {
@@ -4831,6 +4865,37 @@ function unsavedStage() {
   return factsForm.classList.contains('hidden') ? 'start' : 'facts';
 }
 
+// A step of your own half typed, not saved yet, is kept with the rest and opened again as it was after a
+// reload (messy round 10, run 8: its name went back to the task's words and its hazards and controls were
+// empty).
+function ownFormKept() {
+  const form = document.querySelector('.own-step-form:not(.go-own-form)');
+  if (!form || !form.querySelector('#own-name')) return null;
+  const value = (selector) => String((form.querySelector(selector) || {}).value || '');
+  return { where: form.closest('#facts') ? 'facts' : 'result', part: form.dataset.ownPart || '', was: form.dataset.ownWas || '', name: value('#own-name'), hazards: value('#own-hazards'), controls: value('#own-controls'), who: value('#own-who') };
+}
+function reopenOwnForm(kept) {
+  if (!kept || typeof kept !== 'object') return false;
+  const item = kept.was ? (ownSteps || []).find((other) => other.name === kept.was) || null : null;
+  let holder = null;
+  if (kept.where === 'facts') {
+    const box = document.getElementById('own-early');
+    const parts = JSON.parse((box && box.dataset.parts) || '[]');
+    const at = kept.part ? parts.indexOf(kept.part) : -1;
+    holder = (box && (box.querySelector(`[data-own-early="${at < 0 ? '' : at}"]`) || box.querySelector('[data-own-early]'))) || null;
+  } else {
+    const at = kept.part ? coverParts(shownDraft).indexOf(kept.part) : -1;
+    holder = at >= 0 ? resultEl.querySelector(`.not-covered [data-own-write="${at}"]`) : resultEl.querySelector('.own-new');
+  }
+  if (!holder) return false;
+  ownStepForm(holder.closest('li') || holder, item, kept.part || '');
+  const set = (id, text) => { const el = document.getElementById(id); if (el && typeof text === 'string') el.value = text; };
+  set('own-name', kept.name);
+  set('own-hazards', kept.hazards);
+  set('own-controls', kept.controls);
+  set('own-who', kept.who);
+  return true;
+}
 function keepUnsaved() {
   clearTimeout(keepTimer);
   if (restoring) return;
@@ -4840,8 +4905,9 @@ function keepUnsaved() {
   PROFILE_PARTS.forEach((key) => { delete input[key]; });
   if (!input.task && !input.workplace && !input.principalContractor) return;
   const editing = window.SiteWrite && window.SiteWrite.editing;
+  const ownForm = ownFormKept();
   try {
-    localStorage.setItem(UNSAVED_KEY, JSON.stringify({ at: Date.now(), stage: unsavedStage(), input, editing: editing || null }));
+    localStorage.setItem(UNSAVED_KEY, JSON.stringify({ at: Date.now(), stage: unsavedStage(), input, editing: editing || null, ...(ownForm ? { ownForm } : {}) }));
   } catch { /* not kept */ }
 }
 
@@ -4924,6 +4990,8 @@ async function restoreUnsaved() {
   (reviews || note).scrollIntoView({ block: 'start' });
   // The project list follows the details brought back.
   if (window.SiteWrite && window.SiteWrite.renderProject) window.SiteWrite.renderProject();
+  // A step of your own being written comes back open, as typed.
+  if (kept.ownForm && !listOpen) reopenOwnForm(kept.ownForm);
   return true;
 }
 

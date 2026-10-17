@@ -399,9 +399,20 @@ function inGroundTitle(pack) {
   if (earth || rows.some((row) => /\b(?:excavat\w*|trench\w*)\b/i.test(words(row)))) return 'Excavation and earthworks';
   return '';
 }
+// A package named for a hazard or a permit, not the work ("Hot works"), takes its title from the work as
+// a bare name does (messy round 10, run 2: "Hot works" stayed the SWMS title and file name for heat welding
+// vinyl joins). Only the title: SiteLink's list sorts it as before.
+const HAZARD_NAME = /^(?:hot works?|hot work permits?|work(?:ing)? at heights?|heights? work|confined spaces?|manual handling|hazardous (?:substances|materials|chemicals))$/i;
 function workTitle(item, pack) {
   const name = String(item.title || '').trim();
   const rows = (pack && pack.rows) || [];
+  if (HAZARD_NAME.test(name)) {
+    const named = rows.map((row) => activityTitle(row.activity)).filter(Boolean);
+    const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
+    if (named.length === 1 || (named.length && !tradeOf(pack))) return named.length > 2 ? `${named[0]} and other work` : named.length === 2 ? `${named[0]} and ${later(named[1])}` : named[0];
+    const trade = tradeOf(pack);
+    if (trade) return `${trade.name} ${trade.kind}`;
+  }
   if (IN_GROUND.test(name)) return rows.length === 1 && activityTitle(rows[0].activity) ? activityTitle(rows[0].activity) : inGroundTitle(pack);
   const part = /^trade installation:\s*(.+)$/i.exec(name);
   const bare = genericName(name) && !part;
