@@ -39,7 +39,9 @@ test('"Not issued yet" for the designs asked at their questions is a hold point,
   assert.deepEqual(held.designs.filter((row) => row.status === 'notIssued').map((row) => row.id).sort(), ['formwork', 'loadDrawing', 'propping']);
   // An answer that says enough is kept as typed, the hold point aside.
   const kept = prepareDraft({ ...FORMWORK, facts: { ...facts, loadLimits: HELP.loadLimits.example }, designs: NOT_ISSUED });
-  assert.ok(kept.controls.some((item) => item.text.startsWith('3 kPa on the formwork deck')));
+  // It prints whole in its own row under Documents to keep on site, not again as a control (messy round 9).
+  assert.ok(kept.references.some((item) => item.label === 'Load limits' && item.text.startsWith('3 kPa on the formwork deck')));
+  assert.ok(!kept.controls.some((item) => item.text.startsWith('3 kPa on the formwork deck')));
 });
 
 test('a stood-down draft names each answer it needs, in plain words with an accepted example', () => {

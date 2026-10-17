@@ -706,9 +706,11 @@
     // Answers given on the one-go page since it was prepared (it is marked as needing preparing again)
     // go with it, so checking it does not bring back the old ones.
     const opened = project.items[index];
-    if (opened.body && opened.stale && window.SiteWriteProjectGo && window.SiteWriteProjectGo.payloadFor) {
-      const now = window.SiteWriteProjectGo.payloadFor(index);
-      opened.body = { ...opened.body, task: now.task, site: now.site, facts: { ...(opened.body.facts || {}), ...now.facts }, crane: now.crane, slinging: now.slinging, designs: now.designs, movedIn: now.movedIn };
+    // Only what changed on that page goes over it: the work done inside it stays (messy round 9, A fault 1).
+    if (opened.body && opened.stale && window.SiteWriteProjectGo && window.SiteWriteProjectGo.changesFor) {
+      const now = window.SiteWriteProjectGo.changesFor(index, project, projectHooks);
+      const keep = ['task', 'site', 'facts', 'crane', 'slinging', 'designs', 'movedIn', 'fallRisk', 'ownSteps', 'substancesNotUsed', 'substancesNotUsedWhy'].filter((key) => key in now);
+      opened.body = { ...opened.body, ...Object.fromEntries(keep.map((key) => [key, key === 'facts' ? { ...(opened.body.facts || {}), ...now.facts } : now[key]])) };
     }
     saveProject();
     // The last SWMS's preview goes, so it is not mistaken for this one.
@@ -870,9 +872,13 @@
   // One that needs preparing again is not checked (messy round 3, D286).
   const checkOf = (item) => (item && !item.stale && item.check && item.check.partHashes && item.check.name && item.check.role ? item.check : null);
   const sameTask = (a, b) => String(a || '').replace(/\s+/g, ' ').trim() === String(b || '').replace(/\s+/g, ' ').trim();
+  // The SWMS open to check is the one shown, also once its task is reworded there: the task box is
+  // this SWMS's (messy round 9, A fault 1: the pool task reworded inside it, and every change after was
+  // dropped from the project, so the list still said "Not finished" and reopening lost the work).
+  const taskShown = (task) => project && project.stage === 'check' && !paused && $('task') && sameTask(task, $('task').value);
   const itemShown = (input) => {
     const item = project && project.items[project.current];
-    return item && item.body && input && sameTask(input.task, item.body.task) ? item : null;
+    return item && item.body && input && (sameTask(input.task, item.body.task) || taskShown(input.task)) ? item : null;
   };
   S.projectCheck = (input) => checkOf(itemShown(input));
   // The name and role a SWMS was checked by, kept when its ticks come off, so ticking the parts again
@@ -1041,7 +1047,7 @@
     if (paused) return;
     const item = project && project.items[project.current];
     const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
-    if (stale || !item || !item.body || item.kind !== 'draft' || same(task) !== same(item.body.task)) return;
+    if (stale || !item || !item.body || item.kind !== 'draft' || (same(task) !== same(item.body.task) && !taskShown(task))) return;
     const before = JSON.stringify([item.needs, item.status]);
     item.body = { ...item.body, ...answers };
     shareEmergency(answers.emergency);
@@ -1080,8 +1086,9 @@
     const item = project.items[project.current];
     // The task box has one sentence to a line (useTask), so spacing is not compared.
     const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
-    // The task as given on the one-go page (goTask) counts as the same SWMS.
-    if (!item || (same(body.task) !== same(item.task) && same(body.task) !== same(item.goTask))) return;
+    // The task as given on the one-go page (goTask) counts as the same SWMS, and so does the task
+    // reworded in the box while it is open to check (messy round 9, A fault 1).
+    if (!item || (same(body.task) !== same(item.task) && same(body.task) !== same(item.goTask) && !taskShown(body.task))) return;
     item.emergencyAsked = askedEmergency(draft) || item.emergencyAsked;
     item.body = keptEmergency(body, item.emergencyAsked);
     item.kind = draft.kind;
@@ -1108,6 +1115,9 @@
     // A design answered in this SWMS ("Not issued yet") is the project's answer for it too: the one-go
     // page shows it, and Prepare all keeps it (messy round 4, run 3: it was lost on reopening).
     keepDesigns(body.designs);
+    // What the one-go page sends for it now is what it was prepared with: Prepare all puts in only what
+    // changes there after this (project-go.js changesFor).
+    if (project.stage && window.SiteWriteProjectGo && window.SiteWriteProjectGo.markSent) window.SiteWriteProjectGo.markSent(project.current, project, projectHooks);
     // What is left to answer before download (goal 2): the site questions and blanks, or, for a SWMS
     // not finished, the answers it still needs.
     item.needs = draft.kind === 'stand-down'

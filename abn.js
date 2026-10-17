@@ -26,7 +26,7 @@ function readableName(name) {
 async function lookupAbn(raw, { fetchImpl = fetch, timeoutMs = 6000 } = {}) {
   const abn = String(raw || '').replace(/\D/g, '');
   if (!enabled()) return { enabled: false };
-  if (!require('./accounts').validAbn(abn)) return { enabled: true, found: false, error: 'That is not a valid ABN.' };
+  if (!require('./accounts').validAbn(abn)) return { enabled: true, found: false, error: 'That ABN is not valid. Check the 11 digits.' };
   const hit = cache.get(abn);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.result;
   const controller = new AbortController();

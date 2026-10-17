@@ -120,11 +120,13 @@ test('a question about work whose steps were taken off is not asked; one from th
   assert.ok(questionsFor(draftBody({ ...TYPED, facts: {} })).required.some((item) => item.id === 'hotWorkPermit'));
 });
 
-test('the harness answer asked for a harness in the PPE prints in the controls', () => {
+test('the harness answer asked for a harness in the PPE prints in the SWMS', () => {
   const line = 'Full body harness and rescue line kept at the trench for rescue only, inspected every 6 months by Joel Martin.';
   const draft = prepareDraft(draftBody(ready({ ...NT, kinds: ['loaderCrane', 'landscape'], ppe: ['hardHat', 'boots', 'harness'], facts: { harnessSystem: line } })));
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.ok(draft.controls.some((item) => item.text.includes('rescue line kept at the trench')));
+  // Whole, once, in a step, not as a line of the Controls table (messy round 9).
+  assert.equal(draft.jobSteps.flatMap((step) => step.controls).filter((text) => text.includes('rescue line kept at the trench')).length, 1);
+  assert.ok(!draft.controls.some((item) => item.text.includes('rescue line kept at the trench')));
 });
 
 // ---- A1. A step still High: the same rule for every name, and a way out ----

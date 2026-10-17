@@ -244,7 +244,7 @@ test('a wrong ABN is said once, a saved profile says so in its heading, and a pi
   box.value = '76 811 401 856';
   box.dispatchEvent(new p.window.Event('change'));
   // The box's own note, and no register lookup to say it again (run 3: two messages at once).
-  assert.equal(p.document.getElementById('abn-error').textContent, 'That is not a valid ABN. Check the digits against your ABN.');
+  assert.equal(p.document.getElementById('abn-error').textContent, 'That ABN is not valid. Check the 11 digits.');
   assert.ok(!lookups.some((route) => route.includes('/api/abn')));
   // Saved with the button, the profile's heading says Saved (runs 1 and 2: it closed with no note).
   p.document.getElementById('profile-company').value = 'Kowalski Roofing Pty Ltd';

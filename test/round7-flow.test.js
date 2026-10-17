@@ -155,7 +155,7 @@ test('harness anchors are not asked for where no harness is used', () => {
 test('an ABN that cannot be right is said at its box', () => {
   const p = loadPage(['gate-rules.js', 'app.js'], () => ({ body: {} }));
   assert.equal(p.run('abnProblem("51 824 753 55")'), 'An ABN has 11 digits. This one has 10.');
-  assert.equal(p.run('abnProblem("51 824 753 557")'), 'That is not a valid ABN. Check the digits against your ABN.');
+  assert.equal(p.run('abnProblem("51 824 753 557")'), 'That ABN is not valid. Check the 11 digits.');
   assert.equal(p.run('abnProblem("51 824 753 556")'), '');
   assert.equal(p.run('abnProblem("")'), '');
   const box = p.document.getElementById('profile-abn');

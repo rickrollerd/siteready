@@ -441,6 +441,24 @@
     };
   }
 
+  // What this page sends for a SWMS, as it was when the SWMS was last prepared (here, or while it was
+  // checked). Prepare all, Prepare it again and the list put into a prepared SWMS only what has changed
+  // on this page since, so the work done inside it stays: the steps added or left out, the order, the
+  // plant, the products, the user's own lines and the ticks (messy round 9, A fault 1: the one-go
+  // page's step choices went back over the steps the user added, and the ticks of a SWMS that had not
+  // changed were cleared).
+  const sentKey = (value) => JSON.stringify(value === undefined ? null : value);
+  function markSent(index) {
+    const item = project && project.items[index];
+    if (item) item.goSent = JSON.parse(JSON.stringify(payloadFor(index)));
+  }
+  function changesFor(index) {
+    const item = project.items[index];
+    const now = payloadFor(index);
+    if (!item.body || !item.goSent) return now;
+    return Object.fromEntries(Object.entries(now).filter(([key, value]) => sentKey(value) !== sentKey(item.goSent[key])));
+  }
+
   // The types of hazardous substance ticked "Not required" for a SWMS (D277, D287): kept with its
   // prepared input, where its draft keeps them too, so a tick here or there is the same tick.
   const notUsedOf = (item) => [...((item.body && item.body.substancesNotUsed) || item.substancesNotUsed || [])];
@@ -943,6 +961,10 @@
       const value = String(el.value || '').trim();
       const need = value || tried ? rules.answerNeed(rule, value) : '';
       setNote(el, `go-need-${field}`, need ? `Needed before download: ${need}` : '');
+      // The note the SWMS open before left under the same box says it once more: on this page, this one
+      // says it (messy round 9, run 4: the scaffold supervisor's note showed twice).
+      const left = $(`need-${field}`);
+      if (left) left.hidden = true;
     }
     if (project.stage !== 'questions' || !rules.SITE_NEED) return;
     const site = sharedSite();
@@ -1029,7 +1051,7 @@
       for (const { index } of list) {
         if (status) status.textContent = `Preparing SWMS ${index + 1} again...`;
         await askItem(index);
-        await prepareOne(index, { ...(project.items[index].body || {}), ...payloadFor(index) });
+        await prepareOne(index, { ...(project.items[index].body || {}), ...changesFor(index) });
       }
       if (status) status.textContent = '';
       // Each one's outcome is said: prepared again, or what it still needs. The box above says it too.
@@ -1613,9 +1635,13 @@
       for (let index = 0; index < project.items.length; index += 1) {
         status.textContent = `Preparing SWMS ${index + 1} of ${project.items.length}...`;
         if (!asked.get(index) || asked.get(index).error) await askItem(index);
-        // What the user changed when checking it before (steps, controls, plant, emergency answers) stays.
-        const body = { ...(project.items[index].body || {}), ...payloadFor(index) };
-        await prepareOne(index, body);
+        // What the user changed when checking it before (steps, controls, plant, emergency answers) stays:
+        // only the answers changed on this page since go over it.
+        const item = project.items[index];
+        const changes = changesFor(index);
+        // A prepared SWMS nothing has changed for is left as it is, with its ticks.
+        if (item.kind === 'draft' && item.body && item.goSent && !item.stale && !Object.keys(changes).length) continue;
+        await prepareOne(index, { ...(item.body || {}), ...changes });
       }
       afterPrepare();
     } catch (error) {
@@ -1650,6 +1676,7 @@
       ? ((draft.missingHelp || []).length ? draft.missingHelp.map((gap) => gap.label) : (draft.missing || []))
       : [...new Set([...(draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label)])];
     item.status = hooks.statusOf(item);
+    markSent(index);
     // A part ticked as checked that now prints differently (a detail every SWMS shares, changed on this
     // page) is ticked again before this SWMS downloads (D286).
     const parts = window.SiteWriteCheckParts;
@@ -1716,7 +1743,7 @@
       for (let index = 0; index < project.items.length; index += 1) {
         const item = project.items[index];
         // One marked as needing preparing again takes this page's answers too.
-        const own = item.stale ? payloadFor(index) : {};
+        const own = item.stale ? changesFor(index) : {};
         if (given) for (const key of PAGE_KEYS) if (!(key in base)) delete own[key];
         // A detail the builder set that was changed for this SWMS alone stays its own (messy round 8).
         if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, ...(builder() && item.pageOwn ? item.pageOwn : {}), emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
@@ -1877,7 +1904,13 @@
     if (project && event.target && PEOPLE.concat([SCAFFOLD]).some(([id]) => event.target.id === id)) sharedNotes();
   });
 
-  window.SiteWriteProjectGo = { render, payloadFor: (index) => payloadFor(index), clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); }, uncheck };
+  // The project and its hooks from scope.js, for a SWMS open to check after a reload, before this page
+  // has been drawn.
+  function use(current, given) {
+    if (current) project = current;
+    if (given) hooks = given;
+  }
+  window.SiteWriteProjectGo = { render, payloadFor: (index) => payloadFor(index), changesFor: (index, current, given) => { use(current, given); return project ? changesFor(index) : {}; }, markSent: (index, current, given) => { use(current, given); if (project) markSent(index); }, clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); }, uncheck };
   // A project kept from before opens on its page (scope.js drew it before this script was loaded),
   // and again once the account is known, which the download and the company details depend on.
   if (S.renderProject) S.renderProject();
