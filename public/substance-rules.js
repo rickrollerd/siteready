@@ -186,7 +186,7 @@
   // Fuel for the petrol-driven plant the lines name, and for a generator or petrol plant in the plant list (messy
   // round 7: fuel "Not required" with no reason beside "Petrol-driven saws, trowels and generators").
   const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)'];
-  const FUELLED_PLANT = /\b(generators?|petrol|diesel)\b/i;
+  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?)\b/i;
   function stepWords(draft) {
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !step.own && !GENERAL.has(step.step));
     const products = steps.flatMap((step) => (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line)).map(withoutSource))
@@ -198,8 +198,16 @@
   // ("The products used are Sikaflex 11FC sealant"): a reason does not settle it (messy round 6).
   // Only a sentence that lists the products used counts ("The products used are ..."), not one that says
   // where an SDS is kept.
+  // A list of products the answer names counts too ("blazemaster cpvc cement, rocol thread paste, fire
+  // sealant. SDSs in the gang box", "cold galv touch up paint spray cans, SDS in the ute": messy round 8,
+  // runs 1 and 3), but not a sentence that says the product is not used or is others' ("no paint used").
+  const NOT_OURS = /\b(?:no|not|none|nil|without|never)\b|\bby others\b|\bothers?\b/i;
   function sdsConflict(type, sds) {
-    const used = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => /\b(?:products? (?:used|in use)|products? we use|we use|we are using|used on (?:this|the) job)\b/i.test(sentence)).join('\n');
+    const sentences = String(sds || '').split(/(?<=[.;!?])\s+|\n+/);
+    // A clause that only says where a safety data sheet is kept ("The diesel safety data sheet is kept at
+    // the work area", "SDSs in the gang box") does not list a product used (messy round 6).
+    const used = sentences.filter((sentence) => !NOT_OURS.test(sentence)).flatMap((sentence) => sentence.split(/[,;]\s*/))
+      .filter((clause) => !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) || /\b(?:products? (?:used|in use)|products? we use|we use|we are using)\b/i.test(clause)).join('\n');
     const named = namedIn(type, used);
     return named ? `${SHORT.get(type)}: your safety data sheet answer names "${named}" as a product used, but it is ticked "Not required". Add the product, or take it out of that answer.` : '';
   }
@@ -263,15 +271,58 @@
       const lines = (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line)).map(withoutSource);
       // A fuel or gas line, pipe or tank the step works on is not the product used ("Leak test the fuel line").
       const word = namedIn(type, [step.step, ...(step.hazards || []), ...lines].join('\n').replace(/\b(?:fuel|gas|refrigerant|diesel|petrol)\s+(?:lines?|pipes?|pipework|mains?|systems?|tanks?|meters?)\b/gi, ' '));
-      if (word) return { step: String(step.step || '').replace(OWN_STEP, '').trim(), word };
+      if (word) return { step: String(step.step || '').replace(OWN_STEP, '').trim(), word, own: true };
     }
     return null;
   }
-  function notUsedNeed(type, reason, words, steps = '', sds = '', cut = '', draft = null) {
+  // SiteWrite's own job step that uses the product (content7 decision 1, option A; messy round 8): its name
+  // names it ("Prepare to paint", "Paint", "Apply sealant and caulking"), or one of its hazards is the
+  // product's exposure as the step uses it ("Solvent vapour and skin contact from cleaning solvents"). Not
+  // old work stripped or removed ("Strip the old membrane", "Remove lead paint"), work near a live line,
+  // nor a hazard that is only a condition, a failure or old material ("Lead in old paint"). { step, word }
+  // or null.
+  const NOT_USING = /\b(?:old|existing|lead|remov\w*|strip\w*|recover\w*|near|live|demolish\w*|asbestos|termites?)\b/i;
+  const EXPOSURE = /\b(?:vapou?rs?|fumes?|skin|eyes?|sensiti[sz]\w*|burns?|dermatitis|breath\w*|irritation|mist|splash\w*)\b/i;
+  const NOT_EXPOSURE = /\b(?:fail\w*|cutting into|released?|leaks?|ignites?|fires?|explosions?)\b/i;
+  // A fuel or gas line, pipe, tank or system the step installs is not the product used ("Install generators
+  // and fuel systems"), as for the user's own steps.
+  const WORKED_ON = /\b(?:fuel|gas|refrigerant|diesel|petrol)\s+(?:lines?|pipes?|pipework|mains?|systems?|tanks?|meters?|dispensers?|connections?)\b/gi;
+  function usedByStep(type, draft) {
+    const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step) && !(step.own || OWN_STEP.test(String(step.step || ''))));
+    for (const step of steps) {
+      const name = String(step.step || '').replace(WORKED_ON, ' ');
+      const word = NOT_USING.test(name) ? '' : namedIn(type, name);
+      if (word) return { step: String(step.step || ''), word };
+    }
+    for (const step of steps) {
+      const name = String(step.step || '');
+      if (NOT_USING.test(name.replace(WORKED_ON, ' '))) continue;
+      const line = (step.hazards || []).find((text) => typeof text === 'string' && !NOT_THIS_JOB.test(text) && !CONDITION.test(text) && !NOT_USING.test(text) && !NOT_EXPOSURE.test(text) && EXPOSURE.test(text) && namedIn(type, text.replace(WORKED_ON, ' ')));
+      if (line) return { step: String(step.step || ''), word: namedIn(type, line.replace(WORKED_ON, ' ')) };
+    }
+    return null;
+  }
+  // For a page that holds only the step names, hazards and the user's own steps (the one-go project
+  // page): what the prepared or asked draft found, as { [type]: { step, word } }.
+  function stepUses(draft) {
+    const out = {};
+    for (const type of TYPES) {
+      const used = usedByStep(type, draft) || usedByOwnSteps(type, draft);
+      if (used) out[type] = used;
+    }
+    return out;
+  }
+  // known: what stepUses found for this type, where the page has no draft of its own.
+  function notUsedNeed(type, reason, words, steps = '', sds = '', cut = '', draft = null, known = null) {
     const conflict = sdsConflict(type, sds);
     if (conflict) return conflict;
-    const used = draft && BY_OTHERS.test(clean(reason)) ? usedByOwnSteps(type, draft) : null;
+    const used = draft && BY_OTHERS.test(clean(reason)) ? usedByOwnSteps(type, draft) : known && BY_OTHERS.test(clean(reason)) && known.own ? known : null;
     if (used) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says others do it, but the job step "${used.step}" in this SWMS uses "${used.word.toLowerCase()}". Add the product you use, or take that step or line off.`;
+    // SiteWrite's own step uses it: no reason settles it while that step is in the SWMS (messy round 8:
+    // paint "painters do it" beside four paint steps, solvents "supplied and applied by others" beside
+    // "Clean brushes and rollers").
+    const mine = type === SILICA ? null : draft ? usedByStep(type, draft) : known && !known.own ? known : null;
+    if (mine) return `${SHORT.get(type)}: the job step "${mine.step}" in this SWMS uses "${mine.word.toLowerCase()}", so it cannot be "Not required". Add the product you use with its safety data sheet, or take that step off if your crew does not do it.`;
     // While that step is in the SWMS, no reason settles it: the product being cut is asked for.
     if (type === SILICA && cut) return `${SHORT.get(type)}: the job step "${cut}" cuts, drills or grinds concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
     const asked = reasonAsked(type, words, steps);
@@ -305,10 +356,21 @@
 
   // The step a product goes in: the one the user chose, while it is still in the SWMS, else
   // SiteWrite's match for its type. '' while there is none.
+  // A pipe cement or primer, by its own name ("BlazeMaster CPVC one step cement"), goes in the step that
+  // joins the pipe, whatever type it was added as (messy round 8, run 3: it was matched to "Label pipes,
+  // ducts and equipment").
+  const PIPE_PRODUCT = /\b(?:c?pvc|u-?pvc|pipe (?:cement|glue|primer)|solvent cement)\b/i;
+  const PIPE_STEP = /\b(?:pipe\w*|plumb\w*|drain\w*|sprinkler|hydrant|stacks?|sanitary|join\w*)\b/i;
   function stepOf(row, steps) {
-    const names = (Array.isArray(steps) ? steps : []).map((step) => step.step);
+    const list = Array.isArray(steps) ? steps : [];
+    const names = list.map((step) => step.step);
     const chosen = clean(row && row.step);
     if (chosen && names.includes(chosen)) return chosen;
+    if (PIPE_PRODUCT.test(clean(row && row.product))) {
+      const piping = list.filter((step) => step && !step.own && !GENERAL.has(step.step) && PIPE_STEP.test(step.step || '') && !/^(?:Label|Test|Flush|Commission|Pressure test)\b/i.test(step.step || ''));
+      const joins = piping.find((step) => /\b(?:join\w*|solvent)\b/i.test(step.step || '')) || piping[0];
+      if (joins) return joins.step;
+    }
     return matchStep(row && row.type, steps);
   }
 
@@ -354,7 +416,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA };
+  const api = { SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -827,13 +827,18 @@ addressLookup(workplaceEl, workplaceList, applyAddressState, () => readMemory().
 const profileAddressEl = document.getElementById('profile-address');
 if (profileAddressEl) addressLookup(profileAddressEl, document.getElementById('profile-address-list'));
 statesEl.addEventListener('change', checkStateMatchesAddress);
+// The residential question follows the task: road work is not asked it.
+document.getElementById('task').addEventListener('input', () => showFallExplanation());
 
 // A No shows what a fall from height is, in the chosen state's law, in case the question was not clear.
 function showFallExplanation() {
   const chosen = document.querySelector('input[name="state"]:checked');
   const state = stateList.find((item) => chosen && item.id === chosen.value);
-  // The Northern Territory asks whether the work is residential, which sets the fall height.
-  const asksResidential = Boolean(state && state.residentialFallMetres);
+  // The Northern Territory asks whether the work is residential, which sets the fall height. Road, bridge,
+  // rail and pipeline work with no house named is not (draft.js roadWorkOnly), so it is not asked.
+  const taskText = (document.getElementById('task') || {}).value || '';
+  const roadOnly = /\b(?:roads?|rd|hwy|highways?|motorways?|freeways?|carriageways?|intersections?|roundabouts?|bridges?|railways?|rail lines?|pipelines?|culverts?)\b/i.test(taskText) && !/\b(?:houses?|homes?|dwellings?|residen\w*|townhouses?|duplex\w*|granny flats?|apartments?|flats|sheds?|garages?|carports?|pergolas?|decks?|verandahs?)\b/i.test(taskText);
+  const asksResidential = Boolean(state && state.residentialFallMetres) && !roadOnly;
   document.getElementById('residential-question').classList.toggle('hidden', !asksResidential);
   document.getElementById('residential-legend').textContent = (state && state.residentialQuestion) || '';
   document.querySelectorAll('input[name="residential"]').forEach((input) => { input.required = asksResidential; });
@@ -2644,6 +2649,9 @@ function drawDesigns(list) {
   const fromProject = (id) => ((window.SiteWrite && window.SiteWrite.projectDesigns && window.SiteWrite.projectDesigns()) || []).find((entry) => entry.row.id === id);
   const rows = designsFound.map((found) => {
     const mine = designsKept.get(found.id);
+    // A number and revision the answer to the design's question already gave fill an empty card (messy
+    // round 8, run 1: given in the answer, then asked again by "I have it").
+    if (mine && found.fromAnswer && !String(mine.number || '').trim() && found.number) Object.assign(mine, { number: found.number, revision: String(mine.revision || '').trim() || found.revision || '' });
     const shared = !mine && !found.status && fromProject(found.id);
     if (shared) { const row = { ...shared.row, what: found.what || shared.row.what }; designsKept.set(found.id, row); return row; }
     return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };

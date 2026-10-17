@@ -385,7 +385,10 @@ const WORN_SAID = {
   harness: /\b(?:wear\w*|worn|uses?|used|using|attach\w*|clipped|clips?|connected|full body harness\w*)\b[^.;]*\bharness\w*\b|\bharness\w*\b[^.;]*\b(?:worn|attached|clipped|connected|set up|is used|are used)\b|\bharness work\b|\bfall arrest is used\b|\buse travel restraint\b/i,
   p2: /\b(?:wear\w*|worn)\b[^.;]*\b(?:P2|respirators?|dust masks?)\b|\b(?:P2|respirators?|dust masks?)\b[^.;]*\b(?:worn|is worn|are worn)\b|\bP2 (?:mask|respirator)\b/i,
   gloveWelding: /\b(?:heat[- ]resistant|welding) gloves\b/i,
-  gloveChemical: /\b(?:chemical|alkali|solvent)[- ]resistant gloves\b|\bnitrile gloves\b|\bgloves \(nitrile\)/i,
+  gloveChemical: /\b(?:chemical(?:ly)?|alkali|solvent)[- ]resistant gloves\b|\bnitrile gloves\b|\bgloves \(nitrile\)/i,
+  // "The sprayer wears full length overalls with hood" (messy round 8, run 5: the spray step said so and the
+  // coveralls were not ticked).
+  coveralls: /\b(?:wear\w*|worn)\b[^.;]*\b(?:coveralls|overalls)\b|\b(?:coveralls|overalls)\b[^.;]*\b(?:worn|is worn|are worn)\b/i,
   goggles: /\b(?:wear\w*|worn)\b[^.;]*\bgoggles\b/i,
   kneePads: /\bknee pads?\b/i,
 };

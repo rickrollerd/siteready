@@ -194,8 +194,10 @@ test('D277: each type SiteWrite suggests needs a product or the tick "Not requir
   // job steps name, such as the cement in the pour (messy round 5); with a reason for each, nothing is asked.
   const asked = types(ticked).map((gap) => gap.need);
   assert.ok(asked.includes('Curing compound or release agent: your task or answers name "curing compound". Add the product you use, or give a short reason it is not required, for example "supplied and applied by others".'), asked.join(' | '));
-  assert.ok(asked.some((need) => /^Cement product: the job steps name "[^"]+"\. Add the product you use, or give a short reason it is not required/.test(need)), asked.join(' | '));
-  assert.deepEqual(types(draftBody({ ...base(POUR), substancesNotUsed: all, substancesNotUsedWhy: Object.fromEntries(all.map((type) => [type, 'Supplied and applied by the concreter'])) })), []);
+  // The pour step's own lines use cement, so no reason settles it (content7 decision 1, option A, built in
+  // content8); the other types are settled by a reason.
+  assert.ok(asked.some((need) => /^Cement product: the job step "[^"]+" in this SWMS uses "cement", so it cannot be "Not required"/.test(need)), asked.join(' | '));
+  assert.deepEqual(types(draftBody({ ...base(POUR), substancesNotUsed: all, substancesNotUsedWhy: Object.fromEntries(all.map((type) => [type, 'Supplied and applied by the concreter'])) })).map((gap) => gap.substanceType), ['Cement, concrete, grout and mortar']);
   // The draft is as before, apart from the chemical splash emergency row, which goes when every type is
   // "Not required" and no product is listed (messy round 5).
   const withoutSplash = (draft) => ({ ...draft, emergency: draft.emergency.filter((row) => row.type !== 'Chemical splash') });

@@ -420,7 +420,9 @@ test('a later revision starts unreviewed, and a response on the old revision is 
   const body = { response: 'approved', name: 'Lee Park', company: 'Tier One Builders' };
   assert.equal((await call('POST', `/api/review/swms/${ref}/response`, { reviewer, body })).status, 201);
   // Revision 2 has no step that cuts concrete, so the slab product listed for revision 1's post holes goes.
-  const changed = await call('PUT', `/api/swms/${id}`, { token, body: checked({ input: { ...INPUT, task: `${INPUT.task} Replace the gate too.`, substances: undefined }, ...CONFIRM }) });
+  // The cement its fence step pours stays listed (a step that uses it cannot be "Not required", content8).
+  const kept = (INPUT.substances || []).filter((row) => row.type !== require('../public/substance-rules').SILICA);
+  const changed = await call('PUT', `/api/swms/${id}`, { token, body: checked({ input: { ...INPUT, task: `${INPUT.task} Replace the gate too.`, substances: kept.length ? kept : undefined }, ...CONFIRM }) });
   assert.equal(changed.status, 200);
   const opened = await (await call('GET', `/api/swms/${id}`, { token })).json();
   assert.equal(opened.swms.revision, 2);

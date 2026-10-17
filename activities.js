@@ -5616,6 +5616,8 @@ const ACTIVITIES = [
         'Each frame is cut free and lowered by two people.',
       ],
     }, {
+      // Not where the old frames come out of an opening that is not in brickwork (draft.js noLintelCut).
+      unless: 'noLintelCut',
       step: 'Cut the lintel bearings',
       hazards: ['Masonry above the opening drops before the lintel is in.', 'Silica dust from cutting brickwork.'],
       controls: [
@@ -12405,6 +12407,7 @@ function jobStepsFor(rawFlags, factText, fallback) {
   // note of it (sharedControls, not printed), so its risk rating still counts it.
   const said = new Map();
   const saidKeys = new Set();
+  let firstAssess = null;
   // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
@@ -12434,13 +12437,25 @@ function jobStepsFor(rawFlags, factText, fallback) {
       const keys = SAID_ONCE.filter(([, re]) => re.test(line)).map(([key]) => key);
       const cite = (/\s\((?:[^()]|\([^()]*\))*\)$/.exec(line) || [''])[0];
       const body = cite ? line.slice(0, -cite.length) : line;
-      const rest = keys.length ? body.split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !SAID_ONCE.some(([key, re]) => saidKeys.has(key) && re.test(part))).join(' ') : body;
+      const parts = body.split(/(?<=\.)\s+(?=[A-Z])/);
+      const rest = keys.length ? parts.filter((part) => !SAID_ONCE.some(([key, re]) => saidKeys.has(key) && re.test(part))).join(' ') : body;
+      // What to do where the assessment cannot be made, left out here as said, goes with the assessment
+      // line printed first where that line does not say it (messy round 8, run 6: it was left here on
+      // its own, a sentence with no subject).
+      const unknown = keys.includes('assess') && saidKeys.has('assess') ? parts.find((part) => /^If it cannot be determined\b/.test(part)) : '';
+      if (unknown && firstAssess && !/\bcannot be determined\b/.test(firstAssess.list[firstAssess.at])) {
+        const first = firstAssess.list[firstAssess.at];
+        const firstCite = (/\s\((?:[^()]|\([^()]*\))*\)$/.exec(first) || [''])[0];
+        firstAssess.list[firstAssess.at] = `${firstCite ? first.slice(0, -firstCite.length) : first} ${unknown}${firstCite}`;
+      }
       const kept = rest ? rest + cite : '';
       keys.forEach((key) => saidKeys.add(key));
       return kept;
     }).filter(Boolean);
     controls.forEach((line) => { if (!said.has(withoutStateCodes(line))) said.set(withoutStateCodes(line), step.step); });
-    return { ...step, controls: controls.filter((line) => !COVERED.some(([pattern, by]) => pattern.test(line) && controls.some((other) => other !== line && by.test(other)))), ...(shared.length ? { sharedControls: shared } : {}) };
+    const printed = controls.filter((line) => !COVERED.some(([pattern, by]) => pattern.test(line) && controls.some((other) => other !== line && by.test(other))));
+    if (!firstAssess) { const at = printed.findIndex((line) => SAID_ONCE.some(([key, re]) => key === 'assess' && re.test(line))); if (at >= 0) firstAssess = { list: printed, at }; }
+    return { ...step, controls: printed, ...(shared.length ? { sharedControls: shared } : {}) };
   }).filter((step) => step.fallback || step.controls.length);
 }
 
@@ -12470,7 +12485,9 @@ const SAID_ONCE = [
   ['coolWater', /^Cool drinking water is kept at the work area\b/i],
   ['scanDrill', /\bscan\w*\b[^.]*\bbefore drilling\b|\bbefore drilling\b[^.]*\bscann?\w*\b/i],
   ['electricalLicensed', /^Electrical work is done (?:or supervised )?only by (?:a )?licensed electric(?:al workers?|ians?)\b/i],
-  ['assess', /\b(?:assess\w*\b[^.]*\bin writing\b[^.]*\bhigh risk|The assessment does not count|If it cannot be determined, treat it as a risk)|^If (?:it is|so),/i],
+  // The model states' wording of the last sentence ("treat it as high risk until ...") too (messy round 8,
+  // run 6: it was left on its own, with no subject, in a second grinding step).
+  ['assess', /\b(?:assess\w*\b[^.]*\bin writing\b[^.]*\bhigh risk|The assessment does not count|If it cannot be determined, treat it as (?:a|high) risk)|^If (?:it is|so),/i],
   ['platformLadder', /\bplatform ladders are used only for short work below 2 m\b/i],
   ['plumbingLicensed', /^Plumbing and drainage work is done by\b|^The water connections are plumbing work for a licensed plumber\b/i],
   ['silicaHealth', /^Health monitoring is provided for workers at significant risk from crystalline silica\b|(?:^|\.\s+)Workers with a significant risk from ongoing exposure have health monitoring\b/i],
