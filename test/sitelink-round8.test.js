@@ -264,7 +264,7 @@ test('a response, a recorded file and a condition pressed again after a 502 are 
   assert.equal((await record()).status, 201);
   const rows = await db.query("SELECT note FROM submissions WHERE subcontract_id = $1 AND channel = 'outside'", [c.subId]);
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].note, 'Emailed by tallow 16 oct', 'a capital to start (wording 13)');
+  assert.equal(rows[0].note, 'Emailed by Tallow 16 Oct', 'a capital to start (wording 13), and the company and month as written (round 9, wording 9)');
 });
 
 test('the 502 message on a SiteLink page names SiteLink', () => {
@@ -361,8 +361,14 @@ test('"No, it is not ours" is logged, and a link opened by another company is no
   assert.equal((await call('POST', `/api/list/${b.token}/not-ours`, { session: other, body: {} })).status, 200);
   log = await logOf(b);
   assert.ok(log.some((text) => /^Wallaroo Bend Electrical Pty Ltd \(ABN [\d ]+\) was asked in SiteWrite whether the list for Pademelon Comms Pty Ltd is its own, and said no\. It did not take it up\.$/.test(text)), log.join('\n'));
-  // Opened by Pademelon itself (signed out here): counted as opened, as before.
+  // Opened signed out: anyone the email reached could have done that, so it is not counted as Pademelon's
+  // (messy round 9, blocker 5); opened signed in by Pademelon, it is.
   await call('GET', `/api/list/${b.token}`);
+  project = (await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead })).data;
+  assert.ok(!project.sending.opened);
+  assert.equal(project.sending.openedUnknown, true);
+  const own = await subbie('admin@r8notours-sub.example', 'Pademelon Comms Pty Ltd', nextAbn());
+  await call('GET', `/api/list/${b.token}`, { session: own });
   project = (await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead })).data;
   assert.ok(project.sending.opened);
 });

@@ -44,9 +44,14 @@
       // on from it, not after a colon (messy round 8: "for access control: and CCTV and duress").
       if (/^(?:and|or|plus|with)\b/i.test(words)) return ` ${words}`;
       if (/^(?:including|incl\.?|such as|e\.?g\.?)\s/i.test(words)) return `, ${words.replace(/^incl\.?\s/i, 'including ')}`;
+      // So does what is left out (messy round 9, wording 1: "Install gas services: excluding storage tank").
+      if (/^(?:excluding|excl\.?|except|other than|not including|but not|without)\s/i.test(words)) return `, ${words.replace(/^excl\.?\s/i, 'excluding ')}`;
       return `: ${words}`;
     });
     text = text.replace(/\s+([,.;:])/g, '$1').replace(/[\s.;,:]+$/, '').trim();
+    // One word alone is not a sentence of work (messy round 9, wording 2: "Roadsaw." stood alone).
+    if (/^road ?saw(?:s|ing)?$/i.test(text)) text = 'Saw cut existing roads and pavements';
+    else if (/^[a-z-]+$/i.test(text)) text = `${text} work`;
     return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}.` : '';
   }
 

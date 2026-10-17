@@ -168,13 +168,22 @@
     return { check, latest, same, can: Boolean(builder() && item.requiredId && check && item.status === 'ready' && item.body && !item.stale && !same) };
   }
   const CONDITION_STATE = { outstanding: 'To do', done: 'Marked done', closed: 'Confirmed done' };
+  // What the company typed for each condition, kept until that condition is marked done (messy round 9,
+  // stuck point 2: the note typed for one condition was lost when another was marked, as the list was
+  // drawn again). Kept on this device too, so a reload or a lost answer keeps it.
+  const COND_NOTES_KEY = 'sitewrite.condNotes';
+  const condNotes = (() => { try { return JSON.parse(localStorage.getItem(COND_NOTES_KEY) || '{}') || {}; } catch { return {}; } })();
+  const keepCondNote = (id, text) => {
+    if (String(text || '').trim()) condNotes[id] = String(text).slice(0, 500); else delete condNotes[id];
+    try { localStorage.setItem(COND_NOTES_KEY, JSON.stringify(condNotes)); } catch { /* kept for this page only */ }
+  };
   function conditionHtml(entry) {
     const name = esc(builderName());
     const status = `<span class="pill cond-${esc(entry.status)}">${CONDITION_STATE[entry.status] || esc(entry.status)}</span>`;
     let more = '';
     if (entry.status === 'outstanding') {
       more = `${entry.backNote ? `<span class="meta">Sent back by ${esc(entry.backBy)} on ${esc(entry.backOn)}: ${esc(entry.backNote)}</span>` : ''}
-        <span class="cond-do"><label class="meta" for="cond-note-${esc(entry.id)}">What you did (optional)</label><input type="text" id="cond-note-${esc(entry.id)}" maxlength="500" data-cond-note="${esc(entry.id)}" autocomplete="off">
+        <span class="cond-do"><label class="meta" for="cond-note-${esc(entry.id)}">What you did (optional)</label><input type="text" id="cond-note-${esc(entry.id)}" maxlength="500" data-cond-note="${esc(entry.id)}" autocomplete="off" value="${esc(condNotes[entry.id] || '')}">
         <button type="button" class="small" data-cond-done="${esc(entry.id)}">Mark as done</button></span>`;
     } else if (entry.status === 'done') {
       more = `<span class="meta">Marked done by ${esc(entry.doneBy)} on ${esc(entry.doneOn)}${entry.doneNote ? `: ${esc(entry.doneNote.replace(/[.\s]+$/, ''))}` : ''}. Waiting for ${name} to confirm. <button type="button" class="link" data-cond-undo="${esc(entry.id)}">Not done after all</button></span>`;
@@ -299,7 +308,10 @@
     const box = $(`cond-note-${id}`);
     button.disabled = true;
     try {
-      const data = await S.call('POST', `/api/from-builders/${encodeURIComponent(b.id)}/conditions/${encodeURIComponent(id)}/${kind}`, kind === 'done' ? { note: box ? box.value : '' } : {});
+      const note = (box && box.value) || condNotes[id] || '';
+      const data = await S.call('POST', `/api/from-builders/${encodeURIComponent(b.id)}/conditions/${encodeURIComponent(id)}/${kind}`, kind === 'done' ? { note } : {});
+      // Sent with its condition: the note is now the condition's, as marked done.
+      if (kind === 'done') keepCondNote(id, '');
       b.sent = data.sent;
       submitSaid = null;
       save();
@@ -1047,6 +1059,10 @@
     if (item.filledFrom) delete item.filledFrom[questionId];
     project.items.forEach((other, at) => {
       if (at === index) return;
+      // The company's own SWMS is other work: answers on a builder's list do not fill into it, nor its
+      // answers into the list's SWMS (messy round 9: a fall control for Hydraulic services, "Risers and
+      // shafts are screened", filled into the foreman's own "Unload pipe deliveries").
+      if (isOwn(other) !== isOwn(item)) return;
       const got = asked.get(at);
       if (!got || !(got.required || []).some((question) => question.id === questionId)) return;
       const theirs = (other.facts || {})[questionId] || '';
@@ -1217,6 +1233,8 @@
       // but not one whose own task says otherwise (messy round 3: "Yes" filled into a ground floor SWMS).
       project.items.forEach((other, at) => {
         if (at === index || other.fallRisk || (other.goFall && other.fallFrom !== index)) return;
+        // Nor does the fall answer (same reason, above).
+        if (isOwn(other) !== isOwn(project.items[index])) return;
         if (other.fallHint && other.fallHint !== target.value) {
           if (other.fallFrom === index) { delete other.goFall; delete other.fallFrom; drawItem(at); askItem(at); }
           return;
@@ -1756,7 +1774,7 @@
       return { ready: false, check: true, text: `${item.checkNote ? `${item.checkNote} ` : ''}Ready for your check: ${CHECK_IT}.` };
     }
     if (item.kind && item.kind !== 'draft' && noSteps(item)) return { ready: false, text: 'Not finished: SiteWrite has no job steps for its work. Write your own step for it under its questions (Back to the questions), or when you check it.' };
-    if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.map((need) => String(need).replace(/[.\s]+$/, '')).join('; ')} need more.` };
+    if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.map((need) => String(need).replace(/[.\s]+$/, '')).join('; ')} ${own.length === 1 ? 'needs' : 'need'} more.` };
     if (item.status === 'write' || item.status === 'tick') {
       const index = project.items.indexOf(item);
       const left = index >= 0 ? coverLeftOf(index) : [];
@@ -1844,7 +1862,11 @@
   document.addEventListener('click', (event) => {
     if (project && project.stage === 'review' && event.target.closest && event.target.closest('#profile-save')) setTimeout(() => hooks.render(), 600);
   });
-  document.addEventListener('input', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onInput(event); });
+  document.addEventListener('input', (event) => {
+    // A condition's note, kept as it is typed (stuck point 2 above).
+    if (event.target && event.target.dataset && event.target.dataset.condNote) keepCondNote(event.target.dataset.condNote, event.target.value);
+    if (event.target.closest && event.target.closest('#project-panel')) onInput(event);
+  });
   document.addEventListener('change', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onChange(event); });
   // Any answer on the page, the state and the people above included, redraws the list by Prepare all.
   ['input', 'change'].forEach((type) => document.addEventListener(type, () => { if (project) refreshMissing(); }));

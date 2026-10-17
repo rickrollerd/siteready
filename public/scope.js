@@ -598,9 +598,11 @@
   function startProject(items, from) {
     const same = project && project.from && project.from.readingId === from.readingId;
     if (same) {
-      const dropped = project.items.filter((item) => item.body && !from.chosen.includes(item.title));
+      // The choice is by package; a SWMS's title may be a work title (messy round 9).
+      const packOf = (item) => item.package || item.title;
+      const dropped = project.items.filter((item) => item.body && !from.chosen.includes(packOf(item)));
       if (dropped.length && !confirm(`Take out ${dropped.map((item) => item.title).join(', ')}? What you prepared for ${dropped.length === 1 ? 'it' : 'them'} will be lost.`)) return;
-      items = items.map((item) => project.items.find((old) => old.title === item.title && old.body) || item);
+      items = items.map((item) => project.items.find((old) => packOf(old) === packOf(item) && old.body) || item);
     } else if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
     // Owner, 13 October 2026 (D239): the SWMS chosen are prepared in one go. The site details are
     // asked once, then one page holds each SWMS's own questions (project-go.js), and one button
@@ -873,10 +875,19 @@
     return item && item.body && input && sameTask(input.task, item.body.task) ? item : null;
   };
   S.projectCheck = (input) => checkOf(itemShown(input));
+  // The name and role a SWMS was checked by, kept when its ticks come off, so ticking the parts again
+  // does not empty them (messy round 9, stuck point 3: "Your role" was empty after "Does not apply").
+  S.projectCheckWho = (input) => {
+    const item = itemShown(input);
+    const from = item && [item.check, item.checkKept, item.checkWho].find((one) => one && (one.name || one.role));
+    return from ? { name: from.name || '', role: from.role || '' } : null;
+  };
   S.onCheckDone = (input, check, note) => {
     const item = itemShown(input);
     if (!item) return;
     const before = JSON.stringify([item.check || null, item.checkNote || '']);
+    const who = check || item.check;
+    if (who && (who.name || who.role)) item.checkWho = { name: who.name || '', role: who.role || '' };
     if (check) { item.check = check; delete item.checkNote; } else if (item.check) { delete item.check; if (note) item.checkNote = note; }
     if (JSON.stringify([item.check || null, item.checkNote || '']) === before) return;
     saveProject();
@@ -914,6 +925,21 @@
     const shared = (project.shared && project.shared.site) || {};
     const same = ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].every((id) => String((site || {})[id] || '').trim() === String(shared[id] || '').trim());
     return item && !item.siteOwn && same ? true : undefined;
+  };
+  // Falls changed to Yes on the draft of a project SWMS ("Change my answer to Yes"): the draft waits for
+  // the fall questions, so the project keeps the new answer now, and the SWMS needs preparing again. It
+  // was lost before (messy round 9: the office admin changed it, and the foreman's list still said No).
+  S.projectFallChanged = (value) => {
+    if (!project || paused || project.stage !== 'check') return;
+    const item = project.items[project.current];
+    if (!item || !['yes', 'no'].includes(value)) return;
+    item.goFall = value;
+    delete item.fallFrom;
+    if (item.fallRisk && item.fallRisk !== value) item.fallRisk = value;
+    if (item.body) item.body = { ...item.body, fallRisk: value };
+    const go = window.SiteWriteProjectGo;
+    if (go && go.markStale) go.markStale([project.current], 'Its fall answer changed.');
+    saveProject();
   };
   S.projectMovedIn = () => (project && !paused && project.stage === 'check' ? movedInto(project.current) : undefined);
   // Products given in another SWMS of the project, offered in this one (owner, D292): [{ row, from }].

@@ -100,8 +100,11 @@ function hospitalProblem(text) {
   const not = notAnswer(value);
   if (not) return not;
   if (!CARE_WORD.test(value)) return `${quoted(value)} does not say it is a hospital or medical centre. Give its full name as it is signposted, for example "Northside General Hospital, Emergency Department".`;
+  // A hospital with no name says none (messy round 9: "nearest hospital" was taken).
+  if (value.split(/[^A-Za-z]+/).filter(Boolean).every((word) => NO_NAME_WORDS.has(word.toLowerCase()))) return `${quoted(value)} does not name the hospital or medical centre. Give its full name as it is signposted, for example "Northside General Hospital, Emergency Department".`;
   return '';
 }
+const NO_NAME_WORDS = new Set(['nearest', 'closest', 'nearby', 'local', 'the', 'a', 'an', 'any', 'public', 'private', 'main', 'general', 'hospital', 'hospitals', 'medical', 'centre', 'center', 'clinic', 'health', 'emergency', 'department', 'ed', 'urgent', 'care', 'gp', 'doctor', 'doctors', 'nearest', 'to', 'site', 'of', 'and', 'or', 'with']);
 
 // A phone number that may be left empty, but not left short.
 function phoneOnly(text) {
@@ -136,6 +139,22 @@ function capitalSentences(text, { stop = false } = {}) {
   return stop && /[A-Za-z0-9)]$/.test(out) ? `${out}.` : out;
 }
 
+// A note typed to the other side, tidied as a person would write it: each sentence with its capital, the
+// companies' own names as they are written, and a month after a day number with its capital (messy round
+// 9, wordings 5 and 9: "Emailed by dunnart office 17 oct", "... step 2 of the SWMS. add it ...").
+const MONTHS = /\b(\d{1,2}(?:st|nd|rd|th)?\s+)(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)(uary|ruary|ch|il|e|y|ust|tember|ober|ember)?\b/gi;
+function tidyNote(text, names = []) {
+  let out = capitalSentences(text);
+  if (!out) return out;
+  for (const name of names) {
+    for (const word of String(name || '').split(/\s+/)) {
+      if (word.length < 3 || !/^[A-Z][a-z'’-]+$/.test(word) || /^(?:Pty|Ltd|The|And|Group|Services|Constructions?)$/.test(word)) continue;
+      out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), word);
+    }
+  }
+  return out.replace(MONTHS, (whole, day, month, rest) => `${day}${month.charAt(0).toUpperCase()}${month.slice(1).toLowerCase()}${rest || ''}`);
+}
+
 // A role typed all in lower case: its first letter, and a short title such as HSE, in capitals
 // ("hse" reads "HSE", "hse manager" reads "HSE manager"; messy round 8, wording 1).
 const ROLE_SHORT = new Set(['hse', 'whs', 'ohs', 'ohse', 'hseq', 'qhse', 'she', 'sheq', 'ehs', 'pm', 'cm', 'ceo', 'cfo', 'coo', 'md', 'gm', 'hr', 'qa', 'qs', 'it']);
@@ -149,4 +168,4 @@ function tidyRole(text) {
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPlace, capitalFirst, capitalSentences, tidyRole, listed, PASSED_ON };
+module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPlace, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

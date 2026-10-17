@@ -247,9 +247,9 @@ async function submitOne(req, found, list, entry, versions) {
   const builder = { ...(check.builderCheck || {}), mustFix: 0 };
   const id = auth.newId();
   const now = new Date();
-  const who = oneLine(req.user.name, 200) || check.name;
+  const who = oneLine(req.user.name, 200) || require('./sitelink-answers').tidyName(check.name);
   // The name given with the check names this person from now on, when the account has none.
-  if (!oneLine(req.user.name, 200) && check.name) await db.query("UPDATE users SET name = $1 WHERE id = $2 AND (name IS NULL OR name = '')", [oneLine(check.name, 120), req.user.id]).catch(() => {});
+  if (!oneLine(req.user.name, 200) && check.name) await db.query("UPDATE users SET name = $1 WHERE id = $2 AND (name IS NULL OR name = '')", [require('./sitelink-answers').tidyName(oneLine(check.name, 120)), req.user.id]).catch(() => {});
   await db.query(`INSERT INTO submissions (id, project_id, subcontract_id, required_swms_id, company_id, company_name, channel, swms_id, revision, ref, title, content_hash, check_info, builder_check, overrides, submitted_by, submitted_by_name, submitted_at)
     VALUES ($1, $2, $3, $4, $5, $6, 'sitewrite', $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
   [id, project.id, sub.id, requiredId, req.company.id, req.company.name, row.id, revision, kept.ref || '', handover.nameWithoutPrices(item.title), revisions.contentHash(kept.draft),
@@ -330,7 +330,7 @@ async function conditionForCompany(req) {
 router.post('/from-builders/:id/conditions/:conditionId/done', route(async (req, res) => {
   const { found, row, title } = await conditionForCompany(req);
   if (row.status === 'closed') throw fail(409, `${found.org.name} has already confirmed this condition is done.`);
-  const note = oneLine(req.body && req.body.note, NOTE_LIMIT);
+  const note = require('./sitelink-answers').tidyNote(oneLine(req.body && req.body.note, NOTE_LIMIT), [found.sub.name, found.sub.claimed_name, found.org.name]);
   // Pressed again with the same note (after a 502): it is marked done once.
   if (row.status === 'done' && (row.done_note || '') === note) { res.json({ message: `Marked done. ${found.org.name} confirms it.`, sent: await forCompany(found) }); return; }
   if (row.status === 'done') throw fail(409, 'This condition is already marked done. Reload the page.');
@@ -751,7 +751,8 @@ function install(hseRouter, deps) {
     const { row, ctx, title } = await conditionForLead(req);
     needName(req);
     if (row.status !== 'done') throw fail(409, row.status === 'closed' ? 'This condition is already confirmed. Reload the page.' : 'This condition is not marked done, so there is nothing to send back.');
-    const note = oneLine(req.body && req.body.note, NOTE_LIMIT);
+    // As a person would write it (messy round 9, wording 5: "... of the SWMS. add it and submit again").
+    const note = require('./sitelink-answers').tidyNote(oneLine(req.body && req.body.note, NOTE_LIMIT), [ctx.sub.name, ctx.sub.claimed_name, (ctx.org || {}).name]);
     if (!note || reviews.EMPTY_WORDS.test(note.replace(/[.!]+$/, ''))) throw Object.assign(fail(400, 'Say what is still needed, so the subcontractor knows what to do.'), { field: 'note' });
     const who = personName(req.reviewer);
     await db.query("UPDATE review_conditions SET status = 'outstanding', back_note = $1, back_by_name = $2, back_at = $3 WHERE id = $4 AND status = 'done'", [note, who, new Date(), row.id]);
@@ -772,7 +773,7 @@ function install(hseRouter, deps) {
     const header = (name) => { try { return decodeURIComponent(String(req.get(name) || '')); } catch { return ''; } };
     const name = send.uploadName(header('X-File-Name'), type);
     // As typed, with each sentence's capital (messy round 8, wording 13: "emailed by pademelon 16 oct").
-    const note = require('./sitelink-answers').capitalSentences(oneLine(header('X-Note'), NOTE_LIMIT));
+    const note = require('./sitelink-answers').tidyNote(oneLine(header('X-Note'), NOTE_LIMIT), [ctx.sub.name, ctx.sub.claimed_name, (ctx.org || {}).name]);
     const id = await recordOutside(req, ctx, item, { data, type, name, note });
     res.status(201).json({ id, message: `${name} is recorded as received for ${titleOf(item)}. Review it from the project screen or below.`, page: await deps.subcontractPage(ctx) });
   }));

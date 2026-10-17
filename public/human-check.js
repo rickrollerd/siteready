@@ -295,8 +295,13 @@
     const panel = panels[prefix];
     const now = status(prefix);
     if (!now.ready) throw new Error(now.why || 'SiteWrite\'s check waits for the items listed above.');
-    const name = $(`${prefix}-name`).value.replace(/\s+/g, ' ').trim();
-    const role = $(`${prefix}-role`).value.replace(/\s+/g, ' ').trim();
+    // Typed all in lower case, as printed on the SWMS: "Rory Haddleton, Foreman" (sl9 run 2: "Checked by
+    // rory haddleton, foreman" went to the builder).
+    const lower = (text) => !/[A-Z]/.test(text);
+    const rawName = $(`${prefix}-name`).value.replace(/\s+/g, ' ').trim();
+    const rawRole = $(`${prefix}-role`).value.replace(/\s+/g, ' ').trim();
+    const name = lower(rawName) ? rawName.replace(/(^|[\s'’-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`) : rawName;
+    const role = lower(rawRole) ? rawRole.charAt(0).toUpperCase() + rawRole.slice(1) : rawRole;
     if (keep) { write(NAME_KEY, name); write(ROLE_KEY, role); }
     return { check: { parts: Object.fromEntries(P().IDS.map((id) => [id, true])), partHashes: { ...panel.ticks }, name, role, ack: true } };
   }

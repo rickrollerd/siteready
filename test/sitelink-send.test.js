@@ -358,8 +358,16 @@ test('the list page works with no account, shows only its own subcontract, and r
   assert.equal(view.data.due.past, false);
   const text = JSON.stringify(view.data);
   for (const word of ['Quarry', 'Atrium', 'atrium', 'Ridgeline', a.subId, other.data.subcontract.id, a.projectId]) assert.ok(!text.includes(word), word);
-  // Opened: logged on the first use only.
+  // Opened with no account: anyone the email reached could have done that, so it is logged as opened by
+  // someone not signed in, once, and not counted as the subcontractor's open (messy round 9, blocker 5).
   await call('GET', `/api/list/${token}`);
+  const unknown = await db.query("SELECT * FROM project_log WHERE subcontract_id = $1 AND kind = 'opened_unknown'", [a.subId]);
+  assert.equal(unknown.length, 1);
+  assert.equal((await db.one('SELECT status FROM subcontracts WHERE id = $1', [a.subId])).status, 'sent');
+  // Opened signed in for the subcontractor: its open, logged on the first use only.
+  const mine = await subbie('office@scope1-sub.example', 'Tallow Formwork Pty Ltd', nextAbn());
+  await call('GET', `/api/list/${token}`, { session: mine });
+  await call('GET', `/api/list/${token}`, { session: mine });
   const opened = await db.query("SELECT * FROM project_log WHERE subcontract_id = $1 AND kind = 'list_opened'", [a.subId]);
   assert.equal(opened.length, 1);
   assert.match(opened[0].summary, /^The link in the list sent to Tallow Formwork Pty Ltd at office@scope1-sub\.example on .+ was opened\.$/);

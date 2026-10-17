@@ -20,7 +20,7 @@ const { TITLES } = require('./scope');
 const { packageTask } = require('./public/scope-task');
 const { readSlang } = require('./slang');
 const { expectedSeconds } = require('./public/read-progress');
-const { plantFromWords, packWords } = require('./handover');
+const { plantFromWords, packWords, packageTitles } = require('./handover');
 
 const MODEL = 'claude-opus-5-5';
 // US dollars per million tokens for Claude Opus 5.5, to show what each reading cost.
@@ -672,7 +672,10 @@ async function withHighRisk(out, stateName) {
     flagsKept.set(key, await packageHighRisk(out.reading, state));
     if (flagsKept.size > FLAGS_KEPT) flagsKept.delete(flagsKept.keys().next().value);
   }
-  return { ...out, reading: { ...out.reading, highRisk: flagsKept.get(key) }, state };
+  // Each package's SWMS title, by the work-title rules SiteLink uses (messy round 9).
+  let titles = {};
+  try { titles = packageTitles(out.reading); } catch { titles = {}; }
+  return { ...out, reading: { ...out.reading, highRisk: flagsKept.get(key), titles }, state };
 }
 
 // Where a reading still running is, for the page's progress bar: which call is running, the seconds

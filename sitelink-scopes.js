@@ -215,7 +215,7 @@ function install(router, deps) {
       noSteps: Boolean(item.noSteps),
       titleChanged: Boolean(item.titleChanged),
       activities: (item.activities || []).length,
-      clauses: handover.clauseList((item.activities || []).map((entry) => entry.clause)),
+      clauses: handover.clausesOf(row),
     };
   }
 
@@ -542,8 +542,11 @@ function install(router, deps) {
         const folded = (await itemsOf(ctx.sub.id)).filter((other) => other.removed_at && other.removed_why === 'folded' && row.package && other.item && other.item.foldedInto === row.package);
         if (folded.length) {
           for (const other of folded) await db.query("UPDATE required_swms SET removed_why = 'unfolded', list_rev = $1, updated_at = $2 WHERE id = $3", [rev, now, other.id]);
-          const names = folded.map((other) => other.title);
-          unfolded = ` ${names.length === 1 ? `${names[0]} is` : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} are`} no longer part of it: ${names.length === 1 ? 'it is' : 'they are'} under Removed. Put ${names.length === 1 ? 'it' : 'one'} back if it needs a SWMS of its own.`;
+          // Named as "Also covers" names them, not by the reading's package names (messy round 9, wording 3:
+          // "Trade installation: fire hydrant services, ... are no longer part of it").
+          const names = folded.map((other) => String(other.title).replace(/^trade installation:\s*/i, '').replace(/^./, (letter) => letter.toLowerCase()));
+          const lead = names.length === 1 ? `${names[0]} is` : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} are`;
+          unfolded = ` ${lead.replace(/^./, (letter) => letter.toUpperCase())} no longer part of it: ${names.length === 1 ? 'it is' : 'they are'} under Removed. Put ${names.length === 1 ? 'it' : 'one'} back if it needs a SWMS of its own.`;
         }
         await recordListEdit(ctx, { kind: 'taskChanged', pack: row.package || row.title, wording: task, original: row.task });
         await log(ctx, req, `changed the work for ${row.title} on the SWMS list for ${ctx.sub.name}.`);
