@@ -97,7 +97,8 @@ test('a step that cannot be done without a harness keeps it, whatever the answer
 // ---- 2. The falls check ----
 
 const FENCE = 'Fencing and gates: set out the fence line, dig the post holes, set the posts in concrete, and build the fence and hang the gates. 2.4m security fence round the substation compound at the back, post holes with a petrol auger, galv posts cut with a petrol cut off saw and cold gal on the cut ends. Barbed wire outriggers fixed on top from a ladder and our sissor lift, chemset anchors for the gate posts in the existing slab. Plus anti climb mesh along the top of the 3m retaning wal from the EWP.';
-const FENCE_FACTS = { safetyDataSheet: 'Cold gal spray and chemset epoxy: SDS in the ute folder, gloves and glasses.' };
+// The chemset anchors are drilled into the slab (content10), so the silica controls are answered too.
+const FENCE_FACTS = { safetyDataSheet: 'Cold gal spray and chemset epoxy: SDS in the ute folder, gloves and glasses.', silicaControls: 'Anchor holes are drilled with on-tool dust extraction, and the driller wears a fit tested P2 respirator.' };
 
 test('SiteWrite\'s own EWP step, High for the platform going over an edge, brings the Keep No check, and every step is named', () => {
   // Run 8: no check came for "Use an elevating work platform", and her own step was the only one named.
@@ -140,9 +141,10 @@ test('an Access answer is never made into a fall control, and a "not needed" ans
 test('a step of your own counts for the work its words cover, written for it or not', () => {
   // Run 2: "Heat weld the vinyl joins with the hot air welding gun", written for the SWMS as a whole, left
   // "Heat weld vinyl joins" listed as having no job steps.
-  const task = 'Heat weld vinyl joins.';
-  const own = { part: '', name: 'Heat weld the vinyl joins with the hot air welding gun and trim the weld', hazards: ['Burns from the hot air gun nozzle and hot weld rod.'], controls: ['Gun rested on its stand and switched off when not in hand.', 'Trim with the guarded knife, cutting away from the body.'], who: 'Floor layer' };
-  const part = 'Heat weld vinyl joins';
+  // Heat welding vinyl now has the library's laying step (content10), so a pond liner, which has none, stands in for it.
+  const task = 'Heat weld the PVC pond liner seams.';
+  const own = { part: '', name: 'Heat weld the PVC pond liner seams with the hot air welding gun and trim the weld', hazards: ['Burns from the hot air gun nozzle and hot weld rod.'], controls: ['Gun rested on its stand and switched off when not in hand.', 'Trim with the guarded knife, cutting away from the body.'], who: 'Floor layer' };
+  const part = 'Heat weld the PVC pond liner seams';
   const draft = draftOf({ state: 'vic', task, ownSteps: [own] });
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
   assert.deepEqual(draft.notCovered, [part]);

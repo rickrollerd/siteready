@@ -131,7 +131,8 @@ test('an electrical task typed with "test the new work" gets the testing step an
 // ---- 2. Wrong-trade and wrong-context steps and lines ----
 
 test('access control: drilling and routing doors and frames is not door hanging, joinery or steel erection, and an office ceiling is not a roof space', () => {
-  assert.deepEqual(suggestedKinds(ACCESS, {}, {}), ['securityDevices']);
+  // "cable in the ceiling from a ladder" is work from a ladder (messy round 10, run 8: "from a ladder" brought no ladder step).
+  assert.deepEqual(suggestedKinds(ACCESS, {}, {}), ['securityDevices', 'ladderUse']);
   const draft = draftOf({ state: 'qld', fallRisk: 'no', crane: 'none', task: ACCESS });
   const list = names(draft);
   for (const name of ['Hang the doors', 'Install joinery and cabinets', 'Erect and connect steel at height', 'Work in the roof space', 'Use power tools']) assert.ok(!list.includes(name), list.join('; '));

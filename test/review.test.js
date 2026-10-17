@@ -249,7 +249,9 @@ function richInput(designFile, sdsFile) {
     controls: ['Wear chemical resistant gloves (nitrile).'], firstAid: ['Skin: wash with soap and water.'], storage: ['Store away from ignition sources.'], confirmed: true, file: sdsFile,
   };
   let input = ready({ ...start, substances: [product], substancesNotUsed: types.filter((item) => item !== type) });
-  const step = prepareDraft(draftBody(input)).jobSteps[1];
+  // The basement edge step, wherever the order of the work puts it (messy round 10): its fall hazard is the one marked not applying.
+  const steps = prepareDraft(draftBody(input)).jobSteps;
+  const step = steps.find((item) => item.step === 'Protect the basement edge') || steps[1];
   input = { ...input, hazardEdits: { [step.step]: { changed: [], added: [BOGGY], notApplicable: [step.hazards[0]], own: { [BOGGY]: { written: ['Duckboards are laid over the wet areas.'] } } } } };
   return { input, step: step.step, removed: step.hazards[0], type };
 }

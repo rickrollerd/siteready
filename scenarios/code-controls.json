@@ -2254,6 +2254,7 @@
   "group": "masonryLay",
   "step": "Lay blocks and bricks",
   "text": "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.",
+  "unless": "smallMasonry",
   "code": "Scaffolding",
   "section": "s 2.4.1, s 3.8, s 4.2"
  },

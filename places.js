@@ -206,8 +206,12 @@ const EMERGENCY_NAME = /\bemergency (?:room|department|dept)\b/i;
 // A private hospital counts only where its listing is named as an emergency department: the nearest-first
 // "hospital emergency department" search returns the nearest hospitals of any kind, so a private hospital
 // with no emergency department came first (messy round 9, runs 5, 7 and 8).
-const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || (Boolean(item.ed) && !/\bprivate\b/i.test(item.name));
-const hospitalRank = (item) => (hasEmergency(item) ? 0 : /\bprivate\b/i.test(item.name) ? 3 : 2);
+// Private hospitals often have no "private" in the name: the private operators' names count too (messy round 10, run 6:
+// Calvary's Lenah Valley hospital, with no emergency department, came first in Hobart). Calvary's public hospitals
+// (Calvary Mater, Calvary Public) are not private.
+const PRIVATE_NAME = /\b(private|calvary(?! (?:mater|public))|st john of god|ramsay|healthscope|epworth|hollywood|pindara|john flynn|greenslopes|cabrini|warringal|knox private|mater private|st andrew'?s war memorial|north west private|hobart private|st helen'?s|mayo private)\b/i;
+const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || (Boolean(item.ed) && !PRIVATE_NAME.test(item.name));
+const hospitalRank = (item) => (hasEmergency(item) ? 0 : PRIVATE_NAME.test(item.name) ? 3 : 2);
 // General practices and medical centres before other practices.
 const clinicRank = (item) => (/\b(medical (?:centre|center|clinic|practice|group)|family (?:medical|practice|doctors)|general practice|GP|doctors)\b/i.test(item.name) ? 0 : 1);
 // A listing named as an emergency department is kept whatever Google types it (often "service").
@@ -315,4 +319,4 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
   }
 }
 
-module.exports = { suggest, nearbyCare, enabled, km, isHospital, isGeneralClinic, toSuggestion };
+module.exports = { suggest, nearbyCare, enabled, km, isHospital, isGeneralClinic, toSuggestion, PRIVATE_NAME };

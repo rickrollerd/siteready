@@ -19,11 +19,13 @@
     ['Paints and coatings', /(?<!once )\b(paint\w*|coatings?|enamels?)\b/i, 'Paint or coating'],
     // "Solvent cement" is the PVC primer and solvent cement row, not a solvent and a cement (messy round 7).
     ['Solvents and thinners', /\b(solvents?(?! cement| weld\w*)|thinners?|turps)\b/i, 'Solvent or thinner'],
-    ['Adhesives', /\b(adhesives?|glues?|vinyl|carpet)\b/i, 'Adhesive'],
+    // An epoxy, resin or chemical anchor adhesive ("chemset epoxy anchor adhesive") is the epoxy row, not a second
+    // product (messy round 10, run 8: one product asked for twice, and the second "Not required" refused).
+    ['Adhesives', /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(adhesives?|glues?)\b|\b(vinyl|carpet)\b/i, 'Adhesive'],
     ['Wood dust (MDF and hardwood)', /\b(mdf|particleboard|wood dust|sawdust|(?:cut|saw|sand|rout|machin)\w* [^.\n]{0,30}\b(?:timber|wood|hardwood|mdf|joinery))\b/i, 'Board or timber product'],
     ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone)\b/i, 'Sealant'],
     ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i, 'Waterproofing product'],
-    ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack)\b/i, 'Epoxy or resin'],
+    ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack|chem-?set|chemical anchors?)\b/i, 'Epoxy or resin'],
     ['Cement, concrete, grout and mortar', /\b((?<!solvent |pvc )cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
     // Plasterboard that is painted over, or swept up, is not plaster work: plasterboard brings the type
     // only where it is fixed, set or jointed (messy round 4).
@@ -33,21 +35,22 @@
     ['Respirable crystalline silica (concrete, masonry, tile and stone dust)', /\bsilica\b/i, 'Product with crystalline silica'],
     ['PVC primer and solvent cement', /\b(solvent cement|pvc primer)\b/i, 'PVC primer or solvent cement'],
     ['Fuels (diesel, petrol)', /\b(diesel|petrol|fuel\w*|refuel\w*|generators?|chainsaws?|excavators?)\b/i, 'Fuel'],
-    ['Gases (LPG, acetylene, oxygen)', /\b(lpg|propane|acetylene|oxy-\w*|oxyacetylene|gas cylinders?|brazing|gas torch\w*|torch-on)\b/i, 'Gas'],
+    // Brazing is done with a gas torch: "Braze refrigerant pipework" brings the gas type (messy round 10, run 1).
+    ['Gases (LPG, acetylene, oxygen)', /\b(lpg|propane|acetylene|oxy-\w*|oxyacetylene|gas cylinders?|braz(?:e|es|ed|ing)|gas torch\w*|torch-on)\b/i, 'Gas'],
     ['Refrigerants', /\brefrigerants?\b/i, 'Refrigerant'],
-    ['Cleaning chemicals', /\b(cleaning chemicals?|detergents?|acid wash\w*|cleaning products?)\b/i, 'Cleaning chemical'],
+    ['Cleaning chemicals', /\b(cleaning chemicals?|detergents?|acid wash\w*|cleaning products?|clean\w* with chemicals)\b/i, 'Cleaning chemical'],
     ['Herbicides and termiticides', /\b(herbicides?|termiticides?|termite treatment|weed ?killers?|treat\w* the ground)\b/i, 'Herbicide or termiticide'],
     ['Bitumen and asphalt', /\b(bitumen|asphalt|hot mix)\b/i, 'Bitumen product'],
     // Pool chemicals and garden products the steps already say are handled as their safety data sheets set
     // out (messy round 9: a pool dosing SWMS and a roof garden SWMS found no hazardous substances).
-    ['Pool and water treatment chemicals', /\b(pool chemicals?|pool chlorine|chlorine|hypochlorite|hydrochloric acid|chemical dosing|dosing chemicals?)\b/i, 'Pool chemical'],
+    ['Pool and water treatment chemicals', /\b(pool chemicals?|pool chlorine|chlorine|hypochlorite|hydrochloric acid|chemical dosing|dosing chemicals?)\b/i, 'Pool or water treatment chemical'],
     ['Potting mix, soil conditioners and fertilisers', /\b(potting mix|fertili[sz]ers?|soil conditioners?)\b/i, 'Potting mix or fertiliser'],
   ];
   // Products named in control lines. These are matched only on product names, so a control that says
   // to keep clear of something does not list it.
   const CONTROL_PRODUCTS = {
     'Paints and coatings': /\btouch-up paint\b/i,
-    'Adhesives': /\b(?:adhesives?|glue)\b/i,
+    'Adhesives': /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(?:adhesives?|glue)\b/i,
     'Sealants, mastics and silicone': /\b(sealants?|mastics?)\b/i,
     'Epoxy, resins and two-part products': /\b(epoxy|jointing resins?|resins?)\b/i,
     'Cement, concrete, grout and mortar': /\b(cement-based|cementitious|grout|mortar|wet concrete)\b/i,
@@ -79,7 +82,7 @@
     'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b)/i,
     'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
   };
-  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b(plant|machines?|generators?|trucks?|excavat\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
+  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b(plant|machines?|generators?|trucks?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
   // The job step that uses a product of this type: the first whose name names the type, else the
   // first whose hazards or controls do. Not the general steps at the start and end, nor the user's own
   // steps. '' when none does: the user chooses the step.
@@ -108,9 +111,16 @@
     const hinted = STEP_HINT[type] && usable.find((step) => STEP_HINT[type].test(step.step || ''));
     if (hinted) return hinted.step;
     const lines = (step) => (step.controls || []).filter((line) => !(step.substanceLines || []).includes(line));
-    const byLines = usable.find((step) => pattern.test([...(step.hazards || []), ...lines(step).map(withoutSource)].join('\n'))
-      || (CONTROL_PRODUCTS[type] && CONTROL_PRODUCTS[type].test(lines(step).join('\n'))));
-    return byLines ? byLines.step : '';
+    // A line that offers the product in place of something else ("Glue instead of nailing") is not its use
+    // (messy round 10, run 4: the door adhesive went to "Use power tools").
+    const used = (step) => lines(step).filter((line) => !/\binstead of\b/i.test(line));
+    const byLines = usable.find((step) => pattern.test([...(step.hazards || []), ...used(step).map(withoutSource)].join('\n'))
+      || (CONTROL_PRODUCTS[type] && CONTROL_PRODUCTS[type].test(used(step).join('\n'))));
+    if (byLines) return byLines.step;
+    // Last, the user's own step that names it (messy round 10, run 8: "SiteWrite could not tell which step uses
+    // it" for the chemset and cold gal the user's own step names).
+    const own = (Array.isArray(steps) ? steps : []).find((step) => step && (step.own || OWN_STEP.test(String(step.step || ''))) && (pattern.test([step.step, ...(step.hazards || []), ...(step.controls || []).map(withoutSource)].join('\n')) || namedIn(type, [step.step, ...(step.hazards || []), ...(step.controls || [])].join('\n'))));
+    return own ? own.step : '';
   }
 
   // The SDS's issue date from the date box ("2026-10-03"), or null.
@@ -149,13 +159,13 @@
   const NAMED = {
     'Paints and coatings': /\b(?:paints?|painting|painted|coatings?|enamels?|undercoats?|top ?coats?)\b/i,
     'Solvents and thinners': /\b(?:solvents?(?! cement| weld\w*)|thinners?|turps|acetone|mineral spirits?)\b/i,
-    'Adhesives': /\b(?:adhesives?|glues?|glued)\b/i,
+    'Adhesives': /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(?:adhesives?|glues?|glued)\b/i,
     // Dust from cutting timber names it too (messy round 9: wood dust "Not required" beside "Dust from cutting
     // treated timber or sleepers").
     'Wood dust (MDF and hardwood)': /\b(?:mdf|particleboard|hardwood dust|(?:wood|timber|sawdust) dust|dust from (?:cutting|sawing|sanding|machining|routing) [^.\n]{0,30}\b(?:timber|wood|sleepers?|mdf|particleboard|plywood|joinery))\b/i,
     'Sealants, mastics and silicone': /\b(?:sealants?|mastics?|silicone|caulk\w*)\b/i,
     'Waterproofing membranes and primers': /\b(?:membranes?|waterproof\w*)\b/i,
-    'Epoxy, resins and two-part products': /\b(?:epoxy|epoxies|resins?|two[- ]part|two[- ]pack|2[- ]pack)\b/i,
+    'Epoxy, resins and two-part products': /\b(?:epoxy|epoxies|resins?|two[- ]part|two[- ]pack|2[- ]pack|chem-?set|chemical anchors?)\b/i,
     // An epoxy or resin mortar or grout is that product, not a cement one (messy round 9: cement refused because
     // the SDS answer named "two part epoxy mortar", already listed as an epoxy).
     'Cement, concrete, grout and mortar': /\b(?:(?<!solvent |pvc |fibre[- ])cement\w*|(?<!\b(?:epoxy|resin|polyurethane|polymer)\s+(?:\w+\s+)?)(?:grout\w*|mortars?)|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
@@ -167,7 +177,9 @@
     'Fuels (diesel, petrol)': /\b(?:diesel|petrol|unleaded|fuels?)\b/i,
     'Gases (LPG, acetylene, oxygen)': /\b(?:lpg|propane|acetylene|oxy[- ]?acetylene|gas (?:bottles?|cylinders?|torch\w*)|torch[- ]?on)\b/i,
     'Refrigerants': /\b(?:refrigerants?|r32|r410a|r134a)\b/i,
-    'Cleaning chemicals': /\b(?:acid wash\w*|cleaning chemicals?|detergents?|hydrochloric|muriatic|degreasers?)\b/i,
+    // "Clean with chemicals" and "cleaning products" name them too (messy round 10, run 7: "Not required" taken with
+    // no reason beside SiteWrite's own step "Clean with chemicals").
+    'Cleaning chemicals': /\b(?:acid wash\w*|cleaning chemicals?|cleaning products?|clean\w* with chemicals|chemical clean\w*|detergents?|hydrochloric|muriatic|degreasers?)\b/i,
     'Herbicides and termiticides': /\b(?:herbicides?|termiticides?|weed ?killers?|glyphosate|termite treatment)\b/i,
     'Bitumen and asphalt': /\b(?:bitumen|asphalt|hot mix|tack coat|prime coat|emulsion)\b/i,
     'Pool and water treatment chemicals': /\b(?:pool chemicals?|pool chlorine|chlorine|hypochlorite|hydrochloric|pool acid)\b/i,
@@ -195,7 +207,32 @@
     if (!text) return 'missing';
     return isOpen(text) || text.split(' ').length < 2 ? 'weak' : '';
   }
-  const REASON_EXAMPLE = 'for example "supplied and applied by others"';
+  // An example of a reason that fits a real "Not required" for each type (coordinator, content10: "supplied and applied
+  // by others" led users into a reason that is then refused beside their own steps or plant).
+  const REASON_EXAMPLES = {
+    'Paints and coatings': 'factory finished, no painting on site',
+    'Solvents and thinners': 'water-based products only',
+    'Adhesives': 'screw fixed, no glue used',
+    'Wood dust (MDF and hardwood)': 'cut to size off site, no cutting here',
+    'Sealants, mastics and silicone': 'no sealing in our work',
+    'Waterproofing membranes and primers': 'no membrane in our work',
+    'Epoxy, resins and two-part products': 'mechanical anchors only, no epoxy',
+    'Cement, concrete, grout and mortar': 'precast units only, no wet concrete or mortar',
+    'Plaster, jointing and setting compounds': 'no setting or jointing in our work',
+    'Synthetic mineral fibres (insulation)': 'no insulation handled by our crew',
+    'Curing compounds and form release agents': 'no curing compound or form oil used',
+    'Respirable crystalline silica (concrete, masonry, tile and stone dust)': 'no cutting, drilling or grinding of concrete, masonry or stone',
+    'PVC primer and solvent cement': 'press-fit joints only, no solvent cement',
+    'Fuels (diesel, petrol)': 'battery and electric plant only',
+    'Gases (LPG, acetylene, oxygen)': 'press-fit joints only, no torch',
+    'Refrigerants': 'units come pre-charged, no refrigerant handled',
+    'Cleaning chemicals': 'water only, no cleaning chemicals',
+    'Herbicides and termiticides': 'no ground treatment in our work',
+    'Bitumen and asphalt': 'no asphalt or bitumen in our work',
+    'Pool and water treatment chemicals': 'no chemicals handled by our crew',
+    'Potting mix, soil conditioners and fertilisers': 'no planting in our work',
+  };
+  const reasonExample = (type) => `for example "${REASON_EXAMPLES[type] || 'not used by our crew on this job'}"`;
   // What a type ticked "Not required" still needs (D292 item 3), or '': a reason where the user's own
   // words name that kind of product.
   // The job steps' own words: their names and hazards, not the general steps (messy round 5: "Not
@@ -324,7 +361,9 @@
   const WORKED_ON = /\b(?:fuel|gas|refrigerant|diesel|petrol)\s+(?:lines?|pipes?|pipework|mains?|systems?|tanks?|meters?|dispensers?|connections?)\b/gi;
   function usedByStep(type, draft) {
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step) && !(step.own || OWN_STEP.test(String(step.step || ''))));
-    for (const step of steps) {
+    // A step that uses the product is named before one that only moves or prepares for it ("Move membrane rolls and
+    // materials", which the order of the work now puts first).
+    for (const step of [...steps.filter((item) => !PREPARES.test(String(item.step || ''))), ...steps.filter((item) => PREPARES.test(String(item.step || '')))]) {
       const name = String(step.step || '').replace(WORKED_ON, ' ');
       const word = NOT_USING.test(name) ? '' : namedIn(type, name);
       if (word) return { step: String(step.step || ''), word };
@@ -332,8 +371,12 @@
     for (const step of steps) {
       const name = String(step.step || '');
       if (NOT_USING.test(name.replace(WORKED_ON, ' '))) continue;
+      // A step whose own lines use the product only on a condition ("Wear the gloves ... when cleaning with
+      // solvents" beside the water-based washout line) is marked conditional: a reason that says why it is not used
+      // settles it (messy round 10, run 4: solvents refused for a water-based sealer's brush washout).
+      const conditional = (step.controls || []).some((line) => typeof line === 'string' && /\b(?:when|where|if)\b/i.test(withoutSource(line)) && namedIn(type, withoutSource(line)));
       const line = (step.hazards || []).find((text) => typeof text === 'string' && !NOT_THIS_JOB.test(text) && !CONDITION.test(text) && !NOT_USING.test(text) && !NOT_EXPOSURE.test(text) && exposure(type, text) && namedIn(type, text.replace(WORKED_ON, ' ')) && kindsIn(text.replace(WORKED_ON, ' ')) < 2);
-      if (line) return { step: String(step.step || ''), word: namedIn(type, line.replace(WORKED_ON, ' ')) };
+      if (line) return { step: String(step.step || ''), word: namedIn(type, line.replace(WORKED_ON, ' ')), ...(conditional ? { conditional: true } : {}) };
     }
     return null;
   }
@@ -381,7 +424,11 @@
     // SiteWrite's own step uses it: no reason settles it while that step is in the SWMS (messy round 8:
     // paint "painters do it" beside four paint steps, solvents "supplied and applied by others" beside
     // "Clean brushes and rollers").
-    const mine = type === SILICA ? null : draft ? usedByStep(type, draft) : known && !known.own ? known : null;
+    // A step whose lines use the product only on a condition ("when cleaning with solvents") is settled by a reason that
+    // says why it is not used here ("water-based sealer only"), but not by one that says others do it: the crew cleans
+    // its own brushes (messy round 10, run 4; content8).
+    const found = type === SILICA ? null : draft ? usedByStep(type, draft) : known && !known.own ? known : null;
+    const mine = found && found.conditional && !BY_OTHERS.test(clean(reason)) ? null : found;
     if (mine) return `${SHORT.get(type)}: the job step "${mine.step}" in this SWMS uses "${mine.word.toLowerCase()}", so it cannot be "Not required". Add the product you use with its safety data sheet, or take that step off if your crew does not do it.`;
     // While that step is in the SWMS, no reason settles it: the product being cut is asked for.
     if (type === SILICA && cut) return `${SHORT.get(type)}: the job step "${cut}" cuts, drills or grinds concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
@@ -392,8 +439,8 @@
     if (!asked) return '';
     const named = asked.word;
     const need = reasonNeed(reason);
-    if (need === 'missing') return `${SHORT.get(type)}: ${asked.said}. Add the product you use, or give a short reason it is not required, ${REASON_EXAMPLE}.`;
-    if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${REASON_EXAMPLE}, or add the product you use.`;
+    if (need === 'missing') return `${SHORT.get(type)}: ${asked.said}. Add the product you use, or give a short reason it is not required, ${reasonExample(type)}.`;
+    if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${reasonExample(type)}, or add the product you use.`;
     return '';
   }
 
@@ -504,7 +551,7 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses };
+  const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);
