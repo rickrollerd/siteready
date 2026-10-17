@@ -99,7 +99,7 @@ const SHORT = { ewp: 'EWP', fall: 'work at height', electrical: 'electrical', tr
 const INVOLVES = { ewp: 'an elevating work platform', fall: 'a risk of a fall from height', electrical: 'work on or near energised electrical parts', trench: 'a trench, shaft or tunnel', confined: 'a confined space', plant: 'moving powered mobile plant' };
 
 // The categories this SWMS involves that have questions: an EWP in the plant listed, a fall
-// (without an EWP, whose own rescue covers the platform), energised electrical work, a trench,
+// (without an EWP, whose own rescue covers the platform, unless other steps rate a person's fall), energised electrical work, a trench,
 // shaft or tunnel, a confined space, and moving powered mobile plant.
 // Messy round 4 (B fault 6): a question is asked only where it applies.
 // - Mobile plant: only where the plant this SWMS uses has mobile plant ("Stopped by" was asked of a
@@ -113,6 +113,15 @@ function plantInUse(draft = {}) {
   const maybe = new Set((draft.plantInferred || []).filter((item) => item && item.maybe).map((item) => item.item));
   return (draft.plant || []).filter((item) => item && (draft.plantChosen || !maybe.has(item.item)));
 }
+// A step, other than the EWP's own, whose hazards say a person falls (from a roof, an edge, a ladder or
+// through an opening). Lines about the platform itself, or a fall from it, are the EWP's.
+const PERSON_FALLS = /^(?:an? |the )?(?:person |worker |people )?(?:falls?|falling)\b|\b(?:a person|workers?|people|someone) (?:falls?|could fall)\b/i;
+const PLATFORM_LINE = /\b(?:elevating work platforms?|ewps?|scissor lifts?|boom lifts?|baskets?|work ?box(?:es)?|platform overturns|platform tips)\b/i;
+const EWP_STEP = /\b(?:elevating work platforms?|ewps?|scissor lifts?|boom lifts?)\b/i;
+function fallAwayFromPlatform(draft = {}) {
+  return (draft.jobSteps || []).some((step) => !EWP_STEP.test(String(step.step || '')) && ['Before starting', 'Finish and clean up'].indexOf(step.step) < 0
+    && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && PERSON_FALLS.test(String(line).trim()) && !PLATFORM_LINE.test(String(line)) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b|\bobjects?\b|\btools?\b/i.test(String(line))));
+}
 function categoriesFor(draft = {}) {
   const highRisk = Array.isArray(draft.highRisk) ? draft.highRisk : [];
   const plant = plantInUse(draft);
@@ -124,7 +133,11 @@ function categoriesFor(draft = {}) {
   const has = (pattern) => highRisk.some((item) => pattern.test(String(item)));
   return [
     ewp ? 'ewp' : '',
-    !ewp && has(FALL) ? 'fall' : '',
+    // With an EWP, the fall rescue is still asked where a step away from the platform rates a person's fall
+    // (messy round 11, A fault 4: with the EWP ticked, roof work lost its fall rescue questions, and the
+    // file's "Work at height" row had only the EWP lowering answer). Lowering the platform does not
+    // rescue a person who falls from the roof.
+    has(FALL) && (!ewp || fallAwayFromPlatform(draft)) ? 'fall' : '',
     // Not where the only energised services are power lines (draft.js electricalLinesOnly): the power line row covers them.
     has(/energised electrical/i) && draft.electricalWork !== false && !draft.electricalLinesOnly ? 'electrical' : '',
     has(/\b(?:trench|shaft|tunnel)\b/i) ? 'trench' : '',

@@ -41,7 +41,7 @@ test('a word of the job address is never changed in the task, and a slip one let
   const draft = draftOf(input);
   assert.match(draft.task, /stuart hwy/);
   assert.doesNotMatch(draft.task, /start hwy/);
-  assert.match(titleFor({}, draftBody({ ...ANSWERED, ...input })), /^mill and resheet 300m of the stuart hwy/);
+  assert.match(titleFor({}, draftBody({ ...ANSWERED, ...input })), /^Mill and resheet 300m of the stuart hwy/, 'its first capital only, as it prints (messy round 11)');
   assert.ok(!(draft.spellingFixes || []).some((fix) => fix.from === 'stuart'));
 });
 
@@ -103,10 +103,11 @@ test('falls answered No while a step rates a fall from height High is asked abou
   const input = draftBody({ ...ANSWERED, state: 'sa', fallRisk: 'no', residential: 'no', crane: 'none', task: PAINT, facts: PAINT_FACTS });
   const draft = prepareDraft(input);
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.deepEqual(draft.fallConflict, { steps: ['Set up access to the outside of the structure'], metres: 2, kept: false });
+  // Once one step brings the check, every step rating a person's fall High is named with it (messy round 11).
+  assert.deepEqual(draft.fallConflict, { steps: ['Work at the upper wall and ceiling line', 'Set up access to the outside of the structure'], metres: 2, kept: false });
   const gap = downloadGaps(input, draft).find((item) => item.kind === 'fall');
   assert.equal(gap.field, 'fall-check');
-  assert.match(gap.need, /^You answered No to a fall of more than 2 metres, but the step "Set up access to the outside of the structure" rates a fall from height High\./);
+  assert.match(gap.need, /^You answered No to a fall of more than 2 metres, but the steps "Work at the upper wall and ceiling line" and "Set up access to the outside of the structure" rate a fall from height High\./);
   // Kept as No, it prints that no one works where they could fall that far, and the download goes on.
   const keptInput = draftBody({ ...input, fallNoKept: true });
   const kept = prepareDraft(keptInput);

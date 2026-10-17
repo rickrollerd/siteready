@@ -106,6 +106,9 @@ function confirm(body, draft, { state, at = new Date(), doing = 'downloading', o
   const name = oneLine(check.name, 120);
   const role = oneLine(check.role, 120);
   if (!name) throw fail(400, 'Enter your name.', { field: 'name' });
+  // The one person rule (messy round 11, run 5: "Checked by Me, Foreman" printed on every page).
+  const weakName = require('./public/gate-rules').checkerNameNeed(name);
+  if (weakName) throw fail(400, weakName, { field: 'name' });
   if (!role) throw fail(400, 'Enter your role, for example Supervisor or Director.', { field: 'role' });
   if (check.ack !== true) throw fail(400, 'Tick the last box: this is a draft your business checks and approves before it is used.', { field: 'ack' });
   return {

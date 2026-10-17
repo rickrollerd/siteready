@@ -417,7 +417,8 @@
   function payloadFor(index) {
     const item = project.items[index];
     const designs = designsFor(index);
-    const emergency = shared().emergency;
+    // Emergency answers from the project's other SWMS, only those that fit this one (messy round 11).
+    const emergency = S.emergencyAcross ? S.emergencyAcross(item) : shared().emergency;
     return {
       ...pageBase(),
       ...(builder() && item.pageOwn ? item.pageOwn : {}),
@@ -651,9 +652,9 @@
       // 1: a silent HTTP 400 on POST /api/draft at page load, "Choose a state.").
       const given = pageGiven();
       // So are emergency answers given in another SWMS of the project (D239: filled across).
-      const across = Object.keys(shared().emergency);
+      const acrossOf = (item) => Object.keys(S.emergencyAcross ? S.emergencyAcross(item) : shared().emergency);
       const stale = Boolean(given.state) && project.items.some((item) => item.body && (Object.entries(given).some(([key, value]) => !(item.pageOwn && key in item.pageOwn) && JSON.stringify(item.body[key]) !== JSON.stringify(value))
-        || across.some((id) => (!item.emergencyAsked || item.emergencyAsked.includes(id)) && !((item.body.emergency || {})[id] || '').trim())));
+        || acrossOf(item).some((id) => (!item.emergencyAsked || item.emergencyAsked.includes(id)) && !((item.body.emergency || {})[id] || '').trim())));
       if (stale && !refreshing) { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => refreshAll({ given: true }), 300); }
       return;
     }
@@ -710,7 +711,7 @@
     const parts = [itemFrom(index), `<div class="field"><label for="go-task-${index}">Task<span class="hint">A plain list of the work, as it prints on the SWMS. Change it if it is not right.</span></label><textarea id="go-task-${index}" data-go-task="${index}">${esc(task)}</textarea></div>`];
     if (!item.fallRisk) {
       const from = item.fallFrom;
-      parts.push(`<fieldset class="field choice"><legend>Could a person fall more than 2 metres during this work?</legend>${['yes', 'no'].map((value) => `<label><input type="radio" name="go-fall-${index}" data-go-fall="${index}" value="${value}"${item.goFall === value ? ' checked' : ''}> ${value === 'yes' ? 'Yes' : 'No'}</label>`).join(' ')}${from !== undefined ? `<p class="meta go-across">Filled from SWMS ${from + 1}. Change it here if this SWMS differs.</p>` : item.fallHint && !item.goFall ? `<p class="meta">Not filled from another SWMS: this SWMS's own work suggests ${item.fallHint === 'yes' ? 'work at height' : 'no work at height'}. Answer it for this SWMS.</p>` : ''}</fieldset>`);
+      parts.push(`<fieldset class="field choice"><legend>Could a person fall more than 2 metres during this work?</legend>${['yes', 'no'].map((value) => `<label><input type="radio" name="go-fall-${index}" data-go-fall="${index}" value="${value}"${item.goFall === value ? ' checked' : ''}> ${value === 'yes' ? 'Yes' : 'No'}</label>`).join(' ')}${from !== undefined ? `<p class="meta go-across">Filled from SWMS ${from + 1}. Change it here if this SWMS differs.</p>` : item.fallKept && item.goFall ? `<p class="meta">Kept for this SWMS: its own work suggests ${item.goFall === 'yes' ? 'work at height' : 'no work at height'}. Change it here if that is wrong.</p>` : item.fallHint && !item.goFall ? `<p class="meta">Not filled from another SWMS: this SWMS's own work suggests ${item.fallHint === 'yes' ? 'work at height' : 'no work at height'}. Answer it for this SWMS.</p>` : ''}</fieldset>`);
     }
     if (!got) parts.push('<p class="meta">Finding the questions for this SWMS...</p>');
     else if (got.needsState) parts.push('<p class="note">This SWMS\'s questions show once the state is set: pick the job address above from its list, or tick the state the job is in. <button type="button" class="link" data-go-field="workplace">Go to the job address</button></p>');
@@ -1257,6 +1258,7 @@
       const index = Number(target.dataset.goFall);
       project.items[index].goFall = target.value;
       delete project.items[index].fallFrom;
+      delete project.items[index].fallKept;
       const changed = [index];
       // The same answer fills the fall question of the SWMS not answered yet, or filled from this one,
       // but not one whose own task says otherwise (messy round 3: "Yes" filled into a ground floor SWMS).
@@ -1264,8 +1266,11 @@
         if (at === index || other.fallRisk || (other.goFall && other.fallFrom !== index)) return;
         // Nor does the fall answer (same reason, above).
         if (isOwn(other) !== isOwn(project.items[index])) return;
+        // One whose own work says otherwise keeps the answer it has, now as its own: it was filled from
+        // this SWMS and suits its own work (messy round 11, A fault 6: changing Electrical's falls to Yes
+        // cleared In-ground's No, and its trench support question went with it).
         if (other.fallHint && other.fallHint !== target.value) {
-          if (other.fallFrom === index) { delete other.goFall; delete other.fallFrom; drawItem(at); askItem(at); }
+          if (other.fallFrom === index) { delete other.fallFrom; other.fallKept = true; drawItem(at); }
           return;
         }
         other.goFall = target.value;
@@ -1670,6 +1675,8 @@
     item.emergencyAsked = (S.askedEmergency && S.askedEmergency(draft)) || item.emergencyAsked;
     item.body = S.keptEmergency ? S.keptEmergency(body, item.emergencyAsked) : body;
     item.kind = draft.kind;
+    // The plant it uses, so an emergency answer naming other plant is not filled into it (messy round 11).
+    if (draft.kind === 'draft') item.plantNames = (draft.plant || []).map((row) => row && row.item).filter(Boolean);
     const rules = window.SiteWriteSubstanceRules;
     item.silicaStep = draft.kind === 'draft' && rules && rules.silicaStep ? rules.silicaStep(draft) : '';
     item.substanceUses = draft.kind === 'draft' && rules && rules.stepUses ? rules.stepUses(draft) : {};
@@ -1753,7 +1760,7 @@
         const own = item.stale ? changesFor(index) : {};
         if (given) for (const key of PAGE_KEYS) if (!(key in base)) delete own[key];
         // A detail the builder set that was changed for this SWMS alone stays its own (messy round 8).
-        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, ...(builder() && item.pageOwn ? item.pageOwn : {}), emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
+        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, ...(builder() && item.pageOwn ? item.pageOwn : {}), emergency: { ...(S.emergencyAcross ? S.emergencyAcross(item) : shared().emergency), ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
       }
       save();
       if (project.stage === 'review') hooks.render();

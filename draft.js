@@ -53,8 +53,17 @@ const SCOPE_LEAD_IN = /(^|[.;]\s+|\n)[ \t]*(?:(?:the|this|our)[ \t]+)?(?:(?:sub-
 // "DESCRIPTION OF WORK:", "Summary of works" and the like are headings too, on a line of their own or
 // before the work on the same line (messy round 10, run 7: "DESCRIPTION OF WORK: All builders plus final
 // cleaning" named the SWMS, its file and its task line).
-const SCOPE_HEADING = /^[ \t]*(?:the[ \t]+)?(?:(?:(?:sub-?contract|trade)[ \t]+)?scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?works?)?|(?:description|summary|outline|details?)[ \t]+of[ \t]+(?:the[ \t]+)?works?|works?[ \t]+(?:description|summary|scope|inclusions)|(?:scope[ \t]+)?inclusions)[ \t]*:?[ \t]*$/gim;
-const SCOPE_LABEL = /^[ \t]*(?:the[ \t]+)?(?:(?:(?:sub-?contract|trade)[ \t]+)?scope[ \t]+of[ \t]+(?:the[ \t]+)?works?|(?:description|summary|outline|details?)[ \t]+of[ \t]+(?:the[ \t]+)?works?|works?[ \t]+description)[ \t]*[:\u2013\u2014-][ \t]*(\S)/gim;
+// The rule is general (messy round 11, run 3: "DESCRIPTION OF WORK AREA:" stayed): "DESCRIPTION OF ...",
+// "SCOPE OF ...", "SUMMARY OF ..." and the like up to four words, "WORK AREA", and any line in capitals
+// that ends with a colon ("MECHANICAL SERVICES:"), on its own line or before the work on the same line.
+const HEADING_OF = '(?:(?:(?:(?:sub-?contract|trade)[ \\t]+)?scope|description|summary|outline|extent)[ \\t]+of[ \\t]+(?:the[ \\t]+)?(?:[A-Za-z&/\'\\u2019-]+[ \\t]+){0,3}?[A-Za-z&/\'\\u2019-]+|details?[ \\t]+of[ \\t]+(?:the[ \\t]+)?works?)';
+const SCOPE_HEADING = new RegExp(`^[ \\t]*(?:the[ \\t]+)?(?:(?:(?:sub-?contract|trade)[ \\t]+)?scope|${HEADING_OF}|works?[ \\t]+(?:description|summary|scope|inclusions|areas?)|(?:scope[ \\t]+)?inclusions)[ \\t]*:?[ \\t]*$`, 'gim');
+const SCOPE_LABEL = new RegExp(`^[ \\t]*(?:the[ \\t]+)?(?:${HEADING_OF}|works?[ \\t]+(?:description|areas?))[ \\t]*[:\\u2013\\u2014-][ \\t]*(\\S)`, 'gim');
+// A line in capitals ending with a colon is a heading, and so is a label of two or more words in capitals
+// before the work ("MECHANICAL SERVICES: install ..."). One word in capitals before the work names it
+// ("CCTV: fix the cameras ...", "HV: ..."), so it stays.
+const CAPS_HEADING = /^[ \t]*[A-Z][A-Z0-9&/'\u2019(),-]*(?:[ \t]+[A-Z0-9&/'\u2019(),-]+){0,7}[ \t]*:[ \t]*$/gm;
+const CAPS_LABEL = /^[ \t]*[A-Z][A-Z&/'\u2019-]+(?:[ \t]+[A-Z&/'\u2019-]+){1,6}[ \t]*:[ \t]*(\S)/gm;
 const WHO_SHALL = /(^|[.;:]\s+|\n)[ \t]*(?:the[ \t]+)?(?:sub-?contractor|trade[ \t]+contractor)[ \t]+(?:shall|will|must|is[ \t]+to|is[ \t]+required[ \t]+to|has[ \t]+allowed[ \t]+(?:to|for)|allows?[ \t]+(?:to|for)|to)[ \t]+(?=[a-z])/gi;
 const PRICE_LABEL_AFTER = /[ \t]*[:,\u2013\u2014-][ \t]*(?:variation(?:[ \t]+price)?(?:[ \t]+option)?|provisional[ \t]+sum|p\.?c\.?[ \t]+(?:sum|item)|prime[ \t]+cost(?:[ \t]+(?:sum|item))?|price[ \t]+option|optional[ \t]+(?:item|extra|price)|separable[ \t]+portion(?:[ \t]+\d+)?|alternative[ \t]+price|option[ \t]+\d+)(?:[ \t]*\([^)]*\))?[ \t]*(?=[.;]|\n|$)/gi;
 // A pointer to a section or clause of the contract, or to its price breakdown, and "including but not
@@ -67,7 +76,10 @@ const NOT_LIMITED = /,?[ \t]*\(?[ \t]*(?:but|and)[ \t]+(?:is[ \t]+|are[ \t]+)?no
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
   // A word ending in an accent ("Café") ends its line too (messy round 10, run 7: "Café Bars.").
-  const lines = String(value || '').replace(SCOPE_HEADING, '').replace(SCOPE_LABEL, (_whole, first) => first.toUpperCase()).split(/\r?\n/).map((line) => {
+  // A task typed all in capitals has no headings in capitals: its own first words stay ("REWIRE A HOUSE: ...").
+  const shouted = !/[a-z]/.test(String(value || ''));
+  const capsOff = (text) => (shouted ? text : text.replace(CAPS_HEADING, '').replace(CAPS_LABEL, (_whole, first) => first.toUpperCase()));
+  const lines = capsOff(String(value || '').replace(SCOPE_HEADING, '')).replace(SCOPE_LABEL, (_whole, first) => first.toUpperCase()).split(/\r?\n/).map((line) => {
     const bare = line.replace(CLAUSE_NUMBER, '').replace(LIST_BULLET, '');
     return bare !== line && /[\p{L}\p{N})]$/u.test(bare.trim()) ? `${bare.trim()}.` : bare;
   });
@@ -1206,7 +1218,10 @@ const fallSource = (task, facts) => combinedFacts(task, { ...(facts || {}), site
 // Where a fall control sits in the hierarchy.
 function fallControlLevel(line) {
   if (/\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(line)) return 'Eliminate';
-  if (/\b(edge protection|guard\s?rails?|handrails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|perimeter screens?|edge screens?|screens|full height gates?|landing gates?|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
+  // A scissor lift or boom lift is an EWP, and a riser screened off is screened (messy round 11, run 3:
+  // "scissor lift" asked for the other fall controls considered, and its standard line said "an EWP was
+  // considered first ... because ____").
+  if (/\b(edge protection|guard\s?rails?|handrails?|scaffold\w*|elevating work platforms?|\bewps?\b|scissor ?lifts?|scissors|boom ?lifts?|cherry ?pickers?|knuckle ?booms?|work platforms?|mobile platforms?|safety mesh|catch platform|perimeter screens?|edge screens?|screens|screened|full height gates?|landing gates?|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
   // A travel restraint system prevents a fall (s 306D(3)(a)), so it ranks above fall arrest.
   if (/\btravel restraint\b/i.test(line) && !/\bfall arrest\b/i.test(line)) return 'Isolate or engineer';
   if (/\b(harness|fall arrest|lanyard|restraint)\b/i.test(line)) return 'PPE';
@@ -2488,9 +2503,21 @@ function statesChartValues(text) {
   return load && radius;
 }
 // Who confirmed the ground can carry the crane: an engineer, a report or certificate, a test, or the
-// principal contractor's assessment. The operator looking at it is not enough (messy round 4, run 7:
-// "crane op checks the ground" was accepted).
-const GROUND_CONFIRMED = /\b(?:engineer\w*|geo ?tech\w*|report|certificate|certified|certification|assessment|assessed|competent person|bearing capacity|\d+(?:\.\d+)?\s*kpa|compaction tests?|plate (?:load|bearing) tests?|principal contractor|pc's|builder's (?:engineer|assessment)|design(?:ed)?|survey\w*)\b/i;
+// principal contractor's assessment, or its site manager's check (messy round 11, run 4: "the builders site
+// manager checked the road for the hiab outriggers, we use 600mm outrigger pads" was refused twice). The
+// operator looking at it is not enough (messy round 4, run 7: "crane op checks the ground" was accepted).
+const GROUND_CONFIRMED = /\b(?:engineer\w*|geo ?tech\w*|report|certificate|certified|certification|assessment|assessed|competent person|bearing capacity|\d+(?:\.\d+)?\s*kpa|compaction tests?|plate (?:load|bearing) tests?|principal contractor|pc's|builder's (?:engineer|assessment)|design(?:ed)?|survey\w*|(?:the )?(?:builder|builders|main contractor|head contractor|principal contractor|pc)(?:'s|\u2019s|s'|s)? (?:site manager|site supervisor|supervisor|engineer|foreman|project manager|construction manager|hse\w*)|site manager)\b/i;
+
+// What a stood-down SWMS says of one answer it still needs. A box with "na", "none" or "TBC" typed in it
+// is not "Not answered yet": it says why the words typed are not an answer (messy round 11, run 3: "na"
+// was called "Not answered yet").
+function missingHelpItem(item, facts) {
+  const typed = cleanLine((facts || {})[item.id]);
+  const placeholder = item.state === 'missing' && typed && !keptFact(typed);
+  const state = placeholder ? 'vague' : item.state;
+  const why = state === 'vague' ? (require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
+  return { id: item.id, label: item.label, state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+}
 
 function hasSubstance(id, text) {
   const value = acceptedText(text);
@@ -2510,7 +2537,9 @@ function hasSubstance(id, text) {
   return meaningfulWords(value).length >= 2;
 }
 const SDS_HANDLING = /\b(?:sds|safety data|data sheets?|sheets?|kept|keep|stored|store|storage|folder|register|binder|ute|office|gloves?|ventilat\w*|air ?flow|airflow|masks?|respirators?|goggles|glasses|handl\w*|mix\w*|wear\w*|worn|decant\w*|label\w*|bunded|spill|cure|curing|dry|apply|applied|brush\w*|roll\w*|spray\w*|water[- ]based|solvent[- ]free|low voc|not used|none|no )\b/i;
-const sdsNamesOnly = (text) => cleanLine(text).split(/\s+/).length <= 5 && !SDS_HANDLING.test(text);
+// Up to ten words with nothing of handling or where the sheets are (messy round 11, run 2: "pvc conduit
+// glue n cable pulling lube" passed at seven words).
+const sdsNamesOnly = (text) => cleanLine(text).split(/\s+/).length <= 10 && !SDS_HANDLING.test(text);
 
 // The clause of the task that names the topic, so a bare "design supplied" does not count.
 function topicClauses(task, pattern) {
@@ -3233,13 +3262,25 @@ function askQuestions(input) {
     // Spelling fixed in the task, so the user sees each change.
     spellingFixes: spelling.fixes,
     fall: fallCheck(task, answer, state),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
     steps: stepPicks(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
+  };
+}
+
+// "Other fall controls considered" is not asked once the fall control given is a guardrail, a scaffold or an
+// EWP (a scissor lift, a boom lift): it is only needed for a procedure or a harness (messy round 11, run 3:
+// it was asked for a scissor lift, with a standard answer saying an EWP was considered but ____). An answer
+// already typed in it keeps it on the page.
+function consideredNeeded(task, facts) {
+  return (item) => {
+    if (item.id !== 'controlsConsidered' || keptFact((facts || {}).controlsConsidered)) return true;
+    const line = fallLineFor(fallSource(task, facts || {}), facts || {});
+    return !line || !['Eliminate', 'Isolate or engineer'].includes(fallControlLevel(line));
   };
 }
 
@@ -3523,7 +3564,9 @@ const sameWord = (a, b) => a === b || (Math.min(a.length, b.length) >= 4 && (a.s
 // hazard or a control) names the part's work and what it works on (messy round 6: "fix to slab above"
 // beside a step whose line says hoods are "supported until fixed to structure", heat welded joins beside
 // "Weld vinyl seams with the hot air gun", sleepers "lifted in by machine" in "Build the retaining wall").
-function stepCoveringPart(part, steps) {
+// options.head: the line must also name the first thing the part's work is done to (an own step,
+// below).
+function stepCoveringPart(part, steps, options = {}) {
   const { SITE_WORK } = require('./scope');
   const text = String(part || '').replace(PART_WHEN, ' ');
   const doing = [...new Set((text.match(new RegExp(SITE_WORK.source, 'gi')) || []).map((word) => doingStem(word.split(/\s+/)[0])))];
@@ -3548,7 +3591,7 @@ function stepCoveringPart(part, steps) {
     const did = words.some((word) => doing.includes(doingStem(word)));
     // Words of four letters or more, judged before the stem is taken ("gates" is "gat").
     const on = words.filter((word) => word.length >= 4 && !PART_GENERIC.test(word)).map(thingStem);
-    return did && things.some((thing) => on.some((word) => sameWord(thing, word)));
+    return did && things.some((thing) => on.some((word) => sameWord(thing, word))) && (!options.head || on.some((word) => sameWord(things[0], word)));
   }));
   return found ? found.step : '';
 }
@@ -3871,7 +3914,19 @@ const SDS_PROMPT = 'Name the hazardous products this work uses, such as sealant,
 function prepareDraft(input) {
   const read = scopeWords(input);
   const out = buildDraft(read, false);
-  return withFallCheck(withSpellingFixes(movedTask(read === input ? standDownTask(out, input) : printedTask(out, input), input), input), input);
+  return withTaskCapitals(withFallCheck(withSpellingFixes(movedTask(read === input ? standDownTask(out, input) : printedTask(out, input), input), input), input));
+}
+// The task line typed all in lower case prints with a capital at the start of each sentence (messy round
+// 11, run 4: "erect and dismantle a scafold ..." printed as typed). Only the first letter changes: the
+// rest stays as typed, and a word after a short form ("approx. 4 lifts", "e.g. hop ups") is left alone.
+const SHORT_FORM = /\b(?:approx|incl|excl|eg|e\.g|ie|i\.e|etc|no|nos|vs|min|max|ea|qty|ref|dwg|rev|sht|lvl|st|rd|tce|ave|hwy)\.$/i;
+function taskCapitals(task) {
+  return String(task).replace(/(^|[.!?]\s+)([a-z])/g, (whole, lead, letter, at, all) => (lead && SHORT_FORM.test(all.slice(Math.max(0, at - 8), at + 1)) ? whole : `${lead}${letter.toUpperCase()}`));
+}
+function withTaskCapitals(out) {
+  if (!out || typeof out.task !== 'string' || !out.task) return out;
+  const task = taskCapitals(out.task);
+  return task === out.task ? out : { ...out, task };
 }
 // A stood-down SWMS shows its task as the full draft prints it: as typed, with its spelling fixed and its
 // shorthand as written (messy round 8, run 6: "lvl" read "level" in one prepare and "lvl" in the next).
@@ -3910,11 +3965,20 @@ function withFallCheck(out, input) {
   // A person going over with the platform is a person's fall too (messy round 10, run 8: SiteWrite's own
   // "Use an elevating work platform", High for "The platform overturns or falls from an edge", brought no
   // check).
-  const fallLine = (line) => (FALL_HAZARD.test(line) && !LOW_ACCESS_ONLY(line)) || (taskHigh && (PERSON_FALL_FROM.test(line) || PLATFORM_FALL.test(line)) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b/i.test(line));
+  const strictLine = (line) => FALL_HAZARD.test(line) && !LOW_ACCESS_ONLY(line);
+  const wideLine = (line) => (PERSON_FALL_FROM.test(line) || PLATFORM_FALL.test(line)) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b/i.test(line);
   // Every step that rates such a fall High is named (messy round 9, run 8: "Install the green roof layers"
   // and "Plant the green roof" were not).
-  const steps = (out.jobSteps || []).filter((step) => ['High', 'Extreme'].includes(step.risk && step.risk.before && step.risk.before.level)
-    && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && fallLine(String(line).trim()))).map((step) => step.step);
+  const highSteps = (out.jobSteps || []).filter((step) => ['High', 'Extreme'].includes(step.risk && step.risk.before && step.risk.before.level));
+  const named = (test) => highSteps.filter((step) => (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && test(String(line).trim()))).map((step) => step.step);
+  // Once one step brings the check, or the task says the work is at height, every step that rates a
+  // person's fall High is named with it: a fall from the platform, ladder or EWP, or through a hole
+  // (messy round 11, run 5: only "Install risers and pipework" was named, and SiteWrite's own "Use an
+  // elevating work platform", "Core drill through the slab or wall" and "Replace pipework in the
+  // ceiling" were left out, because "pipework at height" did not count as the task saying so).
+  const strict = named(strictLine);
+  const wide = strict.length || taskHigh || /\bat heights?\b/i.test(taskLine((input && (input.task || input.jobDescription)) || ''));
+  const steps = wide ? named((line) => strictLine(line) || wideLine(line)) : strict;
   if (!steps.length && !leftOut.length) return rest;
   const kept = Boolean(input && input.fallNoKept === true);
   return { ...rest, fallConflict: { steps, metres, kept, ...(leftOut.length ? { leftOut } : {}) }, ...(kept ? { fallRisk: `No. No work is done where a person could fall ${metres} metres or more.` } : {}) };
@@ -4207,8 +4271,7 @@ function buildDraft(input, screen) {
     ...header,
     missing: list.map(missingLabel),
     missingHelp: list.map((item) => {
-      const why = item.state === 'vague' ? require('./public/gate-rules').notAnswer(keptFact(facts[item.id])) : '';
-      return { id: item.id, label: item.label, state: item.state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+      return missingHelpItem(item, facts);
     }),
     statement: 'This task is stood down. It does not start.',
     method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
@@ -4221,8 +4284,7 @@ function buildDraft(input, screen) {
       // What each answer still needs, in plain words with an accepted example, so the page can say
       // it beside the question (answer-help.js).
       missingHelp: missing.map((item) => {
-        const why = item.state === 'vague' ? require('./public/gate-rules').notAnswer(keptFact(facts[item.id])) : '';
-        return { id: item.id, label: item.label, state: item.state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+        return missingHelpItem(item, facts);
       }),
       statement: 'This task is stood down. It does not start.',
       method: [],
@@ -5613,7 +5675,10 @@ function ownStepsOf(input) {
 function ownStepCovers(item, part) {
   if (!item || !part) return false;
   if (item.part && sameText(item.part) === sameText(part)) return true;
-  return Boolean(stepCoveringPart(part, [{ step: String(item.name || ''), hazards: item.hazards || [], controls: item.controls || [] }]));
+  // Not written for it, it must name the part's main thing, not only one word in common (messy round 11,
+  // run 6: "Build in the cavity wall sliders as the stud walls are framed" took "Construct nibs and hobs and
+  // skim nib walls" off the one-go page's list by "walls", so it held no download).
+  return Boolean(stepCoveringPart(part, [{ step: String(item.name || ''), hazards: item.hazards || [], controls: item.controls || [] }], { head: true }));
 }
 const ownStepFor = (part, input) => ownStepsOf(input).find((item) => ownStepCovers(item, part));
 

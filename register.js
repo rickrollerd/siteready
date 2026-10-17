@@ -483,9 +483,13 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
 function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const ewp = plant.some((item) => /elevating work platform|Scissor lift/.test(item.item));
   const rows = [];
-  rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: input.musterPoint || '' });
+  // The muster point and first aider print with their capitals, as the header gives them (messy round 11,
+  // runs 2 and 4: "front gate ..." in the Emergency table under "Front gate on St Georges Tce").
+  const names = require('./sitelink-answers');
+  const muster = String(input.musterPoint || '').replace(/\s+/g, ' ').trim();
+  rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: muster ? names.tidyPlace(muster) : '' });
   rows.push({ type: 'Fire', equipment: /\b(hot work|weld\w*|torch\w*|brazing|grinding|oxy|lpg|electric\w*)\b/i.test(text) ? 'Fire extinguisher suited to the hazard (dry powder or CO2 near electrical equipment)' : 'Fire extinguisher', detail: '' });
-  rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${input.firstAider}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${input.hospital}` : '' });
+  rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${names.tidyPersonRole(String(input.firstAider).replace(/\s+/g, ' ').trim())}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${input.hospital}` : '' });
   // With falls answered No, a line that only names a harness or EWP as one way up does not bring the row:
   // an EWP in the plant does, and so does a harness the lines say is used (messy round 6: a "Work at
   // height" row with falls No for cleaning).

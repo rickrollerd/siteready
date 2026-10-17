@@ -511,8 +511,15 @@
     ready();
     const selected = S.siteId();
     if (selected && $('new-site')) $('new-site').value = selected;
-    const run = async (fn) => {
-      try { await fn(); } catch (error) { checkRefused('new', error); status('new-status', error.message, true); }
+    // One save or download at a time: a press while another is on its way waits for it, so it carries
+    // the saved SWMS the first one made (messy round 11, run 7: Save SWMS and then Download Word, pressed
+    // a second apart, saved two SWMS with the same title, address and date).
+    const run = (fn) => {
+      const next = (S.savingNow || Promise.resolve()).catch(() => {}).then(async () => {
+        try { await fn(); } catch (error) { checkRefused('new', error); status('new-status', error.message, true); }
+      });
+      S.savingNow = next;
+      return next;
     };
     // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
     // every print has a record. Later changes save as its next revision.
@@ -666,6 +673,15 @@
     usedAt = Date.now();
     if (mineOpen()) seenSoon();
   }, { capture: true, passive: true }));
+  // Closed once, it stays in its place at the top for the rest of this page's life.
+  document.addEventListener('click', (event) => {
+    const close = event.target.closest && event.target.closest('[data-reviews-close]');
+    if (!close) return;
+    document.documentElement.dataset.reviewsClosed = '1';
+    const note = $('reviews-back');
+    if (note) note.classList.remove('reviews-back-float');
+    close.remove();
+  });
   function reviewsBackNote(list) {
     let note = $('reviews-back');
     if (!list.length) { if (note) note.remove(); return; }
@@ -687,6 +703,14 @@
     const html = `<p><strong>${list.length === 1 ? 'A principal contractor\'s review is back' : `${list.length} principal contractor reviews are back`}:</strong> ${shown}${list.length > 3 ? `; and ${list.length - 3} more` : ''}.</p><div class="actions"><button type="button" class="small" data-panel="my-swms">Open My SWMS</button></div>`;
     if (note.innerHTML !== html) note.innerHTML = html;
     if (fresh && back && note.getBoundingClientRect && note.getBoundingClientRect().top < 0) note.scrollIntoView({ block: 'start' });
+    // A plain reload keeps the place further down the page (#draft), so a note at the top was above the
+    // screen (messy round 11, run 7). Until closed, it stays at the top of the screen as the page scrolls,
+    // so the place is kept and the note is seen wherever the page opens.
+    if (fresh && note.classList && !(document.documentElement && document.documentElement.dataset.reviewsClosed === '1')) note.classList.add('reviews-back-float');
+    if (note.classList && note.classList.contains('reviews-back-float') && !note.querySelector('[data-reviews-close]')) {
+      const actions = note.querySelector('.actions');
+      if (actions) actions.insertAdjacentHTML('beforeend', ' <button type="button" class="small secondary" data-reviews-close>Close</button>');
+    }
   }
   async function checkReviewsBack() {
     if (!me || !config.accounts) return;

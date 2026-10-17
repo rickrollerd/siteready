@@ -216,6 +216,7 @@
     .confirm .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin-bottom: 12px; }
     .logo-preview.hidden { display: none; }
     .confirm .check input { margin-top: 4px; flex: none; }
+    .reviews-back-float { position: sticky; top: 0; z-index: 30; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
     .human-check { border-top: 1px solid #d5dbe3; margin: 4px 0 14px; padding-top: 12px; }
     .human-check h3 { margin: 0 0 8px; }
     .human-check .check-step { margin: 12px 0 6px; }
@@ -846,6 +847,7 @@
         <input id="hospital" type="text" autocomplete="off">
         <button type="button" class="pick-button" id="hospital-find">Find nearest from the job address</button>
         <div id="hospital-list" class="hidden" aria-live="polite"></div>
+        <p class="warning hidden" id="hospital-note" role="status"></p>
       </div>
       <div class="field">
         <label for="first-aider">First aider

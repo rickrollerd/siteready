@@ -280,7 +280,8 @@ function titleFor(body, input) {
   // Pasted scope lines lose their clause numbers first, and a title is never a bare number (messy round 6,
   // run 2: "1. Installation of vinyl..." named the SWMS and its files "1").
   const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text;
-  const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '');
+  // A task typed in lower case is titled with a capital, as it prints (messy round 11, run 4).
+  const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
@@ -454,6 +455,28 @@ async function reviseSwms(req, row, { input, draft, confirmation, siteId = row.s
   return { row: next, kept };
 }
 
+// Whether a new check would print a different "Checked by" from the one a revision already printed with:
+// another name or role. The same person checking again on another day prints as first checked.
+const checkKey = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+function checkPrintsDifferently(printed, next) {
+  if (!humanCheck.isPartCheck(printed) || !humanCheck.isPartCheck(next)) return false;
+  return checkKey(printed.name) !== checkKey(next.name) || checkKey(printed.role) !== checkKey(next.role);
+}
+
+// The same content checked by another person: its next revision, printed as the one before but with the
+// new check and a reference of its own. Nothing else changed, so nothing is learned from it again.
+async function recheckSwms(req, row, kept, confirmation) {
+  const now = new Date();
+  await db.query('UPDATE swms SET reviewed_by = $1, updated_at = $2, last_reviewed_at = $2, review_due_at = $3, reminder_sent_at = NULL, revision = revision + 1, revised_at = $2 WHERE id = $4',
+    [confirmation.name, now, addMonths(now, REVIEW_MONTHS), row.id]);
+  const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
+  const { revision: _revision, revisionDate: _date, ...draft } = kept.draft || {};
+  const reason = `Checked again by ${[confirmation.name, confirmation.role].filter(Boolean).join(', ')}. No other change from revision ${kept.revision}.`.slice(0, 300);
+  const made = await revisions.keepRevision({ row: next, company: req.company, input: kept.input, draft, userId: req.user.id, name: confirmation.name, reason, at: now, confirmation });
+  await designFiles.recordUses(req.company.id, next.id, next.revision, kept.input);
+  return { row: next, kept: made };
+}
+
 // Goal 2: a SWMS is not saved or printed until its site questions are answered and no blank is
 // left in it (download-gate.js). The refusal carries the list, for the page to show.
 // options.cover false leaves out the D184 tick: a saved SWMS was ticked when it was saved.
@@ -525,8 +548,16 @@ async function saveOnce(req, body, options) {
   if (existing) {
     const current = await revisions.revisionOf(existing, req.company, existing.revision || 1, withCompany);
     if (current && revisions.stable(current.input) === revisions.stable(input)) {
-      // Unchanged: the same revision prints again, now with this check (it was ticked part by part).
-      if (humanCheck.isPartCheck(confirmation)) {
+      // Unchanged, and checked by someone else (or with another role) than the check it printed with: the
+      // file would print a different "Checked by" under the same reference and revision, so it is a new
+      // revision (messy round 11, run 5: SW-8SBQ-8JFR revision 1 was both "Checked by Me" and "Checked by
+      // Dave Rossi"). One reference is one printed content, for the builder's genuine-reference check.
+      if (humanCheck.isPartCheck(confirmation) && checkPrintsDifferently(current.confirmation, confirmation)) {
+        return { ...(await recheckSwms(req, existing, current, confirmation)), saved: true };
+      }
+      // Unchanged and checked by the same person: the same revision prints again as it was, with the
+      // check it first printed with. A revision not yet checked part by part takes this check.
+      if (humanCheck.isPartCheck(confirmation) && !humanCheck.isPartCheck(current.confirmation)) {
         current.confirmation = await revisions.recordCheck(existing.id, current.revision, confirmation);
         await db.query('UPDATE swms SET reviewed_by = $1 WHERE id = $2', [confirmation.name, existing.id]);
       }
@@ -667,7 +698,13 @@ router.post('/swms/:id/reviewed', requireAccess, route(async (req, res) => {
   const confirmation = checkOf(req.body || {}, kept ? kept.draft : null, kept ? kept.input : row.input, 'marking it as checked');
   const { name } = confirmation;
   const now = new Date();
-  if (kept && humanCheck.isPartCheck(confirmation)) await revisions.recordCheck(row.id, kept.revision, confirmation);
+  // Checked by another person than the check its current revision printed with: a new revision, so one
+  // reference never stands for two prints (messy round 11, run 5). The same person keeps the revision.
+  if (kept && humanCheck.isPartCheck(confirmation) && checkPrintsDifferently(kept.confirmation, confirmation)) {
+    const { row: next } = await recheckSwms(req, row, kept, confirmation);
+    return res.json({ swms: swmsView(next) });
+  }
+  if (kept && humanCheck.isPartCheck(confirmation) && !humanCheck.isPartCheck(kept.confirmation)) await revisions.recordCheck(row.id, kept.revision, confirmation);
   await db.query('UPDATE swms SET reviewed_by = $1, last_reviewed_at = $2, review_due_at = $3, reminder_sent_at = NULL, updated_at = $2 WHERE id = $4', [name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
 }));

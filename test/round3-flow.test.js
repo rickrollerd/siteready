@@ -74,7 +74,7 @@ test('the reference number prints the SiteWrite reference when the business give
   assert.ok(server.app);
   const accounts = require('../accounts');
   assert.equal(accounts.fileStem('Trenching for services, including trenches deeper than 1.5 m.'), 'Trenching for services including trenches deeper than 1.5 m');
-  assert.equal(accounts.titleFor({}, { task: 'erect and dismantel tube and coupler scafold to 3 lifts.' }), 'erect and dismantle tube and coupler scaffold to 3 lifts');
+  assert.equal(accounts.titleFor({}, { task: 'erect and dismantel tube and coupler scafold to 3 lifts.' }), 'Erect and dismantle tube and coupler scaffold to 3 lifts', 'with its first capital, as it prints (messy round 11)');
 });
 
 test('scaffold in the plant with the scaffold supervisor "Not applicable" is refused', () => {

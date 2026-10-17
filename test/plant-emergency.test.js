@@ -24,7 +24,9 @@ const { TYPES, SILICA } = require('../public/substance-rules');
 const SLAB = { id: 'sub-1', type: SILICA, product: 'Concrete slab', controls: ['Drill with on-tool extraction', 'Fit tested P2 respirator'], sdsDate: '2026-02-01', step: 'Install cable tray and containment', confirmed: true };
 const EWP = { ...ANSWERED, state: 'qld', task: 'Install cable trays and pull cables through the ward ceilings and risers from scissor lifts.', fallRisk: 'yes', residential: 'no', facts: { fallControl: 'Scissor lifts with guardrails for all work above 2 m.', controlsConsidered: 'A scaffold is not practicable in the ward ceilings.' } , substancesNotUsed: TYPES.filter((type) => type !== SILICA), substances: [SLAB] };
 const TRENCH = { ...ANSWERED, state: 'qld', task: 'Excavate a trench 2.5 m deep with an excavator and lay a 300 mm sewer main, with a trench shield.', fallRisk: 'no', residential: 'no', facts: { trenchSupport: 'Trench shield to 3 m, installed as digging goes.' } , substancesNotUsed: TYPES };
-const EWP_ANSWERS = { ewpLower: 'Larry Leadinghand, leading hand, trained on the ground controls', ewpControls: 'Ground control panel at the rear of the base, key in the ignition', plantStop: 'The operator presses the red emergency stop on the platform' };
+// The cable tray step rates a fall into an open riser, away from the platform, so the fall rescue is asked
+// too (messy round 11, A fault 4).
+const EWP_ANSWERS = { ewpLower: 'Larry Leadinghand, leading hand, trained on the ground controls', ewpControls: 'Ground control panel at the rear of the base, key in the ignition', plantStop: 'The operator presses the red emergency stop on the platform', fallRescue: 'Two trained crew bring the person up from the riser with the rescue kit kept at the riser door', fallKit: 'Rescue tripod and harness kit at the level 2 riser door' };
 const TRENCH_ANSWERS = { trenchRescue: 'No one enters: lifted out from the top with the harness and line by Dave Digger', trenchKit: 'Tripod, winch, harness and line at the trench box', confinedRescue: 'Sam Spotter at the manhole, retrieval from outside by tripod and winch', confinedKit: 'Tripod and winch, harness and lifeline, gas detector at the entry', plantStop: 'The operator rests the bucket and turns the key off' };
 
 const build = (input) => {
@@ -82,11 +84,13 @@ test('plant listed after the user confirmed is asked about, and an unknown item 
 
 test('each high risk category asks the facts a reviewer looks for, and "Not applicable" is not an answer', () => {
   const ewp = build({ ...EWP, plantChoice: { used: ['Scissor lift', 'Cable winch or puller', 'Ladders'], notUsed: ['Forklift'], added: [] } });
-  // An EWP asks who lowers it and where the ground controls are; its rescue covers the fall.
-  assert.deepEqual(ewp.draft.emergencyQuestions.map((item) => item.id), ['ewpLower', 'ewpControls', 'plantStop']);
-  assert.deepEqual(ewp.gaps.map((gap) => gap.id), ['emergency.ewpLower', 'emergency.ewpControls', 'emergency.plantStop']);
-  assert.deepEqual(ewp.gaps.map((gap) => gap.label), ['Emergency, EWP: Lowered in an emergency by', 'Emergency, EWP: Ground controls and key', 'Emergency, mobile plant: Stopped by']);
-  assert.deepEqual(ewp.gaps.map((gap) => gap.field), ['emg-ewpLower', 'emg-ewpControls', 'emg-plantStop']);
+  // An EWP asks who lowers it and where the ground controls are. Its rescue covers a fall from the
+  // platform, not the fall into an open riser the cable tray step rates, so that rescue is asked too
+  // (messy round 11, A fault 4).
+  assert.deepEqual(ewp.draft.emergencyQuestions.map((item) => item.id), ['ewpLower', 'ewpControls', 'fallRescue', 'fallKit', 'plantStop']);
+  assert.deepEqual(ewp.gaps.map((gap) => gap.id), ['emergency.ewpLower', 'emergency.ewpControls', 'emergency.fallRescue', 'emergency.fallKit', 'emergency.plantStop']);
+  assert.deepEqual(ewp.gaps.map((gap) => gap.label), ['Emergency, EWP: Lowered in an emergency by', 'Emergency, EWP: Ground controls and key', 'Emergency, work at height: Rescue', 'Emergency, work at height: Rescue equipment', 'Emergency, mobile plant: Stopped by']);
+  assert.deepEqual(ewp.gaps.map((gap) => gap.field), ['emg-ewpLower', 'emg-ewpControls', 'emg-fallRescue', 'emg-fallKit', 'emg-plantStop']);
   for (const value of ['Not applicable', 'N/A', 'None', 'na', 'No']) {
     const found = build({ ...EWP, plantChoice: { used: ['Scissor lift'], notUsed: ['Cable winch or puller', 'Ladders', 'Forklift'], added: [] }, emergency: { ...EWP_ANSWERS, ewpLower: value } }).gaps;
     assert.deepEqual(found.map((gap) => gap.id), ['emergency.ewpLower'], value);
@@ -208,7 +212,7 @@ test('Word and PDF wait for the plant and the emergency facts, then print them, 
     const refused = await call('POST', route, { token, body: checked({ ...EWP, ...CONFIRM }) });
     assert.equal(refused.status, 400, route);
     const data = await refused.json();
-    assert.match(data.message, /Still to answer: Plant and equipment; Emergency, EWP: Lowered in an emergency by; Emergency, EWP: Ground controls and key; Emergency, mobile plant: Stopped by\./);
+    assert.match(data.message, /Still to answer: Plant and equipment; Emergency, EWP: Lowered in an emergency by; Emergency, EWP: Ground controls and key; Emergency, work at height: Rescue; Emergency, work at height: Rescue equipment; Emergency, mobile plant: Stopped by\./);
   }
   const body = checked({ ...EWP, plantChoice: { used: ['Scissor lift', 'Cable winch or puller'], notUsed: ['Ladders', 'Forklift'], added: [{ item: 'Battery cable drum trailer', licence: 'No. Operator trained in its use' }] }, emergency: EWP_ANSWERS, ...CONFIRM });
   const docx = await call('POST', '/api/draft.docx', { token, body });

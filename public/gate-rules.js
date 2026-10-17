@@ -50,7 +50,7 @@
   const CALLS = /\b(?:000|triple zero|112|emergency services|ambulance|paramedics|fire brigade|fire service|fire and rescue|qfes|frnsw|ses|(?:power|electricity|energy|network) (?:company|companies|supplier|distributor|authority|operator)|network operators?|energex|ergon|ausgrid|endeavour energy|essential energy|western power|sa power networks|tasnetworks|evoenergy|jemena|citipower|powercor|ausnet|united energy|power and water)\b/i;
   // Helping the person out, or a named role doing it, is a rescue (messy round 9, run 4: "The foreman and
   // a labourer help the person out from the low end" was refused as only calling for help).
-  const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|the person) out|help\w* (?:them|him|her|the (?:person|worker|injured \w+)) (?:out|up|down|clear)|foreman|foremen|labourers?|leading hands?|riggers?|dogm[ae]n|offsiders?)\b/i;
+  const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|him|her|the (?:person|worker|injured \w+)) (?:out|up|down|clear|onto|on to|off|back|in)\b|help\w* (?:them|him|her|the (?:person|worker|injured \w+)) (?:out|up|down|clear|onto|on to|off|back)|foreman|foremen|labourers?|leading hands?|riggers?|dogm[ae]n|offsiders?|scaffolders?|other (?:worker|scaffolder|rigger|labourer|crew member)s?)\b/i;
   const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
   const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
 
@@ -63,7 +63,7 @@
   // Work done or checked "by me" or trained "by me" does not say who (messy round 4, run 9: "trained by me").
   const BY_ME = /\b(?:by|from|with) (?:me|myself|us)\b/i;
   // An amount, not who or what (messy round 9, run 6: "heaps" for the other trades).
-  const AMOUNT_ONLY = /^(?:heaps|lots|plenty|loads|tons|many|a few|a couple|some|several|a lot|a heap|a bunch|numerous|all sorts|the usual|usual)(?: of (?:them|trades|people|blokes|guys|stuff))?\.?$/i;
+  const AMOUNT_ONLY = /^(?:heaps|lots|plenty|loads|tons|many|a few|a couple|some|several|a lot|a heap|a bunch|numerous|all sorts|the usual|usual)(?: of (?:them|(?:other |different )?(?:trades|tradies|subbies|contractors|people|blokes|guys|workers|crews)|stuff))?(?: (?:on site|around|about|nearby|here))?\.?$/i;
 
   // Why a typed answer is no answer at all ("dont know", "me", "as per eng"), or '' when it says
   // something. The answers to the questions about the work are judged by the same words (draft.js
@@ -97,7 +97,7 @@
   const NOT_A_PERSON = /^(?:the |a |our |my )?(?:gloves?|glasses|safety glasses|goggles|boots|helmets?|hard ?hats?|hi-?vis(?: vests?)?|vests?|harness(?:es)?|lanyards?|masks?|p2 masks?|respirators?|ear ?muffs?|ear ?plugs?|ppe|ladders?|scaffold\w*|ute|truck|van|car|site|office|site office|gate|stairs?|crew|workers?|anyone|everyone|everybody|all|all of us|whoever|staff|team|the boys|boys|lads|guys)\.?$/i;
   // A trade or a crew is not a person either (messy round 9, run 1: "the tilers" printed as the person
   // who makes sure the SWMS is followed).
-  const A_TRADE = /^(?:the |our |my |all the |all our |a )?(?:tilers?|sparkies|sparkys|sparky|chippies|chippys|chippy|plumbers?|painters?|concreters?|labourers?|carpenters?|electricians?|scaffolders?|riggers?|roofers?|plasterers?|renderers?|fitters?|installers?|subbies|subbys|subcontractors?|contractors?|trades|tradies|tradesmen|apprentices?|operators?|cleaners?|glaziers?|welders?|fixers?|formworkers?|steel ?fixers?|crew members?|team members?|gang|blokes)\.?$/i;
+  const A_TRADE = /^(?:the |our |my |all the |all our |a )?(?:(?:builder|builders|main contractor|head contractor|pc|principal contractor)(?:'s|’s|s'|s)? )?(?:tilers?|sparkies|sparkys|sparky|chippies|chippys|chippy|plumbers?|painters?|concreters?|labourers?|carpenters?|electricians?|scaffolders?|riggers?|roofers?|plasterers?|renderers?|fitters?|installers?|subbies|subbys|subcontractors?|contractors?|trades|tradies|tradesmen|apprentices?|operators?|cleaners?|glaziers?|welders?|fixers?|formworkers?|steel ?fixers?|crew members?|team members?|gang|blokes)\.?$/i;
   // A role with no name does not say who (messy round 9, run 6: "leading hand"). First names alone stay
   // accepted (flow8 decision 1).
   const ROLE_ONLY = /^(?:the |our |my |a |site |project )?(?:leading hand|lead hand|charge ?hand|foreman|forewoman|supervisor|site supervisor|boss|manager|site manager|project manager|construction manager|works manager|director|owner|hse(?: advisor| manager| officer| rep)?|whs(?: officer| advisor| manager)?|safety officer|engineer|site engineer|project engineer|team leader|crew leader|leader|pm|cm)\.?$/i;
@@ -111,6 +111,7 @@
     return (digits.length === 10 && /^(?:0[2-478]|1[38]00)/.test(digits)) || (digits.length === 8 && /^[2-9]/.test(digits)) || (digits.length === 6 && /^13/.test(digits));
   }
   const PERSON_KINDS = new Set(['person', 'firstAider']);
+  const NAME_THEN_PLACE = /^(?![^,]*\b(?:at|the|in|on|by|from|near|of|our|my)\b)[^,]*\s(office|site|yard|depot|workshop|ute|truck|gate)\.?$/i;
   function fieldWeak(kind, text) {
     const quoted = `"${text}"`;
     // One rule in every person's box: a role with no name is refused, the first aider's box too (messy
@@ -119,6 +120,9 @@
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
     if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
+    // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
+    const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
+    if (place) return `${quoted} ends in "${place[1]}", which is a place, not a role. Give their name and role, for example "${clean(text.replace(/\s+\S+\.?$/, ''))}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (kind === 'phone' && !phoneNumber(text)) return text.replace(/\D/g, '').length < 6 ? `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.` : `${quoted} is not a full phone number. A mobile has 10 digits, for example 0412 345 678.`;
     return '';
@@ -158,7 +162,13 @@
     if (rule.blank) return hasBlank(value) ? rule.ask : '';
     const text = clean(value);
     const quoted = `"${text}"`;
-    if (rule.optional) return text && leftOpen(text) ? `${quoted} is not an answer. Fill it in, or leave the box empty.` : '';
+    if (rule.optional) {
+      if (!text) return '';
+      if (leftOpen(text)) return `${quoted} is not an answer. Fill it in, or leave the box empty.`;
+      // A name box left optional still takes a person (messy round 11: "me" was accepted in a name box).
+      if (rule.kind) return notAnswer(text, rule.kind) || fieldWeak(rule.kind, text);
+      return '';
+    }
     if (!text) return rule.ask;
     const not = notAnswer(text, rule.kind);
     if (not) return `${not} ${rule.ask}`;
@@ -284,7 +294,7 @@
     { id: 'reviewer', field: 'reviewer', label: 'Person who reviews the controls', kind: 'person', need: 'Name the person who checks the controls are working and updates this SWMS if the job changes.' },
     { id: 'worksManager', field: 'works-manager', label: 'Works manager', kind: 'person', need: 'Name your own person in charge of this work, such as your supervisor or foreman. It prints at the top of the SWMS.' },
     { id: 'worksManagerPhone', field: 'works-manager-phone', label: 'Works manager phone', kind: 'phone', need: 'Give the works manager\'s mobile, so the site can reach them. It prints as the contact phone.' },
-    { id: 'scaffoldSupervisor', field: 'scaffold-supervisor', label: 'Scaffold supervisor', none: true, scaffold: true, need: 'This SWMS involves a scaffold. Name the scaffolding company\'s supervisor who hands it over and tags it, or write Not applicable if no scaffold is used for this work.' },
+    { id: 'scaffoldSupervisor', field: 'scaffold-supervisor', label: 'Scaffold supervisor', none: true, scaffold: true, kind: 'person', need: 'This SWMS involves a scaffold. Name the scaffolding company\'s supervisor who hands it over and tags it, or write Not applicable if no scaffold is used for this work.' },
     { id: 'firstAider', field: 'first-aider', label: 'First aider', kind: 'firstAider', need: 'Name a trained first aider on site, yours or the main contractor\'s.' },
     { id: 'musterPoint', field: 'muster-point', label: 'Muster point', kind: 'place', need: 'Say where everyone meets in an emergency. Ask the main contractor.' },
     // Required before download (owner, D292 item 2: in rounds 4 no hospital printed in three runs).
@@ -337,7 +347,71 @@
     return words < least ? `"${line}" is too short to act on.` : '';
   }
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
+  // The checker's own name, printed as "Checked by" on every page (messy round 11, run 5: "Checked by Me,
+  // Foreman"): the one person rule, with the role asked in its own box. '' when it passes.
+  function checkerNameNeed(value) {
+    const text = clean(value);
+    if (!text) return '';
+    const quoted = `"${text}"`;
+    if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text) || HELD_OPEN.test(text)) return `${quoted} is not a name. Give your own name, for example "Sam Lee".`;
+    if (PRONOUN.test(text) || BY_ME.test(text)) return `${quoted} does not say who. Give your own name, for example "Sam Lee". It prints as "Checked by" on every page.`;
+    if (ROLE_ONLY.test(text)) return `${quoted} is a role, not a name. Give your own name here, for example "Sam Lee", and your role in the box below.`;
+    if (NOT_A_PERSON.test(text) || A_TRADE.test(text) || NOT_A_COMPANY.test(text) || NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a person. Give your own name, for example "Sam Lee".`;
+    if (!/[A-Za-z]{2}/.test(text)) return `${quoted} is not a name. Give your own name, for example "Sam Lee".`;
+    return '';
+  }
+
+  // A medical centre or clinic in the hospital box: a note, not a refusal (D293 takes a medical centre
+  // with an emergency department; messy round 11, run 2: "Lygon Court Medical Clinic" was taken with no
+  // word). Public hospitals named "Medical Centre" are left alone.
+  const CARE_CLINIC = /\b(?:clinics?|medical (?:centres?|centers?|practices?|groups?)|general practice|family practice|gps?|doctors|health (?:centres?|clinics?)|super ?clinics?)\b/i;
+  const ED_NAMED = /\b(?:hospital|emergency|ed\b|flinders medical cent|monash medical cent)/i;
+  function careNote(value) {
+    const text = clean(value);
+    if (!text || !CARE_CLINIC.test(text) || ED_NAMED.test(text)) return '';
+    return 'A medical centre or clinic often has no emergency department and closes after hours. Check this one has an emergency department open while you work, or give the nearest hospital with one. Serious injuries go to an emergency department.';
+  }
+
+  // An emergency answer given in one SWMS of a project fills the same question in another only where it
+  // fits that SWMS (D239; messy round 11, A fault 1: "excavator operator lowers the bucket" printed under
+  // "Mobile plant: Stopped by" in two SWMS with no excavator, and a pump operator's answer reached the
+  // cranage SWMS). An answer that names plant fits only a SWMS whose task or plant names it too.
+  const ACROSS_PLANT = [
+    [/\b(?:excavators?|diggers?|backhoes?|mini ?ex\w*)\b/i, /\b(?:excavators?|diggers?|backhoes?)\b/i],
+    [/\b(?:concrete pumps?|line pumps?|boom pumps?|pump (?:operators?|trucks?|hand)|placing booms?|(?:the )?pump(?:'s)? (?:boom|operator|controls?|remote))\b/i, /\b(?:concrete pump\w*|concrete placing boom|placing booms?|line pumps?|boom pumps?|pump and boom|pump and place)\b/i],
+    [/\b(?:cranes?|franna|crane (?:operators?|drivers?))\b/i, /\b(?:cranes?|franna)\b/i],
+    [/\bscissors?(?: ?lifts?)?\b/i, /\bscissor/i],
+    [/\b(?:boom ?lifts?|boom(?:-type)? ewps?|knuckle ?booms?|cherry ?pickers?|(?:the )?basket)\b/i, /\b(?:boom-type elevating|boom ?lifts?|knuckle ?booms?|cherry ?pickers?)\b/i],
+    [/\bforklifts?\b/i, /\bforklifts?\b/i],
+    [/\btelehandlers?\b/i, /\btelehandlers?\b/i],
+    [/\b(?:skid ?steers?|bobcats?|posi ?tracks?)\b/i, /\b(?:skid ?steers?|bobcats?|posi ?tracks?)\b/i],
+    [/\b(?:rollers?|compactors?)\b/i, /\b(?:rollers?|compactors?)\b/i],
+    [/\b(?:loaders?|dozers?|graders?)\b/i, /\b(?:loaders?|dozers?|graders?)\b/i],
+    [/\b(?:hiabs?|truck loading cranes?|vehicle loading cranes?)\b/i, /\b(?:hiabs?|(?:truck|vehicle) loading cranes?)\b/i],
+    [/\b(?:directional drill\w*|drill rigs?|bor(?:er|ing) rigs?)\b/i, /\b(?:directional drill\w*|drill(?:ing)? rigs?)\b/i],
+    [/\b(?:piling rigs?|piler)\b/i, /\bpiling rigs?\b/i],
+  ];
+  function answerFits(answer, itemWords) {
+    const text = clean(answer);
+    const words = String(itemWords || '');
+    return ACROSS_PLANT.every(([said, has]) => !said.test(text) || has.test(words));
+  }
+  // The answers filled into one SWMS from the others: for each question, the latest answer given that fits
+  // it. history: { id: [answers, oldest first] }; latest: { id: answer } (a project kept from before);
+  // itemWords: the SWMS's task and plant. The SWMS's own answers are never in it: they stay its own.
+  function acrossFor(history, latest, itemWords) {
+    const out = {};
+    const ids = new Set([...Object.keys(history || {}), ...Object.keys(latest || {})]);
+    for (const id of ids) {
+      const list = [...((history || {})[id] || [])];
+      if (latest && typeof latest[id] === 'string' && list[list.length - 1] !== latest[id]) list.push(latest[id]);
+      const fit = list.filter((answer) => clean(answer)).reverse().find((answer) => answerFits(answer, itemWords));
+      if (fit) out[id] = fit;
+    }
+    return out;
+  }
+
+  const api = { checkerNameNeed, careNote, answerFits, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

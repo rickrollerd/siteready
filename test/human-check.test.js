@@ -240,9 +240,12 @@ test('the business\'s own check of a saved SWMS is made part by part and prints 
   assert.equal((await marked.json()).swms.reviewedBy, 'Jo Park');
   const text = await word(await (await call('GET', `/api/swms/${id}/docx`, { token })).arrayBuffer());
   assert.ok(text.includes('Checked by Jo Park, Director,'));
-  const kept = await db.one('SELECT confirmation FROM swms_revisions WHERE swms_id = $1 AND revision = 1', [id]);
-  const confirmation = typeof kept.confirmation === 'string' ? JSON.parse(kept.confirmation) : kept.confirmation;
-  assert.equal(confirmation.earlier[0].name, 'Sam Lee', 'the earlier check is kept with it');
+  // Checked by another person, it is the next revision, with its own reference; revision 1 keeps the check
+  // it printed with, so one reference is one print (messy round 11, run 5).
+  const kept = await db.query('SELECT revision, ref, confirmation FROM swms_revisions WHERE swms_id = $1 ORDER BY revision', [id]);
+  const conf = (row) => (typeof row.confirmation === 'string' ? JSON.parse(row.confirmation) : row.confirmation);
+  assert.deepEqual(kept.map((row) => [row.revision, conf(row).name]), [[1, 'Sam Lee'], [2, 'Jo Park']]);
+  assert.notEqual(kept[0].ref, kept[1].ref);
   // A copy for another job is checked the same way.
   const copy = await call('POST', `/api/swms/${id}/copy`, { token, body: checked({}, FENCE, { name: 'Jo Park', role: 'Director' }) });
   assert.equal(copy.status, 201);

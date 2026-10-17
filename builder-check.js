@@ -1457,7 +1457,8 @@ const PPE_SAID = [
   { name: 'hearing protection', listed: /\bear (?:plugs|muffs)|hearing/i, said: /\b(?:wear\w*|worn)\b[^.;]*\b(?:ear (?:plugs|muffs)|hearing protection)\b/i },
 ];
 const PPE_CONDITIONAL = /^\s*(?:where|if|when|unless|whenever|should)\b/i;
-const PPE_NOT_DONE = /\b(?:never|no one|nobody|(?:do|does|is|are|must|should|can) not|cannot|don't|instead of|rather than)\b/i;
+// "No harness is used" says the item is not worn (messy round 11, run 2: a harness finding beside it).
+const PPE_NOT_DONE = /\b(?:never|no one|nobody|(?:do|does|is|are|must|should|can) not|cannot|don't|instead of|rather than|not (?:used|worn|needed|required))\b|^\s*no\s+(?:[\w-]+\s+){0,3}?(?:harness\w*|respirators?|masks?|fall arrest|gloves|ear (?:plugs|muffs)|hearing protection)\b/i;
 function ppeContradictions(swms) {
   const listed = (swms.ppe || []).join('\n');
   if (!listed.trim()) return [];

@@ -53,9 +53,10 @@ const FIELDS = PEOPLE_FIELDS.map((item) => (item.scaffold ? { ...item, when: (dr
 
 // Boxes that may be left empty, but not with a placeholder in them: it would print.
 const OPTIONAL = [
-  { id: 'siteManager', field: 'site-manager', label: 'Site manager' },
+  // A name box left empty is fine; a name in it is judged by the one person rule (messy round 11).
+  { id: 'siteManager', field: 'site-manager', label: 'Site manager', kind: 'person' },
   { id: 'reviewDate', field: 'review-date', label: 'Review date' },
-  { id: 'preparedBy', field: 'prepared-by', label: 'Prepared by' },
+  { id: 'preparedBy', field: 'prepared-by', label: 'Prepared by', kind: 'person' },
   { id: 'swmsRef', field: 'swms-ref', label: 'SWMS reference number' },
 ];
 
@@ -175,7 +176,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     if (item.scaffold && erectsScaffold(draft)) rule.ask = 'Your crew erects the scaffold. Name your scaffold supervisor who hands it over and tags it.';
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, rule, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
   }
-  for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true }, input[item.id]);
+  for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true, ...(item.kind ? { kind: item.kind } : {}) }, input[item.id]);
   // The company phone prints in every SWMS's header: a number the site cannot ring is asked about before
   // download (messy round 8, runs 3 and 6: "0412 555 81" printed). Fixed in the Company profile.
   const companyPhone = clean(input.companyPhone);

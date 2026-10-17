@@ -701,7 +701,8 @@
     project.items[index].checked = true;
     showSingle(true);
     // Answers to the emergency questions given in another SWMS of the project fill the same questions here.
-    const shared = (project.shared && project.shared.emergency) || {};
+    // Only those that fit this SWMS: an answer naming plant it does not use is not filled in (messy round 11).
+    const shared = acrossFor(project.items[index]);
     if (project.items[index].body && Object.keys(shared).length) project.items[index].body = { ...project.items[index].body, emergency: { ...shared, ...given(project.items[index].body.emergency) } };
     if (project.items[index].body) project.items[index].body = { ...withPageDetails(project.items[index].body), ...(project.sitelink && project.items[index].pageOwn ? project.items[index].pageOwn : {}) };
     // With none prepared yet, its own details show in the boxes above while it is open.
@@ -1041,12 +1042,30 @@
   };
 
   // An answer to an emergency question fills the same question in the project's other SWMS (D239).
+  // Each answer given is kept with the ones before it, so another SWMS takes the latest one that fits it
+  // (public/gate-rules.js acrossFor): a pump operator's answer does not reach the cranage SWMS, which
+  // keeps the earlier answer that fits it (messy round 11, run 1).
   function shareEmergency(answers) {
     if (!project || !answers || typeof answers !== 'object') return;
     project.shared = project.shared || { site: null, designs: {}, emergency: {} };
     const given = Object.fromEntries(Object.entries(answers).filter(([, value]) => typeof value === 'string' && value.trim()));
     project.shared.emergency = { ...(project.shared.emergency || {}), ...given };
+    const all = project.shared.emergencyAll = project.shared.emergencyAll || {};
+    for (const [id, value] of Object.entries(given)) {
+      const list = (all[id] || []).filter((answer) => answer !== value);
+      all[id] = [...list, value].slice(-8);
+    }
   }
+  // The words that say what a SWMS of the project uses: its task and the plant its draft lists.
+  const itemWords = (item) => [item && item.task, item && item.goTask, item && item.body && item.body.task, ...((item && item.plantNames) || [])].filter(Boolean).join('\n');
+  // The emergency answers given in the project's other SWMS that fit this one.
+  function acrossFor(item) {
+    const shared = (project && project.shared) || {};
+    const rules = window.SiteWriteGate;
+    if (!rules || !rules.acrossFor) return { ...(shared.emergency || {}) };
+    return rules.acrossFor(shared.emergencyAll || {}, shared.emergency || {}, itemWords(item));
+  }
+  S.emergencyAcross = acrossFor;
 
   // As the user answers under the draft (app.js), the SWMS in the project takes the answers that print
   // as given, and what it still needs. A change that needs the draft prepared again waits for it.
@@ -1099,6 +1118,7 @@
     item.emergencyAsked = askedEmergency(draft) || item.emergencyAsked;
     item.body = keptEmergency(body, item.emergencyAsked);
     item.kind = draft.kind;
+    if (draft.kind === 'draft') item.plantNames = (draft.plant || []).map((row) => row && row.item).filter(Boolean);
     // Prepared again here with the answers as they are now, it no longer needs preparing again (messy
     // round 6, run 4: the list said both SWMS needed preparing again and were not checked, right after
     // they were checked).

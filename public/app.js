@@ -1965,6 +1965,7 @@ function fillFields(values) {
   showBuilderFields();
   applyAddressState();
   showSameName();
+  showCareNote();
 }
 
 // First aid location and site rules come from a main contractor's list (Goal 12 stage 6). Their boxes
@@ -5140,6 +5141,19 @@ window.SiteWrite = Object.assign(window.SiteWrite || {}, {
 
 addPrincipals([], false);
 document.getElementById('principal').addEventListener('change', (event) => addPrincipals([event.target.value], true));
+
+// A medical centre or clinic in the hospital box: a note to check it has an emergency department
+// (messy round 11, run 2: "Lygon Court Medical Clinic" was taken with no word).
+function showCareNote() {
+  const note = document.getElementById('hospital-note');
+  const box = document.getElementById('hospital');
+  const rules = window.SiteWriteGate;
+  if (!note || !box || !rules || !rules.careNote) return;
+  const text = rules.careNote(box.value);
+  if (note.textContent !== text) note.textContent = text;
+  note.classList.toggle('hidden', !text);
+}
+['input', 'change'].forEach((type) => { const el = document.getElementById('hospital'); if (el) el.addEventListener(type, showCareNote); });
 
 // One name in every person's box is said under them, as a warning (messy round 4, run 2).
 function showSameName() {
