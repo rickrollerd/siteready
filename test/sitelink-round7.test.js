@@ -120,7 +120,8 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
     'Ductwork and mechanical units: whole project': 'list',
     'Testing and commissioning': 'list',
     'Trade installation: louvres': `folded:${MAIN}`,
-    'In-ground civil': 'list',
+    // Messy round 9, blocker 6: "In-ground civil" is titled by its work.
+    'In-ground mechanical services': 'list',
     Maintenance: 'folded:Testing and commissioning',
     'Trade installation: cells': `folded:${MAIN}`,
     'Demolition and removal': 'list',

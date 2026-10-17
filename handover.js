@@ -248,7 +248,8 @@ const packWords = (pack) => pack.rows.map((row) => `${row.activity || ''} ${row.
 //   - work the reading finds no high risk construction work in ("may not need a SWMS by law") is set
 //     aside in its own group (removedWhy 'noLaw'), for the lead to move onto the list if needed.
 function listItems(reading) {
-  const safe = splitDefects(scrubReading(reading));
+  // SiteLink titles its own list below (SiteWrite's reading titles every package, packageTitles).
+  const safe = splitDefects(scrubReading(reading && reading.titles ? { ...reading, titles: undefined } : reading));
   const { work } = scopeChoice.packagesOf(safe);
   const flags = new Map((safe.highRisk || []).map((item) => [item.package, item]));
   const craneClause = scopeChoice.craneClause(safe);
@@ -309,6 +310,13 @@ function listItems(reading) {
   // installation") and a smaller one keeps its area.
   // A title that reads as another's ("Ceilings and partitions installation" beside "Ceilings and
   // partitions") keeps its area too.
+  retitle(out, work);
+  return out.map(({ kind, ownHighRisk: own, ...item }) => item);
+}
+
+// Bare and area titles take work titles (above). Items set aside or folded keep theirs on SiteLink's
+// list (all: false); every package is titled for SiteWrite's own scope reading (all: true).
+function retitle(out, work, { all = false } = {}) {
   const base = (title) => String(title).toLowerCase().replace(/ (?:installation|work)$/, '');
   const titles = new Set(out.map((item) => item.title.toLowerCase()));
   const taken = (title) => titles.has(title.toLowerCase()) || [...titles].some((other) => base(other) === base(title));
@@ -316,7 +324,7 @@ function listItems(reading) {
   for (const index of order) {
     const item = out[index];
     // Only the SWMS on the list to start with: the ones the lead sends.
-    if (item.removedWhy) continue;
+    if (item.removedWhy && !all) continue;
     titles.delete(item.title.toLowerCase());
     let better = workTitle(item, work[index]);
     const area = /^trade installation:\s*(.+)$/i.exec(item.title);
@@ -324,7 +332,17 @@ function listItems(reading) {
     if (better && better.toLowerCase() !== item.title.toLowerCase() && !taken(better)) item.title = better;
     titles.add(item.title.toLowerCase());
   }
-  return out.map(({ kind, ownHighRisk: own, ...item }) => item);
+}
+
+// SiteWrite's own scope reading: each package's SWMS title, by sl8's work-title rules (messy round 9:
+// "Trade installation: concrete works" and "Trade installation: swimming pool" were used as SWMS titles
+// and file names, and shown to the builder). { package name: title }
+function packageTitles(reading) {
+  const safe = splitDefects(scrubReading(reading || {}));
+  const { work } = scopeChoice.packagesOf(safe);
+  const out = work.map((pack) => ({ package: pack.name, title: pack.name }));
+  retitle(out, work, { all: true });
+  return Object.fromEntries(out.filter((item) => item.title !== item.package).map((item) => [item.package, item.title]));
 }
 
 // The trade, from the crew the reading names for the work ("Electricians", "Mechanical fitters"), and
@@ -351,9 +369,40 @@ function activityTitle(text) {
   return words && words.length <= 60 ? words.replace(/^./, (letter) => letter.toUpperCase()) : '';
 }
 const TEMPORARY = /\btemporary\b|\btemp\b|\bchangeovers?\b|\bbuilders?['’]? (?:power|supply|lighting)\b/i;
+// "In-ground civil" is the reading's name for any in-ground work, whatever the trade (messy round 9,
+// blocker 6: a hydraulic scope's drainage reached the subcontractor as "In-ground civil"). Its title
+// comes from what the in-ground work is: the drains it lays, the services it puts in the ground, or
+// the digging itself. Rows that only support the digging (trenching, spoil, saw cutting, dewatering,
+// finding services) do not name the work.
+const IN_GROUND = /^(?:in[- ]?ground|below[- ]ground|underground)\s+civil(?:s|\s+works?)?$/i;
+const DIG_ONLY = /\b(?:trench\w*|excavat\w*|backfill\w*|compact\w*|spoil|fill|roadsaw\w*|saw ?cut\w*|dewater\w*|locat\w*|scan\w*|pothol\w*|vacuum|rock|reinstat\w*|bedding|survey\w*|set ?out)\b/i;
+function inGroundTitle(pack) {
+  const rows = (pack && pack.rows) || [];
+  const words = (row) => String(row.activity || '');
+  const main = rows.filter((row) => !DIG_ONLY.test(words(row)) || /\b(?:install|lay|connect|construct)\b/i.test(words(row)));
+  // A services trade's in-ground work is its services ("Electricians" laying conduits and pits).
+  const crew = tradeOf({ rows: main.length ? main : rows });
+  if (crew && ['Electrical', 'Mechanical', 'Communications', 'Security', 'Fire services'].includes(crew.name)) return `In-ground ${crew.name.toLowerCase()} services`;
+  const drains = main.filter((row) => /\b(?:drain(?:s|age)?|sewer\w*|sanitary|stormwater|storm water|grease|interceptor|swales?)\b/i.test(words(row)));
+  if (main.length && drains.length * 2 >= main.length) {
+    const all = drains.map(words).join(' ');
+    const kinds = [/\b(?:sewer|sanitary)\b/i.test(all) && 'sanitary', /\bstorm ?water\b/i.test(all) && 'stormwater'].filter(Boolean);
+    return `In-ground ${kinds.length ? `${kinds.join(' and ')} ` : ''}drainage`;
+  }
+  const laid = main.filter((row) => /\b(?:install|lay|connect)\b/i.test(words(row)) && !/\bexisting\b/i.test(words(row)) && /\b(?:conduits?|pipe\w*|cabl\w*|services?|water supply|mains?)\b/i.test(words(row)));
+  if (laid.length && !(crew && crew.name === 'Civil')) {
+    const trade = tradeOf({ rows: laid });
+    return trade && trade.name !== 'Civil' ? `In-ground ${trade.name.toLowerCase()} services` : 'In-ground services';
+  }
+  const earth = rows.some((row) => /\b(?:earthworks?|grade|subgrade|fill|stockpile|reduced levels?|bulk)\b/i.test(words(row)));
+  if (!earth && rows.some((row) => /\bfootings?\b/i.test(words(row)))) return 'Excavation and footings';
+  if (earth || rows.some((row) => /\b(?:excavat\w*|trench\w*)\b/i.test(words(row)))) return 'Excavation and earthworks';
+  return '';
+}
 function workTitle(item, pack) {
   const name = String(item.title || '').trim();
   const rows = (pack && pack.rows) || [];
+  if (IN_GROUND.test(name)) return rows.length === 1 && activityTitle(rows[0].activity) ? activityTitle(rows[0].activity) : inGroundTitle(pack);
   const part = /^trade installation:\s*(.+)$/i.exec(name);
   const bare = genericName(name) && !part;
   if (!part && !bare) return '';
@@ -521,6 +570,21 @@ function noJobSteps(item, state) {
 
 // Clause references once each: "Description of Work Area, Description of Work Area" reads once, and
 // "Installation 6, 10" and "Installation 6" read "Installation 6, 10".
+// The scope clauses a SWMS on the list comes from. Once the lead has changed its work, only the
+// clauses of the activities its new words still name (messy round 9, wording 3: after "Change the work",
+// "From scope clauses" still listed the clauses for the solar hot water and the downpipes).
+const CLAUSE_STOP = new Set(['install', 'installation', 'supply', 'provide', 'works', 'system', 'systems', 'services', 'service', 'including', 'associated', 'required', 'complete', 'within', 'their', 'there', 'other', 'from', 'with', 'into']);
+function clausesOf(row) {
+  const item = (row && row.item) || {};
+  let list = item.activities || [];
+  if (row && row.task_changed && String(row.task || '').trim()) {
+    const stem = (word) => word.toLowerCase().replace(/(?:ing|ed|es|s)$/, '');
+    const words = (text) => String(text || '').split(/[^A-Za-z]+/).filter((word) => word.length >= 4 && !CLAUSE_STOP.has(word.toLowerCase())).map(stem);
+    const named = new Set(words(row.task));
+    list = list.filter((entry) => words(entry.activity).some((word) => named.has(word)));
+  }
+  return clauseList(list.map((entry) => entry.clause));
+}
 function clauseList(list) {
   const out = [];
   let prefix = '';
@@ -530,6 +594,9 @@ function clauseList(list) {
       if (!part) continue;
       const named = /^(.*?)\s*(\d[\w.]*)$/.exec(part);
       if (named && named[1]) prefix = named[1];
+      // The scope's exclusions are not where the work comes from (messy round 9, wording 2: the
+      // in-ground work cited "Exclusions 3").
+      if (/^exclu/i.test(named && !named[1] && prefix ? prefix : part)) continue;
       const key = (named && !named[1] && prefix ? `${prefix} ${part}` : part).toLowerCase();
       if (out.some((one) => one.key === key)) continue;
       out.push({ key, text: part });
@@ -604,12 +671,15 @@ function splitPoint(text) {
 // A note with no subject of its own ("Party not named.", "Locations to be advised by the Contractor.")
 // is said with the work it is about (messy round 8, wording 16).
 const LOOSE_NOTE = /^(?:the\s+)?[a-z]+(?:\s+[a-z]+)?\s+(?:to be|not|is not|are not|tbc|tba|unknown|unclear)\b/i;
+const BARE_NOTE = /^[A-Za-z-]+(?:\s+(?:and\s+)?[A-Za-z-]+){0,2}\.?$/;
 function draftNotes(rows) {
   const out = [];
   for (const row of rows || []) {
     const activity = wordsWithoutPrices(row.activity).replace(/[.\s]+$/, '');
     for (let note of splitPoint(wordsWithoutPrices(row.unknowns)).notes.map(sentence)) {
       if (note && activity && LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
+      // A bare word or two ("Dewatering.") says neither the work nor what is open (messy round 9, wording 8).
+      else if (note && activity && BARE_NOTE.test(note)) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
       if (note && !out.includes(note)) out.push(note);
     }
   }
@@ -652,11 +722,13 @@ function pointInPlay(point, items) {
   return Boolean(main) && !gone(main);
 }
 
-// What the subcontractor is told about the high risk work in a SWMS on its list: only what the work
-// is, never that it may not need a SWMS (Goal 12: it is the list, no second guessing).
+// What the subcontractor is told about the high risk work in a SWMS on its list: what the lead's page
+// says, "may need" included (messy round 9, blocker 2: the lead saw "This work may need a SWMS by law"
+// and the subcontractor saw nothing), never that it may not need a SWMS (Goal 12: it is the list, no
+// second guessing).
 function sentHighRisk(flag) {
   const said = riskOf(flag);
-  if (!said || !['yes', 'likely'].includes(said.status)) return null;
+  if (!said || !['yes', 'likely', 'depends'].includes(said.status)) return null;
   return { status: said.status, heading: said.heading, line: (said.lines || []).join('. ') };
 }
 
@@ -680,7 +752,7 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
       task: wordsWithoutPrices(item.task),
       // With the high risk work of the work folded into it (messy round 7).
       highRisk: sentHighRisk(withFolded(item, all).highRisk),
-      clauses: clauseList(((item.item && item.item.activities) || []).map((row) => row.clause)),
+      clauses: clausesOf(item),
       alsoCovers: all.filter((other) => other.removed_why === 'folded' && (other.removed_at || other.removedAt) && other.item && other.item.foldedInto && other.item.foldedInto === item.package).map((other) => nameWithoutPrices(other.title)),
       added: item.source === 'added',
     })),
@@ -692,4 +764,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };
+module.exports = { packageTitles, clausesOf, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };

@@ -105,7 +105,8 @@ router.get('/me', requireUser, route(async (req, res) => {
 }));
 
 router.put('/me', requireUser, route(async (req, res) => {
-  await db.query('UPDATE users SET name = $1 WHERE id = $2', [textField(req.body && req.body.name, 120), req.user.id]);
+  // Typed in lower case, a name gets its capitals (messy round 9, wording 10).
+  await db.query('UPDATE users SET name = $1 WHERE id = $2', [require('./sitelink-answers').tidyName(textField(req.body && req.body.name, 120)), req.user.id]);
   res.json({ ok: true });
 }));
 
@@ -362,7 +363,11 @@ router.get('/swms', requireUser, route(async (req, res) => {
   const flags = await libraryNotices.flagsFor(req.company.id);
   // The principal contractor's latest response on each SWMS's current revision (goal 3).
   const reviewed = await reviews.currentReviews(req.company.id, rows);
-  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)), changeReview: flags[row.id] || [], review: reviewed[row.id] || null })) });
+  // A SWMS from a main contractor's list has no saved site: it is named by its project, or by its job
+  // address (messy round 9: My SWMS showed "No site" for each SWMS from a builder's list).
+  const projects = new Map((await db.query("SELECT s.swms_id, p.name FROM submissions s JOIN projects p ON p.id = s.project_id WHERE s.company_id = $1 AND s.swms_id <> ''", [req.company.id]).catch(() => [])).map((item) => [item.swms_id, item.name]));
+  const placeOf = (row) => projects.get(row.id) || String((row.input && row.input.workplace) || '').trim();
+  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, place: row.site_id ? '' : placeOf(row), ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)), changeReview: flags[row.id] || [], review: reviewed[row.id] || null })) });
 }));
 
 // Which revision a sign-on is for. One from before sign-ons kept their revision counts for the

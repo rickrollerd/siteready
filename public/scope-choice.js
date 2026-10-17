@@ -163,7 +163,10 @@
         if (othersAnswer(answers, pack, entry) === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else leaveOut.push(entry.step);
       }
       return {
-        title: pack.name,
+        // A work title where the package's name is bare or an area (handover.js packageTitles, messy round
+        // 9); the package keeps its name, which the choice is kept by.
+        title: (reading && reading.titles && reading.titles[pack.name]) || pack.name,
+        package: pack.name,
         // The task prints as a plain list of the work (D251). SiteWrite reads the work from the scope's
         // full words, with its places, conditions and plant, so "near roads" or "energised switchboards"
         // still reach the high risk check; the conditions go to the matching site questions and the

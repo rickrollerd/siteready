@@ -93,9 +93,12 @@
   // The support address in a message, as a link to write to it.
   const withMail = (text, email) => (email ? esc(text).split(esc(email)).join(`<a href="mailto:${esc(email)}">${esc(email)}</a>`) : esc(text));
   function flash(html, kind = 'ok') { box('flash', html, kind); }
-  function go(hash, message = null, kind = 'ok') {
+  // replace: the page goes in place of the form just used, so Back does not open the form again
+  // (messy round 9: Back after adding a subcontract showed the empty "Add a subcontract" form).
+  function go(hash, message = null, kind = 'ok', { replace = false } = {}) {
     pendingFlash = message ? { message, kind } : null;
     if (location.hash === hash) route();
+    else if (replace && history.replaceState) { history.replaceState(null, '', hash); route(); }
     else location.hash = hash;
   }
 
@@ -111,6 +114,15 @@
     if (note) { note.textContent = message; note.classList.remove('hidden'); }
     if (input && !quiet) { input.scrollIntoView({ behavior: 'smooth', block: 'center' }); input.focus({ preventScroll: true }); }
   }
+  // A box's red note goes once the person types in it (messy round 9: "Enter the project name." stayed
+  // red under the box after the name was typed). The server says again on Save if it is still wrong.
+  document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (!input || !input.id || !input.classList || !input.classList.contains('has-error')) return;
+    input.classList.remove('has-error');
+    const note = $(`${input.id}-error`);
+    if (note) { note.classList.add('hidden'); note.textContent = ''; }
+  });
   // Every box's problem at once (messy round 6: five saves for five problems), with the first in view.
   function fieldErrors(prefix, fields) {
     const keys = Object.keys(fields || {}).filter((key) => $(`${prefix}${key}`));
@@ -220,6 +232,9 @@
     await busy($('setup-go'), 'Checking the ABN...', async () => {
       try {
         const data = await call('POST', '/api/hse/orgs', { name: $('setup-name').value, abn: $('setup-abn').value, keepName });
+        // The form goes at once: set up, it is not shown while the account loads (messy round 9: it stayed
+        // about 2 seconds under "Your account is set up").
+        $('view-setup').classList.add('hidden');
         await loadMe();
         go('#/', esc(data.message));
       } catch (error) {
@@ -641,7 +656,7 @@
           go(`#/project/${formProject.id}`, 'The project details are saved.');
         } else {
           const { project } = await call('POST', `/api/hse/orgs/${encodeURIComponent(formOrg.id)}/projects`, body);
-          go(`#/project/${project.id}`, 'The project is made. Now set its site details.');
+          go(`#/project/${project.id}`, 'The project is made. Now set its site details.', 'ok', { replace: true });
         }
       } catch (error) {
         if (['name', 'workplace', 'state'].includes(error.field)) fieldError(`pf-${error.field}`, error.message);
@@ -717,7 +732,7 @@
       const off = [sub.folded ? `${sub.folded} in another SWMS` : '', sub.removed ? `${sub.removed} removed` : '', sub.aside ? `${sub.aside} may not need one` : ''].filter(Boolean).join(', ');
       const list = !sub.swms && !sub.removed && !sub.aside && !sub.folded ? (sub.scope === 'reading' ? 'Not listed yet' : 'None yet') : `${sub.swms} SWMS${off ? ` (${off})` : ''}${sub.pointsOpen ? `<span class="scope-state">${sub.pointsOpen} ${sub.pointsOpen === 1 ? 'point' : 'points'} to answer</span>` : ''}`;
       // Stage 5: whether the list has gone, its due date, and whether it was opened or taken up.
-      const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}${sub.claimedMismatch ? ` <span class="tag warn">Not the name on the subcontract: check it</span>` : ''}` : sub.opened ? '. Opened' : '. Not opened yet'}` : 'Not sent yet';
+      const sent = sub.sentOn ? `Sent ${esc(sub.sentOn)}, due ${esc(sub.due)}${sub.claimedName ? `. Taken up by ${esc(sub.claimedName)}${sub.claimedMismatch ? ` <span class="tag warn">Not the name on the subcontract: check it</span>` : ''}` : sub.opened ? '. Opened' : sub.openedUnknown ? '. Link opened by someone not signed in' : '. Not opened yet'}` : 'Not sent yet';
       // Stage 7: how many are in, their reviews and conditions (the one screen, below, lists each SWMS).
       const s7 = sub.stage7 || { in: 0, toReview: 0, approved: 0, notApproved: 0, conditionsOpen: 0, toConfirm: 0, off: 0, items: [] };
       const filesIn = sub.swms ? `${s7.in} of ${sub.swms} in${s7.uploaded ? `<span class="scope-state">${s7.uploaded === 1 ? 'One file' : `${s7.uploaded} files`} uploaded to record</span>` : ''}${s7.off ? `<span class="scope-state">${s7.off} taken off its list: not submitted</span>` : ''}` : 'None yet';
@@ -772,7 +787,11 @@
       // round 8: it was named "Chase ..." and opened the top of the page).
       : row.state === 'uploaded'
         ? `<a class="button light small" href="#/sub/${esc(sub.id)}/item/${esc(row.id)}" aria-label="${esc(`Record the file uploaded for ${row.title} from ${sub.name}`)}">Record it</a>`
-        : `<a class="button light small" href="#/sub/${esc(sub.id)}" aria-label="${esc(`Chase ${row.title} from ${sub.name}`)}">Chase</a>`;
+        // Nothing to chase before the list has gone (messy round 9: "Chase" showed on every SWMS of a
+        // list not sent).
+        : !sub.sentOn
+          ? `<a class="button light small" href="#/sub/${esc(sub.id)}" aria-label="${esc(`Send the list to ${sub.name}`)}">Send the list</a>`
+          : `<a class="button light small" href="#/sub/${esc(sub.id)}" aria-label="${esc(`Chase ${row.title} from ${sub.name}`)}">Chase</a>`;
     return `<li class="swms-row" data-tags="${esc(tagsOf(row).join(' '))}"><div class="swms-what"><strong>${esc(row.title)}</strong><span class="meta">${esc(sub.name)}</span></div>
       <div class="swms-tags">${pills.join(' ')}</div>${lines.length ? `<p class="meta">${lines.join(' ')}</p>` : ''}<div class="swms-go">${action}</div></li>`;
   }
@@ -839,7 +858,7 @@
           go(`#/sub/${subForm.subId}`, 'The subcontract details are saved.');
         } else {
           const data = await call('POST', `/api/hse/projects/${encodeURIComponent(subForm.projectId)}/subcontracts`, body);
-          go(`#/sub/${data.subcontract.id}`, `${esc(data.subcontract.name)} is added. Now upload its scope of works.`);
+          go(`#/sub/${data.subcontract.id}`, `${esc(data.subcontract.name)} is added. Now upload its scope of works.`, 'ok', { replace: true });
         }
       } catch (error) {
         if (['name', 'trade', 'email', 'abn'].includes(error.field)) fieldError(`sf-${error.field}`, error.message);
@@ -1029,6 +1048,9 @@
   }
   const openGroups = { aside: false, removed: false };
 
+  // Answers typed on this page since it opened: one refused is not an answer "from before" (messy round
+  // 9, wording 7: "Your answer from before is back" showed under "tbc" just refused, with no earlier answer).
+  const typedHere = new Set();
   function renderPoints() {
     const points = sub.points;
     if (!points.length) {
@@ -1048,7 +1070,7 @@
         <label for="answer-${esc(point.id)}">Your answer ${point.inPlay === false ? '' : point.answer ? '<span class="tag">Answered: goes to the subcontractor</span>' : '<span class="tag grey">Not answered: not sent</span>'}</label>
         <textarea id="answer-${esc(point.id)}" maxlength="1000" data-point="${esc(point.id)}">${esc(value)}</textarea>
         <p class="field-error hidden" id="answer-${esc(point.id)}-error"></p>
-        ${typed && value !== point.answer ? '<p class="meta">Your answer from before is back. It is not saved yet.</p>' : ''}
+        ${typed && value !== point.answer && !typedHere.has(point.id) ? '<p class="meta">Your answer from before is back. It is not saved yet.</p>' : ''}
         ${point.answer ? `<p class="meta">Answered by ${esc(point.answeredBy)} on ${esc(point.answeredOn)}.</p>` : ''}
         <div class="actions"><button type="button" class="light" data-answer="${esc(point.id)}" aria-label="${esc(`Save the answer about ${point.activity}`)}">Save answer</button></div>
       </div>`;
@@ -1382,7 +1404,7 @@
 
   $('s-points-card').addEventListener('input', (event) => {
     const id = event.target.dataset && event.target.dataset.point;
-    if (id) keepTyped(typedKey('answer', sub.subcontract.id, id), { answer: event.target.value });
+    if (id) { keepTyped(typedKey('answer', sub.subcontract.id, id), { answer: event.target.value }); typedHere.add(id); }
   });
   $('s-points-card').addEventListener('toggle', (event) => {
     if (event.target.id === 's-points-out') openGroups.points = event.target.open;
@@ -1443,7 +1465,8 @@
     if (!sending.sent) lines.push('<p>Not sent yet.</p>');
     else {
       lines.push(`<p><strong>Sent to ${esc(sending.sent.to)}</strong> on ${esc(sending.sent.on)} by ${esc(sending.sent.by)}. Due ${esc(sending.sent.dueShown)}.</p>`);
-      lines.push(sending.opened ? `<p>Opened on ${esc(sending.opened)}.</p>` : '<p class="meta">Not opened yet. It counts as opened when the link in the email is used.</p>');
+      // A signed-out open could be anyone the email was passed to (messy round 9, blocker 5).
+      lines.push(sending.opened ? `<p>Opened on ${esc(sending.opened)}.</p>` : sending.openedUnknown ? '<p class="meta">The link was opened by someone not signed in to SiteWrite, so who opened it is not known. It counts as opened once the company signs in to open it or takes up the list.</p>' : '<p class="meta">Not opened yet. It counts as opened when the company opens the link in the email signed in to SiteWrite, or takes up the list.</p>');
       if (sending.claimed) lines.push(`<p>Taken up in SiteWrite by <strong>${esc(sending.claimed.name)}</strong> (ABN ${esc(sending.claimed.abn)}) on ${esc(sending.claimed.on)}.</p>`);
       // A company whose name is not the subcontract's is flagged (messy round 7).
       if (sending.claimed && sending.claimed.mismatch) lines.push(`<p class="warn" id="s-claim-mismatch"><strong>${esc(sending.claimed.name)} is not the name on this subcontract (${esc(sub.subcontract.name)}).</strong> Check it is the right company.${sending.release && sending.release.can ? ' If it is not, release the list from it below.' : ''}</p>`);

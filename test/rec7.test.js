@@ -220,10 +220,11 @@ test('only points about who does or supplies what are asked of the lead; other n
     row('Install the condensers on the roof', 'Ductwork', 'Install the condensers on the roof.', { unknowns: 'Roof height, pitch, edge protection' }),
   ] };
   assert.deepEqual(handover.listPoints(reading).map((point) => point.question), ['Who supplies the fan coil units']);
-  assert.deepEqual(handover.listItems(reading)[0].draftNotes, ['Working heights', 'Roof height, pitch, edge protection']);
+  // A bare note says its work and that it is open (messy round 9, wording 8).
+  assert.deepEqual(handover.listItems(reading)[0].draftNotes, ['Install ductwork in the ceiling spaces: working heights to be confirmed.', 'Roof height, pitch, edge protection']);
   // The notes are not shown to the subcontractor on the list.
   const view = handover.subcontractorView({ project: { name: 'P', workplace: 'W', state: 'qld' }, org: { name: 'O' }, subcontract: { name: 'S' }, items: [{ title: 'Ductwork', task: 'Ductwork', item: handover.listItems(reading)[0] }], points: [], siteDetails: null, fields: [] });
-  assert.doesNotMatch(JSON.stringify(view), /Working heights|Roof height/);
+  assert.doesNotMatch(JSON.stringify(view), /[Ww]orking heights|Roof height/);
 });
 
 // ---- Moving plant needs moving words, in the subcontractor's scope reading too (sl6 decision 3) ----

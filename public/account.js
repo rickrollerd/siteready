@@ -490,7 +490,8 @@
         // The ticks kept on this device are for this SWMS: a saved one by its id, a new one by its task.
         key: `draft:${editing ? editing.id : ''}:${task}`,
         // A SWMS of a project brings back the check it was given (scope.js).
-        seed: S.projectCheck ? S.projectCheck(input) : null,
+        // Its ticks gone, it still brings back who checked it (messy round 9, stuck point 3).
+        seed: (S.projectCheck && S.projectCheck(input)) || (S.projectCheckWho && S.projectCheckWho(input)) || null,
         // What each part of this draft prints, so a tick for a part that now prints differently comes off
         // at once, before SiteWrite's check answers (messy round 6, run 8).
         parts: draft.checkParts || null,
@@ -603,7 +604,7 @@
         <div class="swms-row"${item.review ? ` data-review-row="${esc(item.id)}" data-review-key="${esc(reviewKey(item))}"` : ''}>
           <div>
             <strong>${esc(item.title)}</strong>
-            <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Check due</span>' : `Check by ${shortDate(item.reviewDueAt)}`}</span>
+            <span class="meta">${esc(siteName(item.siteId) || item.place || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Check due</span>' : `Check by ${shortDate(item.reviewDueAt)}`}</span>
             ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteWrite changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
             ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span> on <span class="nowrap">${esc(item.review.date)}</span></span>` : ''}
           </div>
@@ -979,9 +980,13 @@
     try {
       const { users } = await call('GET', '/api/company/users');
       const admin = Boolean(me && me.user.isAdmin);
-      $('team-list').innerHTML = users.map((user) => `<li>${esc(user.email)}`
+      // Each person by name, with the email beside it (messy round 9, wording 10: Team showed only the
+      // office admin's email). A person with no name yet can give theirs here.
+      const mine = (user) => me && me.user && user.email === me.user.email;
+      $('team-list').innerHTML = users.map((user) => `<li>${user.name ? `${esc(user.name)} <span class="meta">${esc(user.email)}</span>` : esc(user.email)}`
         + `${user.is_admin ? ' <span class="meta">(administrator)</span>' : user.last_seen_at ? '' : ' <span class="meta">(invited)</span>'}`
-        + `${admin && !user.is_admin ? ` <button type="button" class="link" data-remove="${esc(user.email)}">Remove</button>` : ''}</li>`).join('');
+        + `${admin && !user.is_admin ? ` <button type="button" class="link" data-remove="${esc(user.email)}">Remove</button>` : ''}`
+        + `${mine(user) && !user.name ? `<div class="field team-name"><label for="team-my-name">Your name, as your team sees it</label><input id="team-my-name" type="text" maxlength="120" autocomplete="name"><button type="button" class="small secondary" id="team-my-name-save">Save my name</button><span class="meta" id="team-my-name-status" role="status"></span></div>` : ''}</li>`).join('');
     } catch (error) {
       $('team-list').innerHTML = `<li class="error">${esc(error.message)}</li>`;
     }
@@ -1005,6 +1010,18 @@
   });
 
   $('team-list').addEventListener('click', async (event) => {
+    if (event.target.id === 'team-my-name-save') {
+      const name = $('team-my-name').value.replace(/\s+/g, ' ').trim();
+      if (!name) { $('team-my-name-status').textContent = 'Enter your name first.'; return; }
+      try {
+        await call('PUT', '/api/me', { name });
+        if (me && me.user) me.user.name = name;
+        loadTeam();
+      } catch (error) {
+        $('team-my-name-status').textContent = error.message;
+      }
+      return;
+    }
     const email = event.target.dataset && event.target.dataset.remove;
     if (!email || !window.confirm(`Remove ${email} from your company? They will be signed out and lose access.`)) return;
     try {

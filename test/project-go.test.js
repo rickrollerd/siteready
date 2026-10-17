@@ -97,7 +97,7 @@ test('with none ready, the button is off and the list says what each needs', () 
   p.go.render(panel, project, p.hooks);
   assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>Download all 2 SWMS \(Word and PDF, one zip\)<\/button>/);
   assert.match(panel.innerHTML, /None of the SWMS is ready to download yet\. Each one in the list above says what it still needs\./);
-  assert.match(panel.innerHTML, /Not finished: Load limits need more\./);
+  assert.match(panel.innerHTML, /Not finished: Load limits needs more\./, 'one answer needs more (messy round 9, wording 4)');
   assert.match(panel.innerHTML, /Before download, open it to give: Plant and equipment\./);
 });
 

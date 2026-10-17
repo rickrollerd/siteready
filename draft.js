@@ -2985,7 +2985,7 @@ function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input) };
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: input.siteShared === true };
   if (state.noBrazing && state.kinds) state.kinds = state.kinds.filter((id) => id !== 'hotWork');
   if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
@@ -4576,7 +4576,9 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   if (leaveOut.size) jobSteps = jobSteps.filter((step) => !leaveOut.has(step.step) || ['Before starting', 'Finish and clean up'].includes(step.step));
   // Permits and hierarchy order come before the user's own changes, so a line the user changes keeps its place.
   // A permit line the user removed goes in here, so their change removes it and is reported.
-  jobSteps = finishSteps(jobSteps, stripOutPlant(combinedFacts(task, facts)), permitOptions(task, state));
+  // Site answers given once for the whole project bring no permit of their own (messy round 9, run 4: the
+  // pool dig in the Ground answer put an excavation permit into the plant room's "Before starting").
+  jobSteps = finishSteps(jobSteps, stripOutPlant(combinedFacts(task, state.siteShared ? { ...facts, siteConditions: '' } : facts)), permitOptions(task, state));
   jobSteps = withOurSlinging(jobSteps, state);
   const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
   return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
@@ -5643,7 +5645,12 @@ function withoutLiftsToRoof(task) {
 }
 
 function suggestedFlags(task, facts, state) {
-  const flags = limitToTrades(workFlags(task, facts, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  // Site answers given once for a whole project (siteShared) do not bring work of their own to every SWMS
+  // (messy round 9, run 4: "the pool dig goes to 2.1 m", answered once, put the trench steps and an
+  // excavation permit into the plant room inside building 3). The access and power line answers below
+  // still count.
+  const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: '' } : facts;
+  const flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
   // A conveyor's loader or treatment plant is not earthmoving plant.
   if (flags.conveyorMaintain && !/\b(excavat\w*|dig\w*|trench\w*|earthworks?|bulldoz\w*|front[- ]end loaders?|wheel loaders?)\b/i.test(task)) { flags.earthworks = false; flags.sitePlant = false; }
   // What the site answers say about power lines and access brings their steps.

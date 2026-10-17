@@ -346,6 +346,9 @@ async function sendingFor(ctx) {
     sent: last ? { to: last.email, on: when(last.created_at, project.state), by: last.sent_by_name, due: last.due_date, dueShown: listMail.longDue(last.due_date), count: itemsOf(last).length } : null,
     firstSentOn: sub.sent_at ? when(sub.sent_at, project.state) : '',
     opened: sub.opened_at ? when(sub.opened_at, project.state) : '',
+    // The link used only by someone not signed in: who opened it is not known yet (messy round 9).
+    // Taken up, the table says by whom instead.
+    openedUnknown: !sub.opened_at && !sub.claimed_at && log.some((row) => row.kind === 'opened_unknown'),
     // mismatch: the company's name is not the subcontract's, said on the card and the project table.
     claimed: sub.claimed_at ? { name: sub.claimed_name, abn: formatAbn(sub.claimed_abn || ''), on: when(sub.claimed_at, project.state), mismatch: !sameCompany(sub.claimed_name, sub.name) } : null,
     stopped: stop ? { email: stop.email, on: when(stop.stopped_at, project.state) } : null,
@@ -370,13 +373,14 @@ async function summaryFor(sub, project) {
     sentOn: sub.sent_at ? shortDate(sub.sent_at, project.state) : '',
     due: sub.due_date ? listMail.shortDue(sub.due_date) : '',
     opened: Boolean(sub.opened_at),
+    openedUnknown: !sub.opened_at && !sub.claimed_at && Boolean(await db.one("SELECT id FROM project_log WHERE subcontract_id = $1 AND kind = 'opened_unknown' LIMIT 1", [sub.id])),
     claimedName: sub.claimed_at ? sub.claimed_name : '',
     claimedMismatch: Boolean(sub.claimed_at) && !sameCompany(sub.claimed_name, sub.name),
     filesIn: uploads.filter((row) => kept.has(row.required_swms_id)).length,
     lastContact: last ? { text: LAST_CONTACT[last.kind] || last.summary, on: shortDate(last.created_at, project.state) } : null,
   };
 }
-const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', claim_declined: 'Another company said it is not theirs', opened_other: 'Opened by another company', stopped: 'Asked to stop emails', restarted: 'Emails started again',
+const LAST_CONTACT = { released: 'Released from the company that took it up', list_sent: 'List sent', list_resent: 'Updated list sent', reminder: 'Reminder sent', list_opened: 'List opened', opened_unknown: 'Link opened by someone not signed in', uploaded: 'SWMS uploaded', upload_removed: 'Upload taken off', claimed: 'Taken up in SiteWrite', claim_refused: 'Another company tried to take it up', claim_declined: 'Another company said it is not theirs', opened_other: 'Opened by another company', stopped: 'Asked to stop emails', restarted: 'Emails started again',
   // Stage 7.
   submitted: 'SWMS submitted', submitted_mail: 'SWMS submitted', review_sent: 'Review sent', condition_done: 'Condition marked done', condition_undone: 'Condition no longer marked done', condition_confirmed: 'Condition confirmed', condition_back: 'Condition sent back', outside_recorded: 'SWMS received outside SiteWrite', outside_checked: 'Builder check run' };
 function shortDate(date, state) {
@@ -617,7 +621,24 @@ publicRouter.get('/list/:token', route(async (req, res) => {
     res.json(view);
     return;
   }
-  // "Opened" is the link used (D306): the first time for each email is logged; later times are counted.
+  // Opened signed out: anyone the email was passed to can do that, so it is not counted as the
+  // subcontractor's open. It is logged once for each email as opened by someone not signed in, and the
+  // list shows "Opened" once a signed-in open or taking up the list shows who (messy round 9, blocker 5:
+  // another company's first open of a forwarded copy, signed out, was logged and shown as Dunnart's).
+  if (!viewer) {
+    await db.query('UPDATE list_links SET last_opened_at = $1 WHERE id = $2', [now, link.id]);
+    const seen = await db.query("SELECT ref_ids FROM project_log WHERE subcontract_id = $1 AND kind = 'opened_unknown'", [sub.id]);
+    const refsOf = (row) => { try { return typeof row.ref_ids === 'string' ? JSON.parse(row.ref_ids) : row.ref_ids || {}; } catch { return {}; } };
+    if (!link.opened_at && !seen.some((row) => refsOf(row).link === link.id)) {
+      const what = link.kind === 'reminder' ? 'reminder' : 'list';
+      await logEntry({ projectId: project.id, subId: sub.id, kind: 'opened_unknown', actorKind: 'sub', summary: `The link in the ${what} sent to ${sub.name} at ${link.email} on ${when(link.created_at, project.state)} was opened by someone not signed in to SiteWrite. It shows as opened once ${sub.name} opens it signed in, or takes up the list.`, refs: { link: link.id } });
+    }
+    const view = await listView(found, null);
+    res.json(view);
+    return;
+  }
+  // "Opened" is the link used by the subcontractor (D306): the first time for each email is logged; later
+  // times are counted.
   const first = await db.query('UPDATE list_links SET opened_at = $1, last_opened_at = $1 WHERE id = $2 AND opened_at IS NULL RETURNING id', [now, link.id]);
   if (first.length) {
     await db.query("UPDATE subcontracts SET opened_at = COALESCE(opened_at, $1), status = CASE WHEN status = 'sent' THEN 'opened' ELSE status END WHERE id = $2", [now, sub.id]);

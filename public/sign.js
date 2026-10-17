@@ -123,6 +123,12 @@
     // A translation shows each line twice (the worker's language and the English).
     return Math.min(1, Math.max(own, (shown / screen) * (translated ? 2 : 1)));
   }
+  // Whether a section is now above the screen: read past, not still to come.
+  function scrolledPast(id) {
+    const element = $(`sec-${id}`);
+    if (!element || !element.getBoundingClientRect) return false;
+    return element.getBoundingClientRect().bottom < 0;
+  }
   function observe() {
     if (observer) observer.disconnect();
     if (!('IntersectionObserver' in window)) return;
@@ -170,10 +176,17 @@
     const total = data.sections.length;
     const ready = read === total && reachedEnd;
     if (ready && !unlocked) unlocked = true;
+    // Sections scrolled past before they were read long enough (messy round 9, stuck point 1: at a fast
+    // swipe the bar said "Read 1 of 14" with no word of why). The time each needs is unchanged (sl8
+    // decision 1); the bar says to slow down and where to go back to.
+    const passed = data.sections.filter((item) => (seconds[item.id] || 0) < item.minSeconds && scrolledPast(item.id));
+    const label = passed.length ? String(passed[0].label || '') : '';
+    const back = label.length > 60 ? `${label.slice(0, 57).replace(/\s+\S*$/, '')}...` : label;
     const said = $('explained').checked
       ? 'Your supervisor has explained the SWMS. Sign on below.'
       : unlocked ? 'You have read the SWMS. Answer the questions and sign on below.'
-      : `Read ${read} of ${total} sections${read === total ? '. Scroll to the end.' : '. Take your time with each one.'}`;
+      : passed.length ? `Read ${read} of ${total} sections. Slow down: ${passed.length === 1 ? 'a section' : `${passed.length} sections`} went by too fast to count. Go back up${back ? ` to "${back}"` : ''} and read on. Each counts once it has a tick.`
+      : `Read ${read} of ${total} sections${read === total ? '. Scroll to the end.' : '. Take your time with each one. Each counts once it has a tick.'}`;
     // While the form is locked, the bar also says what to do if the worker cannot read it.
     const html = `${esc(said)}${$('explained').checked || unlocked ? '' : '<button type="button" class="link" data-cannot-read>Cannot read it? Your supervisor can explain it.</button>'}`;
     if ($('progress').innerHTML !== html) $('progress').innerHTML = html;

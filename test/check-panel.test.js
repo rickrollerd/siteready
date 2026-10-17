@@ -145,6 +145,7 @@ test('a role typed on after the last tick is recorded as typed, not as its first
     el(p, 'new-role').value = role;
     el(p, 'new-role').dispatchEvent(new FakeEvent('input'));
   }
-  assert.equal(seen[seen.length - 1], 'foreman');
-  assert.ok(seen.includes('f'), 'each change is told, the last one as typed');
+  // Typed in lower case, it is recorded with its capital (sl9: "Checked by rory haddleton, foreman").
+  assert.equal(seen[seen.length - 1], 'Foreman');
+  assert.ok(seen.includes('F'), 'each change is told, the last one as typed');
 });

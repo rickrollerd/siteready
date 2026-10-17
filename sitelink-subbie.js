@@ -120,17 +120,33 @@ function itemOf(row, view, rows = []) {
 
 // A note from the scope that one of the lead's answers settles is marked so, with the answer (messy
 // round 8, blocker 3: "CCTV and Duress are listed as exclusions" beside the lead's answer that they are in
-// the scope, and the subcontractor could not tell which stood). A note and a point come from the same
-// line of the reading: matched by its activity where the note keeps it, else by the words they share.
-const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'there', 'which', 'while', 'where', 'whether', 'when', 'what', 'have', 'been', 'will', 'shall', 'must', 'also', 'into', 'only', 'other', 'others', 'than', 'said', 'says', 'listed', 'stated', 'given', 'scope', 'works', 'work', 'subcontractor', 'contractor', 'contractors', 'builder', 'clause', 'clauses', 'item', 'items', 'install', 'installs', 'installed', 'installation', 'provide', 'provides', 'provided', 'confirm', 'confirmed', 'includ', 'include', 'includes', 'included', 'exclud', 'yes']);
+// the scope, and the subcontractor could not tell which stood). A note settles only on its own subject:
+// the words after the work it names ("Install stormwater drainage system: the staging requirements are
+// not defined" is about staging), matched against what the point asked. The same work, or words the
+// work's name shares, are not enough (messy round 9, blocker 4: the stormwater staging note was marked
+// settled by the answer on the sewer connection point, a point on the same line of the reading).
+const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'there', 'which', 'while', 'where', 'whether', 'when', 'what', 'have', 'been', 'will', 'shall', 'must', 'also', 'into', 'only', 'other', 'others', 'than', 'said', 'says', 'listed', 'stated', 'given', 'scope', 'works', 'work', 'subcontractor', 'contractor', 'contractors', 'builder', 'clause', 'clauses', 'item', 'items', 'install', 'installs', 'installed', 'installation', 'provide', 'provides', 'provided', 'confirm', 'confirmed', 'includ', 'include', 'includes', 'included', 'exclud', 'yes',
+  'requirement', 'defin', 'define', 'detail', 'specifi', 'specify', 'advis', 'advise', 'known', 'unknown', 'clear', 'unclear', 'state', 'note', 'supply', 'suppli', 'supplie']);
 const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').split(/[^a-z0-9]+/)
   .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
+// The note's own subject: the words after "{the work}: ", when the note starts with the work it is about.
+function noteSubject(entry) {
+  const text = String((entry && entry.text) || '');
+  const activity = String((entry && entry.activity) || '').replace(/[.\s]+$/, '').trim();
+  if (activity && text.toLowerCase().startsWith(`${activity.toLowerCase()}:`)) return text.slice(activity.length + 1);
+  const at = text.indexOf(': ');
+  return at > 0 && at <= 80 && !/[.;]/.test(text.slice(0, at)) ? text.slice(at + 2) : text;
+}
 function withSettled(item, answers) {
   if (!item || !(item.draftNotes || []).length || !(answers || []).length) return item;
   const draftNotes = item.draftNotes.map((entry) => {
-    const own = stems(entry.text);
-    const found = answers.find((answer) => (entry.activity && answer.activity === entry.activity)
-      || [...stems(`${answer.question} ${answer.answer}`)].filter((word) => own.has(word)).length >= 2);
+    const own = stems(noteSubject(entry));
+    const found = answers.find((answer) => {
+      const asked = [...stems(answer.question)].filter((word) => own.has(word)).length;
+      const said = [...stems(`${answer.question} ${answer.answer}`)].filter((word) => own.has(word)).length;
+      // Two words of the subject in the point, or one in what it asked about the same work.
+      return said >= 2 || (asked >= 1 && Boolean(entry.activity) && answer.activity === entry.activity);
+    });
     return found ? { ...entry, settled: found.answer } : entry;
   });
   return { ...item, draftNotes };

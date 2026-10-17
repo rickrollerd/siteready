@@ -3397,6 +3397,8 @@ document.addEventListener('click', (event) => {
   const radio = document.querySelector('input[name="fallRisk"][value="yes"]');
   if (radio) radio.checked = true;
   fallNoKept = false;
+  // In a project, the new answer is kept with the SWMS at once (scope.js).
+  if (window.SiteWrite && window.SiteWrite.projectFallChanged) window.SiteWrite.projectFallChanged('yes');
   showFallExplanation();
   // The fall questions are asked; the draft is prepared again once they are answered.
   refreshSteps();
