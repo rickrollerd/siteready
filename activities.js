@@ -12238,6 +12238,33 @@ function jobStepsFor(rawFlags, factText, fallback) {
     at.forEach((i, k) => { middle[i] = sorted[k]; });
   }
   moveBefore('Use an elevating work platform', 'Strip the formwork');
+  // A pour on the ground runs in order as well (messy round 9, run 2: "Place concrete" and "Pump and place
+  // concrete" both, with the pumped placing and the core fill after curing). One placing step: the pumped one
+  // takes the place of the other, with the other's lines it does not have.
+  // The same goes for a pool's pump and filter beside the plant room's pool plant (messy round 9, run 4: two pump
+  // steps in one plant room).
+  const mergeSteps = (gone, kept) => {
+    const from = middle.find((item) => item.step === gone);
+    const into = middle.find((item) => item.step === kept);
+    if (!from || !into) return;
+    const merged = { ...into, hazards: [...into.hazards, ...from.hazards.filter((line) => !into.hazards.includes(line))], controls: [...into.controls, ...from.controls.filter((line) => !into.controls.includes(line))] };
+    const at = Math.min(middle.indexOf(from), middle.indexOf(into));
+    middle = middle.filter((item) => item !== from && item !== into);
+    middle.splice(Math.min(at, middle.length), 0, merged);
+  };
+  mergeSteps('Place concrete', 'Pump and place concrete');
+  mergeSteps('Install the pool pump and filter', 'Install the pool plant');
+  // The order of the pour, the tank walls, the bulk dig and the podium edge is set with the other kinds of work
+  // (draft.js WORK_SEQUENCE).
+  // Keeping plant and people apart is set up before the work, not after it (messy round 9, run 1: after grouting).
+  // It follows the steps that make the work area safe to enter (inside a deep excavation).
+  const plantApart = middle.find((item) => item.step === 'Separate plant and people on site');
+  if (plantApart) {
+    const rest = middle.filter((item) => item !== plantApart);
+    let at = 0;
+    while (at < rest.length && /^(?:Work inside a deep excavation|Work in the rail corridor|Set up traffic management|Enter a private property|Work next to the live hospital|Work above traffic or a rail line)$/.test(rest[at].step)) at += 1;
+    middle = [...rest.slice(0, at), plantApart, ...rest.slice(at)];
+  }
   // Testing and commissioning, and leaving work safe, follow the installation.
   for (const name of ['Leave unfinished work safe', 'Test the new work', 'Connect and commission']) {
     const last = middle.find((item) => item.step === name);

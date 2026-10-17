@@ -116,7 +116,8 @@ function plantInUse(draft = {}) {
 function categoriesFor(draft = {}) {
   const highRisk = Array.isArray(draft.highRisk) ? draft.highRisk : [];
   const plant = plantInUse(draft);
-  const ewp = plant.some((item) => EWP.test(String(item && item.item)));
+  // The user's own EWP in place of an unticked one keeps the EWP questions (messy round 9, run 7).
+  const ewp = plant.some((item) => EWP.test(String(item && item.item)) || EWP.test(String((item && item.known) || '')));
   // The user's own plant counts as the plant SiteWrite knows it as (messy round 8, run 7: an added "All
   // terrain mobile crane" in place of an unticked crawler crane lost the plant stop question and row).
   const mobile = plant.some((item) => MOBILE_PLANT.test(String(item && item.item)) || MOBILE_PLANT.test(String((item && item.known) || '')));

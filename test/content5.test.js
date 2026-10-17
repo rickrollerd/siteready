@@ -162,7 +162,8 @@ test('slabs on ground with formwork and reo groups get no deck, edge protection 
   assert.doesNotMatch(lines(draft), /through the deck|Stay inside the edge protection|stair tower/);
   assert.ok(!names(draft).some((name) => /onto the deck|formwork deck|falsework/i.test(name)), names(draft).join('; '));
   const list = names(draft);
-  assert.ok(before(list, 'Place and tie reo', 'Place concrete'), list.join('; '));
+  // One placing step (messy round 9): the pumped placing takes in "Place concrete".
+  assert.ok(before(list, 'Place and tie reo', list.includes('Place concrete') ? 'Place concrete' : 'Pump and place concrete'), list.join('; '));
   // The scope's conditions and plant notes are not printed as a control.
   assert.ok(!draft.controls.some((item) => /conditions:|plant:/.test(item.text)), draft.controls.map((item) => item.text).join(' | '));
 });
@@ -176,9 +177,12 @@ test('an in-ground pool structure gets the tank wall steps, not a formwork deck 
   assert.ok(before(names(draft), 'Form the tank walls', 'Pump and place concrete'), names(draft).join('; '));
   // The pool structure is the tank wall steps' work, so it is not listed as work with no steps.
   assert.deepEqual(draft.notCovered || [], []);
-  // Typed as forming and pouring the pool shell, it is still the pool shell's own work (#224).
+  // Typed as forming and pouring the pool shell, it was stood down as sprayed pool shell work (#224). A shell
+  // formed and poured is built with the tank wall steps (content9, flow9 note on messy round 9); a sprayed one
+  // is still the shotcrete steps (test/content9.test.js).
   const typed = draftOf({ state: 'wa', fallRisk: 'yes', crane: 'none', task: 'Construct the in-ground pool shell: form up, fix reo and pour the pool shell and the balance tank walls with a concrete pump.' });
-  assert.equal(typed.kind, 'stand-down');
+  assert.equal(typed.kind, 'draft', (typed.missing || []).join(' '));
+  assert.ok(names(typed).includes('Pour the tank walls'), names(typed).join('; '));
 });
 
 test('the backflow line is for water supply plumbing, not stormwater drainage alone', () => {

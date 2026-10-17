@@ -36,12 +36,13 @@ const PLANT = [
   { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|cfa piles?|continuous flight auger|bored pil\w*|bored piers?|crawler rigs?|pile driving machines?|piling machines?)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
   { item: 'Concrete truck', pattern: /\bconcrete trucks?\b/i, inspection: 'The supplier\'s pre-start check.', licence: 'Truck driver\'s licence' },
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
-  { item: 'Concrete saw', pattern: /\b(concrete saws?|saw cut\w*|saw-cut\w*|floor saws?|wall saws?)\b/i, inspection: `${PRESTART} Blade guard in place. Electric saws: ${TEST_TAG}`, licence: 'No' },
+  // A road saw cuts the pavement (messy round 9, run 2: "Roadsaw existing pavement" listed no saw).
+  { item: 'Concrete saw', pattern: /\b(concrete saws?|saw cut\w*|saw-cut\w*|floor saws?|wall saws?|road ?saw\w*)\b/i, inspection: `${PRESTART} Blade guard in place. Electric saws: ${TEST_TAG}`, licence: 'No' },
   { item: 'Core drill', pattern: /\bcore[- ]?drill\w*\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Generator', pattern: /\bgenerators?\b/i, skipIf: /\b(standby|load shed\w*|load test\w*|operation of (?:the )?generators?|install generators|generators and fuel|run and load test|generator (?:rooms?|sets?))\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
-  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite|alumino-?thermic|flash[- ]butt|(?:electro-?)?fusion|polyethylene|hdpe)\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite?|alumino[- ]?thermic|flash[- ]butt|(?:electro-?)?fusion|polyethylene|hdpe)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Nail gun', pattern: /\bnail guns?\b/i, inspection: 'Checked before use. Single shot trigger.', licence: 'No' },
   { item: 'Air compressor', pattern: /\b(compressed air|air compressors?|compressors?)\b/i, skipIf: /\b(fans?|pumps|start\w* without|refrigerat\w*|condens\w*)\b/i, inspection: `${PRESTART} Hoses and couplings checked and restrained.`, licence: 'No' },
   { item: 'Concrete vibrator', pattern: /\bvibrators?\b/i, inspection: TEST_TAG, licence: 'No' },
@@ -136,7 +137,7 @@ const PLANT = [
 
 // Hazardous substances that commonly come with the work: the types, which the page offers as
 // prompts for the user to add each product used (public/substance-rules.js, owner D256).
-const { SUBSTANCES, CONTROL_PRODUCTS, silicaStep, SILICA } = require('./public/substance-rules');
+const { SUBSTANCES, CONTROL_PRODUCTS, silicaStep, SILICA, sdsConflict } = require('./public/substance-rules');
 
 // Licences, tickets and training the work needs.
 // Class A for friable asbestos (s 485), Class B or A for more than 10 m2 of non-friable asbestos
@@ -208,7 +209,10 @@ function rating(likelihood, consequence) {
 // physical control that ranking reads as a rule: a load restrained with straps or chains, a tanker
 // earthed or bonded, an emergency shut-off, the area around a test kept clear of people, or a
 // circuit kept from being re-energised.
-const ALSO_HIGHER = /\b(?:restrained (?:with|to|by)|load restraint|earthed or bonded|bonded|emergency shut-?offs?|prevent\w* re-?energi[sz]\w*)\b|\b(?:area|zone)s?\b[^.]{0,40}\bkept clear\b|\bwith the area clear\b/i;
+// Services found on site before the ground is broken (located, or potholed), and plant that stops itself
+// when its control fails, change the hazard too (messy round 9, run 2: "Set out" and "Trim and compact the
+// base by hand" left High after these lines).
+const ALSO_HIGHER = /\b(?:restrained (?:with|to|by)|load restraint|earthed or bonded|bonded|emergency shut-?offs?|prevent\w* re-?energi[sz]\w*)\b|\b(?:area|zone)s?\b[^.]{0,40}\bkept clear\b|\bwith the area clear\b|\blocate\w* (?:the )?services on site\b|\bservices? (?:are|is) (?:located|found)\b|\bpothol\w*|\bstops? safely if\b|\bfail[- ]safe\b|\bderail\w*|\bsignals?\b[^.]{0,40}\blocked\b|\bclosed to (?:trains|traffic|rail traffic|vehicles)\b|\bno (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)\b|\bno one (?:on foot )?is within the (?:\w+'? )?(?:working area|swing|reach)\b/i;
 const higherOrder = (line) => ENGINEERING.test(line) || ALSO_HIGHER.test(line) || HIGHER.has(controlLevel(line));
 
 // What answers a catastrophic hazard, by its kind. A guardrail does not answer electric shock, a pipe
@@ -227,11 +231,18 @@ const ANSWERED_BY = [
     control: /\b(edge protection|guard ?rails?|handrails?|scaffold\w*|ewps?|elevating work platforms?|scissor ?lifts?|boom lifts?|(?:work(?:ing)?|step) platforms?|platform ladders?|from (?:an? |the )?(?:\w+ )?platforms?|safety nets?|catch (?:nets?|platforms?)|barriers?|landing gates?|gates? (?:stay )?closed|protected edge|travel restraint|restraint systems?|from (?:the )?(?:ground|floor)|on the ground|inside the building)\b/i },
   { hazard: (words) => /\b(energi[sz]\w*|live (?:cables?|parts?|electrical|conductors?|ups|outputs?|boards?)|electric\w* shock|electrocut\w*|arc flash)\b/i.test(words),
     control: /\b(isolat\w*|de-?energi[sz]\w*|prevent\w* re-?energi[sz]\w*|lock\w* (?:out|off)|lockout|locks?|tag(?:ged)? out|danger tags?|switch\w* off|covers?|covered|shroud\w*|insulat\w*|rcds?|residual current|safety switch|non-conductive|approach distances?|exclusion zones?|no[- ]go zones?|barriers?|guards?|enclos\w*)\b/i },
-  { hazard: (words) => /\b(?:struck|strikes?|run over|hit)\b[^.]{0,40}\b(?:trucks?|plant|vehicles?|traffic|forklifts?|excavators?|machines?|machinery|sprayers?|spreaders?|rollers?|cars?)\b|\btraffic\b|\bvehicle strike\b|\bcrushed by (?:plant|a vehicle|a truck|a forklift|mobile plant)\b/i.test(words),
-    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?|(?:truck[- ]mounted |impact )?attenuators?|tmas?|crash cushions?)\b/i },
+  // A train is kept off the worksite by closing the track: signals locked at stop, derailers, a closure the user
+  // states (messy round 9, run 5). Keeping clear of the crew's own plant does not answer it.
+  { hazard: (words) => /\btrains?\b/i.test(words),
+    control: /\b(closed to (?:trains|rail traffic)|no trains? can (?:enter|reach|pass)|derail\w*|signals?\b[^.]{0,40}\blocked|track (?:is )?closed|isolat\w*)\b/i },
+  { hazard: (words) => !/\btrains?\b/i.test(words) && (/\b(?:struck|strikes?|run over|hit)\b[^.]{0,40}\b(?:trucks?|plant|vehicles?|traffic|forklifts?|excavators?|machines?|machinery|sprayers?|spreaders?|rollers?|cars?)\b|\btraffic\b|\bvehicle strike\b|\bcrushed by (?:plant|a vehicle|a truck|a forklift|mobile plant)\b/i.test(words)),
+    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?|(?:truck[- ]mounted |impact )?attenuators?|tmas?|crash cushions?|kept out of (?:its|the) path|stops? safely|closed to (?:trains|traffic|rail traffic|vehicles)|no (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)|derail\w*|no one (?:on foot )?is within)\b/i },
+  // Striking a buried service: the service found on site first (located, potholed, the plans worked to).
+  { hazard: (words) => /\bstrik\w* [^.]{0,40}\b(?:services?|cables?|gas|electrical)\b|\bhidden services\b|\bburied\b/i.test(words),
+    control: /\b(locate\w* (?:the )?services|services? (?:are|is) (?:located|found)|pothol\w*|vacuum (?:excavat\w*|unit)|isolat\w*)\b/i },
   // A load or object that falls, swings, tips or crushes: no one under or beside it, the load secured or guided.
   { hazard: (words) => FALLING_THING.test(words) || /\b(crush\w*|loads? (?:falls?|drops?|swings?|shifts?)|falling objects?|objects? fall\w*|dropped|swings? into|tips? (?:over|or falls)|topple\w*|rolls? down)\b/i.test(words),
-    control: /\b(no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|beside|below|downhill)|tag lines?|exclusion zones?|drop zones?|barricad\w*|chock\w*|brac\w*|secured|restrained|tied|tethered|lanyards?|toe ?boards?|kept apart|separat\w*|guards?|catch (?:nets?|platforms?)|screens?)\b/i },
+    control: /\b(no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|within|beside|below|downhill)|tag lines?|exclusion zones?|drop zones?|barricad\w*|chock\w*|brac\w*|secured|restrained|tied|tethered|lanyards?|toe ?boards?|kept apart|separat\w*|guards?|catch (?:nets?|platforms?)|screens?)\b/i },
   { hazard: (words) => /\b(collapse\w*|fails?|failure|overturn\w*|rolls? over|bursts?)\b/i.test(words),
     control: /\b(props?|propp\w*|shor\w*|brac\w*|engineer\w*|design\w*|certif\w*|rated|bench\w*|batter\w*|shields?|outriggers?|guards?|exclusion zones?|no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|beside)|kept clear|clear of people|area clear|relief valves?|landing gates?)\b/i },
 ];
@@ -346,6 +357,7 @@ function ownWork(text) {
     .split(/(?<=[.;\n])\s*/)
     .filter((sentence) => !/\b(?:by|from) (?:a |the )?(?:licensed |registered |qualified )?(?:electricians?|plumbers?|gasfitters?|gas fitters?|others|the builder|the principal contractor|the electrical contractor|the plumbing contractor)\b/i.test(sentence))
     .join(' ')
+    .replace(POWER_BY_OTHERS, ' ')
     .replace(/\b(?:around|near|between|up to|clear of|over)\b[^.]{0,40}\b(?:electrical|plumbing|gas) (?:fittings?|fixtures?|outlets?|services?|points?)\b/gi, '');
 }
 
@@ -353,8 +365,13 @@ function ownWork(text) {
 // fittings, baffles near switchboards, steel for ceiling fans (messy round 4: electrician and plumbing
 // lines in painting, steel and fire services SWMS). It is not this crew's electrical or plumbing work.
 const OTHER_TRADES_NEAR = /\b(?:around|near|beside|next to|adjacent to|close to|clear of|mask\w*|protect\w*|cut in)\b[^.]*|\b(?:steel(?:work)?|brackets?|supports?|framing|noggins?|baffles?|plates?|hangers?|bunding)\b[^.]{0,30}\bfor\b[^.]*/gi;
+// A clause that gives the power or 240 V work to another trade ("brennocks sparky does the 240v": messy round 9,
+// run 3, where the electrical licence and lines were listed for a CCTV installer).
+// Only a clause about the power that names no one of our own ("our electrician connects the board" stays).
+const POWER_CLAUSE = /[^.,;\n]*\b(?:sparky|sparkies|sparkys|electricians?|electrical contractors?|others)\b[^.,;\n]{0,40}\b(?:does|do|doing|will do|to do|connects?|wires?|supplies)\b[^.,;\n]*/gi;
+const POWER_BY_OTHERS = { [Symbol.replace]: (text, by) => String(text).replace(POWER_CLAUSE, (clause) => (/\b(?:240 ?v|415 ?v|power|mains|electrical|electrics|wiring)\b/i.test(clause) && !/\b(?:our|we|us|my)\b/i.test(clause) ? by : clause)) };
 function withoutOtherTrades(text) {
-  return String(text || '').replace(OTHER_TRADES_NEAR, '');
+  return String(text || '').replace(OTHER_TRADES_NEAR, '').replace(POWER_BY_OTHERS, ' ');
 }
 
 // Silica training is for processing silica (cutting, grinding, drilling, breaking it with tools or plant),
@@ -486,7 +503,9 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   // the slab (messy round 8, run 8: street light cables and Telstra pits with saw cutting, and no row).
   else if (!noLive && /\b(?:cables?|pits?|conduits?|underground|buried|telstra|nbn|optic\w*|gas mains?|water mains?|sewer)\b/i.test(live.replace(NO_LINES, ' ')) && !/^\s*(?:no|none|nil)\b/i.test(live) && /\b(?:saw[- ]?cut\w*|excavat\w*|dig\w*|trench\w*|drill\w*|core[- ]?drill\w*|coring|mill\w*|profil\w*|break\w* out|jackhammer\w*|auger\w*|post holes?|bor(?:e|ing))\b/i.test(`${input.task || ''}\n${coreText}`)) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
   else if (/\bstrik\w* [^.]{0,40}\b(?:services?|gas)/i.test(text)) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
-  if (/\b(gas work|gas fitting|gasfitt\w*|gas appliances?|gas (?:lines?|supply|hot water)|lpg)\b/i.test(text)) rows.push({ type: 'Gas leak', equipment: 'Turn off the gas at the meter or cylinder, no ignition sources, ventilate, keep people away. Call 000 for a major leak', detail: '' });
+  // Not for a gas main the crew only works near: its strike is the service strike row (messy round 9, run 2:
+  // "Turn off the gas at the meter" for a gas main in the street).
+  if (/\b(gas work|gas fitting|gasfitt\w*|gas appliances?|gas (?:lines?|supply|hot water)|lpg)\b/i.test(text.replace(/\bgas (?:distribution )?mains?\b[^.\n]*/gi, ' '))) rows.push({ type: 'Gas leak', equipment: 'Turn off the gas at the meter or cylinder, no ignition sources, ventilate, keep people away. Call 000 for a major leak', detail: '' });
   if (/\brefrigerants?\b/i.test(text)) rows.push({ type: 'Refrigerant release', equipment: 'Ventilate and leave the area. Frostbite (cold burn): flush with lukewarm water and get medical help', detail: '' });
   if (/\b(chainsaws?|angle grinders?|cut-off saws?)\b/i.test(text)) rows.push({ type: 'Severe bleeding', equipment: 'Trauma first aid kit with pressure bandages, close to the work', detail: '' });
   // Chemicals named in the work, unless every product type SiteWrite suggested is ticked "Not required" and
@@ -783,7 +802,10 @@ function registersFor(draft, input = {}) {
     .flatMap((item) => [item.name, ...(Array.isArray(item.controls) ? item.controls : []), ...(Array.isArray(item.hazards) ? item.hazards : []).map((line) => String(line).replace(/\b(?:forklifts?|telehandlers?)\b/gi, ''))]).filter((line) => typeof line === 'string').join('\n');
   const useText = `${withoutServicedPlant(ownTask)}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}\n${ownStepText}`;
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
-  const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Nail guns?:|Line marking machines?|Sanders?\b|Mixers?\b|Mixer guards|Lifting beams?\b|Cut and trim bars|A trencher|Trenchers?\b)/.test(line) || /^(?:Use|Using|Cut)\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b|\bcut with\b|\b(?:is|are) mixed\b[^.]{0,40}\bwith an? \w+ mixers?\b/i.test(line) && !/\b(?:\w+ )or (?:an? )?(?:forklift|crane|telehandler|ewp|hoist)\b/i.test(line) && !/\b(keep (?:clear|away|out|back|well clear|people|everyone|workers|others)|clear of|away from|others|crane company|pumping company)\b/i.test(line));
+  const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Nail guns?:|Line marking machines?|Sanders?\b|Mixers?\b|Mixer guards|Lifting beams?\b|Cut and trim bars|A trencher|Trenchers?\b)/.test(line) || /^(?:Use|Using|Cut)\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b|\bcut with\b|\b(?:is|are) mixed\b[^.]{0,40}\bwith an? \w+ mixers?\b/i.test(line) && !/\b(?:\w+ )or (?:an? )?(?:forklift|crane|telehandler|ewp|hoist)\b/i.test(line) && !/\b(keep (?:clear|away|out|back|well clear|people|everyone|workers|others)|clear of|away from|others|crane company|pumping company)\b/i.test(line)
+    // A rule for any such tool's PPE ("Grinders and cut-off saws are used with a face shield") does not say this
+    // crew uses one (messy round 9, run 6: a bar cutter or cut-off saw listed for joinery).
+    && !/\b(?:are|is) used with (?:a |an |the )?(?:face shields?|safety glasses|goggles|gloves|hearing protection|ear muffs|respirators?)\b/i.test(line));
   // Lines naming the plant a step is done from or lifted with: definite when one item is named, otherwise each is used where chosen.
   const accessLines = steps.flatMap((step) => step.controls).filter((line) => (/^Access is (?:from|by)\b|\b(?:are|is) lifted to (?:the )?\w+ by\b|\b(?:is|are) (?:reached|changed) from (?:an? |the )\b|\b(?:is|are) (?:done|fixed|installed|removed) from (?:an? |the )\b|\b(?:are|is) delivered by (?:crane|hoist)\b|\blifted by crane\b|\b(?:lifted|stood|lifted and stood|lifted in|lifted into place|moved|compacted(?: in layers)?)(?: onto (?:it|the \w+))? with (?:an? |the )\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b[^.]*\bor\b/i.test(line)
     // Handling aids and the platform a step's method names (messy round 6: door trolleys and a door lifter,
@@ -881,6 +903,19 @@ function registersFor(draft, input = {}) {
   const ownWritten = (Array.isArray(input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name).map((item) => ({ step: item.name, hazards: item.hazards || [], controls: item.controls || [] }));
   const silicaWork = silicaStep({ jobSteps: [...steps, ...ownWritten] });
   if (silicaWork && !substances.items.some((item) => item.product === SILICA)) substances.items.push({ product: SILICA, sds: '', quantity: '' });
+  // A product the user's own safety data sheet answer lists as used ("strip seal lubricant adhesive") is asked
+  // for by its type, as the steps' words are (messy round 9, run 7: no adhesive asked). Only the clauses that
+  // list products used count (sdsConflict), not one that says where the sheets are kept or what is not used.
+  const sdsNamed = (input.facts || {}).safetyDataSheet;
+  // Hydrochloric acid listed with pool chlorine is a pool chemical, not a cleaning chemical (messy round 9, run 4).
+  const sdsTypes = SUBSTANCES.map(([product]) => product).filter((product) => sdsNamed && sdsConflict(product, sdsNamed));
+  const poolAcid = sdsTypes.includes('Pool and water treatment chemicals') && !/\b(?:cleaning|detergents?|degreasers?|acid wash\w*)\b/i.test(sdsNamed);
+  for (const product of sdsTypes) if (!(poolAcid && product === 'Cleaning chemicals') && !substances.items.some((item) => item.product === product)) substances.items.push({ product, sds: '', quantity: '' });
+  // Plant that runs on fuel brings fuel as a product type, as an excavator or generator does (D282): road plant
+  // (an asphalt paver or road profiler) and plant named for its fuel, listed or added by the user ("diesel air
+  // compressor", "abrasive rail saw (petrol)"; content8 decision 6 A, messy round 9, run 7).
+  const fuelled = [...plant.map((item) => item.item), ...listed.filter((item) => item.own).map((item) => item.item)].some((name) => /^(?:Asphalt paver|Road profiler)$/.test(name) || /\b(?:petrol|diesel)\b/i.test(name));
+  if (fuelled && !substances.items.some((item) => /^Fuels/.test(item.product))) substances.items.push({ product: 'Fuels (diesel, petrol)', sds: '', quantity: '' });
   // Gases and fuels named only for plant the user has said is not used are not asked for (messy round 4:
   // acetylene after the torch was unticked).
   if (input.plantChoice && typeof input.plantChoice === 'object') {
@@ -905,6 +940,11 @@ function registersFor(draft, input = {}) {
   }
   const codeWork = { highRisk: draft.highRisk || [], plant: listed, substances, hazardText: silicaWork ? `${hazardText}\nSilica dust (${silicaWork})` : hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` };
   sources = /Queensland/.test(draft.state || '') ? addQldSources(sources, codeWork) : addWorkCodes(sources, stateId, codeWork);
+  // The excavation code is listed only for work that digs: a general plant line citing it (keeping people and
+  // plant apart) does not make a tiling SWMS excavation work (messy round 9, run 1). The line keeps its reference.
+  const digs = WORK_CODES.find(([topic]) => topic === 'excavation')[1](codeWork) || listed.some((item) => /Excavator|Trench shield/.test(plantName(item)))
+    || steps.some((step) => [...step.hazards, ...step.controls].some((line) => /\bexcavat(?!ors?\b)\w*|\bdig(?:s|ging)?\b|\bdug\b/i.test(withoutSource(line))));
+  if (!digs) sources = { ...sources, codes: sources.codes.filter((title) => !/\bExcavation\b/i.test(title)) };
   // D258: with a crane company's crane, the dogging or rigging licence prints only where our crew slings
   // the loads and directs the crane; where the crane company's dogman does, the licence is theirs.
   const crane = String(input.crane || '').trim().toLowerCase();
