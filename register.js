@@ -21,7 +21,8 @@ const PLANT = [
   { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
   { item: 'Vehicle loading crane (hiab)', pattern: /\b(vehicle loading cranes?|loader cranes?|hiabs?|truck loading crane|truck[- ]mounted cranes?|knuckle boom cranes?)\b/i, inspection: 'Pre-start check and log book. Inspected and maintained to the manufacturer\'s instructions (WHS Reg s 213).', licence: 'Yes (CV) where the crane is rated at 10 metre-tonnes or more. Under 10 metre-tonnes no licence, the operator is trained and competent on it' },
   { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane or lifting gear|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes|used as a crane)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
-  { item: 'Forklift', pattern: /\bforklifts?\b/i, inspection: PRESTART, licence: 'Yes (LF)' },
+  // "not a forklift truck" (the pallet jack step's licence line) names no forklift (messy round 10, run 1).
+  { item: 'Forklift', pattern: /\bforklifts?\b/i, skipIf: /\bnot a forklift\b|\bno forklift licen[cs]e\b/i, inspection: PRESTART, licence: 'Yes (LF)' },
   { item: 'Telehandler', pattern: /\btelehandlers?\b/i, inspection: PRESTART, licence: 'No Schedule 3 class names telehandlers. Operator competent in the model used. Check with the supplier whether a non-slewing crane licence (CN) is needed when it is fitted with a jib or hook to lift suspended loads' },
   { item: 'Personnel or materials hoist', pattern: /(?<!(?:vehicle|car|chain) )\b(hoists?|materials lifts?)\b/i, skipIf: /\b(chain hoists?|leave out|at the hoist|where there is|near the hoist|clear of|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|hoist, crane|by (?:a )?hoist|lift, (?:a )?hoist|lifts?, (?:a )?hoist or)\b/i, inspection: 'Inspected, tested and maintained by a competent person to the manufacturer\'s instructions (WHS Reg s 213). Pre-start check each shift. Erected and altered by licensed riggers.', licence: 'Yes: HP for a personnel and materials hoist, and HM or HP for a materials hoist that carries no people' },
   { item: 'Concrete placing boom', pattern: /\b(placing booms?|boom pumps?|pump trucks?|truck-mounted pumps?)\b/i, inspection: 'Registered item of plant. Daily pre-start check. Pipes, hoses and clamps checked for wear and damage before use. Yearly inspection and six-yearly major inspection (Concrete Pumping Code s 5).', licence: 'Yes (PB)' },
@@ -45,6 +46,8 @@ const PLANT = [
   { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite?|alumino[- ]?thermic|flash[- ]butt|(?:electro-?)?fusion|polyethylene|hdpe)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Nail gun', pattern: /\bnail guns?\b/i, inspection: 'Checked before use. Single shot trigger.', licence: 'No' },
   { item: 'Air compressor', pattern: /\b(compressed air|air compressors?|compressors?)\b/i, skipIf: /\b(fans?|pumps|start\w* without|refrigerat\w*|condens\w*)\b/i, inspection: `${PRESTART} Hoses and couplings checked and restrained.`, licence: 'No' },
+  // The cleaning step's floor machines (messy round 10, run 7: "SiteWrite found no plant" beside floor scrubbers and polishers).
+  { item: 'Floor scrubber or polisher', pattern: /\b(?:floor )?scrubbers?(?: and polishers?)?\b|\bfloor (?:polishers?|machines?)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Concrete vibrator', pattern: /\bvibrators?\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Trench shield or shoring', pattern: /\b(trench shields?|trench box\w*|(?<!re-|re)shoring|(?<!re-|re)shored)\b/i, inspection: 'Installed to the manufacturer\'s or engineer\'s design, and checked by a competent person frequently, including before each shift and after rain.', licence: 'No. Installed by competent people' },
   { item: 'Dewatering pump', pattern: /\b(dewater\w*|pump out water|pumps? (?:the )?water)\b/i, inspection: `${PRESTART} ${TEST_TAG}`, licence: 'No' },
@@ -83,7 +86,8 @@ const PLANT = [
   { item: 'Pebble pump and spray rig', pattern: /\b(pebble (?:pumps?|spray rigs?|rigs?)|Mix and apply the pebble finish)\b/i, inspection: `${PRESTART} Hoses, couplings and pressure relief checked.`, licence: 'No. Operator trained' },
   { item: 'Concrete or mortar mixer', pattern: /\b(mixers?|mixer guards|Mix and apply the pebble finish)\b/i, skipIf: /\bpaddle mixers?\b/i, inspection: `${PRESTART} Guards in place and leads tagged or engine checked.`, licence: 'No' },
   { item: 'Lifting beam and chain block', pattern: /\b(lifting beams?|chain blocks?)\b/i, inspection: 'Rated, tagged and proof tested before use, and inspected before each lift.', licence: 'None for the gear itself. Slinging loads with it needs a dogging or rigging licence.' },
-  { item: 'Bar cutter or cut-off saw', pattern: /\b(bar cutters?|cut-off saws?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
+  // "petrol cut off saw" as typed, with no hyphen (messy round 10, run 8: not in the plant list).
+  { item: 'Bar cutter or cut-off saw', pattern: /\b(bar cutters?|cut[- ]?off saws?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
   { item: 'Trencher', pattern: /\btrenchers?\b/i, inspection: PRESTART, licence: 'No. Operator trained' },
   { item: 'Vacuum truck', pattern: /\bvacuum (?:trucks?|tankers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Davit or tripod (pump lifting)', pattern: /\bdavits?\b/i, inspection: 'Rated for the load, tagged and checked before each lift, with its winch or chain block working.', licence: 'No. Users trained' },
@@ -189,8 +193,11 @@ const ENGINEERING = /\b(edge protection|guardrails?|guards?|barricad\w*|exclusio
 // as a person crushed by plant or a load.
 const HANDS_CRUSHED = /\b(?:crush\w*|pinch\w*|caught)\b[^.]{0,20}\b(?:hands?|fingers?|feet|foot|toes?)\b|\b(?:hands?|fingers?|feet|foot|toes?)\b[^.]{0,20}\b(?:crush\w*|pinch\w*|caught)\b|\bstrain(?:s|ed)? (?:or|and) crush\w*(?: injur\w*)?/gi;
 
+// A pallet jack or walkie stacker moved by hand at walking pace strikes a person as a major injury, not a fatal one
+// (messy round 10, run 1: the pallet jack step stayed High after its own controls).
+const HAND_MOVED = /\b(?:struck|hit) by (?:the |a )?(?:pallet jacks?|(?:walkie )?stackers?|trolleys?)(?: or (?:its|the) loads?)?/gi;
 function consequenceOf(hazards) {
-  const text = hazards.join(' ');
+  const text = hazards.join(' ').replace(HAND_MOVED, ' bumped by a hand-moved load ');
   const handled = text.replace(HANDS_CRUSHED, ' hand injury ');
   if (CATASTROPHIC.test(handled)) return 5;
   if (handled !== text) return 4;
@@ -387,6 +394,9 @@ function withoutConditions(text) {
   return String(text || '').replace(/\bconditions: [^;)\n]*(?:;\s*)?/gi, ' ');
 }
 
+// An EWP named apart from a scissor lift, once "scissor lift EWP" and "EWP (scissor)" are read as the scissor lift.
+const SEPARATE_EWP = /\b(?:ewps?|elevating work platforms?)\b/i;
+const withoutScissorEwp = (text) => String(text || '').replace(/\bscissor[- ]?(?:lifts? )?(?:type )?(?:ewps?|elevating work platforms?)\b|\b(?:ewps?|elevating work platforms?)\s*\(\s*scissor[^)]*\)/gi, ' scissor lift ');
 function plantFor(text) {
   const found = [];
   for (const entry of PLANT) {
@@ -396,7 +406,9 @@ function plantFor(text) {
     const global = new RegExp(entry.pattern.source, entry.pattern.flags.includes('g') ? entry.pattern.flags : `${entry.pattern.flags}g`);
     if (entry.skipIf && [...text.matchAll(global)].every((match) => entry.skipIf.test(text.slice(Math.max(0, match.index - 20), match.index + match[0].length + 20)))) continue;
     if (entry.item === 'Scaffold' && !/\bscaffold/i.test(text.replace(/\bmobile scaffold\w*/gi, ''))) continue;
-    if (entry.item === 'Elevating work platform' && found.some((item) => /elevating work platform|Scissor lift/.test(item.item))) continue;
+    // The general EWP goes beside a scissor or boom lift only where the words name an EWP apart from it (messy round 10,
+    // run 8: "our scissor lift" and "from the EWP" listed the scissor lift only).
+    if (entry.item === 'Elevating work platform' && found.some((item) => /elevating work platform|Scissor lift/.test(item.item)) && !SEPARATE_EWP.test(withoutScissorEwp(text))) continue;
     // An LPG torch for torch-on membrane is not an oxy-acetylene set (messy round 4).
     if (entry.item === 'Oxy-acetylene or gas torch set' && !/\b(oxy\w*|acetylene|brazing|gas cutting|cutting torch\w*|weld\w*)\b/i.test(text) && /\b(lpg|propane|torch-on|torch on|torching)\b/i.test(text)) {
       found.push({ item: 'LPG gas torch', inspection: entry.inspection, licence: entry.licence });
@@ -837,7 +849,7 @@ function registersFor(draft, input = {}) {
     .filter((item) => !RAIL_PLANT.has(item.item) || RAIL_WORK.test(`${ownTask}\n${steps.map((step) => step.step).join('\n')}`))
     .filter((item) => !(noCrane && /crane/i.test(item.item) && !/\bcranes?\b|\bhiabs?\b|\bfrannas?\b/i.test(ownTask)))
     .map((item) => othersLicence(item, allText, task, ownCrane, ownCrane ? (input.facts || {}).craneChart : ''));
-  if (plant.some((item) => /^(Boom-type elevating work platform|Scissor lift)$/.test(item.item))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Elevating work platform'));
+  if (plant.some((item) => /^(Boom-type elevating work platform|Scissor lift)$/.test(item.item)) && !SEPARATE_EWP.test(withoutScissorEwp(ownTask).replace(/\bboom(?:[- ]type)? (?:ewps?|elevating work platforms?)\b/gi, ' boom lift '))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Elevating work platform'));
   // A truck loading crane job's "the crane" is the loading crane.
   if (plant.some((item) => /^Vehicle loading crane/.test(item.item)) && !/\b(mobile|crawler|franna|all terrain|slewing|tower) cranes?\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => !/^Mobile crane or crane truck$/.test(item.item)));
   // A tower crane job's "the crane" is the tower crane, and a boom pump job's pour is not a line pump.
@@ -882,7 +894,10 @@ function registersFor(draft, input = {}) {
   // A tool added by name ("Hilti rotary hammer drill") stands for that tool, not for all the power tools
   // the work uses (messy round 8, run 2: the nibbler and tek gun lost "Electric power tools and leads").
   const GENERAL_PLANT = new Set(['Electric power tools and leads']);
-  const addedKnown = new Set((input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added : []).flatMap((own) => plantFor(String((own && own.item) || '')).slice(0, 1).filter((item) => !GENERAL_PLANT.has(item.item) || /\b(?:power tools?|leads?)\b/i.test(String(own.item))).map((item) => item.item)));
+  // Only the item itself counts, not plant it says it runs off or is used with ("Electrofusion control box (240V,
+  // off the generator)" is not the generator: messy round 10, run 6, the library generator left the list).
+  const itemItself = (name) => String(name || '').replace(/\([^)]*\)/g, ' ').replace(/\b(?:off|on|from|with|by|via|using|for|to|plus|and) (?:the |a |an |our |its )?(?:[\w-]+ ){0,2}?(?:generators?|compressors?|cranes?|trucks?|utes?|trailers?|ewps?|scaffolds?)\b.*$/i, ' ');
+  const addedKnown = new Set((input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added : []).flatMap((own) => plantFor(itemItself(own && own.item)).slice(0, 1).filter((item) => !GENERAL_PLANT.has(item.item) || /\b(?:power tools?|leads?)\b/i.test(String(own.item))).map((item) => item.item)));
   if (addedKnown.size) plant.splice(0, plant.length, ...plant.filter((item) => !addedKnown.has(item.item)));
   // Register notes cite the state's own regulation.
   const stateId = (findState(draft.state) || { id: 'qld' }).id;

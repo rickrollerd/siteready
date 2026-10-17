@@ -110,10 +110,15 @@ const KNOWN = { cieling: 'ceiling', cielings: 'ceilings', guage: 'gauge', sepera
   excavater: 'excavator', excavaters: 'excavators', compacter: 'compactor', compacters: 'compactors',
   crain: 'crane', crains: 'cranes', rendring: 'rendering', hydrolic: 'hydraulic', hydralic: 'hydraulic', hydrualic: 'hydraulic', sheating: 'sheeting', vynil: 'vinyl', acess: 'access', removel: 'removal', landscapping: 'landscaping', assembley: 'assembly', trimimg: 'trimming', operater: 'operator', tileing: 'tiling', seting: 'setting', laders: 'ladders', hording: 'hoarding', hordings: 'hoardings', sewar: 'sewer', formate: 'format', ammended: 'amended',
   // Words cut short or spelt as said (messy round 8, runs 6 and 8: "6 bathrms", "nite works" stayed in the task line).
-  bathrm: 'bathroom', bathrms: 'bathrooms', nite: 'night', nites: 'nights' };
+  bathrm: 'bathroom', bathrms: 'bathrooms', nite: 'night', nites: 'nights',
+  // Short words below the five letters the closest-word search looks at (messy round 10: "besser blok" and "3m retaning wal"
+  // stayed in the task line). "wal" only typed in lower case: "Wal" is a name.
+  blok: 'block', bloks: 'blocks', blokwork: 'blockwork', blokwall: 'blockwall', wal: 'wall', wals: 'walls' };
+const LOWER_ONLY = new Set(['wal', 'wals']);
 
 function correction(word) {
   const lower = word.toLowerCase();
+  if (LOWER_ONLY.has(lower) && word !== lower) return null;
   if (KNOWN[lower]) return word[0] === word[0].toUpperCase() ? KNOWN[lower][0].toUpperCase() + KNOWN[lower].slice(1) : KNOWN[lower];
   const vocab = vocabularyWords();
   const known = (w) => vocab.has(w) || englishWords().has(w);
@@ -219,13 +224,13 @@ function fixSpelling(text, { places = '', names = [] } = {}) {
   const fixes = [];
   const named = placeWords(places);
   const kept = typedWords(places, names);
-  const out = String(text || '').replace(/[A-Za-z]{4,}/g, (word, at, whole) => {
+  const out = String(text || '').replace(/[A-Za-z]{4,}|\b(?:wals?)\b/g, (word, at, whole) => {
     if (kept.has(word.toLowerCase())) return word;
     const place = placeCorrection(word, named);
     if (place) { fixes.push({ from: word, to: place }); return place; }
     // Words in capitals are names or codes, and a capital inside a sentence is a name or brand.
     if (word === word.toUpperCase()) return word;
-    // A four letter word is fixed only where it is a known slip or a plural in -s for -es ("nite", "boxs").
+    // A three or four letter word is fixed only where it is a known slip or a plural in -s for -es ("nite", "boxs", "wal").
     if (word.length < 5 && !KNOWN[word.toLowerCase()] && !/(?:x|z|ch|sh|ss)s$/i.test(word)) return word;
     const sentenceStart = /(?:^|[.!?]\s+)$/.test(whole.slice(0, at));
     if (!sentenceStart && word[0] === word[0].toUpperCase()) return word;

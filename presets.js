@@ -154,6 +154,8 @@ function answersFor(id, task) {
   const list = (ANSWERS[id] || []).map(([label, text]) => ({ label, text }));
   if (id === 'pressureTesting' && task) return pressureAnswers(list, task);
   if (id === 'silicaControls') return silicaAnswers(list, task);
+  // The hospital's shutdown answer only where the work is at a hospital (messy round 10, run 6).
+  if (id === 'serviceShutdown' && task && !/\b(hospitals?|medical gas\w*|patients?|wards?|clinic\w*|aged care|nursing homes?)\b/i.test(task)) return list.filter((answer) => answer.label !== 'Hospital shutdown permit');
   if (id !== 'fallControl' || !task) return list.filter((answer) => answer.label !== 'Excavation edge barriers');
   // A fall into an open excavation, pit or pool hole, with no building work at height: the excavation's
   // own answers, not roof mesh, riser screens or scissor lifts (messy round 5).

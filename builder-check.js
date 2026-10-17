@@ -68,6 +68,7 @@ const { findState, highRiskList } = require('./legislation');
 const { highRiskMatches, domesticWork } = require('./draft');
 const { leftOpen } = require('./blanks');
 const { isHoldPoint } = require('./designs');
+const { orderFaults } = require('./step-stages');
 
 const BANDS = { accepted: 'Accepted', changes: 'Accepted with changes', rejected: 'Not accepted' };
 
@@ -127,6 +128,7 @@ const SOURCES = {
   W13: 'WHS Regulations part 6.4 (s 304 underground essential services, s 305 managing excavation risks, s 306 trenches 1.5 m or deeper), s 78 to s 80 (falls), s 166 (electric lines), s 69 and s 74 (confined spaces) and chapter 8 (asbestos); the codes of practice SiteWrite cites for falls, excavation, electric lines, electrical risks, confined spaces, asbestos, demolition, moving plant, tilt-up and precast, traffic management, silica, cranes and telecommunication towers. A lift plan for each crane lift (owner decision, 6 October 2026)',
   W15: 'Contractor SWMS review checklist items 6 and 10 (each step rated before and after the controls; a High after the controls has a stated response); tier 1 SWMS standard and builder SWMS procedure risk assessment guides (likelihood and consequence, inherent and residual). The law does not require a rating, so a missing one costs points and never fails (goal 3, owner, 7 October 2026)',
   W16: 'Contractor SWMS review checklists (the SWMS identifies the engineer\'s or temporary works design it relies on, so the reviewer can check it matches); Model Code of Practice: Construction Work (temporary works designed by a competent person); owner decision, 11 October 2026',
+  W17: 'Model Code of Practice: Construction Work (a SWMS describes the work in the steps it is done in); SiteWrite\'s order of work stages (step-stages.js). A flag only, no points (content10, for the owner to decide)',
   W14: 'WHS Regulations s 344 and s 346 (safety data sheets at hand, the hazardous chemicals register); Managing risks of hazardous chemicals code of practice (labelling, following the safety data sheet) (owner decision, 6 October 2026)',
 };
 
@@ -375,7 +377,7 @@ const PERMITS = [
     process: /\b(oxy[- ]?(?:acetylene|propane|cutting|fuel)|gas cutting|thermal cutting|cutting torch\w*)\b/i,
     sparks: /\b(?:(?:using|use|with|by) (?:an? |the )?angle grinders?|angle grinding|(?:cut\w*|grind\w*)\b[^.]{0,30}\b(?:metal|steel|bolts?|rebar|reo(?:bar)?)\b[^.]{0,30}\b(?:grinders?|cut-?off (?:saws?|wheels?)|discs?)|(?:cut\w*|grind\w*)\b[^.]{0,40}\bsparks?|sparks?\b[^.]{0,40}\b(?:cut\w*|grind\w*))\b/i,
     // Not hot work: heat or solvent welded vinyl and plastic seams, and painting or coating welds.
-    ignore: /\b(?:(?:heat|hot air|solvent|plastic|poly|vinyl|seam)[- ]?weld\w*|weld\w* (?:the )?(?:vinyl|seams?|joins)|(?:heat|hot air|solvent)[- ]welded \w+(?: \w+)?|(?:paint\w*|touch\w* up|coat\w*|seal\w*|prime\w*|blend\w*) (?:the |all |any )?(?:\w+ )?welds?)\b/gi,
+    ignore: /\b(?:(?:heat|hot air|solvent|plastic|poly|vinyl|seam|fusion|electro-?fusion|butt)[- ]?weld\w*|weld\w* (?:the )?(?:pe|hdpe|polyethylene|poly)\b|weld\w* (?:the )?(?:vinyl|seams?|joins)|(?:heat|hot air|solvent)[- ]welded \w+(?: \w+)?|(?:paint\w*|touch\w* up|coat\w*|seal\w*|prime\w*|blend\w*) (?:the |all |any )?(?:\w+ )?welds?)\b/gi,
     permit: /\bhot works? permits?\b/i },
   // Work in the rail corridor goes ahead only under the rail manager's access authority (messy round 5: the
   // check said "No work needing a permit" for resleepering in a track possession).
@@ -1430,6 +1432,18 @@ function weighted(swms, state, context) {
     if (waiting.length) fixes.push(`These steps work to a design not issued yet: ${where(waiting)}. Send the updated SWMS, naming the design, once it is issued.`);
     add('W16', 'Designs the work relies on are named', 3, points, fixes, uses.length ? `Each step done to a design names it: ${[...new Set(named.map((use) => use.what))].join('; ')}.`
       : notNeeded.length ? `The SWMS records ${notNeeded.join('; ')} as not needed for this work.` : 'No step relies on an engineer\'s or temporary works design.');
+  }
+
+  // W17 Job steps in the order the work is done (messy round 10: the order was wrong in every run, and the check
+  // passed it). Each step SiteWrite knows has a work stage (step-stages.js); a step printed after one from a later
+  // stage is flagged, so an order SiteWrite could not put right (the user's own order) is seen. No points yet: a flag
+  // for the person to judge.
+  {
+    const faults = orderFaults(steps);
+    if (faults.length) {
+      const fixes = faults.slice(0, 3).map((item) => `"${item.step}" (step ${item.at}) is usually done before "${item.after}" (step ${item.afterAt}). Check the order of the job steps, and move the step if the work is done in that order.`);
+      out.push({ rule: 'W17', title: 'Job steps in the order the work is done', hard: false, pass: false, points: 0, max: 0, message: fixes.join(' '), fixes, source: sourceFor('W17', state) });
+    }
   }
   return out;
 }

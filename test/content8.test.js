@@ -76,7 +76,8 @@ test('"Not required" is refused where the SDS answer lists the product, whatever
 test('"Not required" is refused beside SiteWrite\'s own step that uses the product (content7 decision 1, option A)', () => {
   // Run 3: paint "painters do it" beside "Prepare to paint", "Paint" and "Clean brushes and rollers".
   const fire = { state: 'qld', fallRisk: 'yes', crane: 'none', task: 'Install sprinkler and hydrant pipework. Paint fire services installation as specified.', substancesNotUsed: [PAINT], substancesNotUsedWhy: { [PAINT]: 'painters do it' } };
-  assert.match(needOf(fire, PAINT), /the job step "Prepare to paint" in this SWMS uses "paint", so it cannot be "Not required"/);
+  // The step that uses the paint is named before the one that prepares for it (messy round 10).
+  assert.match(needOf(fire, PAINT), /the job step "Paint" in this SWMS uses "paint", so it cannot be "Not required"/);
   // Run 5: solvents "supplied and applied by others" beside the solvent cleaning step.
   const painting = { state: 'sa', fallRisk: 'no', crane: 'none', task: 'Paint walls and ceilings, doors and trim. Apply the sealer.', substancesNotUsed: [SOLVENT], substancesNotUsedWhy: { [SOLVENT]: 'supplied and applied by others' } };
   assert.match(needOf(painting, SOLVENT), /"Clean brushes and rollers"/);

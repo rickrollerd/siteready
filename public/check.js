@@ -75,7 +75,7 @@
     const ordered = [...data.findings.filter((item) => item.hard && !item.pass), ...data.findings.filter((item) => !item.hard && !item.pass), ...data.findings.filter((item) => item.pass)];
     $('findings').innerHTML = ordered.map((item) => `<li class="${item.pass ? 'pass' : 'fail'}">
       <span class="rule">${esc(item.rule)} ${esc(item.title)}</span>
-      ${item.hard ? (item.pass ? ' (passed)' : ' (must fix)') : ` (${item.points} of ${item.max})`}
+      ${item.hard ? (item.pass ? ' (passed)' : ' (must fix)') : item.max ? ` (${item.points} of ${item.max})` : (item.pass ? '' : ' (to check, no points)')}
       <div>${esc(item.message)}</div>
       <div class="source">Source: ${esc(item.source)}</div></li>`).join('');
     $('result').classList.remove('hidden');

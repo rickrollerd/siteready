@@ -482,7 +482,8 @@ test('a gabion wall gets its own step, without the block, stone or silica lines'
   // A block wall and a gabion wall: both kinds of wall keep their lines.
   const both = draft('Build a gabion wall and a 1 m block retaining wall beside the driveway.');
   assert.ok(stepNames(both).includes('Build and fill gabion baskets'));
-  assert.ok(stepLines(both, 'Build the retaining wall').some((line) => /^Blocks are team lifted/.test(line)));
+  // With the blocks laid in their own steps, the wall's own step is its excavation and set out (messy round 10, run 3).
+  assert.ok(stepLines(both, 'Excavate and set out the retaining wall').some((line) => /^Blocks are team lifted/.test(line)));
   // Other retaining walls get no gabion step.
   assert.ok(!stepNames(draft('Build a 1.2 m block retaining wall.')).includes('Build and fill gabion baskets'));
 });

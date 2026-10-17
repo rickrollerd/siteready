@@ -82,7 +82,7 @@ test('"Not required" for a product the task names needs a short reason, which pr
   assert.equal(rules.namedIn('Waterproofing membranes and primers', words), 'Waterproof');
   assert.equal(rules.namedIn('Gases (LPG, acetylene, oxygen)', words), 'torch on');
   assert.equal(rules.namedIn('Cement, concrete, grout and mortar', 'Core drill through the concrete slab.'), '', 'the slab drilled is not a cement product used');
-  assert.match(rules.notUsedNeed('Waterproofing membranes and primers', '', words), /^Waterproofing product: your task or answers name "Waterproof"\. Add the product you use, or give a short reason it is not required, for example "supplied and applied by others"\.$/);
+  assert.match(rules.notUsedNeed('Waterproofing membranes and primers', '', words), /^Waterproofing product: your task or answers name "Waterproof"\. Add the product you use, or give a short reason it is not required, for example "no membrane in our work"\.$/);
   assert.match(rules.notUsedNeed('Waterproofing membranes and primers', 'dont know', words), /"dont know" does not say why it is not required/);
   assert.match(rules.notUsedNeed('Waterproofing membranes and primers', 'others', words), /"others" does not say why/);
   assert.equal(rules.notUsedNeed('Waterproofing membranes and primers', 'Supplied and applied by the membrane subcontractor', words), '');

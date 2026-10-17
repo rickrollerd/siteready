@@ -165,8 +165,10 @@
     // reason is asked for, as none settles it. The note under the tick (the list before download) says
     // so at once, and asks for what is cut.
     // The same for any type SiteWrite's own step uses (messy round 8): the list says which step.
-    const cut = type === R.SILICA ? (R.cutStep ? R.cutStep(shown) : '') : (R.usedByStep ? ((R.usedByStep(type, shown) || {}).step || '') : '');
-    const reason = cut ? '' : (notUsed.has(type) && asked ? `<div class="field sub-reason"><label for="sub-why-${n}">Why is it not required?<span class="hint">${esc(asked.hint)} Give a short reason, for example "supplied and applied by others". It prints in the substances section.</span></label><input id="sub-why-${n}" type="text" maxlength="200" data-sub-why="${esc(type)}" value="${esc(notUsedWhy[type] || '')}"></div>` : '');
+    // A step that uses the type only on a condition ("when cleaning with solvents") still takes a reason (messy round 10, run 4).
+    const used = R.usedByStep ? R.usedByStep(type, shown) : null;
+    const cut = type === R.SILICA ? (R.cutStep ? R.cutStep(shown) : '') : (used && !used.conditional ? used.step : '');
+    const reason = cut ? '' : (notUsed.has(type) && asked ? `<div class="field sub-reason"><label for="sub-why-${n}">Why is it not required?<span class="hint">${esc(asked.hint)} Give a short reason, ${esc(R.reasonExample ? R.reasonExample(type) : 'for example "not used by our crew on this job"')}. It prints in the substances section.</span></label><input id="sub-why-${n}" type="text" maxlength="200" data-sub-why="${esc(type)}" value="${esc(notUsedWhy[type] || '')}"></div>` : '');
     const offers = offered().filter(({ row }) => row.type === type);
     const body = added.length
       ? `<p class="meta sub-type-added">Added: ${esc(added.map((row) => String(row.product || '').trim() || 'a product still being filled in').join('; '))}.</p>`

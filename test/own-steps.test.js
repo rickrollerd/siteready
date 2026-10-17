@@ -61,7 +61,12 @@ test('a step the user writes prints before the closing step, its name marked as 
   const d = draft({ ownSteps: [STEP] });
   assert.deepEqual(plain.notCovered, [PART]);
   const names = d.jobSteps.map((step) => step.step);
-  assert.deepEqual(names, [...plain.jobSteps.map((step) => step.step).slice(0, -1), MARKED, 'Finish and clean up']);
+  // It goes after the step for its work (the fuel lines), before the trench is backfilled (messy round 10: steps in the
+  // order the work is done).
+  const plainNames = plain.jobSteps.map((step) => step.step);
+  const after = plainNames.indexOf('Install the fuel tanks and fuel lines');
+  assert.deepEqual(names, [...plainNames.slice(0, after + 1), MARKED, ...plainNames.slice(after + 1)]);
+  assert.equal(names[names.length - 1], 'Finish and clean up');
   const [own] = ownOf(d);
   assert.deepEqual(own.hazards, STEP.hazards, 'the hazards as written, unmarked');
   assert.deepEqual(own.controls, STEP.controls, 'the controls as written, in the order written, with no permit or category line added');
