@@ -198,12 +198,16 @@ function install(router, deps) {
   // Where each SWMS sits on the lead's page: on the list, set aside as work that may not need a SWMS
   // by law, or removed (with why).
   const groupOf = (row) => (!row.removed_at ? 'list' : row.removed_why === 'noLaw' ? 'aside' : 'removed');
+  // Work part of another SWMS, or taken out of it, is shown by the work title it takes on the list, not the
+  // reading's package name (messy round 11, SiteLink blocker 6: "Trade installation: cast-in items" under
+  // Removed). "Also covers" keeps the scope's name (sl10 decision 6).
+  const shownTitle = (row) => (row.removed_at && row.item && row.item.listTitle && !row.item.titleChanged && row.title === row.package ? row.item.listTitle : row.title);
   function itemView(row, rows = []) {
     const item = row.item || {};
     const into = row.removed_why === 'folded' ? rows.find((other) => other.package && other.package === item.foldedInto) : null;
     return {
       id: row.id,
-      title: row.title,
+      title: shownTitle(row),
       task: row.task,
       source: row.source,
       removed: Boolean(row.removed_at),
@@ -258,7 +262,10 @@ function install(router, deps) {
       progress: reading.progress,
       error: reading.error,
       checksPassed: reading.checks ? reading.checks.passed !== false : true,
-      duties: read ? (read.activities || []).filter((row) => row.type === 'Duty').map((row) => row.activity) : [],
+      // Testing and commissioning done on site is work, not a duty with no SWMS (messy round 11, SiteLink: the
+      // hydraulic test and commissioning was listed among the duties that need no SWMS). It is said apart.
+      duties: read ? (read.activities || []).filter((row) => row.type === 'Duty' && !handover.handsOnTesting(row.activity)).map((row) => row.activity) : [],
+      testing: read ? (read.activities || []).filter((row) => row.type === 'Duty' && handover.handsOnTesting(row.activity)).map((row) => row.activity) : [],
       found: read ? new Set((read.activities || []).filter((row) => row.type !== 'Duty').map((row) => row.package)).size : 0,
     };
   }
@@ -367,11 +374,15 @@ function install(router, deps) {
         const row = await db.one('SELECT status FROM ai_readings WHERE id = $1', [sub.reading_id]);
         scope = row ? row.status : 'none';
       }
+      // Work folded into a SWMS that is itself removed goes with it: it is removed, not "in another SWMS"
+      // (messy round 11, SiteLink: "5 in another SWMS" for lists where that SWMS was removed).
+      const hostOn = (row) => items.some((other) => !other.removed_at && other.package && row.item && other.package === row.item.foldedInto);
+      const inOther = (row) => row.removed_at && row.removed_why === 'folded' && hostOn(row);
       out.push({
         id: sub.id, name: answers.tidyName(sub.name), trade: sub.trade, scope, status: sub.status,
-        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && !['noLaw', 'folded'].includes(row.removed_why)).length,
+        swms: items.filter((row) => !row.removed_at).length, removed: items.filter((row) => row.removed_at && row.removed_why !== 'noLaw' && !inOther(row)).length,
         // Work folded into another SWMS on the list, said apart from work removed (messy round 7).
-        folded: items.filter((row) => row.removed_at && row.removed_why === 'folded').length,
+        folded: items.filter(inOther).length,
         aside: items.filter((row) => row.removed_at && row.removed_why === 'noLaw').length,
         pointsOpen: open.length,
         ...(await send.summaryFor(sub, project)),
@@ -549,7 +560,12 @@ function install(router, deps) {
         // Work the new words still name stays part of it (messy round 10, blocker 5).
         const folded = (await itemsOf(ctx.sub.id)).filter((other) => other.removed_at && other.removed_why === 'folded' && row.package && other.item && other.item.foldedInto === row.package && !handover.foldedNamed(task, other));
         if (folded.length) {
-          for (const other of folded) await db.query("UPDATE required_swms SET removed_why = 'unfolded', list_rev = $1, updated_at = $2 WHERE id = $3", [rev, now, other.id]);
+          // Each takes its work title now it stands alone (messy round 11, blocker 6), unless the list has it.
+          const all = await itemsOf(ctx.sub.id);
+          for (const other of folded) {
+            const own = other.item && other.item.listTitle && !other.item.titleChanged && other.title === other.package && !all.some((one) => one.id !== other.id && one.title.trim().toLowerCase() === other.item.listTitle.toLowerCase()) ? other.item.listTitle : other.title;
+            await db.query("UPDATE required_swms SET removed_why = 'unfolded', title = $1, list_rev = $2, updated_at = $3 WHERE id = $4", [own, rev, now, other.id]);
+          }
           // Named as "Also covers" names them, not by the reading's package names (messy round 9, wording 3:
           // "Trade installation: fire hydrant services, ... are no longer part of it").
           const names = folded.map((other) => String(other.title).replace(/^trade installation:\s*/i, '').replace(/^./, (letter) => letter.toLowerCase()));

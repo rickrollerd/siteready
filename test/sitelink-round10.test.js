@@ -288,13 +288,15 @@ test('every SWMS SiteLink lists takes a work title, set aside and folded work in
   const titles = s.page.items.map((item) => `${item.group}: ${item.title}`);
   assert.ok(titles.includes('list: Mechanical services installation'), titles.join(' | '));
   assert.ok(titles.includes('aside: Discharge and intake points'), titles.join(' | '));
-  assert.ok(!titles.some((title) => /Trade installation:|: Mechanical services$/.test(title.replace(/^removed: Trade installation: switchroom and comms room$/, ''))), titles.join(' | '));
+  // Messy round 11, blocker 6: work part of another SWMS shows its work title on the lead's page too.
+  assert.ok(!titles.some((title) => /Trade installation:|: Mechanical services$/.test(title)), titles.join(' | '));
+  assert.ok(titles.includes('removed: Mechanical installation, switchroom and comms room'), titles.join(' | '));
   // Moved onto the list, the set-aside work keeps its work title, which goes out in the email.
   const aside = s.page.items.find((item) => item.group === 'aside');
   const moved = (await call('PUT', `/api/hse/subcontracts/${s.subId}/items/${aside.id}`, { reviewer: s.lead, body: { removed: false } })).data;
   assert.ok(moved.items.some((item) => item.group === 'list' && item.title === 'Discharge and intake points'));
   // Folded work put back takes the title it would have had on the list.
-  const folded = s.page.items.find((item) => item.title === 'Trade installation: switchroom and comms room');
+  const folded = s.page.items.find((item) => item.group === 'removed' && item.title === 'Mechanical installation, switchroom and comms room');
   const back = (await call('PUT', `/api/hse/subcontracts/${s.subId}/items/${folded.id}`, { reviewer: s.lead, body: { removed: false } })).data;
   assert.ok(back.items.some((item) => item.group === 'list' && item.title === 'Mechanical installation, switchroom and comms room'), back.items.map((item) => `${item.group}: ${item.title}`).join(' | '));
   const due = inDays(14);

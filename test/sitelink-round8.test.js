@@ -296,12 +296,12 @@ async function readScope(prefix) {
 
 test('after "Change the work", the high risk line and "Also covers" come from the new words only', async () => {
   const { lead, subId, page } = await readScope('r8work');
-  const main = page.items.find((item) => item.title === 'Ductwork and mechanical units: whole project');
+  const main = page.items.find((item) => item.title === 'Ductwork and mechanical units');
   assert.deepEqual(main.alsoCovers, ['Access equipment']);
   assert.equal(main.highRisk.status, 'yes');
   assert.match(main.highRisk.lines[0], /Chemical, fuel or refrigerant lines/);
   const next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${main.id}`, { reviewer: lead, body: { task: 'install the ductwork, dampers and grilles in the ceiling spaces on levels 1 to 4' } })).data;
-  assert.equal(next.message, 'The work for Ductwork and mechanical units: whole project is saved. Access equipment is no longer part of it: it is under Removed. Put it back if it needs a SWMS of its own.');
+  assert.equal(next.message, 'The work for Ductwork and mechanical units is saved. Access equipment is no longer part of it: it is under Removed. Put it back if it needs a SWMS of its own.');
   const changed = next.items.find((item) => item.id === main.id);
   assert.equal(changed.task, 'Install the ductwork, dampers and grilles in the ceiling spaces on levels 1 to 4.', 'a capital and a full stop (wording 14)');
   assert.deepEqual(changed.alsoCovers, []);
@@ -313,7 +313,7 @@ test('after "Change the work", the high risk line and "Also covers" come from th
   const kept = await db.one('SELECT item FROM required_swms WHERE id = $1', [main.id]);
   assert.deepEqual(kept.item.kinds, ['ductwork']);
   // What the subcontractor would see says the same.
-  const sent = next.preview.swms.find((item) => item.title === 'Ductwork and mechanical units: whole project');
+  const sent = next.preview.swms.find((item) => item.title === 'Ductwork and mechanical units');
   assert.deepEqual(sent.alsoCovers || [], []);
 });
 

@@ -221,7 +221,8 @@ test('only points about who does or supplies what are asked of the lead; other n
   ] };
   assert.deepEqual(handover.listPoints(reading).map((point) => point.question), ['Who supplies the fan coil units']);
   // A bare note says its work and that it is open (messy round 9, wording 8).
-  assert.deepEqual(handover.listItems(reading)[0].draftNotes, ['Install ductwork in the ceiling spaces: working heights to be confirmed.', 'Roof height, pitch, edge protection']);
+  // Each note ends with a full stop (messy round 11, wording 2).
+  assert.deepEqual(handover.listItems(reading)[0].draftNotes, ['Install ductwork in the ceiling spaces: working heights to be confirmed.', 'Roof height, pitch, edge protection.']);
   // The notes are not shown to the subcontractor on the list.
   const view = handover.subcontractorView({ project: { name: 'P', workplace: 'W', state: 'qld' }, org: { name: 'O' }, subcontract: { name: 'S' }, items: [{ title: 'Ductwork', task: 'Ductwork', item: handover.listItems(reading)[0] }], points: [], siteDetails: null, fields: [] });
   assert.doesNotMatch(JSON.stringify(view), /[Ww]orking heights|Roof height/);

@@ -1162,7 +1162,19 @@
       return;
     }
     if (target.dataset.goSharedSite !== undefined) {
-      sharedSite()[target.dataset.siteId] = target.value;
+      const id = target.dataset.siteId;
+      const was = String(sharedSite()[id] || '').trim();
+      sharedSite()[id] = target.value;
+      // A SWMS with its own site answers keeps following the ones it has not changed (messy round 11,
+      // SiteLink: Roof works changed only its Access answer, and the shared Other trades changed later
+      // never reached it). Its answer still as the project gave it takes the new one, and it is prepared again.
+      project.items.forEach((item, index) => {
+        if (!item.siteOwn || String(item.siteOwn[id] || '').trim() !== was || was === String(target.value || '').trim()) return;
+        item.siteOwn = { ...item.siteOwn, [id]: target.value };
+        const box = $(`go-site-${index}-${id}`);
+        if (box && box !== document.activeElement) box.value = target.value;
+        markStale([index], SHARED_CHANGED);
+      });
       // Only a SWMS prepared with another answer needs preparing again: typing the same words back, or
       // a box the browser fills, changes nothing it prints.
       const same = (index) => String(((project.items[index].body || {}).site || {})[target.dataset.siteId] || '').trim() === String(target.value || '').trim();

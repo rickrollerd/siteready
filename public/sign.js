@@ -139,6 +139,25 @@
     observer.observe($('end'));
   }
 
+  // The section a worker reading in order is on: the first one on screen not yet read. Its time counts in full
+  // while any of it shows, so time a worker has left from a section read quickly goes to the next one, as it
+  // does when a person reads on (messy round 11, SiteLink stuck point 1: at 4.4 words a second, swiping at an
+  // even pace, long steps with long control lines went by "too fast to count", though the steps before them
+  // had been read with time to spare). Each section still needs its own time, about 5 words a second (sl8
+  // decision 1): a skimmer is not on any section long enough.
+  function readingNow() {
+    const screen = window.innerHeight || 1;
+    for (const item of data.sections) {
+      if ((seconds[item.id] || 0) >= item.minSeconds) continue;
+      const element = $(`sec-${item.id}`);
+      if (!element || !element.getBoundingClientRect) continue;
+      const box = element.getBoundingClientRect();
+      if (box.bottom <= 0) continue;
+      return box.top < screen ? item.id : '';
+    }
+    return '';
+  }
+
   // Time is only counted while the page is on screen.
   let last = performance.now();
   setInterval(() => {
@@ -146,8 +165,9 @@
     const step = (now - last) / 1000;
     last = now;
     if (!data || finished || document.visibilityState !== 'visible' || step > 2) return;
+    const reading = readingNow();
     for (const item of data.sections) {
-      const share = shareOfScreen(item.id);
+      const share = item.id === reading ? 1 : shareOfScreen(item.id);
       if (share) seconds[item.id] = (seconds[item.id] || 0) + step * share;
     }
     // The end, for a browser without IntersectionObserver.

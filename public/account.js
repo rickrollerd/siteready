@@ -444,6 +444,9 @@
     // added to it (app.js) without drawing the buttons again.
     S.actionInput = input;
     const siteOptions = ['<option value="">No site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
+    // A SWMS from a main contractor's list is for that list's project, not one of the company's own sites:
+    // "Save to a site: No site" is not asked (messy round 11, SiteLink).
+    const fromList = Boolean(S.listSwmsTitle && S.listSwmsTitle());
     // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
     const editing = !local && S.editing;
     // Goal 2: nothing downloads or saves until the site questions are answered and each part with no
@@ -460,7 +463,7 @@
       ${editing && editing.review ? `<div class="pc-review pc-back" id="new-pc-review"><strong>${esc(editing.review.label)}</strong>, ${esc(editing.review.name)}, ${esc(editing.review.company)}, ${esc(editing.review.date)}<div class="pc-text"><strong>${editing.review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(conditionLines(editing.review.text))}</div><p class="meta">Save the changes, then send the principal contractor the new revision's reference.</p></div>` : ''}
       ${kind === 'draft' ? stateLine(draft) : ''}
       ${kind === 'draft' ? highAfterHtml(draft, 'new-high-risk') : ''}
-      ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
+      ${kind === 'draft' && !local && !fromList ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
       ${kind === 'draft' && editing ? `<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"${editing.review ? ` value="${esc(`For the principal contractor's review of revision ${editing.review.revision}`)}"` : editing.reason ? ` value="${esc(editing.reason)}"` : ''}></div>` : ''}
       ${kind === 'draft' ? checkBlock('new', 'download or save') : ''}
       ${kind === 'draft' && !local ? '<p class="meta">Downloading saves the SWMS under My SWMS, so every copy printed has a record and a revision. The PDF and the QR sign-on are the copies workers sign; the Word file is a working copy.</p>' : ''}
@@ -531,6 +534,8 @@
       // A new revision was saved when the number moved on from the one being changed.
       const revised = saved.revision > 1 && !(S.editing && S.editing.id === saved.id && S.editing.revision === saved.revision);
       S.editing = { id: saved.id, title: saved.title, revision: saved.revision };
+      // A SWMS of a project is that saved SWMS from now on: Save, Download and Submit keep one record of it.
+      if (S.projectSaved) S.projectSaved(S.actionInput, saved.id);
       // Saved, so the copy kept on this device is no longer needed (goal 7).
       if (S.clearUnsaved) S.clearUnsaved();
       status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.${revised ? resignLine(saved.revision) : ''}`);
@@ -540,10 +545,14 @@
     $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteWrite.pdf')));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
-        const body = { input: { ...S.actionInput, ...answersNow(kind) }, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
+        // A SWMS from a main contractor's list is saved under its title on that list, as Download names it
+        // (messy round 11, SiteLink wording 6: Save named Roof works by its task).
+        const listTitle = S.listSwmsTitle ? S.listSwmsTitle() : '';
+        const body = { input: { ...S.actionInput, ...answersNow(kind) }, siteId: ($('new-site') && $('new-site').value) || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new'), ...(listTitle && !S.editing ? { title: listTitle } : {}) };
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
+        if (S.projectSaved) S.projectSaved(S.actionInput, data.swms.id);
         if (S.clearUnsaved) S.clearUnsaved();
         status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.${data.swms.revision > 1 ? resignLine(data.swms.revision, data.swms.signedEarlier) : ''}`);
         $('new-save').textContent = 'Saved';
@@ -565,6 +574,13 @@
   const resignLine = (revision, earlier) => ` Workers must sign on to revision ${revision} before starting work: sign-ons to an earlier revision do not cover it.${earlier ? ` ${earlier === 1 ? 'One worker' : `${earlier} workers`} signed an earlier revision and must sign again.` : ''} Ask your supervisor to have them scan the QR code again.`;
 
   const shortDate = (value) => new Date(value).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  // When a worker signed on, as every other date and time reads: "18 October 2026, 2:27 am" (messy round 11,
+  // SiteLink wording 7: it printed "18/10/2026, 2:27:16 am").
+  const signedWhen = (value) => {
+    const when = new Date(value);
+    const time = when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s/g, ' ').toLowerCase();
+    return `${when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}, ${time}`;
+  };
 
   // Sign-ons count on the current revision only. Workers who signed an earlier revision are
   // counted apart: they must sign the current one before they start work.
@@ -849,12 +865,12 @@
         ${resignNote(swms, signons, earlier)}
         <h3 class="signed-head">${swms.revision > 1 ? `Signed on to revision ${esc(swms.revision)} (current)` : 'Signed on'}</h3>
         <table id="signed-current"><thead><tr><th>Name</th><th>Company</th><th>Signed</th></tr></thead><tbody>
-          ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${new Date(item.signed_at).toLocaleString('en-AU')}</td></tr>`).join('') : `<tr><td colspan="3">No one has signed on${swms.revision > 1 ? ` to revision ${esc(swms.revision)}` : ''} yet.</td></tr>`}
+          ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${esc(signedWhen(item.signed_at))}</td></tr>`).join('') : `<tr><td colspan="3">No one has signed on${swms.revision > 1 ? ` to revision ${esc(swms.revision)}` : ''} yet.</td></tr>`}
         </tbody></table>
         ${earlier.length ? `<h3 class="signed-head">Signed an earlier revision only</h3>
         <p class="meta">These workers have not signed revision ${esc(swms.revision)}. Their sign-ons stay on the revision they signed.</p>
         <table id="signed-earlier"><thead><tr><th>Name</th><th>Company</th><th>Signed</th></tr></thead><tbody>
-          ${earlier.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${item.revision ? `Revision ${esc(item.revision)}` : 'An earlier revision'}<br><span class="meta">${new Date(item.signed_at).toLocaleString('en-AU')}</span></td></tr>`).join('')}
+          ${earlier.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${item.revision ? `Revision ${esc(item.revision)}` : 'An earlier revision'}<br><span class="meta">${esc(signedWhen(item.signed_at))}</span></td></tr>`).join('')}
         </tbody></table>` : ''}
       </div>
       ${draft.controlEdits && S.editNotes ? S.editNotes(draft.controlEdits) : ''}

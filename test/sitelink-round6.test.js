@@ -202,12 +202,13 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   const { lead, projectId } = await setUp('lead-r6d@siteready.test', 'List Builders Pty Ltd');
   const { subId, page } = await readScope(lead, projectId);
   const by = Object.fromEntries(page.items.map((item) => [item.title, item]));
-  const main = by['Ductwork and mechanical units: whole project'];
+  // Messy round 11, blocker 6: ": whole project" is not part of the title.
+  const main = by['Ductwork and mechanical units'];
   assert.equal(main.group, 'list');
   // Housekeeping, materials handling and access equipment are part of the main SWMS.
   for (const title of ['Materials handling', 'Housekeeping and waste', 'Access equipment']) {
     assert.equal(by[title].group, 'removed', title);
-    assert.equal(by[title].removedWhy, 'Part of Ductwork and mechanical units: whole project to start with: the subcontractor\'s own work of this kind goes in that SWMS. Put it back to ask for a SWMS of its own.');
+    assert.equal(by[title].removedWhy, 'Part of Ductwork and mechanical units to start with: the subcontractor\'s own work of this kind goes in that SWMS. Put it back to ask for a SWMS of its own.');
   }
   // Messy round 7: a one-line "Trade installation:" package with no certain high risk work goes in too.
   assert.deepEqual(main.alsoCovers, ['Trade installation: plant', 'Materials handling', 'Housekeeping and waste', 'Access equipment']);
@@ -219,7 +220,8 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   assert.equal(controlsItem.group, 'aside');
   assert.equal(controlsItem.removedWhy, 'No high risk construction work was found in it. Move it to the list if you want a SWMS for it.');
   // Acoustic separation is not "moving powered mobile plant" from its own words.
-  const plant = by['Trade installation: plant'];
+  // Shown by its work title (messy round 11, blocker 6).
+  const plant = by['Plant installation'];
   assert.ok(!plant.highRisk || plant.highRisk.status !== 'yes', JSON.stringify(plant.highRisk));
   // Clause references once each, each heading once (messy round 10, wording 2).
   assert.deepEqual(main.clauses, ['Installation 1, 2']);
@@ -288,7 +290,7 @@ test('the list rules on a made-up reading: folding, defects and set aside, with 
   const list = handover.listItems(reading);
   const why = Object.fromEntries(list.map((item) => [item.title, item.removedWhy]));
   assert.deepEqual(why, {
-    'Ductwork and mechanical units: whole project': '',
+    'Ductwork and mechanical units': '',
     'Trade installation: plant': 'folded',
     'Install the central controller for the VRF systems': 'noLaw',
     'Materials handling': 'folded',

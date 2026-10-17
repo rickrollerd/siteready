@@ -2456,6 +2456,14 @@ function sharedSite(input) {
   const site = (input && input.site) || {};
   return { shared: true, own: ids ? siteConditions(Object.fromEntries(Object.entries(site).filter(([key]) => !ids.includes(key)))) : '' };
 }
+// The site answers that are this SWMS's own: all of them outside a project, none when every answer was
+// given once for the project, and those it changed for itself otherwise.
+function ownSiteOf(input) {
+  const site = (input && input.site) || {};
+  const given = input && input.siteShared;
+  if (given === true) return {};
+  return Array.isArray(given) ? Object.fromEntries(Object.entries(site).filter(([key]) => !given.includes(key))) : site;
+}
 function siteConditions(site) {
   const answers = Object.entries(site || {}).map(([key, value]) => (typeof value !== 'string' ? value : key === 'liveServices' ? value.replace(SERVICE_PLACE, '') : key === 'access' ? value.replace(ACCESS_ROUTE, ' ') : value));
   // Each answer is read on its own line, so answers never run together (messy round 6, run 6).
@@ -4529,7 +4537,11 @@ function buildDraft(input, screen) {
   // Where each item SiteWrite listed was found, said beside it on the draft, so an item that comes from
   // a site answer can be traced (messy round 5, run 2: the street and the switchroom in the shared site
   // answers brought items the person could not trace).
-  draft.highRiskFrom = highRiskFrom(draft.highRisk, { task: riskTask, site: input.site || {}, steps: (draft.jobSteps || []).map((step) => step.step), answer: pack.fallAnswer, state });
+  // A site answer given once for every SWMS of a project is never named as the source: it brings no high
+  // risk work of its own (messy round 11, SiteLink blocker 1: work found in a SWMS's own task, steps or plant
+  // said "(from your Access answer)" and "(from your Ground answer)", as if the shared answers brought it).
+  // What SiteWrite reads from the task's words (a pump station's wet well, energised commissioning) is the task.
+  draft.highRiskFrom = highRiskFrom(draft.highRisk, { task: riskTask, derived: riskText.startsWith(combinedFacts(riskTask, facts)) ? riskText.slice(combinedFacts(riskTask, facts).length) : '', site: ownSiteOf(input), steps: (draft.jobSteps || []).map((step) => step.step), answer: pack.fallAnswer, state });
   if (!draft.highRiskOwn || workshopOnly(riskTask)) draft.highRiskOwn = [];
   // The PPE the questions page suggests: for all work, and for particular steps (D246, D247), with
   // the names of the steps an item can be added to.
@@ -5498,10 +5510,11 @@ const sameText = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowe
 // Where each listed item of high risk construction work was found: the task, a site answer or a job
 // step, the first that names it, by its label. An item none of them names alone (read from answers
 // together, or from the plant) is left out.
-function highRiskFrom(labels, { task, site, steps, answer, state }) {
+function highRiskFrom(labels, { task, derived = '', site, steps, answer, state }) {
   const label = (item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label);
   const sources = [
     ['the task', task],
+    ['the task', derived],
     ...SITE_FIELDS.map((field) => [`your ${field.label} answer`, siteConditions({ [field.id]: site[field.id] })]),
     ...steps.map((name) => [`the job step "${name}"`, name]),
   ].filter(([, text]) => String(text || '').trim());

@@ -678,6 +678,11 @@
       const own = { ...(item.pageOwn || {}) };
       for (const field of set.FIELDS) {
         if (!(field.key in project.listShared)) continue;
+        // A detail no one had given yet (the scaffold supervisor) given while a SWMS is open is for every
+        // SWMS, not this one's own (messy round 11, SiteLink: "For every SWMS, still to give: Scaffold
+        // supervisor" stayed after it was filled in).
+        const blank = (value) => (Array.isArray(value) ? !value.length : !String(value || '').trim());
+        if (blank(project.listShared[field.key]) && !blank(now[field.key]) && !(field.key in own)) { project.listShared[field.key] = now[field.key]; continue; }
         if (set.same(field, now[field.key], project.listShared[field.key])) delete own[field.key];
         else own[field.key] = now[field.key] === undefined ? '' : now[field.key];
       }
@@ -885,6 +890,15 @@
     return item && item.body && input && (sameTask(input.task, item.body.task) || taskShown(input.task)) ? item : null;
   };
   S.projectCheck = (input) => checkOf(itemShown(input));
+  // A project SWMS saved or downloaded on its own is that saved SWMS from then on, so Save, Download and
+  // Submit add revisions to one record (messy round 11, SiteLink: My SWMS showed 4 SWMS for 2 submitted,
+  // and a worker could sign on to a copy never submitted).
+  S.projectSaved = (input, id) => {
+    const item = itemShown(input);
+    if (!item || !id || item.swmsId === id) return;
+    item.swmsId = id;
+    saveProject();
+  };
   // The name and role a SWMS was checked by, kept when its ticks come off, so ticking the parts again
   // does not empty them (messy round 9, stuck point 3: "Your role" was empty after "Does not apply").
   S.projectCheckWho = (input) => {
@@ -1441,8 +1455,13 @@
       const merged = set ? set.mergePage({ company: (S.getProfile && S.getProfile()) || {}, builderSet: data.list.builderSet, page: local.page, seen: local.seen }) : { page: local.page, seen: local.seen };
       const { sitelink, ...rest } = project;
       project = reconcile(rest, data.list);
-      // On this device a SWMS open to check stays open.
+      // On this device a SWMS open to check stays open: the same SWMS, not SWMS 1 (messy round 11, SiteLink:
+      // a reload on a draft opened SWMS 1, not the one being checked).
       project.stage = rest.stage || project.stage;
+      const was = (rest.items || [])[rest.current];
+      const key = (item) => (item ? item.requiredId || item.ownId || item.title : '');
+      const at = was ? project.items.findIndex((item) => key(item) && key(item) === key(was)) : -1;
+      if (at >= 0) project.current = at;
       project.sitelink = { ...sitelinkOf(data, { ...saved, page: merged.page, seen: merged.seen }), version: local.version, dirty: local.dirty, savedWork: local.savedWork || '' };
       fillPage(merged.page);
       if (local.dirty) saveListSoon();
@@ -1451,6 +1470,9 @@
     writeProject();
     renderProject();
     if (S.drawSetBy) S.drawSetBy();
+    // After a reload on a SWMS being checked, its draft opens again, not an empty form under its name.
+    const open = project.stage === 'check' && project.items[project.current];
+    if (open && open.body && $('result') && $('result').classList.contains('hidden')) openItem(project.current);
   };
 
   // Signed out, a list from a main contractor does not stay on a shared phone: it is the company's.
