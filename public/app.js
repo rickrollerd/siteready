@@ -18,8 +18,9 @@ async function readJson(response) {
   }
 }
 // Asking for the questions or a draft changes nothing on the server, so a host's error (502, 503, 504)
-// or a reply that is not SiteWrite's is asked again twice before the page says so (messy round 4,
-// A fault 5: a 502 on the questions sent a prepared SWMS back to its task form).
+// or a reply that is not SiteWrite's is asked again by itself before the page says so (messy round 4,
+// A fault 5: a 502 on the questions sent a prepared SWMS back to its task form; round 9, run 6). Only
+// these reads: a save, a download or a sign-in is never sent twice.
 const RETRIED = new Set(['/api/draft/questions', '/api/draft']);
 const pause = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 async function postJson(route, body, { tries = RETRIED.has(route) ? 3 : 1, onRetry = null } = {}) {
@@ -228,7 +229,8 @@ function abnProblem(value) {
   if (digits.length !== 11) return `An ABN has 11 digits. This one has ${digits.length}.`;
   const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
   const total = [...digits].reduce((sum, digit, index) => sum + (Number(digit) - (index === 0 ? 1 : 0)) * weights[index], 0);
-  return total % 89 === 0 ? '' : 'That is not a valid ABN. Check the digits against your ABN.';
+  // One wording for a wrong ABN, the same as the server's and SiteLink's (messy round 9, run 6: three).
+  return total % 89 === 0 ? '' : 'That ABN is not valid. Check the 11 digits.';
 }
 function showAbnProblem({ typing = false } = {}) {
   const box = document.getElementById('profile-abn');
@@ -299,7 +301,8 @@ async function saveProfile({ auto = false } = {}) {
     keepProfileTyping();
   }
   const abnWrong = showAbnProblem();
-  profileStatus(abnWrong ? `Saved on this device, but the ABN needs fixing before a SWMS can be saved or downloaded. ${abnWrong}` : auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
+  // What is wrong with the ABN is said once, at its box (messy round 9, run 6: it was said again here).
+  profileStatus(abnWrong ? 'Saved on this device, but the ABN needs fixing before a SWMS can be saved or downloaded. See the note under the ABN.' : auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
   if (!auto && !abnWrong) savedInSummary();
   // An ABN that needs fixing keeps the profile open at its box, where the note is.
   if (abnWrong) {
@@ -311,9 +314,13 @@ async function saveProfile({ auto = false } = {}) {
 }
 // Saved with the button, the profile closes: its heading says it was saved, where it can be seen (messy
 // round 8, runs 1 and 2: the profile closed with no "Saved" note).
+// It is brought into view as it closes, so the page does not jump to what was below the profile (messy
+// round 9, run 8: on a phone the view jumped down and "Saved" was out of sight). An ABN not found on the
+// register is said at its box; the profile is still saved.
 function savedInSummary() {
   const summary = document.getElementById('profile-summary');
   if (summary && profile.name) summary.textContent = `· ${profile.name} · Saved`;
+  if (summary && summary.scrollIntoView) summary.scrollIntoView({ block: 'nearest' });
 }
 // A draft on the page shows the company details just saved, without a reload (messy round 6, run 1: the
 // header kept "Stainles" after the name was fixed, with no Update button).
@@ -823,7 +830,18 @@ function addressLookup(input, list, onPick = () => {}, recent = () => [], near =
   input.addEventListener('blur', () => setTimeout(close, 150));
 }
 
-addressLookup(workplaceEl, workplaceList, applyAddressState, () => readMemory().workplace || [], expectedState);
+// The state a retyped address is looked up near comes from the company profile and the jobs before, never
+// from an address picked in this box since the page opened (messy round 9, run 5: a Queensland address
+// picked by mistake put four Queensland streets ahead of the South Australian one typed next).
+const pickedHere = new Set();
+workplaceEl.addEventListener('change', () => { const text = workplaceEl.value.trim().toLowerCase(); if (text) pickedHere.add(text); });
+function lookupNear() {
+  const A = window.SiteWriteAddress;
+  if (!A) return '';
+  const before = (readMemory().workplace || []).find((address) => !pickedHere.has(String(address).trim().toLowerCase()));
+  return A.stateFromAddress(profile.address || '').state || A.stateFromAddress(before || '').state || '';
+}
+addressLookup(workplaceEl, workplaceList, applyAddressState, () => readMemory().workplace || [], lookupNear);
 const profileAddressEl = document.getElementById('profile-address');
 if (profileAddressEl) addressLookup(profileAddressEl, document.getElementById('profile-address-list'));
 statesEl.addEventListener('change', checkStateMatchesAddress);
@@ -848,6 +866,10 @@ function showFallExplanation() {
   el.textContent = (state && (residential && state.residentialFallExplanation ? state.residentialFallExplanation : state.fallExplanation)) || '';
   const no = document.querySelector('input[name="fallRisk"]:checked')?.value === 'no';
   el.classList.toggle('hidden', !no || !el.textContent);
+  // The note that a No disagrees with the task goes as soon as the answer is Yes (messy round 9, run 8: it
+  // stayed on screen after Yes).
+  const warning = document.getElementById('fall-warning');
+  if (warning) warning.classList.toggle('hidden', !no || !warning.textContent);
 }
 
 // The crane question starts unanswered. Left unanswered, a task that names no crane is "No crane";
@@ -1788,10 +1810,25 @@ async function askOnce() {
     weakNotes = weakMap(data.weak);
     drawRequired(data.required);
     drawDesigns(data.designs || []);
-  } catch {
-    // With no signal the questions stay as they are; Prepare the statement says what is missing.
+    const said = document.getElementById('facts-error');
+    if (said && said.dataset.askFailed) { said.textContent = ''; delete said.dataset.askFailed; }
+  } catch (error) {
+    // The questions stay as they are. Asked again once by itself already (postJson), it says so, with Try
+    // again (messy round 9, run 6: an HTTP 502 here showed nothing).
+    if (seq !== askSeq) return;
+    const said = document.getElementById('facts-error');
+    if (said) {
+      said.innerHTML = `${esc(error && error.serverDown ? 'SiteWrite could not reach the server to check the questions for your change, so they may be out of date. Your answers are kept.' : (error && error.message) || 'The questions could not be checked.')} <button type="button" class="link" data-retry-ask>Try again</button>`;
+      said.dataset.askFailed = '1';
+    }
   }
 }
+document.addEventListener('click', (event) => {
+  if (!event.target.closest || !event.target.closest('[data-retry-ask]')) return;
+  const said = document.getElementById('facts-error');
+  if (said) { said.textContent = ''; delete said.dataset.askFailed; }
+  askAgain();
+});
 function askAgainSoon() {
   clearTimeout(askTimer);
   askTimer = setTimeout(askAgain, 700);
@@ -3380,8 +3417,16 @@ function coverStep(data, part, index) {
 function fallCheckBlock(data) {
   const fall = data && data.kind === 'draft' && data.fallConflict;
   if (!fall || fall.kept) return '';
-  const named = fall.steps.slice(0, 2).map((name) => `"${esc(name)}"`).join(' and ');
-  return `<div class="warning fall-check" id="fall-check" tabindex="-1"><p><strong>Check your answer on falls.</strong> You answered No to "Could a person fall more than ${esc(fall.metres)} metres?", but ${fall.steps.length === 1 ? 'the step' : 'the steps'} ${named} ${fall.steps.length === 1 ? 'rates' : 'rate'} a fall from height High. If anyone could fall more than ${esc(fall.metres)} metres, answer Yes. If the step is not part of this job, untick it under Job steps.</p>
+  // Every step is named, and an edge step No leaves out is said (messy round 9, run 8: two of four were
+  // named, and "Work at podium edges" went with no word).
+  const steps = fall.steps || [];
+  const left = fall.leftOut || [];
+  const listed = (names) => { const quoted = names.map((name) => `"${esc(name)}"`); return quoted.length > 1 ? `${quoted.slice(0, -1).join(', ')} and ${quoted[quoted.length - 1]}` : quoted[0] || ''; };
+  const leftText = left.length ? `${left.length === 1 ? 'the step' : 'the steps'} ${listed(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS` : '';
+  const said = steps.length
+    ? `but ${steps.length === 1 ? 'the step' : 'the steps'} ${listed(steps)} ${steps.length === 1 ? 'rates' : 'rate'} a fall from height High${leftText ? `, and with No ${leftText}` : ''}.`
+    : `so ${leftText}.`;
+  return `<div class="warning fall-check" id="fall-check" tabindex="-1"><p><strong>Check your answer on falls.</strong> You answered No to "Could a person fall more than ${esc(fall.metres)} metres?", ${said} If anyone could fall more than ${esc(fall.metres)} metres, answer Yes.${steps.length ? ' If the step is not part of this job, untick it under Job steps.' : ''}</p>
     <div class="actions"><button type="button" class="small" data-fall-yes>Change my answer to Yes</button><button type="button" class="small secondary" data-fall-keep>Keep No: no one can fall more than ${esc(fall.metres)} metres</button></div></div>`;
 }
 document.addEventListener('click', (event) => {
@@ -3886,7 +3931,7 @@ resultEl.addEventListener('click', async (event) => {
     const rules = window.SiteWriteSubstanceRules;
     const weak = rules && rules.reasonNeed ? rules.reasonNeed(reason) : (reason.split(' ').length < 2 ? 'weak' : '');
     if (weak) {
-      if (need) { need.hidden = false; need.textContent = weak === 'missing' ? 'Say in a few words why it does not apply to this work.' : `"${reason.slice(0, 60)}" does not say why. Say in a few words why it does not apply to this work.`; }
+      if (need) { need.hidden = false; need.textContent = weak === 'missing' ? 'Say in a few words why it does not apply to this work.' : `"${reason}" does not say why. Say in a few words why it does not apply to this work.`; }
       if (why) why.focus();
       return;
     }

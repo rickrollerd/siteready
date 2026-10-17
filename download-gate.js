@@ -62,6 +62,12 @@ const OPTIONAL = [
 const SITE_NONE = new Set(SITE_NONE_LIST);
 
 // A scaffold the user confirmed in the plant for this job.
+// "a", "b" and "c", each in quotes.
+const quotedList = (names) => {
+  const quoted = names.map((name) => `"${name}"`);
+  return quoted.length > 1 ? `${quoted.slice(0, -1).join(', ')} and ${quoted[quoted.length - 1]}` : quoted[0] || '';
+};
+
 function scaffoldInPlant(input, draft) {
   const used = input.plantChoice && Array.isArray(input.plantChoice.used) ? input.plantChoice.used : [];
   const added = input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added.map((item) => item && item.item) : [];
@@ -147,8 +153,13 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // checks the answer (messy round 8, run 5).
   const fall = draft.fallConflict;
   if (fall && !fall.kept) {
-    const named = fall.steps.slice(0, 2).map((name) => `"${name}"`).join(' and ');
-    add({ id: 'fallCheck', kind: 'fall', field: 'fall-check', label: 'Fall from height', need: `You answered No to a fall of more than ${fall.metres} metres, but ${fall.steps.length === 1 ? 'the step' : 'the steps'} ${named} ${fall.steps.length === 1 ? 'rates' : 'rate'} a fall from height High. Answer Yes if anyone could fall more than ${fall.metres} metres. If the step is not part of this job, untick it. If no one can fall that far, press Keep No.` });
+    // Every step is named, and an edge step No leaves out is said (messy round 9, run 8).
+    const steps = fall.steps || [];
+    const left = fall.leftOut || [];
+    const said = steps.length
+      ? `but ${steps.length === 1 ? 'the step' : 'the steps'} ${quotedList(steps)} ${steps.length === 1 ? 'rates' : 'rate'} a fall from height High${left.length ? `, and with No ${left.length === 1 ? 'the step' : 'the steps'} ${quotedList(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS` : ''}.`
+      : `so ${left.length === 1 ? 'the step' : 'the steps'} ${quotedList(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS.`;
+    add({ id: 'fallCheck', kind: 'fall', field: 'fall-check', label: 'Fall from height', need: `You answered No to a fall of more than ${fall.metres} metres, ${said} Answer Yes if anyone could fall more than ${fall.metres} metres.${steps.length ? ' If the step is not part of this job, untick it.' : ''} If no one can fall that far, press Keep No.` });
   }
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
@@ -220,12 +231,12 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   (draft.jobSteps || []).filter((step) => step.own).forEach((step, n) => {
     const open = [step.step, ...(step.hazards || []), ...(step.controls || []), step.responsible].find((text) => typeof text === 'string' && leftOpen(text));
     const short = [...(step.hazards || []).map((text) => ownLineProblem(text, 'hazard')), ...(step.controls || []).map((text) => ownLineProblem(text, 'control'))].find(Boolean);
-    if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open).slice(0, 160)}". Change your step to say what applies.` });
+    if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open)}". Change your step to say what applies.` });
     else if (short) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `${short} Change your step to say what is done and how.` });
   });
   // A hazard the user added needs at least one control (D254): ticked from SiteWrite's offers or written.
   (draft.ownHazards || []).forEach((item, n) => {
-    if (item.need) add({ id: `ownHazard.${n + 1}`, kind: 'own', field: `own-hazard-${n + 1}`, label: `Your hazard: ${clean(item.hazard).slice(0, 80)}`, need: `Add at least one control for your hazard "${clean(item.hazard).slice(0, 120)}": tick a line SiteWrite offers under it, or write your own.` });
+    if (item.need) add({ id: `ownHazard.${n + 1}`, kind: 'own', field: `own-hazard-${n + 1}`, label: `Your hazard: ${clean(item.hazard)}`, need: `Add at least one control for your hazard "${clean(item.hazard)}": tick a line SiteWrite offers under it, or write your own.` });
   });
   for (const item of draft.controls || []) line(item && item.text);
   // Anything else left open in what prints, not already asked for above: the emergency rows print
@@ -245,7 +256,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   for (const row of draft.references || []) if (leftOpen(row.text) && !fromAnswer(row.text, answers)) other.push([row.label || 'Documents', row.text]);
   for (const key of ['date', 'subcontractor']) if (leftOpen(draft[key])) other.push([key === 'date' ? 'Date of the draft' : 'Subcontractor', draft[key]]);
   for (const [label, text] of other) {
-    add({ id: `other.${gaps.length}`, kind: 'other', field: '', label, need: `A blank or "To be completed" is left in: "${clean(text).slice(0, 160)}". Answer the question it comes from, or change the line.` });
+    add({ id: `other.${gaps.length}`, kind: 'other', field: '', label, need: `A blank or "To be completed" is left in: "${clean(text)}". Answer the question it comes from, or change the line.` });
   }
   return checks;
 }

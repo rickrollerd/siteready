@@ -48,7 +48,9 @@
   // Ringing the power company or the network operator is calling for help too (messy round 4: "ring the
   // power company, nobody touches him" passed while "rings 000" was refused).
   const CALLS = /\b(?:000|triple zero|112|emergency services|ambulance|paramedics|fire brigade|fire service|fire and rescue|qfes|frnsw|ses|(?:power|electricity|energy|network) (?:company|companies|supplier|distributor|authority|operator)|network operators?|energex|ergon|ausgrid|endeavour energy|essential energy|western power|sa power networks|tasnetworks|evoenergy|jemena|citipower|powercor|ausnet|united energy|power and water)\b/i;
-  const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|the person) out)\b/i;
+  // Helping the person out, or a named role doing it, is a rescue (messy round 9, run 4: "The foreman and
+  // a labourer help the person out from the low end" was refused as only calling for help).
+  const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|the person) out|help\w* (?:them|him|her|the (?:person|worker|injured \w+)) (?:out|up|down|clear)|foreman|foremen|labourers?|leading hands?|riggers?|dogm[ae]n|offsiders?)\b/i;
   const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
   const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
 
@@ -60,6 +62,8 @@
   const ASKED_BACK = /^[^.!]{1,60}\?+$/;
   // Work done or checked "by me" or trained "by me" does not say who (messy round 4, run 9: "trained by me").
   const BY_ME = /\b(?:by|from|with) (?:me|myself|us)\b/i;
+  // An amount, not who or what (messy round 9, run 6: "heaps" for the other trades).
+  const AMOUNT_ONLY = /^(?:heaps|lots|plenty|loads|tons|many|a few|a couple|some|several|a lot|a heap|a bunch|numerous|all sorts|the usual|usual)(?: of (?:them|trades|people|blokes|guys|stuff))?\.?$/i;
 
   // Why a typed answer is no answer at all ("dont know", "me", "as per eng"), or '' when it says
   // something. The answers to the questions about the work are judged by the same words (draft.js
@@ -67,9 +71,10 @@
   function notAnswer(value) {
     const text = clean(value);
     if (!text) return '';
-    const quoted = `"${text.slice(0, 60)}"`;
+    const quoted = `"${text}"`;
     if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet.`;
     if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor".`;
+    if (AMOUNT_ONLY.test(text)) return `${quoted} gives an amount, not who or what. Name them, or say what applies on this job.`;
     if (ASKED_BACK.test(text)) return `${quoted} is a question, not an answer. Say what applies on this job.`;
     const me = BY_ME.exec(text);
     if (me) return `${quoted} says "${me[0]}", which does not say who. Name the role or the company, for example "by the supplier".`;
@@ -82,10 +87,17 @@
   // Answers to the people and place boxes that say too little to act on (messy round 3, 14 October
   // 2026): a muster point of "gate" or "out the front", a first aider of "builder" or "supervisor", a
   // principal contractor of "the builder". Each kind of box says what would do.
-  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area)\.?$/i;
+  // A vehicle is not a place to meet: it moves (messy round 9, run 5: "the ute" was accepted).
+  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area|(?:at |by |near |beside )?(?:the |our |my |his |a |site |work )?(?:site |work )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?))\.?$/i;
   const NOT_A_FIRST_AIDER = /^(?:the |a |our |site )?(?:builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
   // A person's box holding a thing, a place or a crowd, not a person (messy round 8, run 5: "gloves").
   const NOT_A_PERSON = /^(?:the |a |our |my )?(?:gloves?|glasses|safety glasses|goggles|boots|helmets?|hard ?hats?|hi-?vis(?: vests?)?|vests?|harness(?:es)?|lanyards?|masks?|p2 masks?|respirators?|ear ?muffs?|ear ?plugs?|ppe|ladders?|scaffold\w*|ute|truck|van|car|site|office|site office|gate|stairs?|crew|workers?|anyone|everyone|everybody|all|all of us|whoever|staff|team|the boys|boys|lads|guys)\.?$/i;
+  // A trade or a crew is not a person either (messy round 9, run 1: "the tilers" printed as the person
+  // who makes sure the SWMS is followed).
+  const A_TRADE = /^(?:the |our |my |all the |all our |a )?(?:tilers?|sparkies|sparkys|sparky|chippies|chippys|chippy|plumbers?|painters?|concreters?|labourers?|carpenters?|electricians?|scaffolders?|riggers?|roofers?|plasterers?|renderers?|fitters?|installers?|subbies|subbys|subcontractors?|contractors?|trades|tradies|tradesmen|apprentices?|operators?|cleaners?|glaziers?|welders?|fixers?|formworkers?|steel ?fixers?|crew members?|team members?|gang|blokes)\.?$/i;
+  // A role with no name does not say who (messy round 9, run 6: "leading hand"). First names alone stay
+  // accepted (flow8 decision 1).
+  const ROLE_ONLY = /^(?:the |our |my |a |site |project )?(?:leading hand|lead hand|charge ?hand|foreman|forewoman|supervisor|site supervisor|boss|manager|site manager|project manager|construction manager|works manager|director|owner|hse(?: advisor| manager| officer| rep)?|whs(?: officer| advisor| manager)?|safety officer|engineer|site engineer|project engineer|team leader|crew leader|leader|pm|cm)\.?$/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
   // An Australian phone number a site can ring (messy round 4, run 2: a 9 digit mobile printed): a mobile
   // or landline with its area code (10 digits from 0), a landline without it (8 digits), 13 numbers
@@ -96,10 +108,11 @@
     return (digits.length === 10 && /^(?:0[2-478]|1[38]00)/.test(digits)) || (digits.length === 8 && /^[2-9]/.test(digits)) || (digits.length === 6 && /^13/.test(digits));
   }
   function fieldWeak(kind, text) {
-    const quoted = `"${text.slice(0, 60)}"`;
+    const quoted = `"${text}"`;
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
-    if (kind === 'person' && NOT_A_PERSON.test(text)) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
+    if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
+    if (kind === 'person' && ROLE_ONLY.test(text)) return `${quoted} is a role, not a person. Give their name and role, for example "Sam Lee, ${clean(text).replace(/^(?:the|our|my|a) /i, '').toLowerCase()}".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (kind === 'phone' && !phoneNumber(text)) return text.replace(/\D/g, '').length < 6 ? `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.` : `${quoted} is not a full phone number. A mobile has 10 digits, for example 0412 345 678.`;
     return '';
@@ -117,8 +130,8 @@
     if (/^(?:no|none|nil|not needed|not required|n\/?a)\.?$/i.test(text)) return '';
     const not = notAnswer(text);
     if (not) return `${not} Give the licence or ticket to operate ${clean(item)}, or write No if none is needed.`;
-    if (CRANE_ITEM.test(item) && !CRANE_CLASS.test(text)) return `"${text.slice(0, 60)}" does not say which licence. Give the high risk work licence class for ${clean(item)}, for example "HRW licence C2 (slewing mobile crane up to 20 t)" or "CN (non-slewing mobile crane)".`;
-    if (BARE_LICENCE.test(text)) return `"${text.slice(0, 60)}" does not say which licence or ticket. Name it, for example "HRW licence LF (forklift)" or "EWP yellow card".`;
+    if (CRANE_ITEM.test(item) && !CRANE_CLASS.test(text)) return `"${text}" does not say which licence. Give the high risk work licence class for ${clean(item)}, for example "HRW licence C2 (slewing mobile crane up to 20 t)" or "CN (non-slewing mobile crane)".`;
+    if (BARE_LICENCE.test(text)) return `"${text}" does not say which licence or ticket. Name it, for example "HRW licence LF (forklift)" or "EWP yellow card".`;
     return '';
   }
 
@@ -138,7 +151,7 @@
     }
     if (rule.blank) return hasBlank(value) ? rule.ask : '';
     const text = clean(value);
-    const quoted = `"${text.slice(0, 60)}"`;
+    const quoted = `"${text}"`;
     if (rule.optional) return text && leftOpen(text) ? `${quoted} is not an answer. Fill it in, or leave the box empty.` : '';
     if (!text) return rule.ask;
     const not = notAnswer(text);
@@ -152,7 +165,9 @@
       // "pull them out" does not say who does it or with what (messy round 3).
       if (rule.rescue && words(text) < 5) return `${quoted} does not say who rescues the person or how. ${rule.ask}`;
       // Rescue gear left in a vehicle is not at the work: "rope in the ute".
-      if (rule.kit && IN_VEHICLE.test(text) && !AT_WORK.test(text)) return `${quoted} keeps the rescue equipment away from the work. Say what is used to get the person out, and that it is kept at the work area.`;
+      // A second kit in the ute beside one kept at the work is fine (messy round 9, run 7): only an answer
+      // whose every kit is in a vehicle is refused.
+      if (rule.kit && IN_VEHICLE.test(text) && !AT_WORK.test(text) && !text.split(/[,;.]/).some((part) => RESCUE_KIT.test(part) && !IN_VEHICLE.test(part) && PLACED.test(part))) return `${quoted} keeps the rescue equipment away from the work. Say what is used to get the person out, and that it is kept at the work area.`;
       // "turn it off" does not say where the stop is or who uses it.
       if (rule.stop && (words(text) < 4 || BARE_COMMAND.test(text))) return `${quoted} does not say where the stop is or who uses it. ${rule.ask}`;
       return '';
@@ -166,6 +181,8 @@
   const words = (text) => clean(text).split(/\s+/).filter(Boolean).length;
   const IN_VEHICLE = /\b(?:in|on) (?:the |my |our |a |his |their )?(?:site )?(?:ute|truck|van|car|vehicle|wagon|trailer)\b/i;
   const AT_WORK = /\b(?:at|beside|next to|by|near) (?:the |each )?(?:work|trench|entry|edge|box|shield|pit|platform|lift|level|area|access|ladder|ewp|scaffold)\b|\bkept (?:at|on) (?:the )?(?:work|level|deck|site office)\b/i;
+  // A kit said to be at a place that is not a vehicle ("on the slung platform").
+  const PLACED = /\b(?:on|at|in|inside|beside|next to|by|near)\s+(?:the |each |every |a |our )?(?!(?:site |work |company )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?)\b)[a-z]/i;
   const BARE_COMMAND = /^(?:just )?(?:turn|switch|shut|press|hit|kill|stop|cut|push|pull)\b[\w\s'-]{0,16}\.?$/i;
 
   // What a design the SWMS relies on still needs (designs.js), or '' once answered: issued, with who
@@ -275,7 +292,7 @@
     const given = SAME_ROLES.map(([id]) => clean((values || {})[id]).toLowerCase());
     if (given.some((name) => !name) || new Set(given).size > 1) return '';
     const name = clean(values[SAME_ROLES[0][0]]);
-    return `"${name.slice(0, 60)}" is named for every role: works manager, the person who makes sure the SWMS is followed, the person who reviews the controls and first aider. Check one person really does all of these on this job, and give their full name so the site can find them.`;
+    return `"${name}" is named for every role: works manager, the person who makes sure the SWMS is followed, the person who reviews the controls and first aider. Check one person really does all of these on this job, and give their full name so the site can find them.`;
   }
   // The rule a person or place box is judged by (answerNeed).
   const fieldRule = (item) => ({ ask: item.need, name: item.label, none: Boolean(item.none), ...(item.kind ? { kind: item.kind } : {}) });
@@ -309,9 +326,9 @@
     const line = clean(text);
     const words = line ? line.split(' ').length : 0;
     if (notAnswer(line)) return notAnswer(line);
-    if (kind === 'control' && OWN_POINTER.test(line)) return `"${line.slice(0, 60)}" points to another step. Write the control itself on this line, for example "Wear nitrile gloves while priming". Each step prints on its own.`;
+    if (kind === 'control' && OWN_POINTER.test(line)) return `"${line}" points to another step. Write the control itself on this line, for example "Wear nitrile gloves while priming". Each step prints on its own.`;
     const least = kind === 'control' ? (OWN_CONTROL_WORD.test(line) ? 2 : 3) : 2;
-    return words < least ? `"${line.slice(0, 60)}" is too short to act on.` : '';
+    return words < least ? `"${line}" is too short to act on.` : '';
   }
 
   const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };

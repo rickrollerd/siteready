@@ -127,12 +127,15 @@ function validAbn(value) {
 router.put('/company', requireUser, route(async (req, res) => {
   const body = req.body || {};
   // Once a SWMS has been saved or downloaded, the company name and ABN are fixed.
-  const name = textField(body.name, 200);
+  // A name typed all in lower case takes its capitals, as SiteLink's does (messy round 9, run 3:
+  // "lockwise security" printed so in the header of the SWMS).
+  const name = require('./sitelink-answers').tidyName(textField(body.name, 200));
   const abn = textField(body.abn, 40);
   if (!name) throw fail(400, 'Enter your business name.');
   // The same words as SiteLink's (messy round 7).
   if (!validAbn(abn)) throw fail(400, 'That ABN is not valid. Check the 11 digits.');
-  const changed = (req.company.name && name !== req.company.name) || (req.company.abn && abn.replace(/\s/g, '') !== req.company.abn.replace(/\s/g, ''));
+  // Capitals alone are not a change of name, so a name saved in lower case before can take them.
+  const changed = (req.company.name && name.toLowerCase() !== String(req.company.name).toLowerCase()) || (req.company.abn && abn.replace(/\s/g, '') !== req.company.abn.replace(/\s/g, ''));
   if (changed) {
     const used = await db.one("SELECT COUNT(*) AS n FROM events WHERE company_id = $1 AND type IN ('download_pdf', 'download_word', 'swms_saved')", [req.company.id]);
     // How to have them corrected, said in full (messy round 8, stuck point 3: "Contact support" said
@@ -146,7 +149,7 @@ router.put('/company', requireUser, route(async (req, res) => {
   if (body.logo && !readLogo(body.logo)) throw fail(400, 'The logo could not be read. Use a PNG or JPEG image under 400 KB.');
   const logo = body.logo === '' ? '' : (readLogo(body.logo) ? body.logo : req.company.logo);
   await db.query('UPDATE companies SET name = $1, abn = $2, address = $3, phone = $4, email = $5, logo = $6 WHERE id = $7', [
-    textField(body.name, 200), textField(body.abn, 40), textField(body.address, 300), textField(body.phone, 60), textField(body.email, 200), logo, req.company.id,
+    name, textField(body.abn, 40), textField(body.address, 300), textField(body.phone, 60), textField(body.email, 200), logo, req.company.id,
   ]);
   // One free trial per ABN: a business whose ABN has already had a trial goes straight to subscribing.
   const digits = abn.replace(/\s/g, '');

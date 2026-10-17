@@ -101,8 +101,28 @@ async function lookUp(query, fetchImpl, timeoutMs) {
   }
 }
 
-// Whether a suggestion names the suburb or town typed after the street ("parramatta").
-const namesPlace = (item, words) => words.length > 0 && words.every((word) => new RegExp(`\\b${word.replace(/[^a-z0-9'-]/g, '')}\\b`, 'i').test(item.text));
+// Whether a suggestion names the suburb or town typed after the street ("parramatta"), allowing a slip
+// typed in it (messy round 9: "parramtta", "woodvile" and "allenby gardns" matched no suggestion, so the
+// lookup's own order, or a state picked before, ranked the list).
+function slips(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 3;
+  let row = Array.from({ length: b.length + 1 }, (_x, i) => i);
+  for (let i = 1; i <= a.length; i += 1) {
+    const next = [i];
+    for (let j = 1; j <= b.length; j += 1) next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    row = next;
+  }
+  return row[b.length];
+}
+const nearWord = (typed, word) => typed === word || (typed.length >= 4 && slips(typed, word) <= (typed.length >= 7 ? 2 : 1));
+const namesPlace = (item, words) => {
+  if (!words.length) return false;
+  const said = String(item.text || '').toLowerCase().split(/[^a-z0-9'-]+/).filter(Boolean);
+  return words.every((word) => { const typed = word.replace(/[^a-z0-9'-]/g, ''); return said.some((other) => nearWord(typed, other)); });
+};
+// The street number typed ("14 macquarie st", "2/14 smith st"), and whether a suggestion has it.
+const typedNumber = (query) => { const found = /(?:^|[\s,/-])(\d{1,5}[a-z]?)\s+[a-z]/i.exec(query); return found ? found[1].toLowerCase() : ''; };
+const hasNumber = (item, number) => Boolean(number) && new RegExp(`(?:^|[\\s,/-])${number}(?![\\d])`, 'i').test(String(item.text || '').split(',')[0]);
 
 // Suggestions as { text, state }, Australian addresses only, best fit first (messy round 3, 14 October
 // 2026: "12 smith st darwin" offered four Queensland addresses first, because a state nobody chose
@@ -143,7 +163,10 @@ async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000, near = '
     }
     // Lower is better: in another state than the one typed, not naming the place typed, not in the
     // state wanted, a business rather than an address.
-    const rank = (item) => (typed.state && item.state !== typed.state ? 8 : 0) + (namesPlace(item, words) ? 0 : 4) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0);
+    // A suggestion with the street number typed, and the suburb typed, comes first (messy round 9: "Macquarie
+    // St, Sydney NSW", with no number and the wrong suburb, came before "14 Macquarie St, Parramatta NSW").
+    const number = typedNumber(query);
+    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? 0 : 4) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0);
     const suggestions = list.map((item, at) => ({ item, at })).sort((a, b) => rank(a.item) - rank(b.item) || a.at - b.at).map(({ item }) => item).slice(0, 6);
     toCache(key, suggestions);
     return { enabled: true, suggestions };

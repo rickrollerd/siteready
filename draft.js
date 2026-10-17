@@ -39,7 +39,7 @@ const TENDER_POINTER = /,?[ \t]*(?:all[ \t]+)?(?:(?:as|where)[ \t]+(?:(?:specifi
 // drawings or specification ("as detailed on the kitchen consultant's drawings and spec").
 const LIST_BULLET = /^[ \t]*(?:[\u00b7\u2022\u2023\u2043\u2219\u25aa\u25ab\u25cf\u25cb\u25e6\u25a0\u25a1\u27a2\u27a4\u25ba\u2713\u2714*\u2013\u2014]|-(?!\d))[ \t]*(?=\S)/gm;
 const COMMERCIAL_LABEL = /(^|[.;]\s+|\n)[ \t]*(?:(?:variation|provisional|alternative|alternate|optional|separable|additional|extra)(?:[ \t]+(?:price|cost|sum|scope))?(?:[ \t]+(?:options?|items?|prices?|sums?|portions?|works?))?|p\.?c\.?[ \t]+(?:sums?|items?)|prime[ \t]+cost(?:[ \t]+(?:sums?|items?))?|lump[ \t]+sum|price[ \t]+options?|(?:option|alternative|separable portion)[ \t]+\d+|tender[ \t]+(?:items?|options?))[ \t]*:[ \t]*/gi;
-const DRAWING_POINTER = /,?[ \t]*(?:as|where)[ \t]+(?:specified|detailed|shown|noted|described|outlined|documented|nominated|indicated)[ \t]+(?:in|on|by|per)[ \t]+(?:the[ \t]+)?(?:[\w'\u2019-]+[ \t]+){0,3}?(?:drawings?|documents?|documentation|specifications?|specs?|plans?|schedules?)(?:[ \t]+(?:and|&)[ \t]+(?:the[ \t]+)?(?:drawings?|specifications?|specs?|spec|plans?|schedules?))?\b/gi;
+const DRAWING_POINTER = /,?[ \t]*(?:(?:as|where)[ \t]+(?:specified|detailed|shown|noted|described|outlined|documented|nominated|indicated)[ \t]+(?:in|on|by|per)|as[ \t]+per)[ \t]+(?:the[ \t]+)?(?:[\w'\u2019-]+[ \t]+){0,3}?(?:drawings?|documents?|documentation|specifications?|specs?|plans?|schedules?)(?:[ \t]+(?:and|&)[ \t]+(?:the[ \t]+)?(?:drawings?|specifications?|specs?|spec|plans?|schedules?))?\b/gi;
 // A scope's own headings and the contract's words for who does the work are not the work either (messy
 // round 8, run 5: "The scope of work includes but is not limited to the following principal areas: - The
 // Subcontractor shall paint ..." named the SWMS, its files and its task line). "The Contractor" in a
@@ -49,16 +49,24 @@ const SCOPE_LEAD_IN = /(^|[.;]\s+|\n)[ \t]*(?:(?:the|this|our)[ \t]+)?(?:(?:sub-
 const SCOPE_HEADING = /^[ \t]*(?:the[ \t]+)?(?:(?:sub-?contract|trade)[ \t]+)?scope(?:[ \t]+of[ \t]+(?:the[ \t]+)?works?)?[ \t]*:?[ \t]*$/gim;
 const WHO_SHALL = /(^|[.;:]\s+|\n)[ \t]*(?:the[ \t]+)?(?:sub-?contractor|trade[ \t]+contractor)[ \t]+(?:shall|will|must|is[ \t]+to|is[ \t]+required[ \t]+to|has[ \t]+allowed[ \t]+(?:to|for)|allows?[ \t]+(?:to|for)|to)[ \t]+(?=[a-z])/gi;
 const PRICE_LABEL_AFTER = /[ \t]*[:,\u2013\u2014-][ \t]*(?:variation(?:[ \t]+price)?(?:[ \t]+option)?|provisional[ \t]+sum|p\.?c\.?[ \t]+(?:sum|item)|prime[ \t]+cost(?:[ \t]+(?:sum|item))?|price[ \t]+option|optional[ \t]+(?:item|extra|price)|separable[ \t]+portion(?:[ \t]+\d+)?|alternative[ \t]+price|option[ \t]+\d+)(?:[ \t]*\([^)]*\))?[ \t]*(?=[.;]|\n|$)/gi;
+// A pointer to a section or clause of the contract, or to its price breakdown, and "including but not
+// limited to" say nothing of the work either (messy round 9, run 6: 'as per ... the Section "6.1
+// Subcontract Sum Breakdown", including but not limited to:' stayed in the task line).
+// A section in capitals is the contract's ("the Section 6.1"); "section 3 of the fence" is the work.
+const SECTION_POINTER = /,?[ \t]*(?:(?:and|&)[ \t]+)?(?:(?:as[ \t]+)?per[ \t]+|in[ \t]+accordance[ \t]+with[ \t]+|under[ \t]+|in[ \t]+|refer[ \t]+to[ \t]+)?(?:the[ \t]+)?(?:Sections?|SECTIONS?|Clauses?|CLAUSES?|Annexure|ANNEXURE|Appendix|APPENDIX)[ \t]*(?:["\u201c\u2018'][^"\u201d\u2019'\n]{1,80}["\u201d\u2019']|\d+(?:\.\d+)*[a-z]?(?:[ \t]+(?:(?:and|&|of)[ \t]+)?[A-Z][\w'\u2019-]*)*)(?:[ \t]+of[ \t]+(?:the[ \t]+)?(?:[Ss]ub-?[Cc]ontract|[Cc]ontract|[Tt]ender|[Ss]pecification|[Ss]pec|[Ss]cope)(?:[ \t]+(?:[Dd]ocuments?|[Ww]orks))?)?/g;
+const PRICE_POINTER = /,?[ \t]*(?:(?:and|&)[ \t]+)?(?:(?:as[ \t]+)?per[ \t]+|in[ \t]+accordance[ \t]+with[ \t]+|under[ \t]+|in[ \t]+)?(?:the[ \t]+)?(?:(?:(?:sub-?contract|contract|trade|tender)[ \t]+)?(?:sum|price|pricing|cost|rates?)[ \t]+(?:breakdown|schedule)|schedule[ \t]+of[ \t]+(?:rates|prices|quantities)|bills?[ \t]+of[ \t]+quantities)\b/gi;
+const NOT_LIMITED = /,?[ \t]*\(?[ \t]*(?:but|and)[ \t]+(?:is[ \t]+|are[ \t]+)?not[ \t]+(?:necessarily[ \t]+)?limited[ \t]+to[ \t]*\)?,?/gi;
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
   const lines = String(value || '').replace(SCOPE_HEADING, '').split(/\r?\n/).map((line) => {
     const bare = line.replace(CLAUSE_NUMBER, '').replace(LIST_BULLET, '');
     return bare !== line && /\w$/.test(bare.trim()) ? `${bare.trim()}.` : bare;
   });
-  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(PRICE_LABEL_AFTER, '')
+  const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(SECTION_POINTER, '').replace(PRICE_POINTER, '').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(PRICE_LABEL_AFTER, '')
     .replace(SCOPE_LEAD_IN, (_whole, lead) => `${lead}\u0000`).replace(WHO_SHALL, (_whole, lead) => `${lead}\u0000`)
-    .replace(COMMERCIAL_LABEL, (_whole, lead) => `${lead}\u0000`).replace(/(?:\u0000\s*)+(\S)?/g, (_whole, first) => (first ? first.toUpperCase() : ''));
-  return cleanLine(text.replace(/[ \t]+([.,;:])/g, '$1').replace(/,(?=[.;:])/g, ''));
+    .replace(COMMERCIAL_LABEL, (_whole, lead) => `${lead}\u0000`).replace(/(?:\u0000\s*)+(\S)?/g, (_whole, first) => (first ? first.toUpperCase() : ''))
+    .replace(NOT_LIMITED, '').replace(/,?[ \t]*\bincluding[ \t]*:/gi, ':');
+  return cleanLine(text.replace(/[ \t]+([.,;:])/g, '$1').replace(/,(?=[.;:])/g, '').replace(/([.;:])(?:\s*\.)+/g, '$1'));
 }
 
 function blankName(value) {
@@ -720,12 +728,15 @@ const HEIGHT_CONTEXT = /\b(height|high|fall|falls|falling|roof|roofs|roofing|abo
 function statedHeights(text) {
   const heights = [];
   for (const line of sentences(text)) {
-    if (!HEIGHT_CONTEXT.test(line)) continue;
+    // A level crossing, or ground or street level, is not a height (messy round 9, run 5: "600m of track
+    // ... at grange rd level xing" read as work 600 m up).
+    if (!HEIGHT_CONTEXT.test(line.replace(/\blevel (?:crossings?|xings?|x-ings?)\b|\b(?:ground|street|road|grade|footpath|floor|pavement) level\b/gi, ' '))) continue;
     const pattern = /\b(\d+(?:\.\d+)?)\s*m(?:etre|eter)?s?\b/gi;
     let match;
     while ((match = pattern.exec(line))) {
       const after = line.slice(match.index + match[0].length, match.index + match[0].length + 12);
-      if (/^\s*(deep|long|wide|length|width|away|from|clear)\b/i.test(after)) continue;
+      // "600m of track" is a length.
+      if (/^\s*(deep|long|wide|length|width|away|from|clear|of)\b/i.test(after)) continue;
       heights.push(Number(match[1]));
     }
   }
@@ -2508,7 +2519,7 @@ function weakAnswers(input) {
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
       const typed = cleanLine(facts[item.id]);
-      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed.slice(0, 40)}" does not answer this question.` : '');
+      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });
 }
@@ -2640,6 +2651,12 @@ function controlsFor(task, facts, pack) {
     // has its own row under "Documents to keep on site" and prints whole in the step that cuts or drills, so
     // it is not said again in this table.
     if (item.id === 'silicaControls') continue;
+    // So does every answer with its own row there (messy round 9, A fault 10: "slabs on ground only, no
+    // suspended deck." and "timber edge forms, no proprietary system." printed as Administrative controls as
+    // well), and the harness answer, which prints whole in the step that uses the harness ("harness in the
+    // ewp basket." was an Administrative control).
+    // A hold point for a design not issued yet stays a control too: the work waits for it.
+    if (item.id === 'harnessSystem' || (REFERENCE_FACTS.some(([id]) => id === item.id) && !/^Hold point:/.test(value))) continue;
     if (value && (item.applies(source) || item.fromPpe || (item.printsWhenAsked && pack && pack.asked && pack.asked.has(item.id)))) {
       // A sentence another line here already says word for word is not said twice.
       const line = controlRows(value).filter((row) => !items.some((other) => other.text.includes(row))).join(' ');
@@ -3762,14 +3779,24 @@ const FALL_HAZARD = /^(?:an? |the )?(?:person |worker |people )?(?:falls?|fallin
 // drowning, whatever the height (a jetty deck 1.5 m above a river).
 const LOW_ACCESS_ONLY = (line) => /\binto (?:the )?water\b/i.test(line) || (/\b(?:ladders?|step platforms?|mobile scaffolds?|trestles?|podium steps?)\b/i.test(line)
   && !/\b(?:height|roofs?|edges?|elevating|ewps?|boom|scissor|voids?|shafts?|penetrations?|skylights?|openings?|more than \d)\b/i.test(line));
+// Where the task's own words say the work is at height ("at roof edges from EWPs"), a person's fall from the
+// ladder, platform or EWP the step rates High counts too (messy round 9, run 3: only the note under the
+// question was shown, and the file said no one could fall 2 m beside harness and anchor lines). A fall into
+// a hole, a trench or water does not.
+const PERSON_FALL_FROM = /^(?:an? |the )?(?:person |worker )?(?:falls?|falling) (?:from|off|through)\b/i;
 function withFallCheck(out, input) {
   if (!out || out.kind !== 'draft' || fallAnswer(input && input.fallRisk) !== 'no') return out;
-  const steps = (out.jobSteps || []).filter((step) => ['High', 'Extreme'].includes(step.risk && step.risk.before && step.risk.before.level)
-    && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && FALL_HAZARD.test(String(line).trim()) && !LOW_ACCESS_ONLY(String(line)))).map((step) => step.step);
-  if (!steps.length) return out;
+  const { fallEdgeLeftOut: leftOut = [], ...rest } = out;
   const metres = out.fallMetres || 2;
+  const taskHigh = fallRisk(taskLine((input && (input.task || input.jobDescription)) || ''), metres);
+  const fallLine = (line) => (FALL_HAZARD.test(line) && !LOW_ACCESS_ONLY(line)) || (taskHigh && PERSON_FALL_FROM.test(line) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b/i.test(line));
+  // Every step that rates such a fall High is named (messy round 9, run 8: "Install the green roof layers"
+  // and "Plant the green roof" were not).
+  const steps = (out.jobSteps || []).filter((step) => ['High', 'Extreme'].includes(step.risk && step.risk.before && step.risk.before.level)
+    && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && fallLine(String(line).trim()))).map((step) => step.step);
+  if (!steps.length && !leftOut.length) return rest;
   const kept = Boolean(input && input.fallNoKept === true);
-  return { ...out, fallConflict: { steps, metres, kept }, ...(kept ? { fallRisk: `No. No work is done where a person could fall ${metres} metres or more.` } : {}) };
+  return { ...rest, fallConflict: { steps, metres, kept, ...(leftOut.length ? { leftOut } : {}) }, ...(kept ? { fallRisk: `No. No work is done where a person could fall ${metres} metres or more.` } : {}) };
 }
 // The spelling fixed in the task line, with every draft, so the page's "Spelling fixed" note follows the
 // task as it is now (messy round 8, run 8: it still said "stuart to start" after the task was retyped).
@@ -4015,7 +4042,9 @@ function buildDraft(input, screen) {
     contents: state.contents,
     // "Not applicable" prints as given, where no principal contractor is appointed for the work.
     principalContractor: keptFact(input.principalContractor) || noneAnswer(input.principalContractor),
-    subcontractor: blankName(input.company || input.subcontractor),
+    // Typed all in lower case, it prints with its capitals, as SiteLink and the saved profile give them
+    // (messy round 9, run 3: "lockwise security" in the header).
+    subcontractor: require('./sitelink-answers').tidyName(blankName(input.company || input.subcontractor)),
     companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
     siteManager: keptFact(input.siteManager),
@@ -4148,7 +4177,7 @@ function buildDraft(input, screen) {
     const fromSite = highRiskMatches(riskText, pack.fallAnswer, state).map(labelOf).filter((label) => !own.has(label));
     if (fromSite.length) draft.highRisk = draft.highRisk.filter((label) => !fromSite.includes(label));
   }
-  draft.jobSteps = withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state), facts, [...(draft.references || []), ...(draft.controls || [])]);
+  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
   // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
   // reason (D311, round 6 content decision 2). It comes off the list wherever it is found, and prints as
@@ -4500,9 +4529,12 @@ function addedPlantSteps(choice, task = '', flags = {}) {
 // A step for working at an edge ("Work at edges", "Work near slab edges") where the user answered that no
 // one could fall 2 m or more (messy round 4: "Work at edges" printed "wherever a fall of 2 m or more is
 // possible" with falls No). Steps that put up the edge protection stay.
+// The steps left out are named with the falls check (messy round 9, run 8: "Work at podium edges" went with
+// no word).
+const EDGE_STEP = /^Work (?:at|near) (?:the )?[\w ,]*\bedges?\b/;
 function withoutEdgeWork(steps, input) {
   if (fallAnswer(input.fallRisk) !== 'no') return steps;
-  return steps.filter((step) => !/^Work (?:at|near) (?:the )?[\w ,]*\bedges?\b/.test(step.step));
+  return steps.filter((step) => !EDGE_STEP.test(step.step));
 }
 
 function stepsAndPpe(task, facts, hazards, controls, state, input) {
@@ -4521,7 +4553,10 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // Plant the user confirmed brings the steps for using it (messy round 4: painting from a confirmed EWP
   // and mobile scaffold, with an airless sprayer added, had no height step and no spray step).
   const access = { ...fallAccessFlags(task, facts, state, fallAnswer(input.fallRisk)), ...confirmedPlantSteps(input, tradeFlags(task, facts, state), task) };
-  let jobSteps = withoutEdgeWork(jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']), ...access }, setting), input);
+  const found = jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']), ...access }, setting);
+  let jobSteps = withoutEdgeWork(found, input);
+  const userLeftOut = new Set(Array.isArray(input.leaveOut) ? input.leaveOut : []);
+  const edgeLeftOut = found.filter((step) => !jobSteps.includes(step) && !userLeftOut.has(step.step)).map((step) => step.step);
   // PPE the job steps call for is ticked, so the PPE section and the steps agree.
   // A list the user chose is left as they chose it.
   if (!Array.isArray(input.ppe)) {
@@ -4581,7 +4616,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   jobSteps = finishSteps(jobSteps, stripOutPlant(combinedFacts(task, state.siteShared ? { ...facts, siteConditions: '' } : facts)), permitOptions(task, state));
   jobSteps = withOurSlinging(jobSteps, state);
   const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
-  return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
+  return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe, ...(edgeLeftOut.length ? { fallEdgeLeftOut: edgeLeftOut } : {}) };
 }
 
 // ---- Each step's permits, control order and responsible position (builder check W10 to W12) ----
@@ -5557,9 +5592,13 @@ const REFERENCE_FACTS = [
 // The ACT sets no written silica assessment, so its reference is the silica controls.
 const STATE_REFERENCE_LABELS = { act: { silicaControls: 'Silica controls' } };
 
+// An answer that says the document is not needed for this work ("slabs on ground only, no suspended deck")
+// prints as that, in the person's own words (messy round 9, A fault 10).
+const NOT_NEEDED_ANSWER = /\b(?:not (?:needed|required|applicable|used)|n\/a|no (?:(?:suspended|formwork|proprietary|engineered|temporary|supplier'?s?|jump ?form|precast|steel|stressing|piling|working) )*(?:decks?|systems?|designs?|formwork|props?|propping|falsework|instructions|procedures?|platforms?|erection|stressing)(?: (?:is |are )?(?:used|needed|required|involved))?)\b/i;
+const notNeededText = (text) => (NOT_NEEDED_ANSWER.test(text) && !/^not needed\b/i.test(text) ? `Not needed for this work: ${text}` : text);
 function referencesFor(facts, stateId) {
   return REFERENCE_FACTS
-    .map(([id, label]) => ({ label: (STATE_REFERENCE_LABELS[stateId] || {})[id] || label, text: keptFact(facts[id]) }))
+    .map(([id, label]) => ({ label: (STATE_REFERENCE_LABELS[stateId] || {})[id] || label, text: ['safetyDataSheet', 'silicaControls'].includes(id) ? keptFact(facts[id]) : notNeededText(keptFact(facts[id])) }))
     .filter((item) => item.text);
 }
 
@@ -8358,6 +8397,25 @@ const FACT_STEP = {
   craneChart: /\b(?:cranes?|hiab|monorail)\b/i,
   groundBearing: /\b(?:cranes?|hiab|outriggers?)\b/i,
 };
+// The harness answer prints whole, once, in the first step that uses a harness, or else the first step at
+// height, or Before starting: not as a line of the Controls table (messy round 9, A fault 10). It prints where
+// it printed before: where the task names a harness, or where it was asked.
+function withHarnessAnswer(steps, facts, pack, source) {
+  const item = CATEGORY_FACTS.find((entry) => entry.id === 'harnessSystem');
+  const value = keptFact((facts || {}).harnessSystem);
+  if (!Array.isArray(steps) || !steps.length || !item || !value) return steps;
+  if (!(item.applies(source) || (pack && pack.asked && pack.asked.has('harnessSystem')))) return steps;
+  const line = asSentence(value);
+  const flat = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  if (steps.some((step) => (step.controls || []).some((other) => flat(other).includes(flat(line))))) return steps;
+  const work = (step) => !['Before starting', 'Finish and clean up'].includes(step.step);
+  let at = steps.findIndex((step) => work(step) && (step.controls || []).some((other) => /\bharness/i.test(other)));
+  if (at < 0) at = steps.findIndex((step) => work(step) && /\b(?:elevating work platforms?|ewps?|boom|roofs?|edges?|heights?|scaffold\w*|swing stages?)\b/i.test(step.step));
+  if (at < 0) at = steps.findIndex((step) => step.step === 'Before starting');
+  if (at < 0) at = 0;
+  return steps.map((step, index) => (index === at ? { ...step, controls: [...(step.controls || []), line] } : step));
+}
+
 function withAskedFacts(steps, required, facts, elsewhere) {
   if (!Array.isArray(steps) || !steps.length) return steps;
   const flat = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();

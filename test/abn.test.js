@@ -31,7 +31,7 @@ test('a sole trader reads as a person, and a cancelled ABN says so', async () =>
 test('not found, invalid, unreachable and switched off', async () => {
   process.env.ABR_GUID = 'test-guid';
   assert.equal((await abn.lookupAbn('51824753556', { fetchImpl: reply({ Abn: '', Message: 'Search text is not a valid ABN or ACN' }) })).found, false);
-  assert.equal((await abn.lookupAbn('12345678901', { fetchImpl: () => { throw new Error('should not call'); } })).error, 'That is not a valid ABN.');
+  assert.equal((await abn.lookupAbn('12345678901', { fetchImpl: () => { throw new Error('should not call'); } })).error, 'That ABN is not valid. Check the 11 digits.');
   const down = await abn.lookupAbn('33051775556', { fetchImpl: async () => { throw new Error('offline'); } });
   assert.equal(down.found, false);
   assert.match(down.error, /not available/);
