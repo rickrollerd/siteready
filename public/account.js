@@ -220,6 +220,9 @@
 
   async function refresh() {
     if (!session) return renderBar();
+    // While a kept session is checked, the bar does not say "Sign in" (messy round 10: the office, still
+    // signed in, read the signed-out bar for a moment on reopening the page and took it as signed out).
+    if (!me && config.accounts && $('account-bar')) $('account-bar').innerHTML = '<span class="bar-note" role="status">Checking your sign-in...</span>';
     try {
       me = await call('GET', '/api/me');
       // Company details typed before signing in fill the company's empty ones and are saved to it.

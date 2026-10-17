@@ -819,6 +819,11 @@ function hardFails(swms, state, stage = 'review') {
   const alsoCheck = hazardOnly.length ? ` Also check, as the hazards name it: ${hazardOnly.map((item) => item.label).join('; ')}.` : '';
   const add = (rule, title, pass, message) => out.push({ rule, title, hard: true, pass, points: 0, max: 0, message, source: sourceFor(rule, state) });
   const noState = state ? '' : ' No state was given, so the national model WHS Regulations categories were used.';
+  // Each item the SWMS marks "Does not apply" is said, with its reason, so the reviewer sees the writer's
+  // call (messy round 10, SiteLink blocker 1: the builder never saw "movement of powered mobile plant"
+  // marked as not applying).
+  const reason = (text) => String(text || '').trim().replace(/[.\s]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
+  const ourCall = swms.notApply.length ? ` Marked "Does not apply" by the SWMS writer: ${swms.notApply.map((item) => `${item.label || item.id} (reason: ${reason(item.reason)})`).join('; ')}.` : '';
 
   // Nothing listed and nothing found in the task is not a fail: the work may not be high risk.
   // Steps marked "HRCW" say the work is high risk construction work, even where no category is listed.
@@ -826,11 +831,11 @@ function hardFails(swms, state, stage = 'review') {
   const marked = !swms.highRisk.length && swms.steps.some((step) => /\b(hrcw|high risk construction work)\b/i.test(step.step));
   add('H1', 'High risk construction work identified', (Boolean(swms.highRisk.length) || (!impliedLeft.length && !marked)) && !missing.length,
     (marked && !impliedLeft.length ? 'Steps are marked as high risk construction work, but the SWMS does not say which categories. List them.'
-      : !swms.highRisk.length && !impliedLeft.length && swms.notApply.length ? `No high risk construction work is listed. The SWMS says why each item found does not apply to this work.${alsoCheck}`
+      : !swms.highRisk.length && !impliedLeft.length && swms.notApply.length ? `No high risk construction work is listed.${alsoCheck}`
       : !swms.highRisk.length && !impliedLeft.length ? `No high risk construction work is listed, and none was found in the task. Check whether the work needs a SWMS.${alsoCheck}`
       : !swms.highRisk.length
       ? `The SWMS does not say which high risk construction work it covers.${impliedLeft.length ? ` The work involves: ${impliedLeft.map((item) => item.label).join('; ')}.` : ''}`
-      : missing.length ? `The work involves high risk construction work the SWMS does not list: ${missing.map((item) => item.label).join('; ')}.${alsoCheck}` : `The high risk construction work is identified.${alsoCheck}`) + noState);
+      : missing.length ? `The work involves high risk construction work the SWMS does not list: ${missing.map((item) => item.label).join('; ')}.${alsoCheck}` : `The high risk construction work is identified.${alsoCheck}`) + (marked && !impliedLeft.length ? '' : ourCall) + noState);
 
   // Railway detonators are track signals, so a rail SWMS that ticks explosives for them is not
   // using explosives.

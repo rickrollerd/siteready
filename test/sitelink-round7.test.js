@@ -125,7 +125,8 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
     Maintenance: 'folded:Testing and commissioning',
     'Trade installation: cells': `folded:${MAIN}`,
     'Demolition and removal': 'list',
-    'Trade installation: plant room': 'noLaw',
+    // Messy round 10, blocker 7: work set aside is titled by its work too.
+    'Fit out the plant room': 'noLaw',
     'Maintenance in the defects period': 'defects',
   });
   assert.equal(list.filter((item) => !item.removedWhy).length, 10);
@@ -358,7 +359,7 @@ test('on the lead\'s page: 10 SWMS, the log says SiteLink read the scope only on
 test('a SWMS with no job steps is marked, and the list cannot be sent until its work names the job', async () => {
   const b = await setUp('r7steps');
   const { subId, page } = await readScope(b);
-  const room = page.items.find((item) => item.title === 'Trade installation: plant room');
+  const room = page.items.find((item) => item.title === 'Fit out the plant room');
   assert.equal(room.group, 'aside');
   // Folded work with no steps of its own is drafted with its main SWMS: nothing on the list is empty yet.
   assert.ok(!page.items.some((item) => item.group === 'list' && item.noSteps));
@@ -366,8 +367,8 @@ test('a SWMS with no job steps is marked, and the list cannot be sent until its 
   assert.equal(next.items.find((item) => item.id === room.id).noSteps, true);
   const refused = await call('POST', `/api/hse/subcontracts/${subId}/send/preview`, { reviewer: b.lead, body: { due: inDays(14) } });
   assert.equal(refused.status, 400);
-  assert.equal(refused.data.message, 'SiteWrite has no job steps yet for Trade installation: plant room, so the subcontractor would get that SWMS with none. Change the work so it says what is done, or remove it. Each is marked on the list.');
-  assert.deepEqual(refused.data.noSteps, ['Trade installation: plant room']);
+  assert.equal(refused.data.message, 'SiteWrite has no job steps yet for Fit out the plant room, so the subcontractor would get that SWMS with none. Change the work so it says what is done, or remove it. Each is marked on the list.');
+  assert.deepEqual(refused.data.noSteps, ['Fit out the plant room']);
   // Reworded to name the job, in lower case: it gets a capital, its steps, and the list can go.
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${room.id}`, { reviewer: b.lead, body: { task: 'install chillers, pumps and pipework in the plant room.' } })).data;
   const reworded = next.items.find((item) => item.id === room.id);

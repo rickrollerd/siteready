@@ -118,52 +118,9 @@ function itemOf(row, view, rows = []) {
   };
 }
 
-// A note from the scope that one of the lead's answers settles is marked so, with the answer (messy
-// round 8, blocker 3: "CCTV and Duress are listed as exclusions" beside the lead's answer that they are in
-// the scope, and the subcontractor could not tell which stood). A note settles only on its own subject:
-// the words after the work it names ("Install stormwater drainage system: the staging requirements are
-// not defined" is about staging), matched against what the point asked. The same work, or words the
-// work's name shares, are not enough (messy round 9, blocker 4: the stormwater staging note was marked
-// settled by the answer on the sewer connection point, a point on the same line of the reading).
-const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'there', 'which', 'while', 'where', 'whether', 'when', 'what', 'have', 'been', 'will', 'shall', 'must', 'also', 'into', 'only', 'other', 'others', 'than', 'said', 'says', 'listed', 'stated', 'given', 'scope', 'works', 'work', 'subcontractor', 'contractor', 'contractors', 'builder', 'clause', 'clauses', 'item', 'items', 'install', 'installs', 'installed', 'installation', 'provide', 'provides', 'provided', 'confirm', 'confirmed', 'includ', 'include', 'includes', 'included', 'exclud', 'yes',
-  'requirement', 'defin', 'define', 'detail', 'specifi', 'specify', 'advis', 'advise', 'known', 'unknown', 'clear', 'unclear', 'state', 'note', 'supply', 'suppli', 'supplie']);
-const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').split(/[^a-z0-9]+/)
-  .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
-// The note's own subject: the words after "{the work}: ", when the note starts with the work it is about.
-function noteSubject(entry) {
-  const text = String((entry && entry.text) || '');
-  const activity = String((entry && entry.activity) || '').replace(/[.\s]+$/, '').trim();
-  if (activity && text.toLowerCase().startsWith(`${activity.toLowerCase()}:`)) return text.slice(activity.length + 1);
-  const at = text.indexOf(': ');
-  return at > 0 && at <= 80 && !/[.;]/.test(text.slice(0, at)) ? text.slice(at + 2) : text;
-}
-function withSettled(item, answers) {
-  if (!item || !(item.draftNotes || []).length || !(answers || []).length) return item;
-  const draftNotes = item.draftNotes.map((entry) => {
-    const own = stems(noteSubject(entry));
-    const found = answers.find((answer) => {
-      const asked = [...stems(answer.question)].filter((word) => own.has(word)).length;
-      const said = [...stems(`${answer.question} ${answer.answer}`)].filter((word) => own.has(word)).length;
-      // Two words of the subject in the point, or one in what it asked about the same work.
-      return said >= 2 || (asked >= 1 && Boolean(entry.activity) && answer.activity === entry.activity);
-    });
-    return found ? { ...entry, settled: found.answer } : entry;
-  });
-  return { ...item, draftNotes };
-}
-
-// Each note as plain words, once, with any price taken out. A note may be kept as words or as
-// { note | text | question, activity, clause }.
-function notesOf(list) {
-  const out = [];
-  for (const entry of Array.isArray(list) ? list : []) {
-    const raw = typeof entry === 'string' ? entry : entry && typeof entry === 'object' ? entry.note || entry.text || entry.question || '' : '';
-    const text = handover.sentence(handover.quoteWithoutPrices(String(raw || '')));
-    if (!text || out.some((one) => one.text === text)) continue;
-    out.push({ text, clause: entry && typeof entry === 'object' ? handover.wordsWithoutPrices(entry.clause || '') : '', ...(entry && typeof entry === 'object' && entry.activity ? { activity: handover.wordsWithoutPrices(entry.activity) } : {}) });
-  }
-  return out.slice(0, 20);
-}
+// A note from the scope settled by one of the lead's answers, and each note as plain words: in
+// handover.js, so the lead's preview shows the same notes (messy round 10, blocker 2).
+const { withSettled, notesOf } = handover;
 
 // The list as the company opens it: the builder, the project, who it is for, the due date, each SWMS,
 // the builder's answers, the site details with the version, and what the builder set.
@@ -325,11 +282,13 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
   const who = String(req.user.name || (given && !given.includes('@') ? given : '')).slice(0, 200);
   const now = new Date();
   const kept = { project, page };
+  let offBefore = [];
   const saved = await db.transaction(async (tx) => {
     const row = await tx.one('SELECT version, body, updated_at FROM sub_progress WHERE subcontract_id = $1 AND company_id = $2 FOR UPDATE', [found.sub.id, req.company.id]);
     const current = row ? Number(row.version) : 0;
     if (row && sameWork(row.body, kept)) return { version: current, at: row.updated_at };
     if (current !== base) return { behind: true, current };
+    offBefore = offIds(row && row.body);
     if (row) {
       await tx.query('UPDATE sub_progress SET body = $1, seen = $2, overrides = $3, version = $4, updated_by = $5, updated_by_name = $6, updated_at = $7 WHERE subcontract_id = $8 AND company_id = $9',
         [JSON.stringify(kept), JSON.stringify(seen), JSON.stringify(overrides), current + 1, req.user.id, who, now, found.sub.id, req.company.id]);
@@ -347,8 +306,26 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
     const latest = await progressView(found, req.company, list);
     throw Object.assign(fail(409, `This list was saved on another device${latest.updatedBy ? ` by ${latest.updatedBy}` : ''} on ${latest.updatedOn}. The newest work is shown.`), { progress: latest });
   }
+  if (!saved.at) await logOffList(found, req.company, who, offBefore, offIds(kept), list);
   res.json({ version: saved.version, savedOn: when(saved.at || now, found.project.state), overrides });
 }));
+
+// The builder's SWMS the company took off its list, by id, from what it saved.
+const offIds = (body) => [...new Set(((body && body.project && Array.isArray(body.project.offList)) ? body.project.offList : [])
+  .map((item) => (item && typeof item.requiredId === 'string' ? item.requiredId : '')).filter(Boolean))];
+// Taking a SWMS off the list, or putting it back, goes in the log both sides see, as the page promises
+// ("... sees that you took it off"): messy round 10, the office took Ductwork off and put it back, and
+// neither reached the lead's log.
+async function logOffList(found, company, who, before, after, list) {
+  const titleOf = (id) => ((list.items || []).find((item) => item.requiredId === id) || {}).title || 'a SWMS';
+  const by = who && who !== company.name ? `${who} at ${company.name}` : company.name;
+  for (const id of after.filter((one) => !before.includes(one))) {
+    await logEntry({ projectId: found.project.id, subId: found.sub.id, kind: 'taken_off', actorKind: 'sub', actorName: who, summary: `${by} took ${titleOf(id)} off its list in SiteWrite. It is not submitted.` });
+  }
+  for (const id of before.filter((one) => !after.includes(one))) {
+    await logEntry({ projectId: found.project.id, subId: found.sub.id, kind: 'put_back', actorKind: 'sub', actorName: who, summary: `${by} put ${titleOf(id)} back on its list in SiteWrite.` });
+  }
+}
 
 // ---- The lead's Release button (D311), installed on hse.js's router ----
 

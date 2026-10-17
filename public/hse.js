@@ -935,11 +935,14 @@
 
   // Each SWMS's buttons name it, so a screen reader hears "Remove Controls", not "Remove" twelve times.
   function itemCard(item) {
-    const clauses = item.clauses.length ? `<p class="meta">From scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</p>` : item.source === 'added' ? '<p class="meta">Added by your team.</p>' : '';
+    const clauses = item.clauses.length ? `<p class="meta">From scope ${clauseWord(item.clauses)} ${esc(item.clauses.join('; '))}.</p>` : item.source === 'added' ? '<p class="meta">Added by your team.</p>' : '';
     const named = (verb) => `aria-label="${esc(`${verb} ${item.title}`)}"`;
     if (item.removed) {
       const back = item.group === 'aside' ? 'Move to the list' : 'Put back';
-      return `<div class="swms-item removed" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>${item.group === 'aside' ? hrcwLine(item.highRisk) : ''}${item.task ? `<p class="work">${esc(item.task)}</p>` : ''}${item.removedWhy ? `<p class="meta">${esc(item.removedWhy)}</p>` : ''}
+      // Work that may not need a SWMS says so once, in its own words for the lead, who is the builder (messy
+      // round 10, wording 4: the line said it twice and "The builder may still ask for a SWMS").
+      const said = item.group === 'aside' && !(item.highRisk && item.highRisk.status === 'none');
+      return `<div class="swms-item removed" id="item-${esc(item.id)}"><h3>${esc(item.title)}</h3>${said ? hrcwLine(item.highRisk) : ''}${item.task ? `<p class="work">${esc(item.task)}</p>` : ''}${item.removedWhy ? `<p class="meta">${esc(item.removedWhy)}</p>` : ''}
         <div class="actions"><button type="button" class="light" data-restore="${esc(item.id)}" ${named(back)}>${back}</button></div></div>`;
     }
     const also = item.alsoCovers && item.alsoCovers.length ? `<p class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</p>` : '';
@@ -1623,6 +1626,11 @@
 
   // ---- What the subcontractor sees ----
 
+  // The notes from the scope each SWMS's draft opens with, as the subcontractor sees them, each with the
+  // answer that settles it (messy round 10, blocker 2: the lead could not see a note marked settled by an
+  // answer on another subject).
+  const notesBlock = (notes, from) => ((notes || []).length ? `<div class="pv-notes"><p class="meta"><strong>Notes from the scope on its draft</strong></p><ul>${notes.map((entry) => `<li>${esc(entry.text)}${entry.clause ? ` <span class="meta">(clause ${esc(entry.clause)})</span>` : ''}${entry.settled ? ` <span class="pv-settled"><strong>Settled:</strong> your answer is "${esc(String(entry.settled).replace(/[.\s]+$/, ''))}".</span>` : ''}</li>`).join('')}</ul></div>` : '');
+
   async function showPreview(subId) {
     // Said at once: the page takes a few seconds to gather the list (messy round 7).
     view('preview');
@@ -1637,7 +1645,7 @@
     $('pv-intro').textContent = `This is what ${p.to} sees on the page the list email links to. SWMS you removed and points you did not answer are left out. Prices, rates and amounts from the scope are never shown.`;
     $('pv-back').href = `#/sub/${subId}`;
     // Only the list, with the high risk work each SWMS holds: never that it may not need a SWMS.
-    const swms = p.swms.length ? `<ol>${p.swms.map((item) => `<li><strong>${esc(item.title)}</strong><div>${esc(item.task)}</div>${item.alsoCovers && item.alsoCovers.length ? `<div class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</div>` : ''}${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}${item.clauses.length ? `<span class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join(', '))}.</span>` : ''}</li>`).join('')}</ol>`
+    const swms = p.swms.length ? `<ol>${p.swms.map((item) => `<li><strong>${esc(item.title)}</strong><div>${esc(item.task)}</div>${item.alsoCovers && item.alsoCovers.length ? `<div class="also">Also covers: ${esc(coversList(item.alsoCovers))}.</div>` : ''}${item.highRisk ? `<span class="hrcw hrcw-${esc(item.highRisk.status)}"><strong>${esc(item.highRisk.heading)}.</strong>${item.highRisk.line ? ` ${esc(item.highRisk.line)}.` : ''}</span>` : ''}${item.clauses.length ? `<span class="meta">Scope ${clauseWord(item.clauses)} ${esc(item.clauses.join('; '))}.</span>` : ''}${notesBlock(item.notes, p.from)}</li>`).join('')}</ol>`
       : '<p class="warn">No SWMS are on this list. Put one back or add one if this subcontract needs any.</p>';
     const answers = p.answers.length ? `<h3>Answers from ${esc(p.from)}</h3>${p.answers.map((item) => `<div class="qa"><p class="meta">${esc(item.activity)}${item.clause ? ` (${clauseWord([item.clause])} ${esc(item.clause)})` : ''}</p><p>${esc(item.question)}</p><p><strong>${esc(p.from)}:</strong> ${esc(item.answer)}</p></div>`).join('')}` : '';
     const details = p.siteDetails ? `<h3>Site details to use (version ${esc(p.siteDetails.rev)})</h3><dl class="details">${p.siteDetails.list.map((entry) => `<dt>${esc(entry.label)}</dt><dd>${Array.isArray(entry.value) ? `<ul>${entry.value.map((rule) => `<li>${esc(rule)}</li>`).join('')}</ul>` : esc(entry.value)}</dd>`).join('')}</dl>`

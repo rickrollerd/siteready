@@ -33,10 +33,12 @@ const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
 const { withMass } = require('./public/mass');
 
 // High risk construction work SiteWrite found that the user marked "Does not apply" (D311): one line
-// each, as the user's call, with their reason.
+// each, as the user's call, with their reason, which starts with a capital (messy round 10, wording 8:
+// "Reason: no plant moves where we balance").
+const reasonText = (reason) => String(reason || '').trim().replace(/[.\s]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
 function notApplyLines(draft) {
   return ((draft && draft.highRiskNotApply) || []).filter((item) => item && item.label && item.reason)
-    .map((item) => `Does not apply (our call): ${item.label}. Reason: ${String(item.reason).trim().replace(/[.\s]+$/, '')}.`);
+    .map((item) => `Does not apply (our call): ${item.label}. Reason: ${reasonText(item.reason)}.`);
 }
 const safe = (text) => withMass(String(text || '').toWellFormed().replace(CONTROL, ' '));
 

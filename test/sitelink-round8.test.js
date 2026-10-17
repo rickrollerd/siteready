@@ -329,7 +329,8 @@ test('a site answer filled across to every SWMS of a project does not make each 
   assert.ok(!ids({ ...testing, siteShared: true }).includes('trench'));
   assert.ok(ids({ ...testing, siteShared: true }).includes('electrical'), 'its own words still bring energised work');
   const project = fs.readFileSync(path.join(__dirname, '..', 'public', 'project-go.js'), 'utf8');
-  assert.match(project, /siteShared: !item\.siteOwn && project\.items\.length > 1 \? true : undefined,/);
+  // Messy round 10: a SWMS with its own answers still sends those it has as the project gave them.
+  assert.match(project, /siteShared: project\.items\.length < 2 \? undefined : !item\.siteOwn \? true : sharedIds\(item\.siteOwn\),/);
 });
 
 // ---- Blocker 3: scope notes the lead's answers have settled ----

@@ -93,6 +93,15 @@
   const revisionText = (draft) => `Revision ${draft.revision || 1}${draft.revisionDate || draft.date ? `, ${draft.revisionDate || draft.date}` : ''}`;
   const table = (block) => (block ? `<h3>${esc(block.title)}</h3><p class="note">${esc(block.note)}</p>${grid(block.head, block.rows, block.files)}` : '');
 
+  // High risk work SiteWrite found that the writer marked "Does not apply", each with the writer's reason,
+  // as the Word file and the PDF print it (D311; messy round 10, SiteLink blocker 1: the builder's view
+  // left it out, so the builder never saw the subcontractor's call).
+  const notApply = (draft) => (draft.highRiskNotApply || []).filter((item) => item && item.label && item.reason);
+  const reasonText = (reason) => String(reason || '').trim().replace(/[.\s]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
+  const ourCall = (draft) => (notApply(draft).length ? `<ul class="our-call">${notApply(draft).map((item) => `<li><strong>Does not apply (${esc(callBy(draft))}'s call):</strong> ${esc(item.label)}. Reason: ${esc(reasonText(item.reason))}.</li>`).join('')}</ul>` : '');
+  // Whose call it is: the subcontractor's name where the SWMS gives it.
+  const callBy = (draft) => String(draft.subcontractor || '').trim() || 'the subcontractor';
+
   function sheet(draft, tables, checked = [], prepared = null) {
     const steps = draft.jobSteps || [];
     const stepRows = steps.map((step, index) => `<tr>
@@ -110,7 +119,7 @@
       [`Fall of more than ${draft.fallMetres || 2} metres`, draft.fallRisk], ['Date', draft.date]])}
       <h3>Responsibilities</h3>${pairs([['Works manager', draft.worksManager], ['Contact phone', draft.worksManagerPhone], ['Person responsible for ensuring compliance with this SWMS', draft.complianceResponsible],
         ['Person responsible for reviewing the control measures', draft.reviewer], ['Review date', draft.reviewDate]])}
-      <h3>High risk construction work</h3>${(draft.highRisk || []).length ? `<ul>${draft.highRisk.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>` : '<p>This task is not identified as high risk construction work.</p>'}
+      <h3>High risk construction work</h3>${(draft.highRisk || []).length ? `<ul>${draft.highRisk.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>` : notApply(draft).length ? '' : '<p>This task is not identified as high risk construction work.</p>'}${ourCall(draft)}
       ${table(tables.designs)}
       ${(draft.controls || []).length ? `<h3>Controls</h3><table class="pairs"><tbody>${draft.controls.map((item) => `<tr><th>${esc(item.level)}</th><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>` : ''}
       <h3>Job steps</h3><div class="table-wrap"><table class="steps"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${stepRows}</tbody></table></div>
@@ -167,7 +176,7 @@
     const direct = page && !page.subcontract.claimed;
     let more = '';
     if (entry.status === 'outstanding') {
-      more = `${entry.backNote ? `<span class="meta">You sent it back on ${esc(entry.backOn)}: ${esc(entry.backNote)}</span>` : ''}${direct
+      more = `${entry.backNote ? `<span class="meta">You sent it back on ${esc(entry.backOn)}: ${esc(entry.backNote)}${/[.!?]$/.test(entry.backNote) ? '' : '.'}</span>` : ''}${direct
         ? `<span class="meta">${esc(company)} is not on SiteWrite, so you close it yourself once it is done.</span><button type="button" class="light small" data-cond-confirm="${esc(entry.id)}">Confirm it is done</button>`
         : `<span class="meta">Waiting for ${esc(company)} to mark it done.</span>`}`;
     } else if (entry.status === 'done') {
@@ -176,7 +185,9 @@
         <label class="meta" for="back-${esc(entry.id)}">Or say what is still needed</label><input type="text" id="back-${esc(entry.id)}" maxlength="500" autocomplete="off">
         <button type="button" class="light small" data-cond-back="${esc(entry.id)}">Not done yet</button></span>`;
     } else {
-      more = `<span class="meta">Confirmed by ${esc(entry.closedBy)} on ${esc(entry.closedOn)}.</span>`;
+      // What the subcontractor said it did stays beside it once confirmed (messy round 10: the foreman's note
+      // went from the review page when the lead confirmed it; the log kept it).
+      more = `${entry.doneBy ? `<span class="meta">Marked done by ${esc(entry.doneBy)} on ${esc(entry.doneOn)}${entry.doneNote ? `: ${esc(entry.doneNote.replace(/[.\s]+$/, ''))}` : ''}.</span>` : ''}<span class="meta">Confirmed by ${esc(entry.closedBy)} on ${esc(entry.closedOn)}.</span>`;
     }
     return `<li class="cond" id="cond-${esc(entry.id)}"><span class="tag cond-${esc(entry.status)}">${CONDITION_STATE[entry.status] || esc(entry.status)}</span> ${esc(entry.text)}${more}</li>`;
   }
@@ -384,7 +395,10 @@
       $('band').textContent = data.band;
       $('band').className = `band ${data.band === 'Accepted' ? 'accepted' : data.band === 'Accepted with changes' ? 'changes' : 'rejected'}`;
       const must = data.findings.filter((item) => item.hard && !item.pass).length;
-      $('check-line').textContent = `${must ? `${must} must-fix item${must === 1 ? '' : 's'}. ` : 'No must-fix items. '}${(data.preStart || []).join(' ')}`;
+      // High risk work the writer marked "Does not apply" is said up front, not only in the findings (messy
+      // round 10, SiteLink blocker 1).
+      const ourCallLine = data.findings.some((item) => item.rule === 'H1' && /Marked "Does not apply"/.test(item.message || '')) ? ' High risk work is marked "Does not apply" by the SWMS writer: see H1 under Findings.' : '';
+      $('check-line').textContent = `${must ? `${must} must-fix item${must === 1 ? '' : 's'}. ` : 'No must-fix items. '}${(data.preStart || []).join(' ')}${ourCallLine}`;
       const ordered = [...data.findings.filter((item) => item.hard && !item.pass), ...data.findings.filter((item) => !item.hard && !item.pass), ...data.findings.filter((item) => item.pass)];
       $('findings').innerHTML = ordered.map((item) => `<li class="${item.pass ? 'pass' : 'fail'}"><span class="rule">${esc(item.rule)} ${esc(item.title)}</span>
         ${item.hard ? (item.pass ? ' (passed)' : ' (must fix)') : ` (${esc(item.points)} of ${esc(item.max)})`}<div>${esc(item.message)}</div><div class="source">Source: ${esc(item.source)}</div></li>`).join('');

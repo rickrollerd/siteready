@@ -315,7 +315,9 @@ function draftBody(body) {
     // The site answers were given once for the whole project and filled across to this SWMS (the one-go
     // page): the high risk work they alone bring is not this SWMS's own (messy round 8 and 9, SiteLink
     // blocker: dropped here, every SWMS still took trench rescue from "open trenches during drainage").
-    siteShared: body.siteShared === true ? true : undefined,
+    // Or the ids of the answers still as given for the project, when this SWMS changed others for itself
+    // (messy round 10, SiteLink blocker 4).
+    siteShared: body.siteShared === true ? true : Array.isArray(body.siteShared) ? (body.siteShared.filter((id) => ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].includes(id)).length ? body.siteShared.filter((id) => ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].includes(id)) : undefined) : undefined,
     // Work another SWMS of the project named this one as covering (D289): [{ part, from }].
     movedIn: Array.isArray(body.movedIn) ? body.movedIn.filter((item) => item && typeof item === 'object' && typeof item.part === 'string').slice(0, 30).map((item) => ({ part: textField(item.part, 400), from: textField(item.from, 300) })).filter((item) => item.part) : undefined,
     // The SWMS the user named for each part another SWMS covers ({ part: SWMS name }), kept with the record.
