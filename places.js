@@ -203,7 +203,10 @@ const EMERGENCY_NAME = /\bemergency (?:room|department|dept)\b/i;
 // first, nearest first (messy round 8, run 7: Queanbeyan at 11.5 km was listed before a hospital at 7.3 km
 // because only one of the two ED searches returned the nearer one). Other public hospitals follow, then
 // private ones.
-const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || Boolean(item.ed);
+// A private hospital counts only where its listing is named as an emergency department: the nearest-first
+// "hospital emergency department" search returns the nearest hospitals of any kind, so a private hospital
+// with no emergency department came first (messy round 9, runs 5, 7 and 8).
+const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || (Boolean(item.ed) && !/\bprivate\b/i.test(item.name));
 const hospitalRank = (item) => (hasEmergency(item) ? 0 : /\bprivate\b/i.test(item.name) ? 3 : 2);
 // General practices and medical centres before other practices.
 const clinicRank = (item) => (/\b(medical (?:centre|center|clinic|practice|group)|family (?:medical|practice|doctors)|general practice|GP|doctors)\b/i.test(item.name) ? 0 : 1);

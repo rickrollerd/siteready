@@ -84,8 +84,10 @@ test('a suspended slab pour from a scope has no slab on ground steps, no rubbish
 test('a slab on ground poured by pump sets up the pump before placing the concrete', () => {
   const draft = draftOf({ ...SITE, fallRisk: 'no', task: 'Place and finish the concrete ground slab, pumped with a line pump.', kinds: ['slabPour', 'concrete'] });
   const steps = names(draft);
-  assert.ok(steps.includes('Place concrete'));
-  assert.ok(steps.indexOf('Set up the concrete pump and placing boom') < steps.indexOf('Place concrete'), `${steps}`);
+  // One placing step (messy round 9): the pumped placing takes in "Place concrete".
+  const place = steps.includes('Place concrete') ? 'Place concrete' : 'Pump and place concrete';
+  assert.ok(steps.includes(place) && !(steps.includes('Place concrete') && steps.includes('Pump and place concrete')), `${steps}`);
+  assert.ok(steps.indexOf('Set up the concrete pump and placing boom') < steps.indexOf(place), `${steps}`);
 });
 
 test('formwork stripped from slabs on "Levels 1, 2 and roof" is not old roofing', () => {

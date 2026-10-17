@@ -336,8 +336,11 @@ const checkable = (line) => CHECKABLE.test(line) || NAMED_EQUIPMENT.test(line);
 const OPERATOR_COMPETENT = /\b(voc'?s?|voc'?d|voc’d|verification of competen\w*|licen[cs]\w*|tickets?|ticketed|competen\w*|assessed as competent|trained and assessed|operator (?:cards?|tickets?)|yellow card|hrw|high risk work|accredit\w*|qualified)\b/i;
 // A plant item named in a line, singular or plural ("Excavator" in "Excavator VOC", "excavators"),
 // or by its first words ("skid steer loaders" in "Skid steer or posi-track: VOC").
-const namesPlant = (name, line) => [name, name.split(' ').slice(0, -1).join(' ')].filter(Boolean)
-  .some((words) => new RegExp(`\\b${words.replace(/s$/i, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(line));
+// "EWP" and "elevating work platform" name the same plant (messy round 9, run 7: an own "Truck mounted knuckle
+// boom EWP, 20 m: WP high risk work licence" was asked for an elevating work platform licence).
+const plantWords = (text) => String(text || '').replace(/\bewps?\b/gi, 'elevating work platform');
+const namesPlant = (name, line) => [plantWords(name), plantWords(name).split(' ').slice(0, -1).join(' ')].filter(Boolean)
+  .some((words) => new RegExp(`\\b${words.replace(/s$/i, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(plantWords(line)));
 const ALL_OPERATORS = /\b(?:all |each |every )?(?:plant|machinery|machine|equipment|mobile plant) (?:operators?|is operated|are operated)\b|\boperators? of (?:all |any )?(?:plant|machinery|equipment)\b/i;
 const LICENSED_PLANT = [
   { plant: /\b(mobile |crawler |tower |franna |slewing )?cranes?\b/i, licence: /\b(c[0-9]|cn|cv|ct|c2|c6|c1|crane|dogg\w*|rigg\w*|d[gs]|r[bia]|hrw|high risk work)\b/i },
@@ -1370,7 +1373,10 @@ function weighted(swms, state, context) {
     // product (messy round 8: paint "Not required" beside four paint steps; a reviewer caught it, the check
     // did not).
     const rules = require('./public/substance-rules');
-    const usedAnyway = (swms.notRequired || []).filter((type) => rules.TYPES.includes(type) && type !== rules.SILICA).map((type) => ({ type, used: rules.usedByStep(type, { jobSteps: steps }) })).filter((item) => item.used);
+    // Silica beside a step whose own hazard is the silica dust it makes, wood dust beside a step cutting timber,
+    // and fuel beside a line refuelling the crew's plant count too (messy round 9: "supplied and applied by
+    // others" beside "Silica dust from ballast", and fuel "by others" beside the refuelling line, unflagged).
+    const usedAnyway = (swms.notRequired || []).filter((type) => rules.TYPES.includes(type) && !(type === rules.SILICA && silicaCut)).map((type) => ({ type, used: rules.usedByStep(type, { jobSteps: steps }) || (/^Fuels/.test(type) ? rules.refuelStep({ jobSteps: steps }) : null) })).filter((item) => item.used);
     for (const item of usedAnyway) fixes.push(`${item.type} is marked "Not required", but the step "${item.used.step}" uses "${item.used.word.toLowerCase()}". List the product used, with its safety data sheet, or take the step off.`);
     points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0) - (silicaCut || usedAnyway.length ? 2 : 0));
     add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length || products.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');

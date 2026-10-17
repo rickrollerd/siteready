@@ -350,6 +350,11 @@
       },
       {
         "state": "wa",
+        "name": "Excavation Code of practice 2022 (WA)",
+        "item": "^Excavation\\b"
+      },
+      {
+        "state": "wa",
         "name": "Managing the risk of falls at workplaces Code of practice 2022 (WA)",
         "item": "^Managing (?:the )?risks? of falls at workplaces\\b"
       },
@@ -830,6 +835,19 @@
       {
         "state": "wa",
         "name": "Managing electrical risks in the workplace Code of practice 2025 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-excavation",
+    "jurisdiction": "Western Australia",
+    "title": "Excavation Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-excavation",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Excavation Code of practice 2022 (WA)"
       }
     ]
   },

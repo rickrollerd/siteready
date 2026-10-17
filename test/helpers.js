@@ -68,7 +68,9 @@ function ready(input) {
     const products = listedTypes.map((type, n) => ({ id: `sub-${n + 90}`, type, product: `${rules.SHORT.get(type)} used on this job`, controls: ['Wear the gloves and eye protection the safety data sheet sets out'], sdsDate: '2026-01-15', step: rules.matchStep(type, draft.jobSteps) ? '' : (type === rules.SILICA ? rules.cutStep(draft) : '') || ((draft.jobSteps || [])[1] || {}).step || '', confirmed: true }));
     const left = (notUsed || []).filter((type) => !listedTypes.includes(type));
     const named = left.filter((type) => rules.notUsedNeed(type, '', rules.ownWords(input), rules.stepWords(draft)));
-    const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, 'Supplied and applied by others'])) : undefined);
+    // Fuel beside a line refuelling the crew's plant takes no "by others" reason (messy round 9), so another is given.
+    const reasonFor = (type) => (rules.notUsedNeed(type, 'Supplied and applied by others', rules.ownWords(input), rules.stepWords(draft), '', '', draft) ? 'Not used by our crew on this job' : 'Supplied and applied by others');
+    const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, reasonFor(type)])) : undefined);
     out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: products.length ? left : notUsed } : {}), ...(products.length ? { substances: products } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
   }
   return out;

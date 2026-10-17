@@ -58,7 +58,8 @@ async function pdfWords(data) {
 // ---- The types stay prompts; a draft with no product is unchanged ----
 
 test('the types are the same as the register listed, and a draft with no product added has no products and no product lines', () => {
-  assert.equal(R.TYPES.length, 19);
+  // Pool chemicals and garden products joined the list in messy round 9.
+  assert.equal(R.TYPES.length, 21);
   assert.ok(R.TYPES.every((label) => R.SHORT.has(label)));
   const d = draft(POUR);
   assert.deepEqual(d.substances.items.map((item) => item.product), ['Cement, concrete, grout and mortar', 'Curing compounds and form release agents', 'Respirable crystalline silica (concrete, masonry, tile and stone dust)', 'Fuels (diesel, petrol)']);
