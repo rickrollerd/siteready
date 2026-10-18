@@ -103,9 +103,12 @@ const NT = { state: 'nt', residential: 'no', fallRisk: 'no', crane: 'own', task:
 test('the crane chart and ground questions go with the crane lift steps that print them', () => {
   const ids = (input) => questionsFor(draftBody(input)).required.map((item) => item.id);
   assert.deepEqual(ids({ ...NT, kinds: ['crane', 'loaderCrane', 'landscape'] }), ['craneChart', 'groundBearing']);
-  assert.deepEqual(ids({ ...NT, kinds: ['loaderCrane', 'landscape'] }), []);
+  // The hiab's own step prints them too (messy round 7), so they are asked while it is ticked, as with no step
+  // touched (messy round 12, A run 2: an untick elsewhere took them away in the preview).
+  assert.deepEqual(ids({ ...NT, kinds: ['loaderCrane', 'landscape'] }), ['craneChart', 'groundBearing']);
+  assert.deepEqual(ids({ ...NT, kinds: ['landscape'] }), []);
   // Not stood down for want of them either.
-  const draft = prepareDraft(draftBody(ready({ ...NT, kinds: ['loaderCrane', 'landscape'] })));
+  const draft = prepareDraft(draftBody(ready({ ...NT, kinds: ['landscape'] })));
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
 });
 
@@ -122,7 +125,7 @@ test('a question about work whose steps were taken off is not asked; one from th
 
 test('the harness answer asked for a harness in the PPE prints in the SWMS', () => {
   const line = 'Full body harness and rescue line kept at the trench for rescue only, inspected every 6 months by Joel Martin.';
-  const draft = prepareDraft(draftBody(ready({ ...NT, kinds: ['loaderCrane', 'landscape'], ppe: ['hardHat', 'boots', 'harness'], facts: { harnessSystem: line } })));
+  const draft = prepareDraft(draftBody(ready({ ...NT, kinds: ['loaderCrane', 'landscape'], ppe: ['hardHat', 'boots', 'harness'], facts: { harnessSystem: line, craneChart: 'HIAB chart: 1.5 t at 6 m.', groundBearing: 'The council engineer\'s report confirms the footpath carries the outrigger loads; 600 mm pads under each.' } })));
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
   // Whole, once, in a step, not as a line of the Controls table (messy round 9).
   assert.equal(draft.jobSteps.flatMap((step) => step.controls).filter((text) => text.includes('rescue line kept at the trench')).length, 1);

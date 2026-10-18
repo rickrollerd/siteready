@@ -560,6 +560,8 @@
     // No state is ticked until the job address is picked or the state chosen (D292 item 1): the
     // questions are asked once it is, and the page says so meanwhile.
     if (!document.querySelector('input[name="state"]:checked')) {
+      // Work kept on this device is still coming back, with its state: the page waits for it.
+      if (S.restoring && S.restoring() && S.restored) { S.restored.then(() => askItem(index)); return; }
       if (!(asked.get(index) || {}).needsState) { asked.set(index, { needsState: true }); drawItem(index); }
       setTimeout(() => askItem(index), 600);
       return;
@@ -696,7 +698,7 @@
       ${n ? `<div class="actions go-prepare"><button type="button" id="go-prepare">Prepare all ${n} SWMS</button></div>` : ''}
       <div class="meta" id="go-status" role="status"></div>
       <div class="actions"><button type="button" class="small secondary" id="project-close">${builder() ? 'Close the list' : 'Close project'}</button></div>`;
-    project.items.forEach((_item, index) => notesFor(index));
+    project.items.forEach((_item, index) => { reopenOwnForm(index); notesFor(index); });
     sharedNotes();
     if (!project.items.every((_item, index) => asked.has(index))) askAll();
   }
@@ -705,6 +707,7 @@
     const body = $(`go-body-${index}`);
     if (!body) return;
     body.innerHTML = itemBody(index);
+    reopenOwnForm(index);
     notesFor(index);
     drawCoverSum();
   }
@@ -875,8 +878,9 @@
     askItem(index);
   }
   // The form for one step, under the button pressed: its name, hazards and controls one a line, and who.
-  function ownForm(index, part, step) {
-    const value = step || { part, name: String(part || '').replace(/^[a-z]/, (letter) => letter.toUpperCase()), hazards: [], controls: [], who: 'Supervisor' };
+  function ownForm(index, part, step, typed = null) {
+    const value = typed ? { part, name: typed.name, hazards: [typed.hazards], controls: [typed.controls], who: typed.who }
+      : step || { part, name: String(part || '').replace(/^[a-z]/, (letter) => letter.toUpperCase()), hazards: [], controls: [], who: 'Supervisor' };
     const id = (key) => `go-own-${key}-${index}`;
     return `<div class="own-step-form go-own-form" id="go-own-form-${index}" data-part="${esc(value.part || '')}" data-was="${esc(step ? step.name : '')}" role="group" aria-labelledby="${id('title')}">
       <p class="own-form-title" id="${id('title')}"><strong>${esc(value.part ? `${step ? 'Change your step' : 'Write a step'} for: ${value.part}` : step ? `Change your step: ${step.name}` : 'Write a step of your own')}</strong></p>
@@ -892,10 +896,34 @@
     document.querySelectorAll('.go-own-form').forEach((el) => el.remove());
     const holder = button.closest('li') || button.closest('p') || button;
     holder.insertAdjacentHTML('afterend', ownForm(index, part, step));
+    keepOwnForm(index);
     const form = $(`go-own-form-${index}`);
     if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const name = $(`go-own-name-${index}`);
     if (name && name.focus) name.focus({ preventScroll: true });
+  }
+  // A step of your own half typed is kept with the project as it is typed, and opened again as it was after a
+  // reload (messy round 12, A run 1: it came back empty; flow10 kept it inside one SWMS only).
+  function keepOwnForm(index) {
+    const form = $(`go-own-form-${index}`);
+    if (!form || !project) return;
+    const box = (key) => String(($(`go-own-${key}-${index}`) || {}).value || '');
+    project.ownForm = { index, part: form.dataset.part || '', was: form.dataset.was || '', name: box('name'), hazards: box('hazards'), controls: box('controls'), who: box('who') };
+    save();
+  }
+  function dropOwnForm() {
+    if (project && project.ownForm) { delete project.ownForm; save(); }
+  }
+  // Drawn again with the SWMS's section (after a reload, or once its questions come back), where it was.
+  function reopenOwnForm(index) {
+    const kept = project && project.ownForm;
+    if (!kept || kept.index !== index || !project.items[index] || document.querySelector(`#go-own-form-${index}.go-own-form`)) return;
+    const step = kept.was ? ownOf(project.items[index]).find((other) => other.name === kept.was) || null : null;
+    const at = kept.part ? coverLeftOf(index).indexOf(kept.part) : -1;
+    const holder = document.querySelector(`[data-go-own-write="${index}"][data-part="${at < 0 ? '' : at}"]`) || document.querySelector(`[data-go-own-write="${index}"]`);
+    const place = holder ? holder.closest('li') || holder.closest('p') || holder : $(`go-cover-${index}`) || $(`go-body-${index}`);
+    if (!place) return;
+    place.insertAdjacentHTML(holder ? 'afterend' : 'beforeend', ownForm(index, kept.part, step, kept));
   }
   const linesOf = (text) => String(text || '').split(/\n+/).map((line) => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
   function saveOwn(index) {
@@ -925,6 +953,7 @@
     const at = list.findIndex((other) => other.name === was);
     if (at >= 0) list[at] = next; else list.push(next);
     form.remove();
+    dropOwnForm();
     ownSaid = { index, text: `Saved your step "${next.name}" for SWMS ${index + 1}. It goes into the SWMS when it is prepared.` };
     setOwn(index, list);
     drawItem(index);
@@ -985,7 +1014,7 @@
       const el = $(`go-site-${id}`);
       if (!el) continue;
       const value = String(site[id] || '').trim();
-      const need = value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id) }, value) : '';
+      const need = value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id), ...(rules.SITE_KIND && rules.SITE_KIND[id] ? { kind: rules.SITE_KIND[id] } : {}) }, value) : '';
       setNote(el, `go-need-go-site-${id}`, need ? `Needed before download: ${need}` : '');
     }
   }
@@ -1080,6 +1109,8 @@
       if (button) button.disabled = false;
     }
   }
+  // The words that say what a SWMS of the project is: its title, its task as given and as changed, and its plant.
+  const workWordsOf = (item) => [item.title, item.task, item.goTask, item.body && item.body.task, ...(item.plantNames || []), ...(Array.isArray(item.plant) ? item.plant : [])].filter((part) => typeof part === 'string' && part).join('\n');
   // The SWMS that use an answer given in one SWMS and filled across.
   const usingFact = (index, questionId) => project.items.map((_item, at) => at).filter((at) => at === index || ((project.items[at].filledFrom || {})[questionId] === index));
   const usingShared = () => project.items.map((item, at) => (item.siteOwn ? -1 : at)).filter((at) => at >= 0);
@@ -1103,6 +1134,20 @@
       const theirs = (other.facts || {})[questionId] || '';
       const fromHere = (other.filledFrom || {})[questionId] === index;
       if (theirs && !fromHere) return;
+      // A fall control, harness or trench answer goes only where the SWMS's own work fits it (messy round 12):
+      // one that no longer fits, as it is typed, is taken back out of the SWMS it was filled into.
+      const rules = gate();
+      if (value && rules && rules.workFits && (rules.ACROSS_WORK_IDS || []).includes(questionId) && !rules.workFits(value, workWordsOf(other))) {
+        if (!fromHere) return;
+        other.facts = { ...(other.facts || {}), [questionId]: '' };
+        delete other.filledFrom[questionId];
+        const was = $(`go-${at}-${questionId}`);
+        if (was && was.tagName === 'TEXTAREA') was.value = '';
+        else document.querySelectorAll(`[name="go-${at}-${questionId}"]`).forEach((radio) => { radio.checked = false; });
+        notesFor(at);
+        askSoon(at);
+        return;
+      }
       other.facts = { ...(other.facts || {}), [questionId]: value };
       other.filledFrom = { ...(other.filledFrom || {}), [questionId]: index };
       if (!value) delete other.filledFrom[questionId];
@@ -1148,6 +1193,8 @@
   function onInput(event) {
     if (!project || project.stage !== 'questions') return;
     const target = event.target;
+    const ownBox = /^go-own-(?:name|hazards|controls|who)-(\d+)$/.exec(target.id || '');
+    if (ownBox) { keepOwnForm(Number(ownBox[1])); return; }
     if (target.dataset.goTask !== undefined) {
       const index = Number(target.dataset.goTask);
       project.items[index].goTask = target.value;
@@ -1435,7 +1482,7 @@
     const ownSave = event.target.closest('[data-go-own-save]');
     if (ownSave) { saveOwn(Number(ownSave.dataset.goOwnSave)); return; }
     const ownCancel = event.target.closest('[data-go-own-cancel]');
-    if (ownCancel) { const form = $(`go-own-form-${ownCancel.dataset.goOwnCancel}`); if (form) form.remove(); return; }
+    if (ownCancel) { const form = $(`go-own-form-${ownCancel.dataset.goOwnCancel}`); if (form) form.remove(); dropOwnForm(); return; }
     const takeOff = event.target.closest('[data-go-take-off]');
     if (takeOff && builder()) {
       const index = Number(takeOff.dataset.goTakeOff);

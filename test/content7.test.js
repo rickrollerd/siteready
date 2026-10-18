@@ -301,7 +301,7 @@ test('fuel needs a reason beside petrol-driven plant lines, and solvent cement a
 // ---- 8. Order and repeats ----
 
 test('steps go in the order the work is done, and a general step is not repeated beside its own', () => {
-  const trench = draftOf({ state: 'nt', fallRisk: 'no', crane: 'ours', slinging: 'ours', kinds: pickKinds(['trench'], 'Stormwater drainage: lay and joint the pipes, backfill and compact. hiab truck to unload pipes, concrete saw to cut the kerb', 'nt'), task: 'Stormwater drainage: excavate a trench 1.2 m deep, lay and joint the pipes, backfill and compact. hiab truck to unload pipes, concrete saw to cut the kerb' });
+  const trench = draftOf({ state: 'nt', fallRisk: 'no', crane: 'ours', slinging: 'ours', kinds: pickKinds(['trench'], 'Stormwater drainage: lay and joint the pipes, backfill and compact. hiab truck to unload pipes, concrete saw to cut the kerb', 'nt'), task: 'Stormwater drainage: excavate a trench 1.2 m deep, lay and joint the pipes, backfill and compact. hiab truck to unload pipes, concrete saw to cut the kerb' }, { craneChart: 'Hiab chart: 2 t at 6 m.', groundBearing: 'The builder\'s site manager checked the road for the outriggers; 600 mm pads under each.' });
   const at = (name) => names(trench).indexOf(name);
   assert.ok(at('Unload with the truck loading crane (hiab)') >= 0 && at('Unload with the truck loading crane (hiab)') < at('Lay pipes'), names(trench).join('; '));
   assert.ok(at('Saw cut concrete') < at('Excavate'), names(trench).join('; '));

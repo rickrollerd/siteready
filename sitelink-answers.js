@@ -134,11 +134,26 @@ function tidyName(text) {
 // A person with their role, "name, role" ("declan furlong, foreman"): the name takes its capitals and the
 // role its first capital, as the checker's do ("Tanya Pirelli, Ops manager"). An answer typed with any
 // capital is left as typed ("Sam Lee, supervisor").
+// A role typed after the name with no comma ("tara nguyen hse") is split off as the role: "Tara Nguyen, HSE"
+// (messy round 12, run 1: it printed "Tara Nguyen Hse"). Only the last word or two, and only where two words of
+// the name are left.
+const ROLE_TAIL = /\s+((?:(?:hse|whs|ohs|site|project|safety|works|construction|office|operations|ops)\s+)?(?:hse|whs|ohs|qhse|hseq|supervisor|foreman|forewoman|manager|leading hand|lead hand|engineer|director|officer|advisor|adviser|coordinator|admin|administrator|owner|pm|cm))$/;
+// An answer that names no one, only whose role it is ("the builders first aider"), reads as a role: "The
+// builder's first aider", not "The Builders First Aider" (messy round 12, run 5).
+const ROLE_PHRASE_WORDS = new Set([...ROLE_WORDS, 'builder\'s', 'contractor\'s', 'dogman', 'rigger', 'operator', 'spotter', 'labourer', 'apprentice']);
 function tidyPersonRole(text) {
   const value = clean(text);
   if (!value || /[A-Z]/.test(value)) return value;
   const at = value.indexOf(',');
-  if (at < 0) return tidyName(value);
+  if (at < 0) {
+    const words = value.split(/\s+/);
+    if (words.every((word) => ROLE_PHRASE_WORDS.has(word.replace(/[.']/g, '').replace(/s$/, '')) || ROLE_PHRASE_WORDS.has(word.replace(/[.]/g, '')))) {
+      return capitalFirst(value.replace(/\b(builder|contractor|client)s\s+(?=(?:site\s+)?(?:first|supervisor|manager|foreman|safety|hse|whs|engineer|crew)\b)/g, "$1's "));
+    }
+    const tail = ROLE_TAIL.exec(value);
+    if (tail && value.slice(0, tail.index).trim().split(/\s+/).length >= 2) return `${tidyName(value.slice(0, tail.index))}, ${tidyRole(tail[1])}`;
+    return tidyName(value);
+  }
   const rest = value.slice(at + 1).trim();
   return `${tidyName(value.slice(0, at))}${rest ? `, ${tidyRole(rest)}` : ','}`;
 }

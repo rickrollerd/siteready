@@ -110,6 +110,8 @@ function confirm(body, draft, { state, at = new Date(), doing = 'downloading', o
   const weakName = require('./public/gate-rules').checkerNameNeed(name);
   if (weakName) throw fail(400, weakName, { field: 'name' });
   if (!role) throw fail(400, 'Enter your role, for example Supervisor or Director.', { field: 'role' });
+  const weakRole = require('./public/gate-rules').checkerRoleNeed(role);
+  if (weakRole) throw fail(400, weakRole, { field: 'role' });
   if (check.ack !== true) throw fail(400, 'Tick the last box: this is a draft your business checks and approves before it is used.', { field: 'ack' });
   return {
     name, role, date: longDate(at),
