@@ -153,7 +153,7 @@ const BY_NAME = {
   'Install clean room walls and ceilings': 83, 'Cut and fix plasterboard': 83, 'Cut plasterboard': 83, 'Move and fix plasterboard sheets': 84, 'Fix ceiling sheets': 84,
   'Fix new wall sheets': 84, 'Install suspended grid ceilings': 84, 'Install raised access flooring': 84, 'Fix plant on its supports': 79.5, 'Move and set the boiler': 84,
   'Install plant and equipment on the roof': 79.6, 'Install split system indoor and outdoor units': 85, 'Fix the units in place': 85, 'Install the exhaust hood': 85,
-  'Deliver and install commercial kitchen equipment': 85, 'Install commercial laundry machines': 85, 'Set and connect the appliance': 85, 'Install the heater and flue': 85,
+  'Deliver and install commercial kitchen equipment': 85, 'Install commercial laundry machines': 85, 'Set and connect the appliance': 85.5, 'Install the heater and flue': 85,
   'Install and connect the pool heater': 85, 'Disconnect and connect the water heater': 85, 'Set and connect the water heater': 85, 'Install the pool plant': 85, 'Install the chemical dosing': 85,
   'Install the pool pump and filter': 85, 'Install the battery system': 85, 'Install the generators': 85, 'Install the fuel tanks and fuel lines': 85, 'Install boilers and pressure vessels': 85,
   'Connect the boiler': 86, 'Install the lift rails, car and machine': 85, 'Install the platform lift': 85, 'Install the stair lift': 85, 'Install the dumbwaiter': 85, 'Install the vehicle hoist': 85,
@@ -421,7 +421,7 @@ const FIRM = [
     ['Pressure test with nitrogen', 'Pressure test and commission', 'Pressure test the gas line', 'Pressure test the hydronic pipes'], ['Evacuate and charge the system', 'Commission hot water', 'Commission and balance the system']],
   [['Install risers and pipework', 'Install mechanical pipework', 'Install ductwork', 'Lay and fix the hydronic pipes'], ['Insulate ductwork and pipework']],
   [['Plumbing rough-in'], ['Plumbing fit-off']],
-  [['Set floor wastes, slot drains and floor gutters', 'Erect coolroom panels'], ['Deliver and install commercial kitchen equipment'], ['Plumbing fit-off']],
+  [['Set floor wastes, slot drains and floor gutters', 'Erect coolroom panels'], ['Deliver and install commercial kitchen equipment'], ['Set and connect the appliance', 'Plumbing fit-off']],
   // Electrical: containment, cable, the earthing, then testing and connection (round 11, run 2: the earthing after the HV test).
   [['Install cable tray and containment', 'Install communications containment', 'Rough-in'],
     ['Install cabling', 'Pull cables and handle cable drums', 'Pull in and terminate the cables', 'Pull communications cabling', 'Haul the optical fibre cable', 'Prepare and terminate the high voltage cables'],
@@ -482,6 +482,17 @@ const FIRM = [
   // The old concrete broken out before the new is poured, and the bearings replaced before the new nosing is poured
   // (B run 7: the pour moved above the break-out).
   [['Break out damaged concrete', 'Jack the deck and replace the bearings'], ['Pump and place concrete', 'Place concrete', 'Finish concrete', 'Finish the concrete']],
+  // Messy round 14. Cleaners do the glass and high work first and the floors last (B run 7: the floors were cleaned before
+  // the windows).
+  [['Clean windows and balconies', 'Clean windows from the EWP', 'Clean windows from the building maintenance unit'], ['Clean floors, fixtures and plant rooms']],
+  // Deliver before connect: the kitchen equipment delivered before the appliance is set and connected (A run 1), and the lift's
+  // rails and machine lifted into the shaft before they are installed (B run 5: the hoisting came after the install).
+  [['Deliver and install commercial kitchen equipment', 'Receive plant and move it into position'], ['Set and connect the appliance']],
+  [['Lift machines, rails and equipment into the shaft'], ['Install the lift rails, car and machine']],
+  // Build before backfill: the wall is built before the ground behind it is backfilled (A run 3: backfill moved above the wall
+  // named only the drainage).
+  [['Build the retaining wall', 'Excavate and set out the retaining wall', 'Form the retaining wall', 'Pour the retaining wall', 'Lay blocks and bricks', 'Build the stone wall', 'Build and fill gabion baskets', 'Fix the retaining wall reo'],
+    ['Install drainage behind the retaining wall', 'Waterproof walls below ground'], ['Backfill behind the retaining wall']],
 ];
 // For each step, the group it is in in each chain.
 const FIRM_AT = new Map();
@@ -489,8 +500,11 @@ FIRM.forEach((chain, c) => chain.forEach((group, g) => group.forEach((name) => {
   if (!FIRM_AT.has(name)) FIRM_AT.set(name, []);
   FIRM_AT.get(name).push([c, g]);
 })));
-// True where the work of step a must come before the work of step b.
+// True where the work of step a must come before the work of step b. "Before starting" comes before, and "Finish and clean
+// up" after, every other library step (messy round 14, B run 5: "Finish and clean up" moved above the install, and W17 said
+// nothing).
 function firmBefore(a, b) {
+  if (a !== b && ((a === 'Before starting' && own(BY_NAME, b)) || (b === 'Finish and clean up' && own(BY_NAME, a)))) return true;
   const atA = FIRM_AT.get(a) || [];
   const atB = FIRM_AT.get(b) || [];
   return atA.some(([c, g]) => atB.some(([c2, g2]) => c === c2 && g < g2));
@@ -505,7 +519,21 @@ function firmFaults(steps, nameOf = (step) => step.step) {
     const earlier = list.slice(0, index).findIndex((other) => firmBefore(name, other));
     if (earlier >= 0) faults.push({ step: name, at: index + 1, after: list[earlier], afterAt: earlier + 1 });
   });
-  return faults;
+  // The way up is set up before the work done from it (messy round 14, B run 7: "Use mobile scaffolds" moved below all the
+  // cleaning, after the floors, though the window step uses it). A way up with work before it and none after it is flagged
+  // against the first work at height, or the first work, before it.
+  // Set-up, temporary works and dismantling steps (a scaffold erected, inspected or taken down) are not work done from it.
+  const work = (name) => name !== 'Before starting' && name !== 'Finish and clean up' && !ACCESS.has(name) && !(typeof stageOf(name) === 'number' && (stageOf(name) < WORK_FROM || stageOf(name) >= 120));
+  const objects = Array.isArray(steps) ? steps : [];
+  list.forEach((name, index) => {
+    if (!ACCESS.has(name) || faults.some((item) => item.at === index + 1) || list.slice(index + 1).some(work)) return;
+    const before = list.map((other, at) => at).filter((at) => at < index && work(list[at]));
+    if (!before.length) return;
+    const high = before.find((at) => FALL_HAZARD(objects[at]));
+    const at = high !== undefined ? high : before[0];
+    faults.push({ step: name, at: index + 1, after: list[at], afterAt: at + 1 });
+  });
+  return faults.sort((a, b) => a.at - b.at);
 }
 
 const stageName = (stage) => {

@@ -526,6 +526,10 @@ const POWER_LINE = /\b(?<!underground )(?:overhead (?:(?:hv|lv|high voltage|low 
 const ELECTRICAL_WORK = /\b((?<!non[- ])electrical (?:work|installation work|fit[- ]?off|rough[- ]?in)|electricians?|rewir\w*|wiring|switchboards?|distribution boards?|circuits?|power points?|gpos?|light fittings?|solar|photovoltaic|pv (?:panels?|arrays?|systems?)|inverters?|connect\w*[^.\n]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|(?:energi[sz]ed|live) (?:low voltage |lv |electrical )?(?:work|testing|equipment|apparatus|conductors?|parts?|switchboards?|boards?|circuits?))\b/i;
 const LIVE_WORK = /\b((?:energi[sz]ed|live) (?:low voltage |lv |electrical )?(?:work|testing|equipment|apparatus|conductors?|parts?|switchboards?|boards?|circuits?)|work\w* (?:on|near) (?:exposed )?(?:energi[sz]ed|live)|fault[- ]?find\w*|live test\w*)\b/i;
 const NOT_LIVE = /\bno (?:electrical )?work is (?:done|carried out) on or near (?:exposed )?(?:energi[sz]ed|live) parts\b|\bno (?:energi[sz]ed|live) (?:electrical )?work\b/i;
+// Plant the task rules out ("No EWP's on tiled or carpet areas. Mobile scaffolds are to be used.") is not plant used (messy
+// round 14, B run 7: an EWP licence was asked after the EWP was taken off).
+const withoutBannedPlant = (text) => String(text || '').replace(/\bno (?:ewps?|elevating work platforms?|scissor lifts?|boom lifts?|cranes?|forklifts?)[’']?s?\b[^.]*|\b(?:ewps?|elevating work platforms?|cranes?)[’']?s? (?:are|is) not (?:to be used|used|permitted|allowed)\b[^.]*/gi, ' ');
+const TRAFFIC_PLAN_NAMED = /\b(?:traffic (?:management|guidance|control) (?:plans?|schemes?|diagrams?)|tgs|tmp|tcp)\b(?:[\s-]*(?:no\.?\s*)?[A-Z0-9][\w./-]*)?/i;
 const ROAD_WORDS = /\b(roads?|roadways?|streets?|highways?|motorways?|freeways?|traffic|footpaths?|verges?|carriageways?|kerbs?|intersections?)\b/i;
 const RAIL = /\b(railways?|railroads?|rail (?:corridors?|lines?|tracks?|network|traffic|infrastructure|bridges?|crossings?|reserves?|safety|access)|light rail|trams?|tramways?|trains?|track (?:work|side|possessions?|protection)|trackside|live track|danger zone)\b/i;
 // A crane named for a lift: in the task, a step name or the plant list, and not a lifting accessory
@@ -607,7 +611,7 @@ const MINIMUM = [
     { name: 'temporary support designed or checked by an engineer', pattern: /\b(engineer\w*|temporary works (?:design\w*|engineer\w*)|designed|certif\w*|propping (?:plans?|designs?|layouts?)|structural (?:assessment|advice))\b/i },
     { name: 'props, shoring or bracing in place before the load is taken off', pattern: /\b(props?|propp\w*|shor(?:e|es|ed|ing)|needles?|strongbacks?|temporary (?:supports?|beams?|works)|acrows?|brac\w*)\b/i } ] },
   { id: 'road', label: 'work beside a road', musts: [
-    { name: 'a traffic management plan or traffic guidance scheme',
+    { name: 'a traffic management plan or traffic guidance scheme', plan: true,
       pattern: /\b(traffic (?:management|guidance|control) (?:plans?|schemes?|designs?|diagrams?)|tmps?|tgs|tcps?|traffic management|as\s?1742(?:\.3)?|traffic control (?:devices|plans?)|road occupancy|traffic guidance)\b/i },
     { name: 'the work zone separated from traffic (barriers, cones, signs or traffic controllers)',
       pattern: /\b(barriers?|barricad\w*|cones|bollards?|delineat\w*|water[- ]filled|exclusion zones?|signs?|signage|traffic controllers?|stop[- ]slow|lane closures?|tmas?|truck[- ]mounted attenuators?|arrow boards?|speed (?:reductions?|limits?|zones?)|work ?zones?|buffer zones?|safety zones?)\b/i } ] },
@@ -808,7 +812,7 @@ function hardFails(swms, state, stage = 'review') {
   // there, and plant listed that works at height or moves about the site is used.
   const list = highRiskList(state);
   const workNames = swms.steps.map((step) => step.step).filter((name) => !checkOnly(name));
-  const impliedIds = new Set(highRiskMatches(asSentences([swms.task, ...workNames]), swms.fallRisk, state).map((item) => item.id));
+  const impliedIds = new Set(highRiskMatches(asSentences([withoutBannedPlant(swms.task), ...workNames]), swms.fallRisk, state).map((item) => item.id));
   // Road work is where the work is. It comes from the task, or from a step name that names the road on
   // its own, not from the task and a step read together ("on the footpath" with "Set up traffic
   // barriers"), nor from general step names: hauling loads on public roads is driving, not work beside
@@ -1160,7 +1164,7 @@ function weighted(swms, state, context) {
     if (swms.licences.length || /\b(white card|general construction induction|competen\w*|tickets?|licen[cs]\w*|trained|verification of competency|voc)\b/i.test(credentials)) points += 3; else fixes.push('List the licences, tickets and training the crew holds.');
     // The plant and work are read from the task, the step names and the plant list. Hazards and
     // controls mention a switchboard or a crane in passing ("RCD on the switchboard").
-    const work = [swms.task, ...steps.map((step) => step.step), ...swms.plant].join('\n');
+    const work = [withoutBannedPlant(swms.task), ...steps.map((step) => step.step), ...swms.plant].join('\n');
     // Each plant item read beside its competency is its own need: an excavator and a tipper are two.
     const needed = LICENSED_PLANT.filter((item) => item.plant.test(work)).flatMap((item) => (item.beside
       ? [...new Map([...work.matchAll(new RegExp(item.plant.source, 'gi'))].map((match) => [match[0].toLowerCase().replace(/s$/, ''), { ...item, name: match[0] }])).values()]
@@ -1374,9 +1378,15 @@ function weighted(swms, state, context) {
     const byRemovalist = /\blicensed asbestos removalists?\b/i.test(controlText)
       && !/\b(?:remov\w*|strip\w*|encapsulat\w*)\b[^.\n]{0,40}\basbestos\b|\basbestos\b[^.\n]{0,40}\b(?:remov\w*|strip\w*)/i.test(swms.task);
     const gaps = [];
+    // A traffic plan the task names ("traffic guidance scheme TGS-117 by the traffic contractor") is the plan (messy round 14,
+    // B run 6: W13 still asked for one in revision 2).
+    for (const sentence of String(swms.task || '').split(/(?<=[.;])\s+/)) if (TRAFFIC_PLAN_NAMED.test(sentence)) evidence.push({ line: sentence, where: '' });
+    // Work kept inside a boundary beside a road, with the road named only in the site conditions or as what the work is
+    // fenced off from, is asked to keep the work zone apart, not for a traffic plan (B run 8: a school boundary fence).
+    const roadWork = ROAD_WORDS.test([String(swms.task || '').replace(/\b(?:fenced|screened|kept|separated|closed) (?:off )?from\b[^.;]*/gi, ' '), ...steps.map((step) => step.step).filter((name) => !checkOnly(name))].join('\n'));
     for (const { set, steps: where } of sets) {
       const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(usedText))
-        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist));
+        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist) && !(set.id === 'road' && must.plan && !roadWork));
       const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
       if (missing.length) gaps.push({ set, where, missing });
     }

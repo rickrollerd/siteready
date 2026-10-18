@@ -6,7 +6,9 @@ const { TRADES } = require('./trades');
 const { TITLES } = require('./scope');
 
 // Names for kinds of work whose every step prints only for its own variant.
-const VARIANT_LABELS = { carpJoinery: 'Joinery, doors and trim (as the task names them)', tileMix: 'Tile screed, adhesive, grout and sealer (as the task names them)', landscape: 'Soil, mulch and planting (as the task names them)' };
+const VARIANT_LABELS = { carpJoinery: 'Joinery, doors and trim (as the task names them)', tileMix: 'Tile screed, adhesive, grout and sealer (as the task names them)', landscape: 'Soil, mulch and planting (as the task names them)',
+  // Messy round 14, A run 4: "Stand the door frames" showed ticked and "Hang the doors" printed.
+  doorHang: 'Door frames and doors (as the task names them)' };
 
 function stepLibrary() {
   const kinds = new Map();

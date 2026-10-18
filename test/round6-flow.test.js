@@ -86,7 +86,8 @@ test('the page offers the steps of this SWMS by number, and shows the work cover
 test('the user\'s own steps go where their work is done, not always last', () => {
   const own = (name, part = '') => ({ name, part, hazards: ['Hand injury from the tools used'], controls: ['Use the tool with its guard fitted and wear gloves'], who: 'Supervisor' });
   const doors = draftOf({ state: 'wa', task: 'Supply and install door frames, doors and hardware. Fit locks and closers.', ownSteps: [own('Fix frames with Dyna-bolts and masonry bolts'), own('Seal bottoms of doors before hanging'), own('Cut out doors for locks with the router'), own('Protect finished surfaces')] });
-  assert.deepEqual(names(doors), ['Before starting', 'Use power tools', 'Stand the door frames', 'Fix frames with Dyna-bolts and masonry bolts (Our own step)', 'Seal bottoms of doors before hanging (Our own step)', 'Hang the doors', 'Fit locks, closers and other hardware', 'Cut out doors for locks with the router (Our own step)', 'Protect finished surfaces (Our own step)', 'Finish and clean up']);
+  // Protecting finished surfaces is set up before the work (content15: messy round 14, A runs 1 and 4).
+  assert.deepEqual(names(doors), ['Before starting', 'Protect finished surfaces (Our own step)', 'Use power tools', 'Stand the door frames', 'Fix frames with Dyna-bolts and masonry bolts (Our own step)', 'Seal bottoms of doors before hanging (Our own step)', 'Hang the doors', 'Fit locks, closers and other hardware', 'Cut out doors for locks with the router (Our own step)', 'Finish and clean up']);
   const vinyl = draftOf({ state: 'vic', task: 'Lay vinyl and carpet tiles, skim the subfloor.', ownSteps: [own('heat weld vinyl joins and cove up walls')] });
   assert.equal(names(vinyl)[names(vinyl).indexOf('Lay floor coverings') + 1], 'heat weld vinyl joins and cove up walls (Our own step)');
   // Moved by the user, it stays where they put it.
