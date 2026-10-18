@@ -20,7 +20,7 @@ const PLANT = [
   { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(sciss?ors?|boom|considered)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
   { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
   { item: 'Vehicle loading crane (hiab)', pattern: /\b(vehicle loading cranes?|loader cranes?|hiabs?|truck loading crane|truck[- ]mounted cranes?|knuckle boom cranes?)\b/i, inspection: 'Pre-start check and log book. Inspected and maintained to the manufacturer\'s instructions (WHS Reg s 213).', licence: 'Yes (CV) where the crane is rated at 10 metre-tonnes or more. Under 10 metre-tonnes no licence, the operator is trained and competent on it' },
-  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane or lifting gear|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes|used as a crane)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
+  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane or lifting gear|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes|used as a crane|crane truck, or by two people|watches the crane or EWP|the crane and pole stay)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
   // "not a forklift truck" (the pallet jack step's licence line) names no forklift (messy round 10, run 1).
   { item: 'Forklift', pattern: /\bforklifts?\b/i, skipIf: /\bnot a forklift\b|\bno forklift licen[cs]e\b/i, inspection: PRESTART, licence: 'Yes (LF)' },
   { item: 'Telehandler', pattern: /\btelehandlers?\b/i, inspection: PRESTART, licence: 'No Schedule 3 class names telehandlers. Operator competent in the model used. Check with the supplier whether a non-slewing crane licence (CN) is needed when it is fitted with a jib or hook to lift suspended loads' },
@@ -43,7 +43,7 @@ const PLANT = [
   { item: 'Generator', pattern: /\bgenerators?\b/i, skipIf: /\b(standby|load shed\w*|load test\w*|operation of (?:the )?generators?|install generators|generators and fuel|run and load test|generator (?:rooms?|sets?))\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
-  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite?|alumino[- ]?thermic|flash[- ]butt|(?:electro-?)?fusion|polyethylene|hdpe)\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to|thermite?|alumino[- ]?thermic|flash[- ]butt|(?:electro-?)?fusion|polyethylene|hdpe|hot work \(welding|thermite welding kit)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Nail gun', pattern: /\bnail guns?\b/i, inspection: 'Checked before use. Single shot trigger.', licence: 'No' },
   { item: 'Air compressor', pattern: /\b(compressed air|air compressors?|compressors?)\b/i, skipIf: /\b(fans?|pumps|start\w* without|refrigerat\w*|condens\w*)\b/i, inspection: `${PRESTART} Hoses and couplings checked and restrained.`, licence: 'No' },
   // The cleaning step's floor machines (messy round 10, run 7: "SiteWrite found no plant" beside floor scrubbers and polishers).
@@ -397,8 +397,12 @@ const OTHER_TRADES_NEAR = new RegExp(`\\b(?:around|near|beside|next to|adjacent 
 // Only a clause about the power that names no one of our own ("our electrician connects the board" stays).
 const POWER_CLAUSE = /[^.,;\n]*\b(?:sparky|sparkies|sparkys|electricians?|electrical contractors?|others)\b[^.,;\n]{0,40}\b(?:does|do|doing|will do|to do|connects?|wires?|supplies)\b[^.,;\n]*/gi;
 const POWER_BY_OTHERS = { [Symbol.replace]: (text, by) => String(text).replace(POWER_CLAUSE, (clause) => (/\b(?:240 ?v|415 ?v|power|mains|electrical|electrics|wiring)\b/i.test(clause) && !/\b(?:our|we|us|my)\b/i.test(clause) ? by : clause)) };
+// Wiring or lines the operator or another party isolates and earths for the work are not the crew's electrical work (messy
+// round 13, B run 5: "The rail operator ... isolates and earths the 25 kV overhead wiring" gave a track crew the
+// electrical licence and the licensed electrician lines). The crew still works near them: the high risk work stays.
+const ISOLATED_FOR_US = /\b(?:isolat\w*|de-?energi[sz]\w*|switch\w* off|turn\w* off)(?: and (?:earth\w*|prov\w* dead|lock\w* out))?\s+(?:the\s+)?(?:[\w.-]+\s+){0,3}?(?:overhead wiring|wiring|catenary|ohw|overhead lines?|power lines?|lines?|traction (?:power|supply)|supply|power)\b|\b(?:overhead wiring|catenary|ohw|overhead lines?|power lines?|traction (?:power|supply))\b[^.;]{0,40}\b(?:isolated|de-?energi[sz]ed|switched off|turned off)\b(?:[^.;]{0,20}\bearthed\b)?/gi;
 function withoutOtherTrades(text) {
-  return String(text || '').replace(OTHER_TRADES_NEAR, '').replace(POWER_BY_OTHERS, ' ');
+  return String(text || '').replace(OTHER_TRADES_NEAR, '').replace(POWER_BY_OTHERS, ' ').replace(ISOLATED_FOR_US, ' ');
 }
 
 // Silica training is for processing silica (cutting, grinding, drilling, breaking it with tools or plant),
@@ -500,6 +504,13 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   return [...new Set(needed)];
 }
 
+// The service strike row points to the electric shock row only where the table has one (messy round 13, B run 5: "Electrical
+// cable: as for electric shock above" with no electric shock row).
+function strikeEquipment(rows) {
+  return rows.some((row) => /Electric shock/.test(row.type))
+    ? 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner'
+    : 'Stop work and keep everyone clear. Electrical: do not touch the person or plant until the supply is isolated; CPR and defibrillator (AED). Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner';
+}
 function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const ewp = plant.some((item) => /elevating work platform|Scissor lift/.test(item.item));
   const rows = [];
@@ -537,8 +548,8 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   if (/\bstrik\w* [^.]{0,40}\b(?:underground|buried|hidden)?\s?(?:services?|cables?|gas|electrical)/i.test(text) && !rows.some((row) => /Electric shock/.test(row.type))) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical: do not touch the person or plant until the supply is isolated; CPR and defibrillator (AED). Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
   // Buried cables or pits the live services answer names, where the work cuts, digs or drills the ground or
   // the slab (messy round 8, run 8: street light cables and Telstra pits with saw cutting, and no row).
-  else if (!noLive && /\b(?:cables?|pits?|conduits?|underground|buried|telstra|nbn|optic\w*|gas mains?|water mains?|sewer)\b/i.test(live.replace(NO_LINES, ' ')) && !/^\s*(?:no|none|nil)\b/i.test(live) && /\b(?:saw[- ]?cut\w*|excavat\w*|dig\w*|trench\w*|drill\w*|core[- ]?drill\w*|coring|mill\w*|profil\w*|break\w* out|jackhammer\w*|auger\w*|post holes?|bor(?:e|ing))\b/i.test(`${input.task || ''}\n${coreText}`)) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
-  else if (/\bstrik\w* [^.]{0,40}\b(?:services?|gas)/i.test(text)) rows.push({ type: 'Service strike', equipment: 'Stop work and keep everyone clear. Electrical cable: as for electric shock above. Gas: evacuate upwind, no ignition sources. Call 000 and the asset owner', detail: '' });
+  else if (!noLive && /\b(?:cables?|pits?|conduits?|underground|buried|telstra|nbn|optic\w*|gas mains?|water mains?|sewer)\b/i.test(live.replace(NO_LINES, ' ')) && !/^\s*(?:no|none|nil)\b/i.test(live) && /\b(?:saw[- ]?cut\w*|excavat\w*|dig\w*|trench\w*|drill\w*|core[- ]?drill\w*|coring|mill\w*|profil\w*|break\w* out|jackhammer\w*|auger\w*|post holes?|bor(?:e|ing))\b/i.test(`${input.task || ''}\n${coreText}`)) rows.push({ type: 'Service strike', equipment: strikeEquipment(rows), detail: '' });
+  else if (/\bstrik\w* [^.]{0,40}\b(?:services?|gas)/i.test(text)) rows.push({ type: 'Service strike', equipment: strikeEquipment(rows), detail: '' });
   // Not for a gas main the crew only works near: its strike is the service strike row (messy round 9, run 2:
   // "Turn off the gas at the meter" for a gas main in the street).
   if (/\b(gas work|gas fitting|gasfitt\w*|gas appliances?|gas (?:lines?|supply|hot water)|lpg)\b/i.test(text.replace(/\bgas (?:distribution )?mains?\b[^.\n]*/gi, ' '))) rows.push({ type: 'Gas leak', equipment: 'Turn off the gas at the meter or cylinder, no ignition sources, ventilate, keep people away. Call 000 for a major leak', detail: '' });
@@ -965,7 +976,10 @@ function registersFor(draft, input = {}) {
   // Our own mobile crane runs on diesel too (messy round 12, B run 7: once "Receive plant" was taken off, fuel was no
   // longer asked beside a 60 t crane in the plant list).
   const ownMobileCrane = (name) => ownCrane && /^(?:Mobile crane|Crawler crane|Non-slewing mobile crane)\b/.test(name);
-  const fuelled = [...plant.map((item) => item.item), ...listed.filter((item) => item.own).map((item) => item.item)].some((name) => /^(?:Asphalt paver|Road profiler)$/.test(name) || /\b(?:petrol|diesel)\b/i.test(name) || ownMobileCrane(name));
+  // The crew's own small earthmoving plant (a bobcat or posi-track, a mini excavator) runs on diesel too (messy round 13, A run
+  // 3: "our bobcat" with a post hole auger, and fuel was not asked).
+  const ownSmallPlant = (name) => /^(?:Skid steer or posi-track|Excavator|Backhoe|Tractor)$/.test(name) && /\b(?:our|own|we use|we run)\b[^.]{0,30}\b(?:bobcats?|skid ?steers?|posi-?tracks?|mini (?:excavators?|loaders?)|excavators?|backhoes?|tractors?)\b/i.test(ownTask);
+  const fuelled = [...plant.map((item) => item.item), ...listed.filter((item) => item.own).map((item) => item.item)].some((name) => /^(?:Asphalt paver|Road profiler)$/.test(name) || /\b(?:petrol|diesel)\b/i.test(name) || ownMobileCrane(name) || ownSmallPlant(name));
   if (fuelled && !substances.items.some((item) => /^Fuels/.test(item.product))) substances.items.push({ product: 'Fuels (diesel, petrol)', sds: '', quantity: '' });
   // Gases and fuels named only for plant the user has said is not used are not asked for (messy round 4:
   // acetylene after the torch was unticked).

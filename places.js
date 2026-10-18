@@ -213,12 +213,15 @@ const EMERGENCY_NAME = /\bemergency (?:room|department|dept)\b/i;
 // (Calvary Mater, Calvary Public) are not private.
 // Adelaide's private hospitals with no "private" in the name (messy round 11, run 5: four came before the public emergency
 // departments).
-const PRIVATE_NAME = /\b(private|calvary(?! (?:mater|public))|st john of god|ramsay|healthscope|epworth|hollywood|pindara|john flynn|greenslopes|cabrini|warringal|knox private|mater private|st andrew'?s(?: war memorial)?|north west private|hobart private|st helen'?s|mayo private|blackwood|ashford|burnside|wakefield|allamanda)\b/i;
+const PRIVATE_NAME = /\b(private|st vincent'?s hospital launceston|calvary(?! (?:mater|public))|st john of god|ramsay|healthscope|epworth|hollywood|pindara|john flynn|greenslopes|cabrini|warringal|knox private|mater private|st andrew'?s(?: war memorial)?|north west private|hobart private|st helen'?s|mayo private|blackwood|ashford|burnside|wakefield|allamanda)\b/i;
 const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || (Boolean(item.ed) && !PRIVATE_NAME.test(item.name));
 // A public emergency department first, then a private one (a private emergency room charges, and was listed first on the
 // Gold Coast: messy round 11, run 3), then other public hospitals, then private ones. A hospital in another state comes
 // after those in the job's state (run 3: a New South Wales hospital offered for a Queensland site).
-const hospitalRank = (item) => (item.otherState ? 4 : 0) + (hasEmergency(item) ? (PRIVATE_NAME.test(item.name) ? 1 : 0) : PRIVATE_NAME.test(item.name) ? 3 : 2);
+// A children's hospital comes after the general hospitals of its rank: the crew are adults (messy round 13, A run 1: John
+// Hunter Children's Hospital was listed first in Newcastle).
+const CHILDRENS = /\b(?:children'?s|childrens|kids|paediatric|pediatric)\b/i;
+const hospitalRank = (item) => (item.otherState ? 4 : 0) + (hasEmergency(item) ? (PRIVATE_NAME.test(item.name) ? 1 : 0) : PRIVATE_NAME.test(item.name) ? 3 : 2) + (CHILDRENS.test(item.name) ? 0.5 : 0);
 const STATE_IN = /\b(NSW|QLD|VIC|SA|WA|TAS|NT|ACT)\b(?:\s+\d{4})?(?:,\s*Australia)?\s*$/i;
 const stateIn = (address) => ((STATE_IN.exec(String(address || '')) || [])[1] || '').toUpperCase();
 // General practices and medical centres before other practices.

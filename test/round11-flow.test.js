@@ -308,7 +308,8 @@ test('the builder\'s site manager\'s check of the ground, and a scaffolder getti
 
 test('a task typed in lower case prints with capitals at its sentences, and the muster point keeps its capitals in the Emergency table', () => {
   // Run 4.
-  const draft = draftOf({ state: 'wa', musterPoint: 'front gate on Smith Street', task: 'install floor tiles in the bathrooms on the ground floor. grout the joints, approx. 40 m2 a day.' });
+  // Tiles are cut, so the silica controls are asked (content14, messy round 13 A run 1).
+  const draft = draftOf({ state: 'wa', musterPoint: 'front gate on Smith Street', task: 'install floor tiles in the bathrooms on the ground floor. grout the joints, approx. 40 m2 a day.', facts: { silicaControls: 'Tiles are cut wet on the tile saw, and fit tested P2 respirators are worn.' } });
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
   assert.equal(draft.task, 'Install floor tiles in the bathrooms on the ground floor. Grout the joints, approx. 40 m2 a day.');
   assert.equal(draft.musterPoint, 'Front gate on Smith Street');

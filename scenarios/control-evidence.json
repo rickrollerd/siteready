@@ -4924,5 +4924,7 @@
   "The agitator truck stands back from the excavation edge, and people keep clear of the chute while it is swung or extended.": {"kind":"code"},
   "Pegs and stakes are driven with a hammer or post driver suited to the job and the worker, and hammering is rotated with other tasks and broken with rest.": {"kind":"code"},
   "Shaker grids, rumble grids and wheel wash units are installed, used and maintained to their supplier's instructions.": {"kind":"reg"},
-  "This is friable asbestos: it is removed only by a removalist holding a Class A asbestos removal licence, with the asbestos removal supervisor present throughout the work.": {"kind":"reg"}
+  "This is friable asbestos: it is removed only by a removalist holding a Class A asbestos removal licence, with the asbestos removal supervisor present throughout the work.": {"kind":"reg"},
+  "No electrical work is done on or near energised parts (within 3 m of an exposed energised part). Parts of the installation that stay energised, such as construction power, are identified, and the work is kept separated from them. If that changes, stop and prepare for energised work as the regulation requires.": {"kind":"reg"},
+  "Only authorised people enter the area, and barriers prevent contact with exposed energised parts.": {"kind":"reg"}
 }

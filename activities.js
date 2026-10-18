@@ -361,6 +361,7 @@ const ACTIVITIES = [
     when: 'road',
     steps: [{
       step: 'Set up traffic management',
+      unless: 'trafficByOthers',
       hazards: ['Workers struck by passing vehicles.', 'Vehicles or pedestrians enter the work area.'],
       controls: [
         'Set up traffic control to the approved traffic management plan (TMP) and its traffic guidance scheme (TGS) before work starts, with the road authority\'s written approval obtained first for any work or traffic control on a public road.',
@@ -7252,8 +7253,8 @@ const ACTIVITIES = [
         'No hands go between the deck and the bearing while the deck is on the jacks.',
         'Bearings are moved with lifting aids or bars.',
         src('Work at the pier head is done from an EWP, scaffold or under-bridge platform with guardrails.', QCODE('Managing the risk of falls', 's 5.1')),
-        'Road traffic below is managed under the road authority\'s permit for the work.',
-        'Rail traffic below is managed under the rail manager\'s permit for the work.',
+        { only: 'roadBelow', text: 'Road traffic below is managed under the road authority\'s permit for the work.' },
+        { only: 'railBelow', text: 'Rail traffic below is managed under the rail manager\'s permit for the work.' },
         { only: 'expansionJoints', ...src('Saw cutting and breaking out of old expansion joints is done wet or with on-tool extraction.', QCODE('Silica', 's 7.4.1, s 7.4.2')) },
         { only: 'expansionJoints', text: 'Old expansion joints are cut and broken out inside the lane closure, and new joints are lifted in by crane or with lifting aids and fixed to the supplier\'s details.' },
       ],
@@ -8643,7 +8644,8 @@ const ACTIVITIES = [
       only: 'landscapePlant',
       hazards: ['Back strain from bags and soil.', 'Heat.'],
       controls: [
-        src('Heavy pots and root balls are moved on trolleys or lifted by two people, and plants are handled with gloves.', QCODE('Hazardous manual tasks', 's 4.4, s 4.5')),
+        // Not for advanced trees: a 200 L root ball is not moved on a trolley or by two people (messy round 13, B run 8).
+        { unless: 'advancedTrees', ...src('Heavy pots and root balls are moved on trolleys or lifted by two people, and plants are handled with gloves.', QCODE('Hazardous manual tasks', 's 4.4, s 4.5')) },
         { unless: 'noDigging', text: 'Before digging swales, irrigation trenches or planting holes, get the services plans (for example through Before You Dig Australia) and locate services on site. Pothole by hand or with a vacuum near services.' },
         { only: 'irrigationWork', ...src('The irrigation connection to the water supply and its backflow device is made by a licensed plumber.', `${PDA('s 56(1), schedule 1')}; ${WAPL('r 4(1), r 4(2), r 9(1)')}`) },
         src('Order smaller bags, or have bulk loads moved by machine. Deliver as close as possible to where the materials are used. Use mechanical aids, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5, s 4.7, s 4.9')),
@@ -9734,6 +9736,18 @@ function addAfter(when, activity) {
 const stepOf = (when, name) => ACTIVITIES.find((item) => item.when === when).steps.find((step) => step.step === name);
 const without = (controls, pattern) => controls.filter((item) => !pattern.test(typeof item === 'string' ? item : item.text || ''));
 
+// Work by a crew that is not electrical, beside switchboards or other parts that stay energised ("Switchboards stay
+// live"): the library's energised parts step with its line for work kept separated from them (messy round 13, A run 2:
+// the high risk work row printed with no step or control for it). Its energised testing lines are the electricians'.
+addAfter('isolation', {
+  when: 'liveNearby',
+  steps: [{
+    step: 'Work on or near energised parts',
+    hazards: stepOf('isolation', 'Work on or near energised parts').hazards,
+    controls: [...stepOf('isolation', 'Work on or near energised parts').controls[0].options.none, ...stepOf('isolation', 'Work on or near energised parts').controls[0].options.testing.filter((line) => /^Only authorised people enter the area, and barriers prevent contact/.test(line.text || line))],
+  }],
+});
+
 // Roof work by a trade other than the roofer (solar hot water, lightning conductors,
 // cowls, tiling a roof top): getting onto the roof and lifting equipment to it.
 addAfter('roof', {
@@ -10091,7 +10105,7 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
       ],
     },
     {
-      unless: ['kerbWork', 'repairNoReo'],
+      unless: ['kerbNoReo', 'repairNoReo'],
       step: 'Place and tie reo on the ground',
       hazards: ['Impalement on bars.', 'Cuts and back strain handling mesh and bars.', 'Trips on bar chairs and mesh.', 'Sparks and noise from cutting bars.'],
       controls: [
@@ -12252,15 +12266,19 @@ function jobStepsFor(rawFlags, factText, fallback) {
   // The same goes for a pool's pump and filter beside the plant room's pool plant (messy round 9, run 4: two pump
   // steps in one plant room).
   const mergeSteps = (gone, kept) => {
+    // Only steps that print are merged: one its variant flags leave out is not.
+    const prints = (item) => item && (!item.only || flags[item.only]) && !anyFlag(flags, item.unless);
     const from = middle.find((item) => item.step === gone);
     const into = middle.find((item) => item.step === kept);
-    if (!from || !into) return;
+    if (!prints(from) || !prints(into)) return;
     const merged = { ...into, hazards: [...into.hazards, ...from.hazards.filter((line) => !into.hazards.includes(line))], controls: [...into.controls, ...from.controls.filter((line) => !into.controls.includes(line))] };
     const at = Math.min(middle.indexOf(from), middle.indexOf(into));
     middle = middle.filter((item) => item !== from && item !== into);
     middle.splice(Math.min(at, middle.length), 0, merged);
   };
   mergeSteps('Place concrete', 'Pump and place concrete');
+  // One pour is finished once (messy round 13, A run 2: "Finish the concrete" and "Finish concrete" both printed).
+  mergeSteps('Finish concrete', 'Finish the concrete');
   mergeSteps('Install the pool pump and filter', 'Install the pool plant');
   // The order of the pour, the tank walls, the bulk dig and the podium edge is set with the other kinds of work
   // (draft.js WORK_SEQUENCE).
@@ -13354,7 +13372,9 @@ for (const name of ['Set up the concrete pump and placing boom', 'Pump and place
     return { ...item, unless };
   };
   step.controls = step.controls.map(mark);
-  step.hazards = step.hazards.map(mark);
+  // A hazard of the pump as well as the boom stays for a line pump (messy round 13, B run 7: "Set up the concrete pump"
+  // printed with no hazard).
+  step.hazards = step.hazards.map((item) => (/\bpump\b/i.test(typeof item === 'string' ? item : item.text || '') ? item : mark(item)));
 }
 
 module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, OLD_PPE, currentPpeIds, ACTIVITIES, CITE, BEFORE, BEFORE_EXTRA, FINISH };

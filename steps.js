@@ -5,6 +5,9 @@ const { ACTIVITIES } = require('./activities');
 const { TRADES } = require('./trades');
 const { TITLES } = require('./scope');
 
+// Names for kinds of work whose every step prints only for its own variant.
+const VARIANT_LABELS = { carpJoinery: 'Joinery, doors and trim (as the task names them)', tileMix: 'Tile screed, adhesive, grout and sealer (as the task names them)', landscape: 'Soil, mulch and planting (as the task names them)' };
+
 function stepLibrary() {
   const kinds = new Map();
   for (const activity of ACTIVITIES) {
@@ -15,8 +18,10 @@ function stepLibrary() {
     const steps = activity.steps.filter((step) => !step.only).map((step) => step.step);
     const first = activity.steps[0].step;
     const entry = kinds.get(activity.when);
+    // A kind whose every step prints only for its variant is named for the kind, not for its first variant (messy round 13:
+    // "Lay the screed" and "Hang the doors" showed ticked, and neither printed, as the task named no screed and no doors).
     if (entry) entry.steps.push(...steps.filter((name) => !entry.steps.includes(name)));
-    else kinds.set(activity.when, { id: activity.when, label: TITLES[activity.when] || steps[0] || first, steps: steps.length ? steps : [first] });
+    else kinds.set(activity.when, { id: activity.when, label: TITLES[activity.when] || VARIANT_LABELS[activity.when] || steps[0] || first, steps: steps.length ? steps : VARIANT_LABELS[activity.when] ? [] : [first] });
   }
   const used = new Set();
   const groups = TRADES.map((trade) => {
@@ -45,6 +50,9 @@ const SYNONYMS = {
   aircon: ['air condition', 'split system', 'refrigera'], plumber: ['plumb', 'drain'], plumbing: ['plumb', 'drain'],
   asbestos: ['asbestos', 'fibro'], silica: ['silica', 'dust'], dust: ['dust', 'silica'], noise: ['noise', 'hearing'], confined: ['confined'],
 };
+
+// A word typed part way, or misspelt, read as the work it starts (messy round 13, B run 7: "jackham" found nothing).
+const PREFIXES = [['jackham', ['break', 'jackhammer', 'breaker']], ['jackhm', ['break', 'jackhammer', 'breaker']], ['kango', ['break', 'jackhammer', 'breaker']], ['jack ham', ['break']]];
 
 // A word reduced to its stem, so "controls" finds "control" and "stockpiles" finds "stockpil".
 function stem(word) {
@@ -87,7 +95,7 @@ const whole = (text, term) => new RegExp(`(?:^|[^a-z0-9])${escape(term)}(?:s|es|
 // word there, and only a few of them.
 function searchSteps(query, trade = '') {
   const words = String(query || '').toLowerCase().match(/[a-z0-9]+/g) || [];
-  const terms = words.filter((word) => word.length > 1 && !['the', 'and', 'for', 'with', 'of', 'to', 'a', 'an', 'on', 'in'].includes(word)).map((word) => SYNONYMS[word] || SYNONYMS[stem(word)] || [stem(word)]);
+  const terms = words.filter((word) => word.length > 1 && !['the', 'and', 'for', 'with', 'of', 'to', 'a', 'an', 'on', 'in'].includes(word)).map((word) => SYNONYMS[word] || SYNONYMS[stem(word)] || (PREFIXES.find(([start]) => word.startsWith(start)) || [])[1] || [stem(word)]);
   if (!terms.length) return [];
   const has = (text, term) => text.includes(` ${term}`) || text.startsWith(term);
   const own = tradeKinds(trade);

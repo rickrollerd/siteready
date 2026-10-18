@@ -102,7 +102,9 @@ const BY_NAME = {
   // Pour.
   'Set up the concrete pump and placing boom': 58, 'Set up the concrete pump': 58, 'Mix bagged concrete': 59, 'Place concrete': 60, 'Pump and place concrete': 60,
   'Pour the core walls': 60, 'Pour the retaining wall': 60, 'Pour the tank walls': 60, 'Spray the pool shell': 60, 'Spray the shotcrete': 60,
-  'Form and pour the kerb and channel': 60, 'Form and pour the new concrete steps': 60, 'Monitor the formwork during the pour': 61, 'Finish the concrete': 62, 'Finish concrete': 62,
+  // Kerbs and core fill poured with a slab come after the slab is placed and finished (messy round 13, A run 2: the slab
+  // was finished only after the kerbs and the core fill).
+  'Form and pour the kerb and channel': 62.5, 'Form and pour the new concrete steps': 60, 'Monitor the formwork during the pour': 61, 'Finish the concrete': 62, 'Finish concrete': 62,
   'Saw cut the joints': 63, 'Cure the concrete': 64, 'Stress the tendons': 64, 'Cut the tendon tails': 65, 'Grout the tendon ducts': 65.5, 'Strip the formwork': 66, 'Install backprops': 67,
   // Structure, walls and roof.
   'Lift and land steel with the crane company': 69, 'Mix mortar': 69, 'Erect and connect steel at height': 70, 'Install and remove temporary bracing': 71, 'Weld steel': 72, 'Weld aluminium': 72,
@@ -113,7 +115,10 @@ const BY_NAME = {
   'Fix roof trusses': 71, 'Erect the frame': 70, 'Erect the posts, beams and rafters': 70, 'Build the cubby house': 70, 'Lift and fix the purlins': 71, 'Lift and fix the new beam or lintel': 70,
   'Fit cyclone tie-downs': 72, 'Jack the house and replace stumps': 70, 'Jack and raise the house': 70, 'Prop the floor and replace joists or bearers': 70, 'Prop and repair the verandah': 70,
   'Prop and repair the pergola': 70, 'Prop and replace the damaged wall framing': 70, 'Remove and replace damaged timbers': 70, 'Remove and replace the deck boards': 70,
-  'Cut slots and fit the helical ties': 70, 'Build in underneath the raised house': 72, 'Build the access ramp': 72, 'Lay the mezzanine floor': 72, 'Jack the deck and replace the bearings': 70,
+  'Cut slots and fit the helical ties': 70, 'Build in underneath the raised house': 72, 'Build the access ramp': 72, 'Lay the mezzanine floor': 72,
+  // Bearings are replaced with the deck jacked, before an old joint is cut out and the new nosing poured (messy round 13,
+  // B run 7: jacking at step 12, after the nosing pour, which jacking can crack).
+  'Jack the deck and replace the bearings': 19,
   'Lift the tank onto the stand': 72, 'Build the tank stand': 70, 'Install the rainwater tank': 73, 'Lift the portable building onto its footings': 72, 'Install the ground mount frame': 70,
   'Lift and erect the tower sections': 70, 'Erect and dismantle the temporary grandstand': 70, 'Dismantle the temporary grandstand': 70, 'Erect the marquees and temporary structures': 70,
   'Build the stage': 70, 'Widen the station platform': 70, 'Build the helipad at the roof edge': 70, 'Install the steel staircase': 72, 'Build and fix the staircase': 72, 'Replace the timber stairs': 72,
@@ -127,7 +132,10 @@ const BY_NAME = {
   'Fit and grout the pile jacket': 76, 'Seal and inject cracks': 76, 'Take down and replace the awning': 76, 'Cut out and replace the steel handrail': 76, 'Cut out and replace the window sill': 77,
   'Drill fixing holes in the slab edge': 75.5, 'Fix brackets at the slab edge': 76, 'Lift panels with the floor crane or monorail': 77, 'Install panels at the open slab edge': 77,
   'Install windows': 77, 'Replace the window frame': 77, 'Install the shopfront frames': 77, 'Install doors': 77, 'Install louvres': 77,
-  'Replace the broken louvre blades': 77, 'Drill tiled walls for fixings': 77.5, 'Handle and install glass panels': 86,
+  'Replace the broken louvre blades': 77, 'Handle and install glass panels': 86,
+  // Fixings are drilled through finished tiles, once they are laid, grouted and sealed (messy round 13, A run 1: "Drill tiled
+  // walls for fixings" came at step 2, before any tiling).
+  'Drill tiled walls for fixings': 102.5,
   // A shopfront's glass doors are hung once its frames are glazed (messy round 12, run 4: the doors were hung before the
   // glass went in).
   'Hang the shopfront doors': 86.2, 'Seal glazing': 86.5, 'Seal the facade joints': 79, 'Handle glass in the wind': 'lead',
@@ -162,7 +170,7 @@ const BY_NAME = {
   'Install car park fans over traffic areas': 85, 'Lift and fix the tunnel ventilation fans': 85, 'Lift the fan coil unit into place and fix it': 85, 'Install lightning protection': 85,
   'Erect the plant': 85, 'Install the moveable pool floor and bulkheads': 85, 'Build the outdoor kitchen': 85, 'Install bollards': 85, 'Install barriers': 85, 'Install road safety barrier': 95,
   'Stand the door frames': 78.6, 'Hang the doors': 97.8, 'Install and commission the automatic doors': 86, 'Fit security doors': 86, 'Install joinery and cabinets': 87,
-  'Remove and fit the benchtops': 87, 'Move and set heavy benchtops': 87, 'Cut and finish stone and porcelain benchtops': 'lead', 'Remove, repair or modify installed engineered stone': 87,
+  'Remove and fit the benchtops': 87, 'Move and set heavy benchtops': 87.5, 'Cut and finish stone and porcelain benchtops': 'lead', 'Remove, repair or modify installed engineered stone': 87,
   'Fix skirting and architraves': 97.8, 'Remove and fit the vanity': 87, 'Install vanities and fixtures': 87, 'Remove and replace the bath and shower': 87, 'Remove and replace the bath': 87,
   'Remove and replace the shower': 87, 'Replace the fixture': 87, 'Install signs and screens': 98, 'Install signs on posts': 98, 'Install the signs': 98,
   // Waterproofing goes on before its flood test and the tiles over it.
@@ -183,7 +191,9 @@ const BY_NAME = {
   'Apply primers and levelling compounds': 98, 'Lay the acoustic matting': 98.5, 'Build the raised garden beds': 97, 'Install the green roof layers': 98, 'Install the green wall': 98,
   'Apply flooring adhesives': 99, 'Mix and spread the tile adhesive': 99, 'Move soil and mulch': 99,
   'Paint': 100, 'Paint the roof': 100, 'Apply solvent-based paint': 100, 'Spray paint with airless sprayers': 100, 'Lay floor coverings': 100, 'Lay timber floors': 100, 'Lay tiles': 100,
-  'Fix the wall tiles': 100, 'Apply epoxy or polyurethane floor coatings': 100, 'Lay the synthetic track or sports surface': 100, 'Install clean room flooring': 100, 'Lay artificial turf': 100,
+  'Fix the wall tiles': 100,
+  // Tiles near open edges are laid with the other tiles, after the cutting and the adhesive (A run 1: they came first).
+  'Lay tiles near open edges': 100, 'Apply epoxy or polyurethane floor coatings': 100, 'Lay the synthetic track or sports surface': 100, 'Install clean room flooring': 100, 'Lay artificial turf': 100,
   'Lay the rubber softfall': 100, 'Apply render to walls': 100, 'Repoint the masonry': 100, 'Mix and apply the pebble finish': 100, 'Install tactile indicators': 100, 'Fix acoustic panels to the walls': 100,
   'Replace the ceiling tiles': 100, 'Apply the window film': 100, 'Paint line marking': 100, 'Heat and lay thermoplastic markings with a gas torch': 100, 'Install speed humps': 100, 'Install wheel stops': 100,
   'Grout the tiles': 101, 'Sand timber floors': 101, 'Strip and sand the deck': 101, 'Clean out and seal floor joints': 101, 'Plant': 101, 'Plant the green roof': 101, 'Lay turf': 101,
@@ -215,7 +225,7 @@ const BY_NAME = {
   'Set up and use the brick elevator': 'lead', 'Climb the hoist mast': 'lead', 'Operate the hoist': 'lead', 'Climb the tower': 'lead', 'Work on the car top and in the pit': 'lead',
   'Work inside lift cars': 'lead', 'Work in pump rooms': 'lead', 'Work on live fire systems': 'lead', 'Work inside a deep excavation': 'lead', 'Work in the trench': 'lead',
   'Prepare to enter the confined space': 'lead', 'Enter and work': 'trail', 'Leave and close up': 'trail', 'Cut blocks and bricks': 'lead', 'Cut tiles and stone': 'lead',
-  'Cut timber flooring to size': 'lead', 'Lay tiles near open edges': 'lead', 'Roll groove, thread and cut pipe': 'lead', 'Handle gas cylinders and manifolds': 'lead',
+  'Cut timber flooring to size': 'lead', 'Roll groove, thread and cut pipe': 'lead', 'Handle gas cylinders and manifolds': 'lead',
   'Run the road plant inside the work zone': 'lead', 'Work from the barge or marine plant': 'lead', 'Lift loads into and out of the shaft': 'trail', 'Work in the precast yard': 'lead',
   'Use power tools': 'trail', 'Drill or cut concrete, masonry or stone': 'trail', 'Fix with a powder-actuated tool': 'trail', 'Cut steel with oxy-acetylene (hot work)': 'trail',
   'Work on or near energised parts': 'trail', 'Isolate plant before work on it': 'lead', 'Protect open bores': 'trail', 'Mix and pump the grout': 'trail',
@@ -251,12 +261,19 @@ function contextStages(names, flags = {}) {
   const has = (name) => names.has(name);
   const out = {};
   if (!flags.existingLive && !existingWork(names)) Object.assign(out, { 'Isolate and prove de-energised': 109.5, 'Work on or near energised parts': 110 });
+  // A crew doing no electrical work keeps clear of the parts that stay live from the start (messy round 13, A run 2).
+  if (flags.liveNearby && !has('Isolate and prove de-energised')) out['Work on or near energised parts'] = 10.5;
   if (flags.treePits || has('Backfill the tree pits')) Object.assign(out, { 'Backfill the trench': 101.5, 'Backfill the tree pits': 101.5, 'Reinstate the surface': 101.6 });
   if ((has('Plumbing fit-off') || has('Fit off')) && ['Dig the trench', 'Lay the pipe or cable', 'Lay the pipes', 'Lay the cable'].some(has) && !['Lay pipes', 'Lay conduits', 'Install pits'].some(has)) Object.assign(out, { 'Backfill the trench': 106, 'Reinstate the surface': 106.5 });
   if (flags.paintBeforeHang && (has('Hang the doors') || has('Install doors'))) for (const name of PAINT_STEPS) out[name] = has('Hang the doors') ? 97.7 : 76.5;
   // Core fill in blockwork others laid is one of the pours, finished and cured with them (messy round 9, run 2); where the
   // crew lays the blocks too, it follows the laying (round 10, run 3).
-  if (!has('Lay blocks and bricks')) out['Core fill blockwork'] = 60.5;
+  if (!has('Lay blocks and bricks')) out['Core fill blockwork'] = has('Finish the concrete') || has('Finish concrete') ? 62.6 : 60.5;
+  // A glazier drilling existing tiles for a shower screen drills before the glass goes in; a tiler drills once the tiles are laid.
+  if (has('Drill tiled walls for fixings') && !['Lay tiles', 'Fix the wall tiles', 'Lay tiles near open edges', 'Grout the tiles'].some(has)) out['Drill tiled walls for fixings'] = 77.5;
+  // Trade cleaning beside other work is done once that work is finished (messy round 13, A run 1: the tiler's cleaning
+  // steps came before the cutting, screed and laying). A cleaning SWMS keeps its own order.
+  if ([...names].some((name) => typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 19 && BY_NAME[name] < 120)) for (const name of ['Clean with chemicals', 'Clean floors, fixtures and plant rooms']) if (has(name)) out[name] = 119;
   // Mounting plates, brackets and seismic restraints a services trade fixes go up with the hangers and supports, before
   // the pipework or cable hung from them (messy round 12, A run 3: "Fix rails, fittings and equipment to walls and
   // floors" came at step 16 of a sprinkler SWMS, after the painting).
@@ -451,6 +468,20 @@ const FIRM = [
   // Holes are drilled, then sealed (A run 3: fire stopping moved above the core drilling).
   [['Plan core holes'], ['Core drill through the slab or wall']],
   [['Core drill through the slab or wall'], ['Seal penetrations and fire stop', 'Fix fire collars to the slab', 'Fit the fire dampers']],
+  // Messy round 13 (W17 silent on clearly wrong moves), by their kind. Protect before work in a corridor: the rail corridor's
+  // protection before the track work (B run 5: sleepers moved above it).
+  [['Work in the rail corridor'], ['Replace the sleepers and ballast', 'Tamp and regulate the ballast', 'Lay the new track', 'Install the overhead wiring']],
+  // Dig before what goes in the hole: the backfill and the planting (B run 8: both moved above the dig).
+  [['Excavate', 'Dig the trench', 'Dig post holes', 'Dig footing holes'], ['Backfill the tree pits', 'Plant']],
+  // The base before what sits on it: the cabinets before their benchtops (B run 6).
+  [['Install joinery and cabinets'], ['Move and set heavy benchtops']],
+  // The screed and matting before the tiles laid on them (A runs 1 and 4).
+  [['Lay the screed', 'Lay the acoustic matting'], ['Lay tiles', 'Lay tiles near open edges']],
+  // Fix before drill-and-fix: the tiles laid before fixings are drilled through them (A run 1).
+  [['Lay tiles', 'Fix the wall tiles', 'Lay tiles near open edges', 'Grout the tiles'], ['Drill tiled walls for fixings']],
+  // The old concrete broken out before the new is poured, and the bearings replaced before the new nosing is poured
+  // (B run 7: the pour moved above the break-out).
+  [['Break out damaged concrete', 'Jack the deck and replace the bearings'], ['Pump and place concrete', 'Place concrete', 'Finish concrete', 'Finish the concrete']],
 ];
 // For each step, the group it is in in each chain.
 const FIRM_AT = new Map();

@@ -582,6 +582,7 @@ function payload() {
     // Kept with the work, on this device and in a saved SWMS, so a step unticked by hand stays unticked after a
     // reload or sign-in and the task is then reworded (messy round 12, B run 8 and A run 2).
     kindsOff: stepsOff.size ? [...stepsOff] : undefined,
+    priorKinds: priorKinds && !stepPicks ? priorKinds : undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
     // The rows of a scope reading that the reader matched to no job steps, for the task as read,
@@ -984,6 +985,11 @@ document.getElementById('start').addEventListener('submit', (event) => {
   const scope = window.siteWriteScopeTask;
   const task = document.getElementById('task').value.trim();
   if (task !== choicesTask) {
+    // The steps the scope reading or the pick list chose for the words before they were changed: the server keeps those the
+    // new words still name (messy round 13, A runs 2 and 3: a reworded task lost its core steps).
+    const before = scope && scope.task !== task && Array.isArray(scope.kinds) ? scope.kinds
+      : !(scope && scope.task === task) && pickedTask && pickedTask.task !== task && Array.isArray(pickedTask.kinds) ? pickedTask.kinds : null;
+    priorKinds = before && before.length ? [...before] : (scope && scope.task === task) || (pickedTask && pickedTask.task === task) ? null : priorKinds;
     stepPicks = scope && scope.task === task && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
     leaveOut = scope && scope.task === task && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
     scopeUnmatched = scope && scope.task === task && Array.isArray(scope.unmatched) ? [...scope.unmatched] : null;
@@ -1014,6 +1020,8 @@ document.addEventListener('click', (event) => {
 
 // Job steps: null follows the steps SiteWrite finds in the task; a list is the user's own picks.
 let stepPicks = null;
+// The scope reading's or pick list's steps for the task as it was before the user reworded it.
+let priorKinds = null;
 // The steps the user unticked by hand. They stay unticked when the task's words are changed and Continue is pressed again,
 // which starts again from the steps found in the new words (messy round 12, run 6: an unticked step came back ticked).
 let stepsOff = new Set();
@@ -1089,6 +1097,7 @@ function replaceTask(written, answered = {}) {
   if (document.querySelector('[data-site]')) Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
   replaced = { labels: new Map(((questions && questions.required) || []).map((item) => [item.id, item.label])) };
   stepPicks = null;
+  priorKinds = null;
   stepsOff = new Set();
   leaveOut = null;
   scopeUnmatched = null;
@@ -1153,6 +1162,7 @@ function sayUnasked(required) {
 // Typing in the task box keeps the user's changes: those that no longer match are reported.
 function newSwms() {
   stepPicks = null;
+  priorKinds = null;
   stepsOff = new Set();
   leaveOut = null;
   scopeUnmatched = null;
@@ -2017,6 +2027,7 @@ function fillStart(input) {
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string') : []);
+  priorKinds = Array.isArray(input.priorKinds) ? input.priorKinds.filter((id) => typeof id === 'string') : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
   scopeWordsNow = input.scopeTask && typeof input.scopeTask === 'object' ? { ...input.scopeTask } : null;

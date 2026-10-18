@@ -265,6 +265,18 @@ function draftBody(body) {
   // Kept with the input, so a saved SWMS opened again still knows which steps were unticked by hand (messy round
   // 12: an unticked step came back after a reload or sign-in once the task was reworded).
   if (off.length) out.kindsOff = off;
+  // The job steps the scope reading or pick list chose before the user reworded the task: those the new words still name
+  // are kept with the steps found in the new words (messy round 13, A runs 2 and 3).
+  const prior = Array.isArray(body.priorKinds) ? [...new Set(body.priorKinds.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 80) : [];
+  if (prior.length) {
+    out.priorKinds = prior;
+    if (!out.kinds) {
+      const draft = require('./draft');
+      const kept = draft.priorKindsKept(out, prior);
+      const found = draft.foundKinds(out);
+      if (kept.length && Array.isArray(found)) out.kinds = [...new Set([...found, ...kept])].filter((id) => !off.includes(id));
+    }
+  }
   return out;
 }
 function draftFields(body) {

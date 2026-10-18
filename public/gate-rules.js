@@ -21,13 +21,21 @@
   }
 
   // Fills each blank in a line, in order, with the user's answers. A blank with no answer stays.
+  // An answer that starts with its own place word fills a blank after one without doubling it ("throw line at ____" filled
+  // with "on the lake" reads "throw line on the lake"), and a role after "by" takes "the" ("trained in their use by the boat
+  // driver"): messy round 13, B run 7.
+  const PLACE_LEAD = /^(?:at|on|in|inside|under|underneath|beside|near|next to|by|from|along|over|above|below|behind|within|outside|off)\b/i;
+  const FILL_ROLE = /^(?!(?:the|a|an|our|their|his|her|its|each|every|all|any)\b)(?:[a-z][a-z-]* ){0,3}(?:driver|operator|supervisor|foreman|supplier|manufacturer|maker|trainer|instructor|skipper|contractor|company|crew|leading hand|electrician|plumber|engineer|hygienist|officer|coordinator|manager|provider|team|staff|first aider|rescue crew)s?$/;
   function fillLine(line, answers) {
     if (!hasBlank(line) || !Array.isArray(answers)) return line;
     let n = 0;
-    return String(line).replace(BLANK_RUN, (run) => {
+    return String(line).replace(new RegExp(`(\\s(at|on|in|by)\\s+)?${BLANK_RUN.source}`, 'g'), (run, lead, word) => {
       const answer = cleanAnswer(answers[n]);
       n += 1;
-      return answer || run;
+      if (!answer) return run;
+      if (lead && PLACE_LEAD.test(answer)) return ` ${answer}`;
+      if (lead && /^by$/i.test(word) && FILL_ROLE.test(answer)) return `${lead}the ${answer}`;
+      return `${lead || ''}${answer}`;
     });
   }
 
@@ -398,8 +406,12 @@
   // word). Public hospitals named "Medical Centre" are left alone.
   const CARE_CLINIC = /\b(?:clinics?|medical (?:centres?|centers?|practices?|groups?)|general practice|family practice|gps?|doctors|health (?:centres?|clinics?)|super ?clinics?)\b/i;
   const ED_NAMED = /\b(?:hospital|emergency|ed\b|flinders medical cent|monash medical cent)/i;
+  // A private hospital often has no emergency department either (messy round 13, B run 6: St Vincent's Hospital Launceston,
+  // a private hospital, picked over Launceston General with no word).
+  const PRIVATE_CARE = /\b(?:private|st vincent'?s hospital launceston|calvary(?! (?:mater|public))|st john of god|ramsay|healthscope|epworth|hollywood|pindara|john flynn|greenslopes|cabrini|warringal|mayo private|ashford|burnside|wakefield)\b/i;
   function careNote(value) {
     const text = clean(value);
+    if (text && PRIVATE_CARE.test(text) && !/\bemergency\b/i.test(text)) return 'A private hospital often has no emergency department, or charges for one. Check this one has an emergency department open while you work, or give the nearest public hospital with one.';
     if (!text || !CARE_CLINIC.test(text) || ED_NAMED.test(text)) return '';
     return 'A medical centre or clinic often has no emergency department and closes after hours. Check this one has an emergency department open while you work, or give the nearest hospital with one. Serious injuries go to an emergency department.';
   }
