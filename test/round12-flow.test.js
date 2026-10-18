@@ -382,7 +382,8 @@ test('weak answers are queried, and answers print with their capitals', () => {
   assert.equal(nameCase.tidyPersonRole('mel tran leading hand'), 'Mel Tran, Leading hand');
   assert.equal(nameCase.tidyPersonRole('the builders first aider'), 'The builder\'s first aider');
   assert.equal(nameCase.tidyPersonRole('kev'), 'Kev');
-  assert.equal(nameCase.tidyPersonRole('Tara Nguyen HSE'), 'Tara Nguyen HSE', 'capitals typed are left');
+  // Typed with capitals, the role is split off too, the capitals kept (messy round 13, B run 7: "Mick Tanner foreman").
+  assert.equal(nameCase.tidyPersonRole('Tara Nguyen HSE'), 'Tara Nguyen, HSE', 'capitals typed are kept');
   // The scaffold supervisor prints with capitals.
   const roof = prepareDraft(draftBody(ready({ ...ANSWERED, state: 'vic', fallRisk: 'yes', residential: 'no', crane: 'none', task: 'Erect the perimeter scaffold, then fix the roof sheets.', scaffoldSupervisor: 'dave, westside scaffolding supervisor', facts: { fallControl: 'Guardrails on the scaffold and edge protection on the roof.', scaffoldType: 'modular' } })));
   assert.equal(roof.scaffoldSupervisor, 'Dave, Westside scaffolding supervisor');

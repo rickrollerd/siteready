@@ -371,7 +371,7 @@
     const out = {};
     for (const [id] of SITE) {
       const texts = items.map((item) => (item.site || {})[id]).filter(Boolean);
-      const list = T && T.siteSuggestions ? T.siteSuggestions(texts) : texts;
+      const list = T && T.siteSuggestions ? T.siteSuggestions(texts, id) : texts;
       if (list.length) out[id] = list;
     }
     return out;

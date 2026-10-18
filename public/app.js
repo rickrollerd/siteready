@@ -936,7 +936,30 @@ const scopeWaiting = () => {
   const text = document.getElementById('scope-text');
   return Boolean((file && file.files && file.files.length) || (text && text.value.trim()) || (window.SiteWrite && window.SiteWrite.scopeDropped && window.SiteWrite.scopeDropped()));
 };
+// A job address typed but not picked, with no state ticked: Continue says so beside the address box, where the
+// person is looking for it, before the page checks anything else (messy round 13, B run 6: Continue seemed to do
+// nothing until the address suggestion was picked).
+const ADDRESS_PICK = 'Pick the job address from the list under the box, so SiteWrite knows which state\'s law applies. If it is not listed, tick the state below.';
+function addressNeedsPick() {
+  if (stateNow() || !workplaceEl.value.trim()) return false;
+  if (window.SiteWriteAddress && window.SiteWriteAddress.stateFromAddress(workplaceEl.value).state) return false;
+  workplaceState.classList.remove('state-said');
+  workplaceState.classList.add('state-warning');
+  workplaceState.innerHTML = `<strong>${esc(ADDRESS_PICK)}</strong>`;
+  workplaceEl.classList.add('address-change');
+  workplaceEl.setAttribute('aria-describedby', 'workplace-state');
+  return true;
+}
 document.getElementById('continue').addEventListener('click', (event) => {
+  // Said and shown first: the browser would otherwise stop at the next unanswered question below and the note
+  // beside the address box would be out of sight.
+  if (addressNeedsPick()) {
+    event.preventDefault();
+    document.getElementById('start-error').textContent = ADDRESS_PICK;
+    workplaceEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    workplaceEl.focus({ preventScroll: true });
+    return;
+  }
   if (document.getElementById('task').value.trim() || !scopeWaiting()) return;
   event.preventDefault();
   const panel = document.getElementById('scope-panel');
@@ -955,6 +978,13 @@ function stateAnswered() {
   if (stateNow()) return true;
   applyAddressState();
   if (stateNow()) return true;
+  // The address typed but not picked: said beside the address box, and the page goes there.
+  if (addressNeedsPick()) {
+    document.getElementById('start-error').textContent = ADDRESS_PICK;
+    workplaceEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    workplaceEl.focus({ preventScroll: true });
+    return false;
+  }
   let note = document.getElementById('state-ask');
   if (!note) {
     note = document.createElement('p');
@@ -1664,13 +1694,15 @@ function drawBlankForm(box) {
   }
   box.classList.add('hidden');
   // A blank filled with no answer ("me", "dont no", "TBC") is refused at its box, by its label (messy
-  // round 4, runs 7 and 9: "trained by me" printed).
+  // round 4, runs 7 and 9: "trained by me" printed), and so is "na", "n/a" or "none", as in a control's blank
+  // (messy round 13, A run 2: "rated for na m" printed).
   const said = [];
+  const G = window.SiteWriteGate;
   form.querySelectorAll('[data-blank-n]').forEach((input) => {
     const value = values[Number(input.dataset.blankN)] || '';
     if (document.activeElement !== input && input.value !== value) input.value = value;
     input.classList.toggle('empty', !input.value.trim());
-    const why = input.value.trim() && window.SiteWriteGate ? window.SiteWriteGate.notAnswer(input.value) : '';
+    const why = input.value.trim() && G ? (G.blankFillNeed ? G.blankFillNeed(input.value) : G.notAnswer(input.value)) : '';
     input.classList.toggle('bad', Boolean(why));
     if (why) said.push(`${input.getAttribute('aria-label') || 'This blank'}: ${why}`);
   });

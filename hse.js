@@ -353,7 +353,7 @@ function cleanProject(body, org) {
   if (!workplace) throw Object.assign(fail(400, 'Enter the job address.'), { field: 'workplace' });
   if (!STATES.includes(state)) throw Object.assign(fail(400, 'Choose the state or territory the work is in.'), { field: 'state' });
   const postcodes = workplace.match(/\b\d{4}\b/g) || [];
-  return { name, workplace, state, postcode: postcodes.length ? postcodes[postcodes.length - 1] : '', pcName: answers.tidyName(oneLine(body && body.pcName, 200)) || org.name };
+  return { name, workplace, state, postcode: postcodes.length ? postcodes[postcodes.length - 1] : '', pcName: answers.tidyCompany(oneLine(body && body.pcName, 200)) || org.name };
 }
 
 // ---- Signing in ----
@@ -424,7 +424,7 @@ const checkMessage = (check) => ({
 router.post('/hse/orgs', route(async (req, res) => {
   needName(req);
   const body = req.body || {};
-  const name = answers.tidyName(oneLine(body.name, 200));
+  const name = answers.tidyCompany(oneLine(body.name, 200));
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
   const checked = await newAbn(body, name, req.reviewer);
   const id = auth.newId();
@@ -496,7 +496,7 @@ router.put('/hse/orgs/:orgId', route(async (req, res) => {
   const { org, role } = await membership(req, req.params.orgId);
   requireLead(role, 'Only the lead can change the account details.');
   const body = req.body || {};
-  const name = answers.tidyName(oneLine(body.name, 200));
+  const name = answers.tidyCompany(oneLine(body.name, 200));
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
   const sent = body.abn === undefined || body.abn === null ? '' : abnDigits(body.abn);
   let checked;

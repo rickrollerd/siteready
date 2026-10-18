@@ -73,13 +73,30 @@ const PRICE_LABEL_AFTER = /[ \t]*[:,\u2013\u2014-][ \t]*(?:variation(?:[ \t]+pri
 const SECTION_POINTER = /,?[ \t]*(?:(?:and|&)[ \t]+)?(?:(?:as[ \t]+)?per[ \t]+|in[ \t]+accordance[ \t]+with[ \t]+|under[ \t]+|in[ \t]+|refer[ \t]+to[ \t]+)?(?:the[ \t]+)?(?:Sections?|SECTIONS?|Clauses?|CLAUSES?|Annexure|ANNEXURE|Appendix|APPENDIX)[ \t]*(?:["\u201c\u2018'][^"\u201d\u2019'\n]{1,80}["\u201d\u2019']|\d+(?:\.\d+)*[a-z]?(?:[ \t]+(?:(?:and|&|of)[ \t]+)?[A-Z][\w'\u2019-]*)*)(?:[ \t]+of[ \t]+(?:the[ \t]+)?(?:[Ss]ub-?[Cc]ontract|[Cc]ontract|[Tt]ender|[Ss]pecification|[Ss]pec|[Ss]cope)(?:[ \t]+(?:[Dd]ocuments?|[Ww]orks))?)?/g;
 const PRICE_POINTER = /,?[ \t]*(?:(?:and|&)[ \t]+)?(?:(?:as[ \t]+)?per[ \t]+|in[ \t]+accordance[ \t]+with[ \t]+|under[ \t]+|in[ \t]+)?(?:the[ \t]+)?(?:(?:(?:sub-?contract|contract|trade|tender)[ \t]+)?(?:sum|price|pricing|cost|rates?)[ \t]+(?:breakdown|schedule)|schedule[ \t]+of[ \t]+(?:rates|prices|quantities)|bills?[ \t]+of[ \t]+quantities)\b/gi;
 const NOT_LIMITED = /,?[ \t]*\(?[ \t]*(?:but|and)[ \t]+(?:is[ \t]+|are[ \t]+)?not[ \t]+(?:necessarily[ \t]+)?limited[ \t]+to[ \t]*\)?,?/gi;
+// A heading's own number or letter ("2.1 DESCRIPTION OF WORK AREA:", "B. MECHANICAL SERVICES:", "3) Scope of
+// works:") comes off first, so the heading is read as a heading (messy round 13, B run 6: "DESCRIPTION OF WORK
+// AREA:" named the SWMS, its file and its task line once "2.1" was taken off after the headings were read).
+const HEADING_NUMBER = /^([ \t]*)(?:\(?\d{1,3}(?:\.\d{1,3})*[.)]?|\(?[A-Za-z][.)])[ \t]+(?=\S)/;
+const ONE = (pattern) => new RegExp(pattern.source, pattern.flags.replace('g', ''));
+const HEADING_TESTS = [CAPS_HEADING, CAPS_LABEL, SCOPE_HEADING, SCOPE_LABEL].map(ONE);
+function headingNumbersOff(text) {
+  return String(text || '').split(/\r?\n/).map((line) => {
+    const bare = line.replace(HEADING_NUMBER, '$1');
+    return bare !== line && HEADING_TESTS.some((pattern) => pattern.test(bare)) ? bare : line;
+  }).join('\n');
+}
+// "n" typed for "and" between two words prints "and" in the task line and the title ("bearings n expansion joints",
+// messy round 13, B run 7). Only a lone lower-case "n" between two words, and only as printed: the work is read
+// from the words as typed, as before.
+const LONE_N = /(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g;
+const andForN = (text) => String(text || '').replace(LONE_N, 'and');
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
   // A word ending in an accent ("Café") ends its line too (messy round 10, run 7: "Café Bars.").
   // A task typed all in capitals has no headings in capitals: its own first words stay ("REWIRE A HOUSE: ...").
   const shouted = !/[a-z]/.test(String(value || ''));
   const capsOff = (text) => (shouted ? text : text.replace(CAPS_HEADING, '').replace(CAPS_LABEL, (_whole, first) => first.toUpperCase()));
-  const lines = capsOff(String(value || '').replace(SCOPE_HEADING, '')).replace(SCOPE_LABEL, (_whole, first) => first.toUpperCase()).split(/\r?\n/).map((line) => {
+  const lines = capsOff(headingNumbersOff(String(value || '')).replace(SCOPE_HEADING, '')).replace(SCOPE_LABEL, (_whole, first) => first.toUpperCase()).split(/\r?\n/).map((line) => {
     const bare = line.replace(CLAUSE_NUMBER, '').replace(LIST_BULLET, '');
     return bare !== line && /[\p{L}\p{N})]$/u.test(bare.trim()) ? `${bare.trim()}.` : bare;
   });
@@ -2437,13 +2454,16 @@ function fallStepsControlled(fullTask, facts, state) {
   };
 }
 const ACCESS_SEEN = new Map();
+// Once the user has chosen how the crew works at height, the question stays while falls is Yes, even where a step
+// ticked since then carries a line that stops a fall: that line may be for other work (messy round 13, A run 1: the
+// tiler's ticks dropped the question, so its answer went, and "Work at edges" went with it).
 function fallAccessNeeded(fullTask, answer, state) {
   if (!state || !state.id || !fallRiskFor(fullTask, answer)) return false;
-  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane]);
+  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane, Boolean(state.fallAccessChosen)]);
   if (!ACCESS_SEEN.has(key)) {
     if (ACCESS_SEEN.size > 500) ACCESS_SEEN.clear();
     const found = fallStepsControlled(fullTask, {}, state);
-    ACCESS_SEEN.set(key, !found.noSteps && !found.tower && !found.controlled);
+    ACCESS_SEEN.set(key, !found.noSteps && !found.tower && (!found.controlled || Boolean(state.fallAccessChosen)));
   }
   return ACCESS_SEEN.get(key);
 }
@@ -2647,6 +2667,10 @@ function statesChartValues(text) {
   const radius = /\b\d+(?:\.\d+)?\s*m(?:etre|eter)?s?\b/i.test(source) && (/\bradius\b/i.test(source) || /\bat\s*\d+(?:\.\d+)?\s*m(?:etre|eter)?s?\b/i.test(source));
   return load && radius;
 }
+// A crane chart answer that is only its figures: up to six words, with the load and radius and nothing that says
+// what they are.
+const chartFiguresOnly = (text) => cleanLine(text).split(/\s+/).length <= 6 && statesChartValues(text) && !/\b(?:is|are|lifts?|rated|capacity|chart|checked|kept|max\w*|limit\w*|swl|wll)\b/i.test(text);
+const chartLine = (text) => `Crane chart rated capacity at the working radius: ${asSentence(text)}`;
 // Who confirmed the ground can carry the crane: an engineer, a report or certificate, a test, or the
 // principal contractor's assessment, or its site manager's check (messy round 11, run 4: "the builders site
 // manager checked the road for the hiab outriggers, we use 600mm outrigger pads" was refused twice). The
@@ -2656,12 +2680,27 @@ const GROUND_CONFIRMED = /\b(?:engineer\w*|geo ?tech\w*|report|certificate|certi
 // What a stood-down SWMS says of one answer it still needs. A box with "na", "none" or "TBC" typed in it
 // is not "Not answered yet": it says why the words typed are not an answer (messy round 11, run 3: "na"
 // was called "Not answered yet").
-function missingHelpItem(item, facts) {
+function missingHelpItem(item, facts, where) {
   const typed = cleanLine((facts || {})[item.id]);
   const placeholder = item.state === 'missing' && typed && !keptFact(typed);
   const state = placeholder ? 'vague' : item.state;
-  const why = state === 'vague' ? (require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
+  const why = state === 'vague' ? (presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
   return { id: item.id, label: item.label, state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+}
+
+// A standard answer whose blank was filled with no answer ("rated for na m", "report na", "kept only at n/a":
+// messy round 13, A run 2): why it is not an answer, or ''. The answer is read against each of the question's
+// standard answers, as worded for the state, and what fills each blank is judged as a blank is
+// (public/gate-rules.js blankFillNeed).
+function presetFillWhy(id, value, state) {
+  const text = cleanLine(value);
+  if (!text || !/\s/.test(text)) return '';
+  const { answerTexts } = require('./presets');
+  const { localText } = require('./citations');
+  const templates = answerTexts(id).filter((line) => /_{3,}/.test(line));
+  if (!templates.length) return '';
+  const worded = state && state.id ? templates.map((line) => localText(line, state.id)).filter(Boolean) : [];
+  return require('./public/gate-rules').presetFillNeed([...new Set([...templates, ...worded])], text);
 }
 
 function hasSubstance(id, text) {
@@ -2713,6 +2752,8 @@ const TOPIC_PATTERNS = {
 function factState(item, task, facts, state) {
   // The way up to work at height can also be named in the fall control answer.
   if (item.id === 'fallAccess') return accessAnswer(task, facts, state) ? 'supplied' : 'missing';
+  // A standard answer with "na", "-" or "TBC" in one of its blanks is not answered, whatever else reads it.
+  if (!item.choices && presetFillWhy(item.id, (facts || {})[item.id], state)) return 'vague';
   if (item.choices) {
     // A choice with a default needs no answer; one shown only after another answer is needed only then.
     if (item.default) return 'supplied';
@@ -2786,7 +2827,7 @@ function weakAnswers(input) {
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
       const typed = cleanLine(facts[item.id]);
-      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
+      const why = presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
         || (item.id === 'safetyDataSheet' && sdsNamesOnly(typed) ? `"${typed}" names the products but not how they are handled. Say how, and where their safety data sheets are kept, for example "Adhesive and primer: nitrile gloves and good airflow, safety data sheets in the site folder".` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });
@@ -3274,7 +3315,9 @@ function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
+  // A way of working at height the user chose keeps its question and its step through a change of steps (messy round
+  // 13, A run 1: ticking a step whose lines stop a fall dropped "Working at height" and its "Work at edges" step).
+  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
   if (state.noBrazing && state.kinds) state.kinds = state.kinds.filter((id) => id !== 'hotWork');
   // A scaffold the user says is by others: its erect and dismantle steps come off (messy round 12, run 6).
   state.scaffoldByOthers = choiceAnswer('scaffoldType', input.facts && input.facts.scaffoldType) === 'byOthers';
@@ -4116,7 +4159,7 @@ function printedTask(out, input) {
   if (!out || typeof out !== 'object' || typeof out.task !== 'string') return out;
   const spelling = fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input));
   // The questions read the task with its shorthand read out; a draft prints it as typed (buildDraft).
-  return { ...out, task: out.kind === 'questions' ? readSlang(spelling.text) : spelling.text, ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
+  return { ...out, task: out.kind === 'questions' ? readSlang(spelling.text) : andForN(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
 
 // The work with no job steps a SWMS for this input would name, worked out before its questions are
@@ -4172,7 +4215,7 @@ function withTaskCapitals(out) {
 // shorthand as written (messy round 8, run 6: "lvl" read "level" in one prepare and "lvl" in the next).
 function standDownTask(out, input) {
   if (!out || out.kind !== 'stand-down' || typeof out.task !== 'string') return out;
-  return { ...out, task: fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input)).text };
+  return { ...out, task: andForN(fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input)).text) };
 }
 
 // Falls answered No while a job step of this SWMS rates a fall from height High before its controls (messy
@@ -4469,10 +4512,10 @@ function buildDraft(input, screen) {
     // Typed all in lower case, a name prints with its capitals, as the company's own does (messy round 10:
     // "batavia coast builders", "brookfield build co", "tanya" as Prepared by, "declan furlong" as works
     // manager). Capitals typed are never lowered.
-    principalContractor: nameCase.tidyName(keptFact(input.principalContractor)) || noneAnswer(input.principalContractor),
+    principalContractor: nameCase.tidyCompany(keptFact(input.principalContractor)) || noneAnswer(input.principalContractor),
     // Typed all in lower case, it prints with its capitals, as SiteLink and the saved profile give them
     // (messy round 9, run 3: "lockwise security" in the header).
-    subcontractor: nameCase.tidyName(blankName(input.company || input.subcontractor)),
+    subcontractor: nameCase.tidyCompany(blankName(input.company || input.subcontractor)),
     companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
     siteManager: nameCase.tidyPersonRole(keptFact(input.siteManager)),
@@ -4513,7 +4556,7 @@ function buildDraft(input, screen) {
     ...header,
     missing: list.map(missingLabel),
     missingHelp: list.map((item) => {
-      return missingHelpItem(item, facts);
+      return missingHelpItem(item, facts, state);
     }),
     statement: 'This task is stood down. It does not start.',
     method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
@@ -4526,7 +4569,7 @@ function buildDraft(input, screen) {
       // What each answer still needs, in plain words with an accepted example, so the page can say
       // it beside the question (answer-help.js).
       missingHelp: missing.map((item) => {
-        return missingHelpItem(item, facts);
+        return missingHelpItem(item, facts, state);
       }),
       statement: 'This task is stood down. It does not start.',
       method: [],
@@ -4653,6 +4696,12 @@ function buildDraft(input, screen) {
     for (const item of highRiskMatches(draft.jobSteps.map((step) => step.step).join('\n'), pack.fallAnswer, state).filter((match) => STEP_CATEGORIES.has(match.check))) {
       const label = item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label;
       if (!draft.highRisk.includes(label)) draft.highRisk = [...draft.highRisk, label];
+    }
+    // So is a step that works with moving plant ("Set up the concrete pump"), as SiteWrite's check reads it from
+    // the step's name, whatever plant is ticked (messy round 13, A run 2: unticking the placing boom took the item
+    // off, and the check then made it a must-fix).
+    for (const item of highRiskMatches(draft.jobSteps.map((step) => step.step.replace(OWN_STEP_MARK, '').trim()).filter((name) => !require('./builder-check').checkOnly(name)).map((name) => `${name}.`).join('\n'), pack.fallAnswer, state).filter((match) => match.check === 'plant')) {
+      if (!draft.highRisk.includes(item.label)) draft.highRisk = [...draft.highRisk, item.label];
     }
     // So is work in the rail corridor, as the builder check reads it from the step's name (messy round 5: a
     // typed resleepering task in a possession did not list the traffic corridor, and the check then
@@ -4811,7 +4860,7 @@ function buildDraft(input, screen) {
   // The steps the user wrote for work SiteWrite does not cover go in once the registers and ratings
   // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
-  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
+  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: andForN(typed), warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
@@ -6137,13 +6186,18 @@ function notCoveredUnwritten(draft) {
 
 // The job steps in the order the user chose. A step not in that order, such as one added
 // since, stays just after the step it followed.
+// A step whose name changed since the order was set ("Set up the concrete pump and placing boom" is "Set up the
+// concrete pump" once the boom is unticked) keeps its place, matched as the user's changes to its lines are
+// (stepsForEdits): messy round 13, A run 2, the user's own step slipped below it after the plant was confirmed.
 function inOrder(jobSteps, order) {
   if (!Array.isArray(order) || !order.length) return jobSteps;
   const at = new Map(order.map((name, index) => [name, index]));
+  const named = stepsForEdits(jobSteps, Object.fromEntries(order.map((name) => [name, true])));
   let last = -1;
   const keyed = jobSteps.map((step, index) => {
-    const key = at.has(step.step) ? at.get(step.step) : last + 0.5;
-    if (at.has(step.step)) last = at.get(step.step);
+    const name = named.has(index) ? named.get(index) : step.step;
+    const key = at.has(name) ? at.get(name) : last + 0.5;
+    if (at.has(name)) last = at.get(name);
     return { step, key, index };
   });
   return keyed.sort((a, b) => a.key - b.key || a.index - b.index).map((item) => item.step);
@@ -9252,8 +9306,9 @@ function withAskedFacts(steps, required, facts, elsewhere) {
   let out = steps;
   for (const item of required || []) {
     if (item.choices || !FACT_KINDS.has(item.id)) continue;
-    const line = asSentence(keptFact((facts || {})[item.id]));
-    if (!line || printed.includes(flat(line))) continue;
+    const given = keptFact((facts || {})[item.id]);
+    const line = item.id === 'craneChart' && given && chartFiguresOnly(given) ? chartLine(given) : asSentence(given);
+    if (!line || printed.includes(flat(line)) || printed.includes(flat(asSentence(given)))) continue;
     const topic = FACT_STEP[item.id];
     let at = topic ? out.findIndex((step) => topic.test(step.step)) : -1;
     if (at < 0) at = out.findIndex((step) => step.step === 'Before starting');
@@ -9298,6 +9353,9 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
     // not as a control in a step (messy round 10, A fault 12: "slab on ground only" for load limits printed
     // in its row and in the pallet jack step).
     if (given && !['safetyDataSheet', 'silicaControls'].includes(id) && REFERENCE_FACTS.some(([ref]) => ref === id) && NOT_NEEDED_ANSWER.test(given)) return '';
+    // A crane chart answer of figures alone ("2.1t at 6m") prints with what the figures are, so it reads as a
+    // control (messy round 13, B run 8: "2.1t at 6m." printed as a line of its own).
+    if (given && id === 'craneChart' && chartFiguresOnly(given)) return chartLine(given);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(withoutTaskSentences(fallControlText(acceptedText(fallSource(task, facts))), task));
     if (id === 'trenchSupport') return asSentence(trenchSupportOf(task, { ...facts, siteConditions: '' }));
@@ -9809,7 +9867,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { craneNamed, foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { andForN, craneNamed, foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

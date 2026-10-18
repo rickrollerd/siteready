@@ -955,6 +955,14 @@ function hardFails(swms, state, stage = 'review') {
     ...[['plant', swms.plant], ['emergency', swms.emergency], ['licences', swms.licences], ['PPE', swms.ppe], ['site conditions', swms.siteWritten], ['fields', swms.otherFields]]
       .flatMap(([where, lines]) => lines.filter((line) => typeof line === 'string' && leftOpen(line)).map((line) => ({ where, line }))),
   ];
+  // "na", "n/a" or "TBC" filling a gap inside a step's line or a site condition is a placeholder too (messy round 13,
+  // A run 2: "rated for na m" and "report na" passed this check). Only inside a sentence: "Licence: N/A" in a
+  // table is left alone.
+  const { heldIn } = require('./public/gate-rules');
+  const seenOpen = new Set(open.map((item) => item.line));
+  for (const [where, line] of [...swms.steps.flatMap((step) => [...step.hazards, ...step.controls].map((text) => [step.step || 'step', text])), ...swms.controls.map((text) => ['controls', text]), ...swms.siteWritten.map((text) => ['site conditions', text]), ...swms.emergency.map((text) => ['emergency', text])]) {
+    if (typeof line === 'string' && !seenOpen.has(line) && heldIn(line)) { open.push({ where, line }); seenOpen.add(line); }
+  }
   add('H8', 'No blanks or placeholders left', !open.length,
     open.length ? `Blanks or placeholders are left in the SWMS: ${open.slice(0, 5).map((item) => `"${item.line.slice(0, 160)}" (${item.where})`).join('; ')}${open.length > 5 ? `; and ${open.length - 5} more` : ''}. Fill each one in with what applies on this job.`
       : 'No blanks or placeholders are left.');
@@ -1672,4 +1680,4 @@ function fallsControlled(lines) {
   return kept.some((line) => ANSWERS.fall.test(line)) && kept.some(stopsFall);
 }
 
-module.exports = { streetSlips, checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, fallsControlled, BANDS, SOURCES, VAGUE };
+module.exports = { streetSlips, checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, fallsControlled, checkOnly, BANDS, SOURCES, VAGUE };
