@@ -91,12 +91,23 @@
   // round 13: "Existing services." passed as Live services though it names no service, and "Other trades working on
   // site." was offered for Other trades and then refused). Such a condition is not offered.
   const gate = () => root.SiteWriteGate || (typeof require === 'function' ? require('./gate-rules') : null);
-  const offerable = (id, text) => { const rules = gate(); return !rules || !rules.siteNeed || !rules.siteNeed(id, text); };
+  // Nor is one that names nothing a crew can act on, though SiteWrite's own rule lets it pass (messy round 14, A runs 1
+  // and 4: "Other trades working in the buildings." and "Work alongside other trades." name no trade, and "Fans,
+  // ductwork and electrical controls by other trades." is others' work, not a live service). A condition is offered
+  // for Other trades only where it names a trade or where they work, and for Live services only where it names a
+  // service that is not others' work.
+  const TRADE_NAMED = /\b(?:electric\w*|sparky|sparkies|plumb\w*|hydraulic\w*|mechanical|hvac|air ?con\w*|fire\w*|sprinkler\w*|carpent\w*|joiner\w*|joinery|til(?:er|ers|ing)|paint\w*|plaster\w*|ceiling\w*|partition\w*|concret\w*|formwork\w*|steel ?fix\w*|reo|steel\w*|scaffold\w*|cranes?|crane crew|rigg\w*|roof\w*|glaz\w*|windows?|facade\w*|cladding|landscap\w*|civil\w*|earthwork\w*|demoli\w*|asbestos|clean\w*|security|data|comms|cabling|lifts?|floor ?(?:layers?|finish\w*|cover\w*)|carpet\w*|vinyl|waterproof\w*|insulat\w*|duct\w*|fans?|kitchens?|masonry|brick\w*|block ?lay\w*|render\w*|signage|traffic control\w*|survey\w*|cabinet\w*|services trades?|pump\w*|piling|drill\w*|welders?|fitters?|electricians?|labourers?)\b/i;
+  const WHERE_NAMED = /\b(?:above|below|beneath|overhead|same (?:level|floor|area|room|zone)|levels? \d+|floors? \d+|L\d+|ground floor|basement|roof|plant ?room|riser|shaft|zone \w+|next door|adjacent (?:room|area|level|unit|lot))\b/i;
+  const OTHERS_WORK = /\bby (?:other trades|others|other contractors|another contractor|the builder|the main contractor|the head contractor)\b/i;
+  const namesSomething = (id, text) => (id === 'otherTrades' ? TRADE_NAMED.test(text) || WHERE_NAMED.test(text)
+    : id === 'liveServices' ? !OTHERS_WORK.test(text) : true);
+  const offerable = (id, text) => { const rules = gate(); return (!rules || !rules.siteNeed || !rules.siteNeed(id, text)) && namesSomething(id, text); };
   function scopeSite(rows) {
     const out = {};
     for (const row of rows || []) {
       for (const part of kept(row.conditions).split(/\s*;\s*/).filter(Boolean)) {
-        const rule = SITE_RULES.find(([, pattern]) => pattern.test(part));
+        // Work by other trades is an Other trades condition, whatever services it names.
+        const rule = OTHERS_WORK.test(part) ? SITE_RULES.find(([id]) => id === 'otherTrades') : SITE_RULES.find(([, pattern]) => pattern.test(part));
         if (!rule) continue;
         const text = `${part.charAt(0).toUpperCase()}${part.slice(1)}`;
         if (!offerable(rule[0], text)) continue;

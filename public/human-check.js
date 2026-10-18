@@ -319,7 +319,10 @@
     const rawRole = $(`${prefix}-role`).value.replace(/\s+/g, ' ').trim();
     // Small words stay in lower case unless first, as company names do (messy round 10).
     const SMALL = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by']);
-    const name = lower(rawName) ? rawName.replace(/(^|[\s'’-])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && SMALL.has(`${letter}${rest}`) ? whole : `${before}${letter.toUpperCase()}${rest}`)) : rawName;
+    // A surname's own capitals as the SWMS prints them (sitelink-answers.js tidyName): "McGrath", "O'Brien", "MacLeod".
+    const MAC = new Set(['macarthur', 'macaulay', 'macdonald', 'macdougall', 'macfarlane', 'macgregor', 'macinnes', 'macintyre', 'mackenzie', 'mackinnon', 'maclachlan', 'maclean', 'macleod', 'macmillan', 'macnamara', 'macneil', 'macpherson', 'macqueen']);
+    const surname = (word) => (/^Mc[a-z]{2,}$/.test(word) ? `Mc${word.charAt(2).toUpperCase()}${word.slice(3)}` : /^Mac[a-z]{3,}$/.test(word) && MAC.has(word.toLowerCase()) ? `Mac${word.charAt(3).toUpperCase()}${word.slice(4)}` : word);
+    const name = lower(rawName) ? rawName.replace(/(^|[\s-]|(?<=(?:^|[\s-])[a-z])['’])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && SMALL.has(`${letter}${rest}`) ? whole : `${before}${surname(`${letter.toUpperCase()}${rest}`)}`)) : rawName;
     // A short title keeps its capitals, as SiteLink gives them ("hse advisor" reads "HSE advisor").
     const SHORT = new Set(['hse', 'whs', 'ohs', 'ohse', 'hseq', 'qhse', 'she', 'sheq', 'ehs', 'pm', 'cm', 'ceo', 'cfo', 'coo', 'md', 'gm', 'hr', 'qa', 'qs', 'it']);
     const roleWords = lower(rawRole) ? rawRole.replace(/[a-z]+/g, (word) => (SHORT.has(word) ? word.toUpperCase() : word)) : rawRole;

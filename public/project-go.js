@@ -488,8 +488,12 @@
     const silica = item.silicaStep || got.silicaStep || '';
     const uses = item.substanceUses || got.substanceUses || {};
     const sds = item.facts && typeof item.facts.safetyDataSheet === 'string' ? item.facts.safetyDataSheet : '';
-    return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(item)[type], wordsOf(index), '', sds, silica, null, uses[type] || null) : '';
+    return rules && rules.notUsedNeed ? rules.notUsedNeed(type, whyOf(item)[type], wordsOf(index), stepsOf(index), sds, silica, null, uses[type] || null) : '';
   }
+  // The job steps' words, from the prepared draft or the questions asked before it: a type they name asks its reason
+  // here, as the SWMS does (messy round 14, A runs 1 and 2: refrigerants "Not required" was taken with no reason
+  // here, then listed as still needed, while the SWMS asked the reason).
+  const stepsOf = (index) => { const item = project.items[index]; const got = asked.get(index) || {}; return String(item.stepWords || got.stepWords || ''); };
   function setNotUsed(index, type, ticked) {
     const item = project.items[index];
     const now = new Set(notUsedOf(item));
@@ -537,13 +541,14 @@
       const got = asked.get(index) || {};
       const use = (item.substanceUses || got.substanceUses || {})[type];
       const fromPlant = !said && use && use.plant ? use.step : '';
-      const named = said || fromPlant;
+      const fromSteps = !said && !fromPlant && rules.reasonAsked ? rules.reasonAsked(type, wordsOf(index), stepsOf(index)) : null;
+      const named = said || fromPlant || (fromSteps ? fromSteps.word : '');
       const n = rules.TYPES.indexOf(type);
       // A tick refused whatever the reason (a step uses it, the SDS answer names it, a step cuts concrete)
       // says so under the tick, with or without a reason box.
       const need = ticked.has(type) && !added.length ? notUsedNeed(index, type) : '';
       const refused = need && !named ? `<p class="answer-note" id="go-why-need-${index}-${n}">${esc(need)}</p>` : '';
-      const why = refused || (ticked.has(type) && named && !added.length ? `<div class="field go-why"><label for="go-why-${index}-${n}">Why is it not required?<span class="hint">${fromPlant ? `This SWMS's plant list has "${esc(fromPlant)}", which runs on diesel or petrol.` : `This SWMS's task or answers name "${esc(named)}".`} Give a short reason, ${esc(rules.reasonExample ? rules.reasonExample(type) : 'for example "not used by our crew on this job"')}. It prints in the substances section.</span></label><input id="go-why-${index}-${n}" type="text" maxlength="200" data-go-why="${index}" data-type="${esc(type)}" value="${esc(whyOf(item)[type] || '')}"><p class="answer-note" id="go-why-need-${index}-${n}"${notUsedNeed(index, type) ? '' : ' hidden'}>${esc(notUsedNeed(index, type))}</p></div>` : '');
+      const why = refused || (ticked.has(type) && named && !added.length ? `<div class="field go-why"><label for="go-why-${index}-${n}">Why is it not required?<span class="hint">${fromPlant ? `This SWMS's plant list has "${esc(fromPlant)}", which runs on diesel or petrol.` : fromSteps ? `This SWMS's job steps name "${esc(named)}".` : `This SWMS's task or answers name "${esc(named)}".`} Give a short reason, ${esc(rules.reasonExample ? rules.reasonExample(type) : 'for example "not used by our crew on this job"')}. It prints in the substances section.</span></label><input id="go-why-${index}-${n}" type="text" maxlength="200" data-go-why="${index}" data-type="${esc(type)}" value="${esc(whyOf(item)[type] || '')}"><p class="answer-note" id="go-why-need-${index}-${n}"${notUsedNeed(index, type) ? '' : ' hidden'}>${esc(notUsedNeed(index, type))}</p></div>` : '');
       return `<li>${esc(type)}${added.length ? ` <span class="meta">Added: ${esc(added.join('; '))}.</span>` : `<label class="check go-notused"><input type="checkbox" data-go-notused="${index}" data-type="${esc(type)}"${ticked.has(type) ? ' checked' : ''}> Not required</label>`}${why}</li>`;
     }).join('');
     const open = item.kind === 'draft' ? ` <button type="button" class="link" data-project-open="${index}">Open this SWMS to add a product</button>` : ' After Prepare all, open this SWMS with Check this SWMS to add one.';
@@ -1744,6 +1749,7 @@
     const rules = window.SiteWriteSubstanceRules;
     item.silicaStep = draft.kind === 'draft' && rules && rules.silicaStep ? rules.silicaStep(draft) : '';
     item.substanceUses = draft.kind === 'draft' && rules && rules.stepUses ? rules.stepUses(draft) : {};
+    item.stepWords = draft.kind === 'draft' && rules && rules.stepWords ? rules.stepWords(draft) : '';
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];
@@ -1857,6 +1863,9 @@
   // not as one "Hazardous substance: ..." item each.
   const TYPE_LABEL = 'Hazardous substance: ';
   const TYPE_DO = 'for each hazardous substance, add the product you use or tick "Not required"';
+  const TYPE_WHY = 'give the short reason each one ticked "Not required" is not required, under its tick on this page';
+  // The types ticked "Not required" for a SWMS, by the name the needs list gives them.
+  const tickedTypes = (item) => { const rules = window.SiteWriteSubstanceRules; return new Set(rules ? notUsedOf(item).map(rules.promptName) : []); };
   function splitTypes(labels) {
     const rules = window.SiteWriteSubstanceRules;
     const names = new Set(rules ? rules.TYPES.map(rules.promptName) : []);
@@ -1885,11 +1894,16 @@
       const left = index >= 0 ? coverLeftOf(index) : [];
       return { ready: false, cover: true, text: `No job steps yet for: ${left.join('; ') || 'part of its work'}. Write your own step for each${item.status === 'write' ? '' : ', or say which SWMS covers it'}.` };
     }
-    const { give, types } = splitTypes(own);
-    const typesText = types.length ? `${TYPE_DO}: ${types.join('; ')}` : '';
+    const { give, types: all } = splitTypes(own);
+    // A type ticked "Not required" that still needs its reason is not said as if the tick were lost (messy round 14, A
+    // runs 1 and 2): it asks for the reason, beside the tick on this page.
+    const ticked = tickedTypes(item);
+    const types = all.filter((name) => !ticked.has(name));
+    const why = all.filter((name) => ticked.has(name));
+    const typesText = [types.length ? `${TYPE_DO}: ${types.join('; ')}` : '', why.length ? `${TYPE_WHY}: ${why.join('; ')}` : ''].filter(Boolean).join('; and ');
     const text = give.length ? `Before download, open it to give: ${give.join('; ')}.${typesText ? ` Then, ${typesText}.` : ''}`
-      : typesText ? `Before download, open it and, ${typesText}.` : 'Waiting only for the details above.';
-    return { ready: false, text, give, types };
+      : why.length && !types.length ? `Before download, ${typesText}.` : typesText ? `Before download, open it and, ${typesText}.` : 'Waiting only for the details above.';
+    return { ready: false, text, give, types, why };
   }
   function sharedNeeds() {
     // A person's box left empty, or given an answer a SWMS does not accept ("TBA").
@@ -1905,7 +1919,7 @@
   const lowerFirst = (text) => String(text).replace(/^[A-Z](?=[a-z])/, (letter) => letter.toLowerCase());
   const needsText = (state) => {
     if (state.check) return CHECK_IT;
-    if (state.types && state.types.length) return [state.give.length ? `give ${state.give.map(lowerFirst).join('; ')}` : '', `${TYPE_DO}: ${state.types.join('; ')}`].filter(Boolean).join('; then, ');
+    if ((state.types && state.types.length) || (state.why && state.why.length)) return [state.give.length ? `give ${state.give.map(lowerFirst).join('; ')}` : '', state.types.length ? `${TYPE_DO}: ${state.types.join('; ')}` : '', state.why.length ? `${TYPE_WHY}: ${state.why.join('; ')}` : ''].filter(Boolean).join('; then, ');
     const text = state.text.replace(/\.$/, '');
     const give = /^Before download, open it to give: (.*)$/.exec(text);
     return give ? `give ${give[1].split('; ').map(lowerFirst).join('; ')}` : lowerFirst(text);

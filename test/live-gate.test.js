@@ -9,7 +9,7 @@ const { prepareDraft } = require('../draft');
 const { draftBody } = require('../input');
 const { gateChecks, downloadGaps } = require('../download-gate');
 const { answerNeed, AS_GIVEN } = require('../public/gate-rules');
-const { ANSWERED, ready } = require('./helpers');
+const { ANSWERED, LIVE_SERVICES, ready } = require('./helpers');
 const { loadPage, settle, FakeEvent, checkAll, selfCheck } = require('./fake-dom');
 
 const FENCE = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
@@ -122,7 +122,7 @@ function server(body) {
 
 function respond(method, route, body) {
   if (route === '/api/config') return { body: { accounts: true, trialDays: 14 } };
-  if (route === '/api/me') return { body: { user: { email: 'a@b.example', name: 'Sam' }, company: { name: 'Co', abn: '1', hasAccess: true, planStatus: 'active' } } };
+  if (route === '/api/me') return { body: { user: { email: 'a@b.example', name: 'Sam Lee' }, company: { name: 'Co', abn: '1', hasAccess: true, planStatus: 'active' } } };
   if (route === '/api/sites') return { body: { sites: [] } };
   if (route === '/api/steps') return { body: { groups: [] } };
   if (route === '/api/draft') return { body: server(body) };
@@ -153,7 +153,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
   await settle();
   p.document.getElementById('task').value = LIVE.task;
   // The site questions were answered before the draft was prepared.
-  for (const [id, value] of Object.entries(ANSWERED.site)) p.document.getElementById(`site-${id}`).value = value;
+  for (const [id, value] of Object.entries({ ...ANSWERED.site, liveServices: LIVE_SERVICES })) p.document.getElementById(`site-${id}`).value = value;
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();
   const draft = server({});

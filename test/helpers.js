@@ -42,6 +42,9 @@ const ANSWERED = {
   site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'None', access: 'Through the main site gate.' },
 };
 
+// Live services named for work beside a live supply (messy round 14: "None" is refused there).
+const LIVE_SERVICES = 'Live 240 V power and lighting circuits in the work area, isolated and tested by the electrician before work.';
+
 // The plant and the emergency response are asked for each task (goal 2): ready() confirms the plant
 // SiteWrite lists as used and answers each emergency question, for tests about something else.
 function ready(input) {
@@ -71,7 +74,10 @@ function ready(input) {
     // Fuel beside a line refuelling the crew's plant takes no "by others" reason (messy round 9), so another is given.
     const reasonFor = (type) => (rules.notUsedNeed(type, 'Supplied and applied by others', rules.ownWords(input), rules.stepWords(draft), '', '', draft) ? 'Not used by our crew on this job' : 'Supplied and applied by others');
     const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, reasonFor(type)])) : undefined);
-    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: products.length ? left : notUsed } : {}), ...(products.length ? { substances: products } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
+    // Live services are named where a step's hazard is a live supply, as "None" is refused there (messy round 14).
+    const site = out.site || {};
+    const liveNamed = /^(?:none|nil|n\/a|na|not applicable)?\.?$/i.test(String(site.liveServices || '').trim()) && require('../download-gate').liveSupplyHazard(draft) ? { site: { ...site, liveServices: LIVE_SERVICES } } : {};
+    out = { ...out, ...liveNamed, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: products.length ? left : notUsed } : {}), ...(products.length ? { substances: products } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
   }
   return out;
 }
@@ -89,4 +95,4 @@ function checked(body = {}, input = null, { name = '', role = 'Supervisor' } = {
   return { ...rest, check: { parts: Object.fromEntries(IDS.map((id) => [id, true])), partHashes: partHashes(draft), name: name || reviewedBy || 'Alex Chen', role, ack: true } };
 }
 
-module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked };
+module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, LIVE_SERVICES, ready, checked };

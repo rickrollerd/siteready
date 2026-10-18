@@ -265,8 +265,8 @@ test('a vehicle as the muster point, a trade, a bare role or an amount is refuse
   assert.equal(gate.answerNeed(rule('compliance-responsible'), 'the tilers'), '"the tilers" does not name a person. Give their name and role, for example "Sam Lee, supervisor".');
   assert.equal(gate.answerNeed(rule('compliance-responsible'), 'leading hand'), '"leading hand" is a role, not a person. Give their name and role, for example "Sam Lee, leading hand".');
   assert.equal(gate.answerNeed(rule('compliance-responsible'), 'Danny Kostopolous, leading hand'), '');
-  // First names alone stay accepted (flow8 decision 1).
-  assert.equal(gate.answerNeed(rule('reviewer'), 'Leah'), '');
+  // First names alone were accepted (flow8 decision 1) until messy round 14: a full name is asked for.
+  assert.match(gate.answerNeed(rule('reviewer'), 'Leah'), /gives one name only/);
   // Run 6: "heaps" for the other trades.
   assert.equal(gate.answerNeed({ ask: gate.SITE_NEED.otherTrades, name: 'Other trades', none: true }, 'heaps'), `"heaps" gives an amount, not who or what. Name them, or say what applies on this job. ${gate.SITE_NEED.otherTrades}`);
 });

@@ -240,7 +240,9 @@ test('"me" is refused as the checker\'s name, on the page and by the server, and
   assert.match(gate.checkerNameNeed('me'), /^"me" does not say who\. Give your own name, for example "Sam Lee"\./);
   assert.match(gate.checkerNameNeed('foreman'), /is a role, not a name/);
   assert.equal(gate.checkerNameNeed('Dave Rossi'), '');
-  assert.equal(gate.checkerNameNeed('Jo'), '');
+  // A first name alone is asked for in full since messy round 14 ("dean").
+  assert.match(gate.checkerNameNeed('Jo'), /gives one name only/);
+  assert.equal(gate.checkerNameNeed('Jo Park'), '');
   const token = await signIn('me@r11.example');
   const refused = await call('POST', '/api/draft.docx', { token, body: checked({ ...FENCE }, null, { name: 'me', role: 'Foreman' }) });
   assert.equal(refused.status, 400);
@@ -254,7 +256,9 @@ test('"me" is refused as the checker\'s name, on the page and by the server, and
   assert.ok(gaps({ ...FENCE, preparedBy: 'me' }).includes('preparedBy'));
   assert.ok(gaps({ ...FENCE, siteManager: 'me' }).includes('siteManager'));
   assert.ok(!gaps({ ...FENCE, preparedBy: '' }).includes('preparedBy'));
-  assert.ok(!gaps({ ...FENCE, siteManager: 'Dave' }).includes('siteManager'), 'a first name alone is still accepted');
+  // A first name alone is asked for in full since messy round 14; a full name passes.
+  assert.ok(gaps({ ...FENCE, siteManager: 'Dave' }).includes('siteManager'));
+  assert.ok(!gaps({ ...FENCE, siteManager: 'Dave Rossi' }).includes('siteManager'));
 });
 
 // ---- 9. Scope headings ----

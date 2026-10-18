@@ -15,15 +15,17 @@ const { draftBody } = require('../input');
 const { downloadGaps } = require('../download-gate');
 const { sharedNote } = require('../docx-draft');
 const { QUESTIONS, emergencyQuestions } = require('../emergency');
-const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, LIVE_SERVICES, ready, checked } = require('./helpers');
 const { loadPage, settle } = require('./fake-dom');
 // The types of hazardous substance are ticked "Not required" (D277): these tests are about the plant and the emergency.
 const { TYPES, SILICA } = require('../public/substance-rules');
 
 // The cable tray is anchored into the slab, so the slab is listed as the product with silica (messy round 7, D311).
 const SLAB = { id: 'sub-1', type: SILICA, product: 'Concrete slab', controls: ['Drill with on-tool extraction', 'Fit tested P2 respirator'], sdsDate: '2026-02-01', step: 'Install cable tray and containment', confirmed: true };
-const EWP = { ...ANSWERED, state: 'qld', task: 'Install cable trays and pull cables through the ward ceilings and risers from scissor lifts.', fallRisk: 'yes', residential: 'no', facts: { fallControl: 'Scissor lifts with guardrails for all work above 2 m.', controlsConsidered: 'A scaffold is not practicable in the ward ceilings.' } , substancesNotUsed: TYPES.filter((type) => type !== SILICA), substances: [SLAB] };
-const TRENCH = { ...ANSWERED, state: 'qld', task: 'Excavate a trench 2.5 m deep with an excavator and lay a 300 mm sewer main, with a trench shield.', fallRisk: 'no', residential: 'no', facts: { trenchSupport: 'Trench shield to 3 m, installed as digging goes.' } , substancesNotUsed: TYPES };
+// The ward ceilings' live circuits are named, as "None" is refused beside energised parts (messy round 14).
+const EWP = { ...ANSWERED, site: { ...ANSWERED.site, liveServices: LIVE_SERVICES }, state: 'qld', task: 'Install cable trays and pull cables through the ward ceilings and risers from scissor lifts.', fallRisk: 'yes', residential: 'no', facts: { fallControl: 'Scissor lifts with guardrails for all work above 2 m.', controlsConsidered: 'A scaffold is not practicable in the ward ceilings.' } , substancesNotUsed: TYPES.filter((type) => type !== SILICA), substances: [SLAB] };
+// Falls No kept for the 2.5 m trench: the shield and barriers stop the fall (messy round 14 asks to check it).
+const TRENCH = { ...ANSWERED, state: 'qld', task: 'Excavate a trench 2.5 m deep with an excavator and lay a 300 mm sewer main, with a trench shield.', fallRisk: 'no', fallNoKept: true, residential: 'no', facts: { trenchSupport: 'Trench shield to 3 m, installed as digging goes.' } , substancesNotUsed: TYPES };
 // The cable tray step rates a fall into an open riser, away from the platform, so the fall rescue is asked
 // too (messy round 11, A fault 4).
 const EWP_ANSWERS = { ewpLower: 'Larry Leadinghand, leading hand, trained on the ground controls', ewpControls: 'Ground control panel at the rear of the base, key in the ignition', plantStop: 'The operator presses the red emergency stop on the platform', fallRescue: 'Two trained crew bring the person up from the riser with the rescue kit kept at the riser door', fallKit: 'Rescue tripod and harness kit at the level 2 riser door' };

@@ -78,6 +78,32 @@ function scaffoldInPlant(input, draft) {
 // A SWMS whose own job steps erect or dismantle the scaffold: the user is the scaffolder.
 const erectsScaffold = (draft) => (draft.jobSteps || []).some((step) => /^(?:Erect the scaffold|Dismantle the scaffold)$/.test(step.step));
 
+// A job step whose hazard is a live electrical supply, or null: { step, hazard }. A shock from the crew's own leads,
+// tools or wet cutting is not a live service at the work.
+const LIVE_SUPPLY = /\b(?:electric(?:al)? shock|electrocution|arc flash)\b[^.]*\b(?:supply|supplies|switch ?boards?|mains|energised|live|circuits?|cables?|wiring|board|traction|isolated|connect\w*|controls?|motor)\b|\b(?:live|energised|energized) (?:parts?|cables?|circuits?|switch ?boards?|supply|supplies|services?|conductors?|mains|wiring|equipment|installations?)\b|\bcontact with (?:live|energised|buried|underground|overhead) (?:services|cables?|power|electrical|lines?|conductors?)\b/i;
+function liveSupplyHazard(draft) {
+  for (const step of draft.jobSteps || []) {
+    const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
+    if (hazard) return { step: step.step, hazard };
+  }
+  return null;
+}
+
+// The words of a job that say it has a principal contractor: a subcontract's "the Contractor" or "the Subcontractor",
+// or the builder, head, main or principal contractor named in the task, the scope it came from or a site answer, or
+// site details set by a main contractor (Goal 12). The words found, for the refusal, or ''.
+const CONTRACTOR_WORDS = /\b(?:head|main|principal) contractor\b|\bsub-?contract(?:or)?s?\b|\bbuilder(?:'s|s'|s)?\b|\bthe PC\b|\btier ?(?:1|one)\b/i;
+function contractorNamed(input) {
+  if (clean(input.firstAidLocation) || (Array.isArray(input.siteRules) && input.siteRules.some((rule) => clean(rule)))) return 'the site details come from the main contractor';
+  const scope = input.scopeTask && typeof input.scopeTask === 'object' ? [input.scopeTask.full, input.scopeTask.plain] : [];
+  const site = input.site && typeof input.site === 'object' ? Object.values(input.site) : [];
+  const words = [input.task, ...scope].filter((text) => typeof text === 'string').join('\n');
+  const inTask = /\bthe Contractor\b/.exec(words) || CONTRACTOR_WORDS.exec(words);
+  if (inTask) return `the task mentions "${inTask[0]}"`;
+  const inSite = CONTRACTOR_WORDS.exec(site.filter((text) => typeof text === 'string').join('\n'));
+  return inSite ? `your site answers mention "${inSite[0]}"` : '';
+}
+
 // What the plant still needs: confirming, plant listed since it was confirmed, or the licence for an
 // item of the user's own. '' when it is confirmed.
 const PLANT_NEED = 'Tick the plant and equipment your crew will use on this job, untick what it will not use, add any that is missing, then press Confirm the plant. Only the plant you confirm prints on the SWMS.';
@@ -157,7 +183,9 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     // Every step is named, and an edge step No leaves out is said (messy round 9, run 8).
     const steps = fall.steps || [];
     const left = fall.leftOut || [];
-    const said = steps.length
+    const said = fall.depth
+      ? `but the work is ${fall.depth} metres deep${steps.length ? `, and ${steps.length === 1 ? 'the step' : 'the steps'} ${quotedList(steps)} ${steps.length === 1 ? 'rates' : 'rate'} a fall` : ''}${left.length ? `, and with No ${left.length === 1 ? 'the step' : 'the steps'} ${quotedList(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS` : ''}.`
+      : steps.length
       ? `but ${steps.length === 1 ? 'the step' : 'the steps'} ${quotedList(steps)} ${steps.length === 1 ? 'rates' : 'rate'} a fall from height High${left.length ? `, and with No ${left.length === 1 ? 'the step' : 'the steps'} ${quotedList(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS` : ''}.`
       : `so ${left.length === 1 ? 'the step' : 'the steps'} ${quotedList(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS.`;
     add({ id: 'fallCheck', kind: 'fall', field: 'fall-check', label: 'Fall from height', need: `You answered No to a fall of more than ${fall.metres} metres, ${said} Answer Yes if anyone could fall more than ${fall.metres} metres.${steps.length ? ' If the step is not part of this job, untick it.' : ''} If no one can fall that far, press Keep No.` });
@@ -174,6 +202,15 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     // The scaffolder's own SWMS asks for their own scaffold supervisor, not "the scaffolding company's"
     // (messy round 4, run 9).
     if (item.scaffold && erectsScaffold(draft)) rule.ask = 'Your crew erects the scaffold. Name your scaffold supervisor who hands it over and tags it.';
+    // A job that has a principal contractor does not print "Not applicable" for it (messy round 14, B run 7: the
+    // pasted scope named the Contractor and the Subcontractor, and "n/a" printed "Not applicable").
+    if (item.id === 'principalContractor') {
+      const named = contractorNamed(input);
+      if (named) {
+        rule.noneRefused = `This job has a principal contractor: ${named}.`;
+        rule.ask = 'Name the principal contractor running the site, for example "ABC Builders Pty Ltd".';
+      }
+    }
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, rule, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
   }
   for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true, ...(item.kind ? { kind: item.kind } : {}) }, input[item.id]);
@@ -212,8 +249,16 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     judged({ id: `fact.${id}`, kind: 'fact', field: `fact-${id}`, label: labels.get(id) || 'Your answer to a question' }, { ask: 'Your answer still has a blank (____). Fill it in, or take out the part that does not apply.', blank: true }, value);
   }
   const site = input.site && typeof input.site === 'object' ? input.site : {};
+  // "None" for Live services beside a step whose hazard is a live supply is not an answer (messy round 14, B run 5:
+  // "n/a" printed "Not applicable" beside "Electric shock from the lift supply").
+  const live = liveSupplyHazard(draft);
   for (const field of SITE_FIELDS) {
-    judged({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}` }, { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id), ...(SITE_KIND[field.id] ? { kind: SITE_KIND[field.id] } : {}) }, site[field.id]);
+    const rule = { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id), ...(SITE_KIND[field.id] ? { kind: SITE_KIND[field.id] } : {}) };
+    if (field.id === 'liveServices' && live) {
+      rule.noneRefused = `The step "${live.step}" has the hazard "${live.hazard.replace(/[.]+$/, '')}", so there are live services at the work.`;
+      rule.ask = 'Name them and where they are, for example "Live 400 V supply to the lift controller in the machine room".';
+    }
+    judged({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}` }, rule, site[field.id]);
   }
   // SiteWrite's own control lines with a blank, each filled in where it shows on the draft.
   const answers = blankFacts.map(([, value]) => String(value));
@@ -293,4 +338,4 @@ function gateMessage(gaps) {
   ].filter(Boolean).join(' ');
 }
 
-module.exports = { downloadGaps, gateChecks, gateMessage, FIELDS, isPlaceholder };
+module.exports = { downloadGaps, gateChecks, gateMessage, FIELDS, isPlaceholder, liveSupplyHazard };

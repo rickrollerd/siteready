@@ -78,12 +78,51 @@ const NOT_LIMITED = /,?[ \t]*\(?[ \t]*(?:but|and)[ \t]+(?:is[ \t]+|are[ \t]+)?no
 // AREA:" named the SWMS, its file and its task line once "2.1" was taken off after the headings were read).
 const HEADING_NUMBER = /^([ \t]*)(?:\(?\d{1,3}(?:\.\d{1,3})*[.)]?|\(?[A-Za-z][.)])[ \t]+(?=\S)/;
 const ONE = (pattern) => new RegExp(pattern.source, pattern.flags.replace('g', ''));
+// A pasted line that is only a heading is not work either (messy round 14, B run 7: "4.0 TRADE SPECIFIC
+// INCLUSIONS" lost its number, but "TRADE SPECIFIC INCLUSIONS." still named the SWMS, its file and its task
+// line). A heading is a line of its own, in capitals or ending in a colon, with no work verb in it ("CORE
+// DRILLING", "INSTALL NEW SWITCHBOARD" and "Install the following:" stay). A line in capitals that says what
+// must or must not be done ("NO EWPS ON TILED AREAS") is a sentence, not a heading, and so is one that ends
+// with a full stop. One short word in capitals ("CCTV", "HVAC") can name the work, so it stays.
+const HEADING_VERB_EXTRA = /^(?:supply|vacuum|sweep|mop|scrub|wipe)$/;
+const wholeMatch = (pattern, word) => { const hit = pattern.exec(word); return Boolean(hit) && hit[0].length === word.length; };
+function workVerbWord(word) {
+  const w = word.toLowerCase().replace(/[^a-z-]/g, '');
+  if (!w) return false;
+  if (wholeMatch(PLAIN_VERB, w) || HEADING_VERB_EXTRA.test(w)) return true;
+  // With an ending ("tiling", "painted", "installs"), any work word counts, also one that is as often a noun
+  // ("floor", "pipe", "line"), which alone does not.
+  for (const ending of ['ing', 'ed', 'es', 's']) {
+    if (!w.endsWith(ending) || w.length - ending.length < 2) continue;
+    const stem = w.slice(0, -ending.length);
+    const stems = [stem, `${stem}e`, ...(/([b-df-hj-np-tv-z])\1$/.test(stem) ? [stem.slice(0, -1)] : [])];
+    if (stems.some((one) => wholeMatch(PLAIN_VERB, one) || HEADING_VERB_EXTRA.test(one) || (ending !== 's' && ending !== 'es' && wholeMatch(EITHER_VERB, one)))) return true;
+  }
+  return false;
+}
+const SENTENCE_WORD = /\b(?:is|are|be|been|was|were|must|shall|will|should|may|no|not|nor|do|does|don'?t|only|never)\b/i;
+function bareHeading(line) {
+  const text = cleanLine(line);
+  if (!text || /[.!?;]$/.test(text)) return false;
+  const colon = /:$/.test(text);
+  const words = text.replace(/:$/, '').split(/\s+/).filter((word) => /[A-Za-z]/.test(word));
+  if (!words.length || words.length > 8) return false;
+  const capitals = /[A-Z]/.test(text) && !/[a-z]/.test(text);
+  if (!colon && !capitals) return false;
+  if (capitals && !colon && words.length === 1 && words[0].replace(/[^A-Za-z]/g, '').length < 6) return false;
+  if (SENTENCE_WORD.test(text)) return false;
+  return !words.some(workVerbWord);
+}
 const HEADING_TESTS = [CAPS_HEADING, CAPS_LABEL, SCOPE_HEADING, SCOPE_LABEL].map(ONE);
 function headingNumbersOff(text) {
-  return String(text || '').split(/\r?\n/).map((line) => {
+  const lines = String(text || '').split(/\r?\n/).map((line) => {
     const bare = line.replace(HEADING_NUMBER, '$1');
-    return bare !== line && HEADING_TESTS.some((pattern) => pattern.test(bare)) ? bare : line;
-  }).join('\n');
+    return bare !== line && (HEADING_TESTS.some((pattern) => pattern.test(bare)) || bareHeading(bare)) ? bare : line;
+  });
+  // A heading on a line of its own goes, unless it is all there is. A task typed all in capitals keeps its lines.
+  if (!/[a-z]/.test(lines.join('\n'))) return lines.join('\n');
+  const kept = lines.filter((line) => !bareHeading(line));
+  return (kept.some((line) => /[A-Za-z]{3,}/.test(line)) ? kept : lines).join('\n');
 }
 // "n" typed for "and" between two words prints "and" in the task line and the title ("bearings n expansion joints",
 // messy round 13, B run 7). Only a lone lower-case "n" between two words, and only as printed: the work is read
@@ -3104,9 +3143,11 @@ function hazardsFor(task, facts, pack) {
   });
 }
 
+// A lone "n" typed for "and" prints "and" in an answer, as in the task line (messy round 14, A run 1: "loading dock n
+// goods lift"). Names keep theirs (a company's "n", a person's initial).
 function siteLines(site) {
   return SITE_FIELDS.map((field) => {
-    const text = supplied(site[field.id]);
+    const text = andForN(supplied(site[field.id]));
     return { id: field.id, label: field.label, text };
   });
 }
@@ -3147,7 +3188,7 @@ function methodSteps(task, facts, site, pack) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
-    fromFacts.push(...sentences(line).filter((part) => !isDenialLine(part)));
+    fromFacts.push(...sentences(andForN(line)).filter((part) => !isDenialLine(part)));
   }
   const fromSite = siteLines(site)
     .filter((field) => field.text)
@@ -3223,19 +3264,44 @@ function withRiskResponse(draft) {
   return { ...draft, jobSteps };
 }
 
-function fallWarning(metres) {
+// A depth the task or a job step names: "the trench 2.2m deep", "a depth of 2.4 m", "excavate to 3 m below ground"
+// (messy round 14, B run 6: Falls No was taken for a 2.2 m deep trench, though its steps printed "Falling into the
+// trench" and guardrail lines). A depth kept under a limit ("less than 1.5 m deep") or a rule for any depth ("1.5 m
+// deep or more") is not the work's depth.
+const DEPTH_NAMED = /\b(\d+(?:\.\d+)?)\s*m(?:etres?|eters?)?\s+(?:deep|depth)\b(?!\s+or\s+(?:more|deeper|over)\b)|\b(?:depths?|deep)\s+(?:of\s+|to\s+|is\s+|up\s+to\s+|about\s+|approx\w*\.?\s+|around\s+)*(\d+(?:\.\d+)?)\s*m(?:etres?|eters?)?\b|\b(?:excavat\w*|dig\w*|dug|trench\w*|bor\w*)\s+(?:\w+\s+){0,3}?(?:down\s+)?to\s+(\d+(?:\.\d+)?)\s*m(?:etres?|eters?)?\b|\b(\d+(?:\.\d+)?)\s*m(?:etres?|eters?)?\s+(?:below\s+(?:the\s+)?(?:ground|surface|grade|natural)|bgl)\b/gi;
+const DEPTH_KEPT_UNDER = /\b(?:less than|under|no more than|not more than|shallower than|kept below|below)\s+$/i;
+function namedDepth(text) {
+  const source = String(text || '');
+  let deepest = 0;
+  for (const match of source.matchAll(DEPTH_NAMED)) {
+    if (DEPTH_KEPT_UNDER.test(source.slice(Math.max(0, match.index - 24), match.index))) continue;
+    const depth = Number(match[1] || match[2] || match[3] || match[4]);
+    if (depth > deepest && depth < 100) deepest = depth;
+  }
+  return deepest;
+}
+// The depth a person could fall into, where it is the fall height or more, or 0.
+const depthFall = (text, metres = 2) => { const depth = namedDepth(text); return depth >= metres ? depth : 0; };
+// A person falling into the hole, as a step's hazard says it ("Falling into the trench.").
+const FALL_INTO = /\b(?:falls?|falling|fall of a person)\b[^.]{0,30}\binto\b[^.]{0,20}\b(?:trench\w*|excavation\w*|pits?|holes?|shafts?|pier holes?|footings?|basements?|manholes?|pool|tank|sump)\b/i;
+
+function fallWarning(metres, depth = 0) {
+  if (depth) return `You answered No, but the task names work ${depth} metres deep, and a person could fall into it. If anyone could fall more than ${metres} metres, answer Yes. Keep No only if the edges are protected or the sides are supported so no one can fall that far.`;
   return `You answered No, but the task mentions work at height, such as a roof, a scaffold, an upper storey, or a height above ${metres} metres. Check that no one can fall more than ${metres} metres, for example because a scaffold, parapet or edge protection is already in place. If someone can, go back and answer Yes.`;
 }
 
-function fallCheck(task, answer, state) {
+function fallCheck(task, answer, state, more = '') {
   const metres = fallMetres(state);
   const detected = fallRisk(task, metres);
+  // A depth of the fall height or more is queried as other height words are (messy round 14, B run 6).
+  const depth = detected ? 0 : depthFall(`${task}\n${more}`, metres);
   return {
     answer,
     detected,
     metres,
+    ...(depth ? { depth } : {}),
     treatedAsYes: answer === 'yes',
-    warning: answer === 'no' && detected ? fallWarning(metres) : '',
+    warning: answer === 'no' && (detected || depth) ? fallWarning(metres, depth) : '',
     explanation: state.fallExplanation,
   };
 }
@@ -3471,7 +3537,7 @@ function askQuestions(input) {
     task,
     // Spelling fixed in the task, so the user sees each change.
     spellingFixes: spelling.fixes,
-    fall: fallCheck(task, answer, state),
+    fall: fallCheck(task, answer, state, ownStepsOf(input).map((item) => item.name).join('\n')),
     required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
@@ -4261,10 +4327,20 @@ function withFallCheck(out, input) {
   // ceiling" were left out, because "pipework at height" did not count as the task saying so).
   const strict = named(strictLine);
   const wide = strict.length || taskHigh || /\bat heights?\b/i.test(taskLine((input && (input.task || input.jobDescription)) || ''));
-  const steps = wide ? named((line) => strictLine(line) || wideLine(line)) : strict;
-  if (!steps.length && !leftOut.length) return rest;
+  let steps = wide ? named((line) => strictLine(line) || wideLine(line)) : strict;
+  // Where the task or a job step names a depth of the fall height or more, a fall into the trench or hole is a fall
+  // of that height, so the steps that rate one are named too (messy round 14, B run 6: a 2.2 m deep trench).
+  const depth = depthFall([(input && (input.task || input.jobDescription)) || '', ...(out.jobSteps || []).map((step) => step.step), ...(out.jobSteps || []).filter((step) => step.own).flatMap((step) => [...(step.hazards || []), ...(step.controls || [])])].join('\n'), metres);
+  let intoSteps = [];
+  if (depth) {
+    const into = (step) => (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && FALL_INTO.test(String(line)));
+    const rated = highSteps.filter(into);
+    intoSteps = (rated.length ? rated : (out.jobSteps || []).filter(into)).map((step) => step.step).filter((name) => !steps.includes(name));
+    steps = (out.jobSteps || []).map((step) => step.step).filter((name) => steps.includes(name) || intoSteps.includes(name));
+  }
+  if (!steps.length && !leftOut.length && !depth) return rest;
   const kept = Boolean(input && input.fallNoKept === true);
-  return { ...rest, fallConflict: { steps, metres, kept, ...(leftOut.length ? { leftOut } : {}) }, ...(kept ? { fallRisk: `No. No work is done where a person could fall ${metres} metres or more.` } : {}) };
+  return { ...rest, fallConflict: { steps, metres, kept, ...(depth ? { depth, ...(intoSteps.length ? { into: intoSteps } : {}) } : {}), ...(leftOut.length ? { leftOut } : {}) }, ...(kept ? { fallRisk: `No. No work is done where a person could fall ${metres} metres or more.` } : {}) };
 }
 // The spelling fixed in the task line, with every draft, so the page's "Spelling fixed" note follows the
 // task as it is now (messy round 8, run 8: it still said "stuart to start" after the task was retyped).
@@ -4524,9 +4600,9 @@ function buildDraft(input, screen) {
     // Typed or picked all in lower case, the hospital prints with its capitals (messy round 12, run 6).
     hospital: nameCase.tidyName(keptFact(input.hospital)),
     firstAider: nameCase.tidyPersonRole(keptFact(input.firstAider)),
-    musterPoint: (keptFact(input.musterPoint) && nameCase.tidyPlace(keptFact(input.musterPoint))) || TO_COMPLETE,
+    musterPoint: (keptFact(input.musterPoint) && nameCase.tidyPlace(andForN(keptFact(input.musterPoint)))) || TO_COMPLETE,
     // Set by the main contractor for its project (Goal 12 stage 6), printed when given.
-    firstAidLocation: keptFact(input.firstAidLocation) || undefined,
+    firstAidLocation: andForN(keptFact(input.firstAidLocation)) || undefined,
     siteRules: Array.isArray(input.siteRules) && input.siteRules.map(keptFact).filter(Boolean).length ? input.siteRules.map(keptFact).filter(Boolean) : undefined,
     // With No crane ticked, precast lifted in by the excavator names no crane operator (messy round 11, run 8).
     craneOperator: isCraneOrLift(task) && !(state.noCrane && !craneNamed(task)) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
@@ -9233,7 +9309,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
 // An answer printed as a control is a sentence: a capital to start each sentence and a full stop to end it (messy
 // round 12: "hiab chart 1.2t at 8m." and lower-case fall answers printed as typed).
 function asSentence(text) {
-  const line = nameCase.capitalSentences(cleanLine(text));
+  const line = nameCase.capitalSentences(andForN(cleanLine(text)));
   return line && !/[.!?]$/.test(line) ? `${line}.` : line;
 }
 
@@ -9867,7 +9943,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { andForN, craneNamed, foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { andForN, depthFall, FALL_INTO, craneNamed, foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

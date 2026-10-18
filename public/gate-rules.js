@@ -164,21 +164,24 @@
   // 2026): a muster point of "gate" or "out the front", a first aider of "builder" or "supervisor", a
   // principal contractor of "the builder". Each kind of box says what would do.
   // A vehicle is not a place to meet: it moves (messy round 9, run 5: "the ute" was accepted).
-  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area|(?:at |by |near |beside )?(?:the |our |my |his |a |site |work )?(?:site |work )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?)|(?:at |out )?(?:the )?(?:front|back|rear|side|middle|centre|end)(?: of)?(?: the)? (?:site|job|building|block|property|work area|lot)|(?:the )?site (?:entrance|exit|front))\.?$/i;
+  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|(?:the |site |our |emergency |evacuation )*(?:assembly|muster|meeting|evacuation) (?:area|point|station|spot|place)s?|(?:at |by |near |beside )?(?:the |our |my |his |a |site |work )?(?:site |work )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?)|(?:at |out )?(?:the )?(?:front|back|rear|side|middle|centre|end)(?: of)?(?: the)? (?:site|job|building|block|property|work area|lot)|(?:the )?site (?:entrance|exit|front))\.?$/i;
   // "first aider on site" only says what the box asks (messy round 12, run 4: it printed "First Aider on Site").
-  const NOT_A_FIRST_AIDER = /^(?:the |a |our |site |onsite |on-site )?(?:first aiders?(?: (?:on|at) (?:the )?(?:site|job)| onsite| on-site)?|builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
+  // Nor does "first aid officer" (messy round 14, B run 7): it names the job, not who does it.
+  const NOT_A_FIRST_AIDER = /^(?:the |a |our |site |onsite |on-site )?(?:first aiders?(?: (?:on|at) (?:the )?(?:site|job)| onsite| on-site)?|first aid(?:er)? (?:officers?|persons?|people|attendants?|staff|team|reps?|representatives?|trained (?:person|staff|worker))(?: (?:on|at) (?:the )?(?:site|job)| onsite| on-site)?|builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
   // A person's box holding a thing, a place or a crowd, not a person (messy round 8, run 5: "gloves").
   const NOT_A_PERSON = /^(?:the |a |our |my )?(?:gloves?|glasses|safety glasses|goggles|boots|helmets?|hard ?hats?|hi-?vis(?: vests?)?|vests?|harness(?:es)?|lanyards?|masks?|p2 masks?|respirators?|ear ?muffs?|ear ?plugs?|ppe|ladders?|scaffold\w*|ute|truck|van|car|site|office|site office|gate|stairs?|crew|workers?|anyone|everyone|everybody|all|all of us|whoever|staff|team|the boys|boys|lads|guys)\.?$/i;
   // A trade or a crew is not a person either (messy round 9, run 1: "the tilers" printed as the person
   // who makes sure the SWMS is followed).
   const A_TRADE = /^(?:the |our |my |all the |all our |a )?(?:(?:builder|builders|main contractor|head contractor|pc|principal contractor)(?:'s|’s|s'|s)? )?(?:tilers?|sparkies|sparkys|sparky|chippies|chippys|chippy|plumbers?|painters?|concreters?|labourers?|carpenters?|electricians?|scaffolders?|riggers?|roofers?|plasterers?|renderers?|fitters?|installers?|subbies|subbys|subcontractors?|contractors?|trades|tradies|tradesmen|apprentices?|operators?|cleaners?|glaziers?|welders?|fixers?|formworkers?|steel ?fixers?|crew members?|team members?|gang|blokes)\.?$/i;
-  // A role with no name does not say who (messy round 9, run 6: "leading hand"). First names alone stay
-  // accepted (flow8 decision 1).
+  // A role with no name does not say who (messy round 9, run 6: "leading hand"). First names alone were
+  // accepted (flow8 decision 1) until messy round 14: "dean", "Sharon", "Dazza" and "dean k" cannot be found on a
+  // big site, so a full name is asked for (personNameNeed).
   // Nor does a plant or crew role: "the dogman" printed as the first aider (messy round 12, run 1).
   const ROLE_ONLY = /^(?:the |our |my |a |site |project )?(?:dogm[ae]n|doggers?|riggers?|(?:crane |plant |machine |excavator |ewp )?operators?|spotters?|labourers?|apprentices?|offsiders?|leading hand|lead hand|charge ?hand|foreman|forewoman|supervisor|site supervisor|boss|manager|site manager|project manager|construction manager|works manager|director|owner|hse(?: advisor| manager| officer| rep)?|whs(?: officer| advisor| manager)?|safety officer|engineer|site engineer|project engineer|team leader|crew leader|leader|pm|cm)\.?$/i;
   // Site answers that name no trade, say nothing of the ground, or give only a gate (messy round 12, run 1:
   // "Coordination with preceding and following trades.", "slab" and "site gate" printed as answers).
-  const TRADE_FILLER = new Set('coordination coordinate coordinated coordinating with preceding following other others trade trades tradies contractors subcontractors subbies various all the and of on site sites nearby around working work works in area areas same as required per program programme sequence multiple many different some several follow liaise liaison interface interfacing'.split(' '));
+  // Nor does "Work alongside other trades." or "Other trades working in the buildings." (messy round 14, A runs 1 and 4).
+  const TRADE_FILLER = new Set('coordination coordinate coordinated coordinating with preceding following other others trade trades tradies contractors subcontractors subbies various all the and of on site sites nearby around working work works in area areas same as required per program programme sequence multiple many different some several follow liaise liaison interface interfacing alongside beside near next to also may be will at times building buildings project job jobs throughout existing concurrent concurrently present'.split(' '));
   const GENERIC_TRADES = (text) => { const list = clean(text).toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean); return list.length > 0 && list.every((word) => TRADE_FILLER.has(word)) && list.some((word) => /^(?:trades?|tradies|contractors|subcontractors|subbies|others)$/.test(word)); };
   const GROUND_SAYS = /\b(?:soft|sloping|slopes?|steep|level|flat|firm|compacted|uneven|rough|wet|boggy|muddy|sand\w*|clay|rock\w*|gravel|grass\w*|dirt|fill|asphalt|bitumen|sealed|paved|pavers|concrete|timber|steel|kpa|loads?|rated|excavations?|trench\w*|holes?|pits?|batters?|suspended|podium|decks? (?:loads?|rated|props?)|propped|none|nil)\b/i;
   // A short access answer passes only where it names a set way in or up (messy round 13: "truck" and "drive in" passed).
@@ -204,6 +207,24 @@
     return (digits.length === 10 && /^(?:0[2-478]|1[38]00)/.test(digits)) || (digits.length === 8 && /^[2-9]/.test(digits)) || (digits.length === 6 && /^13/.test(digits));
   }
   const PERSON_KINDS = new Set(['person', 'firstAider']);
+  // A person the site must be able to find is named in full: one first name or a nickname ("dean", "Dazza") or a first
+  // name and an initial ("dean k") is not enough (messy round 14, A run 3 and B runs 5 and 7). The role after the
+  // name ("Rob, our supervisor", "Sione Leading Hand") is not part of the name; nor is a phone number.
+  const NAME_ROLE_TAIL = /\s+(?:(?:hse|whs|ohs|site|project|safety|works|construction|office|operations|ops|our|the|my)\s+)?(?:hse|whs|ohs|qhse|hseq|supervisor|foreman|forewoman|manager|leading hand|lead hand|charge ?hand|engineer|director|officer|advisor|adviser|coordinator|admin|administrator|owner|pm|cm|boss|first aider|apprentice|labourer|operator|spotter|dogman|rigger|electrician|plumber|carpenter|fitter)s?$/i;
+  const NOT_NAME_WORD = /^(?:the|a|an|our|my|his|her|their|site|main|head|principal|builder'?s?|contractor'?s?|company'?s?|from|of|at|and|or|for|on|with|crew|team)$/i;
+  function personNameNeed(text) {
+    const value = clean(text);
+    if (!value) return '';
+    const comma = value.indexOf(',');
+    const name = (comma >= 0 ? value.slice(0, comma) : value.replace(NAME_ROLE_TAIL, '')).replace(/\([^)]*\)/g, ' ').replace(/\+?\d[\d\s()-]{4,}\d/g, ' ').replace(/[;:]+/g, ' ');
+    const words = clean(name).split(' ').filter((word) => /[A-Za-z]/.test(word));
+    // A phrase that names whose person it is ("Main contractor's site first aider") is judged by the other rules.
+    if (!words.length || words.some((word) => NOT_NAME_WORD.test(word.replace(/[.]/g, '')))) return '';
+    const quoted = `"${value}"`;
+    if (words.length === 1) return `${quoted} gives one name only. Give their full name so the site can find them, for example "Sam Lee, supervisor".`;
+    if (words.length === 2 && words[1].replace(/[.]/g, '').length === 1) return `${quoted} gives a first name and an initial only. Give their full name so the site can find them, for example "Sam Lee, supervisor".`;
+    return '';
+  }
   const NAME_THEN_PLACE = /^(?![^,]*\b(?:at|the|in|on|by|from|near|of|our|my)\b)[^,]*\s(office|site|yard|depot|workshop|ute|truck|gate)\.?$/i;
   function fieldWeak(kind, text) {
     const quoted = `"${text}"`;
@@ -214,6 +235,7 @@
     if (kind === 'place' && VEHICLE_PLACE.test(text)) return `${quoted} is a vehicle, which moves. Name a fixed place a new worker can find, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
     if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
+    if (PERSON_KINDS.has(kind)) { const only = personNameNeed(text); if (only) return only; }
     // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
     const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
     if (place) return `${quoted} ends in "${place[1]}", which is a place, not a role. Give their name and role, for example "${clean(text.replace(/\s+\S+\.?$/, ''))}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
@@ -474,6 +496,8 @@
     if (/^(?:the )?first aiders?\b/i.test(text)) return `${quoted} does not name a person. Give your own name, for example "Sam Lee".`;
     if (NOT_A_PERSON.test(text) || A_TRADE.test(text) || NOT_A_COMPANY.test(text) || NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a person. Give your own name, for example "Sam Lee".`;
     if (!/[A-Za-z]{2}/.test(text)) return `${quoted} is not a name. Give your own name, for example "Sam Lee".`;
+    // A first name alone does not say who checked it (messy round 14, B run 5: "dean").
+    if (personNameNeed(text)) return `${quoted} gives ${/\s/.test(text) ? 'a first name and an initial' : 'one name'} only. Give your full name, for example "Sam Lee". It prints as "Checked by" on every page.`;
     return '';
   }
 
@@ -564,7 +588,7 @@
     return out;
   }
 
-  const api = { siteNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
+  const api = { siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);
