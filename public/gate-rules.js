@@ -60,12 +60,31 @@
   // a labourer help the person out from the low end" was refused as only calling for help).
   const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|him|her|the (?:person|worker|injured \w+)) (?:out|up|down|clear|onto|on to|off|back|in)\b|help\w* (?:them|him|her|the (?:person|worker|injured \w+)) (?:out|up|down|clear|onto|on to|off|back)|foreman|foremen|labourers?|leading hands?|riggers?|dogm[ae]n|offsiders?|scaffolders?|other (?:worker|scaffolder|rigger|labourer|crew member)s?)\b/i;
   const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
-  const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
+  // A rescue equipment answer that names only first aid: refused. One that also names something else ("the scissor
+  // lift ground controls n key on the machine, first aid kit in the ute") is judged on that (messy round 13, A run 3).
+  const FIRST_AID_WORDS = /\b(?:first aid(?:ers?)?(?: kits?| boxes?| supplies| stations?| rooms?| bags?)?|kits?|boxes?)\b/gi;
+  const FILLER_WORDS = new Set('a an the and n & or with plus also our my his their site work is are kept keep stored held in on at by near beside next to inside of for from up there here ute utes truck trucks van vans car cars vehicle vehicle\'s office shed cab glovebox'.split(' '));
+  const onlyFirstAid = (text) => clean(text).toLowerCase().replace(FIRST_AID_WORDS, ' ').split(/[^a-z']+/).filter((word) => word && !FILLER_WORDS.has(word)).length === 0;
+  const RESCUE_KIT = /\b(?:ground controls?|emergency (?:lowering|descent)(?: controls?| valves?)?|(?:ewp |lift |machine )?keys?|harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
 
   // "dont know", "TBC" or "to be confirmed" inside a longer answer, such as a standard answer's blank
   // filled with it ("The products used are dont know.", "document dont no, revision TBC"): messy round 3,
   // 14 October 2026. "Unknown services" is a real hazard, so "unknown" alone is not counted.
   const HELD_OPEN = /\b(?:tb[acd]|to be (?:confirmed|advised|determined|completed|decided)|(?:i )?(?:dont|don't|don’t|do not) (?:know|no)|dunno|not sure|no idea)\b/i;
+  // "na" or "n/a" inside a sentence, where it fills a blank or stands for a missing word ("rated for na m",
+  // "report na", "kept only at n/a"): messy round 13, A run 2. Only after a word, so "N/A" alone (an answer of
+  // none where none is allowed) and "Licence: N/A" are left to their own rules; "na" in lower case or "NA" in
+  // capitals, so a name such as "Na" is not caught.
+  const HELD_NA = /(?<=[A-Za-z0-9)][ \t]+\(?)(?:[Nn]\/[Aa]|[Nn]\.[Aa]\.?|na|NA)(?=[\s.,;:)]|$)/;
+  // What a placeholder inside a sentence reads as: the "na" or "TBC" found, or ''.
+  function heldIn(value) {
+    const text = clean(value);
+    if (!text) return '';
+    const na = HELD_NA.exec(text);
+    if (na) return na[0];
+    const open = /\b(?:tb[acd]|TB[ACD])\b/.exec(text);
+    return open ? open[0] : '';
+  }
   // A question back, not an answer ("powerlines?", "harness?"): messy round 4, run 7.
   const ASKED_BACK = /^[^.!]{1,60}\?+$/;
   // Work done or checked "by me" or trained "by me" does not say who (messy round 4, run 9: "trained by me").
@@ -92,6 +111,52 @@
     if (AS_PER.test(text)) return `${quoted} does not say what is done. Write it here in a few words.`;
     const open = HELD_OPEN.exec(text);
     if (open) return `${quoted} still has "${open[0]}" in it. Put in what applies on this job.`;
+    const na = HELD_NA.exec(text);
+    if (na) return `${quoted} still has "${na[0]}" in it, which is not an answer. Put in what applies on this job.`;
+    return '';
+  }
+
+  // What is typed in one blank (____) of a sentence, as a standard answer's fill-in box or a control line's
+  // blank takes it: no answer yet ("TBC", "dont know", "-"), and also "na", "n/a", "none", "nil", "no", "yes"
+  // or "nothing", which say nothing in a blank (messy round 13, A run 2: "rated for na m", "report na" and
+  // "kept only at n/a" printed while "TBC" and "-" were refused). '' when it says something.
+  const BLANK_EMPTY = /^(?:n\.?\s?a\.?|n\/a|nah|nope|nothing|nothing yet|yes|yep|ok|okay|same|ditto|as above|x)$/i;
+  function blankFillNeed(value) {
+    const text = clean(value).replace(/[.;,]+$/, '').trim();
+    if (!text) return '';
+    const not = notAnswer(text);
+    if (not) return `${not} Fill in the blank with what applies on this job.`;
+    if (NO_ANSWER.test(text) || BLANK_EMPTY.test(text)) return `"${text}" is not an answer. Fill in the blank with what applies on this job.`;
+    return '';
+  }
+
+  // What was typed into each blank of a standard answer, or null where the answer is no longer that
+  // sentence. A bracket straight after a blank that only says what goes in it ("(for example clean fill)")
+  // leaves the answer once the blank is filled, so it may or may not be there.
+  const FILL_HINT = /^\s?\((?:for example|e\.g\.|such as|an? |[^()_]*\bsuch as\b)[^()_]*\)/i;
+  const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function templateFills(template, value) {
+    const parts = String(template || '').replace(/\s+/g, ' ').split(/_{3,}/);
+    if (parts.length < 2) return null;
+    const partRe = (part, i) => {
+      const hint = i > 0 && FILL_HINT.exec(part);
+      return hint ? `(?:${escapeRe(hint[0])})?${escapeRe(part.slice(hint[0].length))}` : escapeRe(part);
+    };
+    let found = null;
+    try { found = new RegExp(`^${parts.map(partRe).join('([^]*?)')}$`, 'i').exec(clean(value)); } catch { return null; }
+    return found ? found.slice(1).map((fill) => fill.trim()) : null;
+  }
+  // A standard answer whose blank was filled with no answer: the refusal for the first such blank, or ''.
+  // templates: the standard answers' wordings, each with its blanks (____).
+  function presetFillNeed(templates, value) {
+    const text = clean(value);
+    if (!text) return '';
+    for (const template of templates || []) {
+      const fills = templateFills(template, text);
+      if (!fills) continue;
+      const bad = fills.find((fill) => fill && !/_{3,}/.test(fill) && blankFillNeed(fill));
+      if (bad) return blankFillNeed(bad);
+    }
     return '';
   }
 
@@ -116,6 +181,18 @@
   const TRADE_FILLER = new Set('coordination coordinate coordinated coordinating with preceding following other others trade trades tradies contractors subcontractors subbies various all the and of on site sites nearby around working work works in area areas same as required per program programme sequence multiple many different some several follow liaise liaison interface interfacing'.split(' '));
   const GENERIC_TRADES = (text) => { const list = clean(text).toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean); return list.length > 0 && list.every((word) => TRADE_FILLER.has(word)) && list.some((word) => /^(?:trades?|tradies|contractors|subcontractors|subbies|others)$/.test(word)); };
   const GROUND_SAYS = /\b(?:soft|sloping|slopes?|steep|level|flat|firm|compacted|uneven|rough|wet|boggy|muddy|sand\w*|clay|rock\w*|gravel|grass\w*|dirt|fill|asphalt|bitumen|sealed|paved|pavers|concrete|timber|steel|kpa|loads?|rated|excavations?|trench\w*|holes?|pits?|batters?|suspended|podium|decks? (?:loads?|rated|props?)|propped|none|nil)\b/i;
+  // A short access answer passes only where it names a set way in or up (messy round 13: "truck" and "drive in" passed).
+  const ACCESS_SHORT = /\b(?:stairs?|stair ?(?:towers?|wells?|cases?)|stairways?|ladders?|lifts?|hoists?|ramps?|scaffold\w*|ewps?|scissor\w*|boom ?lifts?|corridors?|lanes?|hatch\w*|walkways?|gangways?)\b/i;
+  // A one-word ground answer passes only where it says how the ground is (messy round 13: "asphalt" names the
+  // surface only); "boggy" or "sloping" says it.
+  const GROUND_STATE = /\b(?:soft|sloping|slopes?|steep|level|flat|firm|compacted|uneven|rough|wet|boggy|muddy|loose|rocky|unstable|stable|suspended|propped|excavated|none|nil)\b/i;
+  // The builder or the site is not a trade working near you (messy round 13, A run 2: "builder" passed as Other trades).
+  const NOT_A_TRADE = /^(?:the |a |our |site )?(?:builders?|main contractors?|head contractors?|principal contractors?|pc|mc|client|owner|site|site staff|staff|everyone|everybody|others?|people|workers|public)\.?$/i;
+  // A vehicle is not a place to meet, even with its street: "the hiab truck on chung wah tce" (messy round 13, B run 8).
+  const VEHICLE_PLACE = /^(?:at |by |near |beside |next to |behind |in front of )?(?:the |our |my |his |a |site |work )?(?:[\w'-]+ ){0,2}(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?|hiabs?|tippers?|semis?|buses?)(?=$|[.,;]|\s+(?:on|at|in|near|beside|by|outside|parked|out|along|off|next)\b)/i;
+  // Services named by their kind: an answer that names none ("Existing services.") says nothing a crew can act on
+  // (messy round 13, A run 2: SiteWrite's own scope chip "Existing services." was taken).
+  const SERVICE_KIND = /\b(?:power|electric\w*|energis\w*|live|cables?|wiring|switch ?boards?|switch ?rooms?|boards?|substations?|lights?|lighting|gas|water|sewer\w*|stormwater|drain\w*|pipes?|pipework|mains?|data|comms?|communications?|telstra|nbn|fibre|optic\w*|fire|hydrants?|sprinklers?|alarms?|hv|lv|kv|volts?|overhead|underground|in-?ground|buried|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|nil|none)\b/i;
   const ACCESS_SAYS = /\b(?:stairs?|stair ?(?:towers?|wells?)|ladders?|lifts?|hoists?|ramps?|scaffold\w*|ewps?|elevating|scissor|boom|walk\w*|driv\w*|trucks?|utes?|vehicles?|forklifts?|cranes?|via|through|from|up|down|along|path\w*|footpath|corridor|lanes?|roads?|streets?|st|rd|level|floor|roof|hatch|door)\b/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
   // An Australian phone number a site can ring (messy round 4, run 2: a 9 digit mobile printed): a mobile
@@ -134,16 +211,21 @@
     // round 10, run 3: "The site supervisor" was accepted as first aider and refused elsewhere).
     if (PERSON_KINDS.has(kind) && ROLE_ONLY.test(text)) return `${quoted} is a role, not a person. Give their name and role, for example "Sam Lee, ${clean(text).replace(/^(?:the|our|my|a|site|project) /i, (word) => (/^(?:site|project) $/i.test(word) ? word : '')).toLowerCase()}".`;
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
+    if (kind === 'place' && VEHICLE_PLACE.test(text)) return `${quoted} is a vehicle, which moves. Name a fixed place a new worker can find, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
     if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
     // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
     const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
     if (place) return `${quoted} ends in "${place[1]}", which is a place, not a role. Give their name and role, for example "${clean(text.replace(/\s+\S+\.?$/, ''))}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
-    if (['trades', 'ground', 'access'].includes(kind) && NONE.test(text)) return '';
+    if (['trades', 'ground', 'access', 'public', 'services'].includes(kind) && NONE.test(text)) return '';
+    if (kind === 'trades' && NOT_A_TRADE.test(text)) return `${quoted} is not a trade working near you. Name the trades and where they work, for example "Electricians on the same level" or "Plumbers below us", or write None.`;
+    if (kind === 'services' && !SERVICE_KIND.test(text)) return `${quoted} does not say which services. Name them and where they are, for example "Live 240 V power in the ceiling, gas main under the car park", or write None.`;
+    if (kind === 'public' && words(text) < 2) return `${quoted} does not say where the public or traffic is. Say where they are near the work, for example "Public footpath beside the hoarding on Smith Street", or write None.`;
     if (kind === 'trades' && GENERIC_TRADES(text)) return `${quoted} does not say which trades. Name them and where they work, for example "Electricians on the same level" or "Plumbers below us", or write None.`;
     if (kind === 'ground' && words(text) < 3 && !GROUND_SAYS.test(text)) return `${quoted} does not say what the ground or deck is like. Say how it is for the work, for example "Level concrete slab, no loads over 3 kPa", or write None.`;
-    if (kind === 'access' && words(text) < 3 && !ACCESS_SAYS.test(text)) return `${quoted} does not say how the crew gets to the work. Say the way in and up, for example "Through the Smith Street gate, then the stair tower to level 2".`;
+    if (kind === 'ground' && words(text) < 2 && !GROUND_STATE.test(text)) return `${quoted} names the surface but not how it is for the work. Say whether it is level, firm or soft and any load limit, for example "Level asphalt car park, firm" or "Level concrete slab, no loads over 3 kPa", or write None.`;
+    if (kind === 'access' && (words(text) < 2 || (words(text) < 3 && !ACCESS_SHORT.test(text)))) return `${quoted} does not say how the crew gets to the work. Say the way in and up, for example "Through the Smith Street gate, then the stair tower to level 2".`;
     if (kind === 'phone' && !phoneNumber(text)) return text.replace(/\D/g, '').length < 6 ? `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.` : `${quoted} is not a full phone number. A mobile has 10 digits, for example 0412 345 678.`;
     return '';
   }
@@ -175,13 +257,10 @@
   function answerNeed(rule, value) {
     if (rule.line) {
       if (hasBlank(fillLine(rule.line, Array.isArray(value) ? value : []))) return rule.ask;
-      // A blank filled with "dont know" or "TBC" is still open.
-      const typed = (Array.isArray(value) ? value : []).map(clean).find((answer) => answer && notAnswer(answer));
-      if (typed) return `${notAnswer(typed)} Fill in the blank with what applies on this job.`;
-      // "na", "none" or "-" says nothing in a blank either (messy round 12, run 5: "... not reasonably
-      // practicable for this work because na." printed).
-      const empty = (Array.isArray(value) ? value : []).map(clean).find((answer) => answer && (NO_ANSWER.test(answer) || /^(?:n\.\s?a\.?|nah|nope|nothing|yes|ok|okay)$/i.test(answer)));
-      return empty ? `"${empty}" is not an answer. Fill in the blank with what applies on this job.` : '';
+      // A blank filled with "dont know", "TBC", "na", "none" or "-" is still open (messy round 12, run 5: "...
+      // not reasonably practicable for this work because na." printed). One rule for every blank (blankFillNeed).
+      const typed = (Array.isArray(value) ? value : []).map(clean).find((answer) => answer && blankFillNeed(answer));
+      return typed ? blankFillNeed(typed) : '';
     }
     if (rule.blank) return hasBlank(value) ? rule.ask : '';
     const text = clean(value);
@@ -199,7 +278,7 @@
     if (rule.emergency) {
       if (NO_ANSWER.test(text)) return `${quoted} is not an answer here: this SWMS involves ${rule.involves}. ${rule.ask}`;
       if (rule.rescue && onlyCalls(text)) return `${quoted} only calls for help. Say who rescues the person and how, before emergency services arrive.`;
-      if (rule.kit && /\bfirst aid\b/i.test(text) && !RESCUE_KIT.test(text)) return `${quoted} is first aid, not rescue equipment. Say what is used to get the person out, and where it is kept.`;
+      if (rule.kit && /\bfirst aid\b/i.test(text) && !RESCUE_KIT.test(text) && onlyFirstAid(text)) return `${quoted} is first aid, not rescue equipment. Say what is used to get the person out, and where it is kept.`;
       // One word ("builder", "gate", "spotter") does not tell the crew what to do.
       if (!/\s/.test(text)) return `${quoted} is too short to act on. ${rule.ask}`;
       // "pull them out" does not say who does it or with what (messy round 3).
@@ -208,6 +287,8 @@
       // A second kit in the ute beside one kept at the work is fine (messy round 9, run 7): only an answer
       // whose every kit is in a vehicle is refused.
       if (rule.kit && IN_VEHICLE.test(text) && !AT_WORK.test(text) && !text.split(/[,;.]/).some((part) => RESCUE_KIT.test(part) && !IN_VEHICLE.test(part) && PLACED.test(part))) return `${quoted} keeps the rescue equipment away from the work. Say what is used to get the person out, and that it is kept at the work area.`;
+      // "on the lift" does not say where on the machine the ground controls are (messy round 13, A run 3).
+      if (rule.controls && ON_MACHINE_ONLY.test(text)) return `${quoted} does not say where on the machine. Say where the ground or emergency lowering controls and their key are, for example "Ground control panel at the rear of the base, key kept in the machine".`;
       // "turn it off" does not say where the stop is or who uses it.
       if (rule.stop && (words(text) < 4 || BARE_COMMAND.test(text))) return `${quoted} does not say where the stop is or who uses it. ${rule.ask}`;
       return '';
@@ -223,6 +304,7 @@
   const AT_WORK = /\b(?:at|beside|next to|by|near) (?:the |each )?(?:work|trench|entry|edge|box|shield|pit|platform|lift|level|area|access|ladder|ewp|scaffold)\b|\bkept (?:at|on) (?:the )?(?:work|level|deck|site office)\b/i;
   // A kit said to be at a place that is not a vehicle ("on the slung platform").
   const PLACED = /\b(?:on|at|in|inside|beside|next to|by|near)\s+(?:the |each |every |a |our )?(?!(?:site |work |company )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?)\b)[a-z]/i;
+  const ON_MACHINE_ONLY = /^(?:it'?s |they'?re |(?:they )?are |is )?(?:on|at|in) (?:the |its |our )?(?:lift|machine|ewp|e\.w\.p\.?|scissor(?: ?lift)?|boom(?: ?lift)?|unit|platform|basket|cage|plant|gear)(?: itself)?\.?$/i;
   const BARE_COMMAND = /^(?:just )?(?:turn|switch|shut|press|hit|kill|stop|cut|push|pull)\b[\w\s'-]{0,16}\.?$/i;
 
   // What a design the SWMS relies on still needs (designs.js), or '' once answered: issued, with who
@@ -235,9 +317,10 @@
     if (item.status === 'notIssued' || item.status === 'notNeeded') return '';
     if (item.status !== 'given') return `Say whether ${what} is issued: give its details, choose Not issued yet, or say it is not needed for this work.`;
     const missing = [['by', 'who prepared it'], ['number', 'its document or drawing number'], ['date', 'its date']]
-      .filter(([key]) => { const text = clean(item[key]); return !text || leftOpen(text) || NOT_YET.test(text); }).map(([, words]) => words);
+      .filter(([key]) => { const text = clean(item[key]); return !text || leftOpen(text) || NOT_YET.test(text) || Boolean(blankFillNeed(text)); }).map(([, words]) => words);
     if (!clean(item.what) || leftOpen(item.what)) missing.unshift('what the design is');
-    if (leftOpen(item.revision)) missing.push('its revision (or leave the revision empty)');
+    // "na" or "TBC" as the revision prints as one ("drawing S-101 rev na"): left empty, none prints.
+    if (leftOpen(item.revision) || (clean(item.revision) && blankFillNeed(item.revision))) missing.push('its revision (or leave the revision empty)');
     // Details read from the drawing (D249, D250): the user ticks that they match its title block.
     const read = item.read && Array.isArray(item.read.fields) && item.read.fields.length && item.read.checked !== true;
     if (!missing.length) return read ? `For ${what}, check the details read from the drawing against its title block and tick "These match the drawing".` : '';
@@ -346,7 +429,13 @@
   };
   const SITE_NONE = ['liveServices', 'publicInterface', 'otherTrades', 'ground'];
   // How a short site answer is judged (fieldWeak): other trades named, the ground described, the way in said.
-  const SITE_KIND = { otherTrades: 'trades', ground: 'ground', access: 'access' };
+  const SITE_KIND = { liveServices: 'services', publicInterface: 'public', otherTrades: 'trades', ground: 'ground', access: 'access' };
+  // Why a site answer is not enough, as the download gate judges it, or '' (so SiteWrite's own suggestions can be
+  // judged the same way: messy round 13, a suggestion it offered was refused, and one that passed named nothing).
+  function siteNeed(id, value) {
+    return answerNeed({ ask: SITE_NEED[id] || 'Answer this site question.', name: (SITE_LABELS[id] || id), none: SITE_NONE.includes(id), ...(SITE_KIND[id] ? { kind: SITE_KIND[id] } : {}) }, value);
+  }
+  const SITE_LABELS = { liveServices: 'Live services', publicInterface: 'Public interface', otherTrades: 'Other trades', ground: 'Ground', access: 'Access' };
 
   // What the user types that the SWMS prints as given and reads for nothing else: the people and
   // place boxes, the emergency answers and the words typed in a control line's blanks. Changing one
@@ -449,6 +538,9 @@
     ...ACROSS_PLANT,
     [/\b(?:ewps?|e\.w\.p\.?|elevating work platforms?)(?=\W|$)/i, /\b(?:ewps?|elevating work platforms?|boom ?lifts?|scissor\w*|knuckle ?booms?|cherry ?pickers?)\b/i],
     [/\b(?:trench\w*|excavat\w*|shor(?:e|ed|ing)|bench(?:ed|ing)|battered|trench shields?)\b/i, /\b(?:trench\w*|excavat\w*|dig\w*|pits?|footings?|in-ground|inground|underground|under-?slab|bored|piles?|manholes?)\b/i],
+    // A roof's fall control fits only a SWMS whose work names a roof (messy round 13, A run 1: "The roof top has the
+    // builder's parapet and temporary edge guardrail" was filled into "all tiled areas", whose task names no roof).
+    [/\b(?:roofs?|roof ?tops?|rooftops?|parapets?|roof (?:edges?|sheets?|sheeting|mesh)|safety mesh|skylights?|gutters?|eaves)\b/i, /\b(?:roofs?|roof ?tops?|rooftops?|roofing|parapets?|skylights?|gutters?|eaves|re-?roof\w*)\b/i],
   ];
   const ACROSS_WORK_IDS = ['fallControl', 'fallAccess', 'controlsConsidered', 'harnessSystem', 'trenchSupport'];
   function workFits(answer, itemWords) {
@@ -472,7 +564,7 @@
     return out;
   }
 
-  const api = { checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
+  const api = { siteNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

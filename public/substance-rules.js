@@ -211,10 +211,13 @@
     return [item.task, ...values(item.facts), ...values(item.site), ...plant].filter(Boolean).join('\n');
   }
   // A short reason "Not required" is given for: a few words that say why, not "dont know". '' once given.
+  // A reason that only says the product is not used, with nothing of why ("dont use any", "not needed"): messy round
+  // 13, B run 6, "dont use any" was taken as the sealant reason.
+  const ONLY_NOT_USED = /^(?:we |i )?(?:dont|don't|don’t|do not|never|wont|won't|will not)\s+(?:use|need|have|do)(?:\s+(?:any|it|them|one|this|that|those|these|any of (?:it|them|those)))?\.?$|^(?:it'?s |they'?re |are |is )?(?:not|none|nothing)\s+(?:used|needed|required|applicable)\.?$|^(?:no|none) (?:used|needed|required)\.?$/i;
   function reasonNeed(reason) {
     const text = clean(reason);
     if (!text) return 'missing';
-    return isOpen(text) || text.split(' ').length < 2 ? 'weak' : '';
+    return isOpen(text) || text.split(' ').length < 2 || ONLY_NOT_USED.test(text) ? 'weak' : '';
   }
   // An example of a reason that fits a real "Not required" for each type (coordinator, content10: "supplied and applied
   // by others" led users into a reason that is then refused beside their own steps or plant).

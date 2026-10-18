@@ -221,7 +221,7 @@
   }
   // A company name typed all in lower case gets capitals ("wallaroo electrical" is Wallaroo Electrical):
   // it prints on every SWMS (messy round 8, wording 13). A name with any capital is kept as typed.
-  const SMALL = new Set(['and', 'of', 'the', 'for', 'at', 'in', 'on', 'by']);
+  const SMALL = new Set(['and', 'n', 'of', 'the', 'for', 'at', 'in', 'on', 'by']);
   const tidyCompany = (name) => (/[A-Z]/.test(name) ? name : name.replace(/[a-z][\w']*/g, (word, at) => (at && SMALL.has(word) ? word : `${word[0].toUpperCase()}${word.slice(1)}`)));
 
   async function claim(button) {

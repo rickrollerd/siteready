@@ -87,6 +87,11 @@
     ['ground', /\b(ground|soil|excavat\w*|slabs?|decks?|loads?|wet|mud\w*|slopes?|batters?|boggy)\b/i],
     ['access', /\b(access|gates?|loading zones?|hoists?|stair ?towers?|security|escorts?|deliver\w*|laydown)\b/i],
   ];
+  // A condition SiteWrite offers is never one its own site check would refuse or call too thin to act on (messy
+  // round 13: "Existing services." passed as Live services though it names no service, and "Other trades working on
+  // site." was offered for Other trades and then refused). Such a condition is not offered.
+  const gate = () => root.SiteWriteGate || (typeof require === 'function' ? require('./gate-rules') : null);
+  const offerable = (id, text) => { const rules = gate(); return !rules || !rules.siteNeed || !rules.siteNeed(id, text); };
   function scopeSite(rows) {
     const out = {};
     for (const row of rows || []) {
@@ -94,6 +99,7 @@
         const rule = SITE_RULES.find(([, pattern]) => pattern.test(part));
         if (!rule) continue;
         const text = `${part.charAt(0).toUpperCase()}${part.slice(1)}`;
+        if (!offerable(rule[0], text)) continue;
         out[rule[0]] = [...new Set([...(out[rule[0]] || []), text])];
       }
     }
@@ -104,7 +110,7 @@
   // as a finished answer (messy round 3: "Energised buildings. Energised HV. ... Energised buildings."
   // and "Access: Security guards." printed in every SWMS). Each condition once, without a leading label
   // ("Access:"), with its first letter a capital and a full stop. texts: the condition text from each SWMS.
-  function siteSuggestions(texts) {
+  function siteSuggestions(texts, id) {
     const out = [];
     const key = (line) => line.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     for (const text of texts || []) {
@@ -112,6 +118,7 @@
         let line = part.replace(/^\s*[A-Z][A-Za-z ]{0,24}:\s*/, '').replace(/\s+/g, ' ').replace(/[\s.;,]+$/, '').trim();
         if (line.split(' ').length < 2 && !/\d/.test(line)) continue;
         line = `${line.charAt(0).toUpperCase()}${line.slice(1)}.`;
+        if (id && !offerable(id, line)) continue;
         if (!out.some((other) => key(other) === key(line))) out.push(line);
       }
     }

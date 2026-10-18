@@ -40,7 +40,7 @@ const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
-const { clean, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST, SITE_KIND, ownLineProblem, phoneNumber, fieldWeak } = require('./public/gate-rules');
+const { clean, heldIn, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST, SITE_KIND, ownLineProblem, phoneNumber, fieldWeak } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 const { designNeed } = require('./designs');
 const substances = require('./substances');
@@ -185,7 +185,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
   for (const item of emergencyQuestions(draft, said)) {
-    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}), ...(item.stop ? { stop: true } : {}) }, item.answer);
+    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}), ...(item.stop ? { stop: true } : {}), ...(item.controls ? { controls: true } : {}) }, item.answer);
   }
   // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
   // its number and date; "Not issued yet", which prints as a hold point; or "Not needed for this
@@ -258,6 +258,19 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   for (const key of ['date', 'subcontractor']) if (leftOpen(draft[key])) other.push([key === 'date' ? 'Date of the draft' : 'Subcontractor', draft[key]]);
   for (const [label, text] of other) {
     add({ id: `other.${gaps.length}`, kind: 'other', field: '', label, need: `A blank or "To be completed" is left in: "${clean(text)}". Answer the question it comes from, or change the line.` });
+  }
+  // "na", "n/a" or "TBC" left inside a line that prints, however it got there (messy round 13, A run 2: "rated
+  // for na m" and "report na" printed). The user's own steps and boxes are judged above, each in its own words.
+  const ownLines = new Set((draft.jobSteps || []).filter((step) => step.own).flatMap((step) => [...(step.hazards || []), ...(step.controls || [])]));
+  // An answer already asked for under its own box ("TBC" as the ground controls) is not asked for twice.
+  const askedValues = gaps.map((gap) => (gap.id.startsWith('emergency.') ? said[gap.id.slice(10)] : gap.id.startsWith('site.') ? site[gap.id.slice(5)] : input[gap.id])).map(clean).filter((value) => value.length >= 2);
+  const held = new Set();
+  for (const text of printedTexts(draft)) {
+    if (ownLines.has(text) || held.has(text) || leftOpen(text) || askedValues.some((value) => text.includes(value))) continue;
+    const token = heldIn(text);
+    if (!token) continue;
+    held.add(text);
+    add({ id: `held.${held.size}`, kind: 'other', field: '', label: 'A placeholder left in a line', need: `"${token}" is not an answer, and it is left in: "${clean(text)}". Answer the question it comes from, or change the line.` });
   }
   return checks;
 }

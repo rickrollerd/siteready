@@ -203,4 +203,8 @@ function pressureAnswers(list, task) {
   return other ? [...ordered, ...gasTest] : [...gasTest, ...ordered];
 }
 
-module.exports = { TRADES, GROUPS, answersFor };
+// Every standard answer's wording for a question, whatever the task: the blanks (____) in them are read to
+// judge what was typed in each (draft.js presetFillWhy).
+const answerTexts = (id) => (ANSWERS[id] || []).map(([, text]) => text);
+
+module.exports = { TRADES, GROUPS, answersFor, answerTexts };

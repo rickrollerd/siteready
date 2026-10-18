@@ -87,7 +87,18 @@ const tidyPerson = (text) => tidyName(text);
 // SiteLink round 10, wording 11). Words typed with capitals are left as typed.
 const STREET = /(?<!\bthe\s)\b([a-z][a-z'’-]+)\s+(st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close)\b/g;
 const NOT_A_STREET_NAME = new Set(['the', 'a', 'an', 'this', 'that', 'our', 'side', 'back', 'front', 'same', 'next', 'each', 'on', 'at', 'of', 'off', 'in', 'to', 'by', 'from', 'near', 'and', 'or', 'site', 'local']);
-const tidyPlace = (text) => capitalFirst(clean(text).replace(STREET, (whole, name, kind) => (NOT_A_STREET_NAME.has(name) ? whole : `${name.charAt(0).toUpperCase()}${name.slice(1)} ${kind.charAt(0).toUpperCase()}${kind.slice(1)}`)));
+// A street's name of two or three words takes its capitals too: "on chung wah tce" reads "on Chung Wah Tce", not
+// "on chung Wah Tce" (messy round 13, B run 8). The words before it that are not part of a name stay as typed.
+const NOT_IN_STREET_NAME = new Set([...NOT_A_STREET_NAME, 'along', 'beside', 'behind', 'outside', 'opposite', 'corner', 'gate', 'gates', 'area', 'point', 'entrance', 'entry', 'exit', 'office', 'shed', 'sheds', 'carpark', 'park', 'end', 'truck', 'ute', 'van', 'car', 'hiab', 'is', 'are', 'meet', 'muster', 'assembly', 'footpath', 'verge', 'kerb', 'fence', 'hoarding', 'compound', 'laydown', 'lot', 'block', 'building', 'level', 'main']);
+const STREET_NAMED = /\b((?:[a-z][a-z'’-]+\s+){0,2}[a-z][a-z'’-]+)\s+(st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close)\b/g;
+const upFirst = (word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
+const tidyPlace = (text) => capitalFirst(clean(text).replace(STREET_NAMED, (whole, names, kind) => {
+  const words = names.split(/\s+/);
+  let at = words.length;
+  while (at > 0 && !NOT_IN_STREET_NAME.has(words[at - 1])) at -= 1;
+  if (at === words.length) return whole;
+  return [...words.slice(0, at), ...words.slice(at).map(upFirst), upFirst(kind)].join(' ');
+}));
 
 // A place a new worker can find: not "carpark", "gate" or "out the front" (the SWMS app's rule).
 function placeProblem(text) {
@@ -126,11 +137,16 @@ function phoneOnly(text) {
 // Doors and Hardware" (messy round 10, flow9 decision 4 B, recommended). Capitals the person typed are never
 // lowered: a name with any capital is left as typed.
 const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by']);
-function tidyName(text) {
+function tidyName(text, small = SMALL_WORDS) {
   const value = clean(text);
   if (!value || /[A-Z]/.test(value)) return value;
-  return value.replace(/(^|[\s'’-])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && SMALL_WORDS.has(`${letter}${rest}`) ? whole : `${before}${letter.toUpperCase()}${rest}`));
+  return value.replace(/(^|[\s'’-])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && small.has(`${letter}${rest}`) ? whole : `${before}${letter.toUpperCase()}${rest}`));
 }
+// A company's name: a lone "n" typed for "and" stays in lower case too, "tamar joinery n fitout" reads "Tamar
+// Joinery n Fitout", not "Tamar Joinery N Fitout" (messy round 13, B runs 2 and 6). A person's "n" may be an
+// initial, so it is only for companies.
+const COMPANY_SMALL = new Set([...SMALL_WORDS, 'n']);
+const tidyCompany = (text) => tidyName(text, COMPANY_SMALL);
 // A person with their role, "name, role" ("declan furlong, foreman"): the name takes its capitals and the
 // role its first capital, as the checker's do ("Tanya Pirelli, Ops manager"). An answer typed with any
 // capital is left as typed ("Sam Lee, supervisor").
@@ -141,17 +157,34 @@ const ROLE_TAIL = /\s+((?:(?:hse|whs|ohs|site|project|safety|works|construction|
 // An answer that names no one, only whose role it is ("the builders first aider"), reads as a role: "The
 // builder's first aider", not "The Builders First Aider" (messy round 12, run 5).
 const ROLE_PHRASE_WORDS = new Set([...ROLE_WORDS, 'builder\'s', 'contractor\'s', 'dogman', 'rigger', 'operator', 'spotter', 'labourer', 'apprentice']);
+// So is one typed with capitals ("Sione Leading Hand", "Mick Tanner foreman": messy round 13, B run 7), where the
+// role is two words or two words of the name are left; the name keeps the capitals typed. "Sam Foreman" stays a name.
+const ROLE_TAIL_ANY = new RegExp(ROLE_TAIL.source, 'i');
+function splitRole(value) {
+  const tail = ROLE_TAIL_ANY.exec(value);
+  if (!tail) return null;
+  const name = value.slice(0, tail.index).trim();
+  const nameWords = name.split(/\s+/).filter(Boolean).length;
+  if (!nameWords || /[,]$/.test(name) || (nameWords < 2 && tail[1].trim().split(/\s+/).length < 2)) return null;
+  // "Builder's Site Manager" names no one: it is a role, not a name and a role.
+  if (name.split(/\s+/).every((word) => ROLE_PHRASE_WORDS.has(word.toLowerCase().replace(/[.]/g, '')) || ROLE_PHRASE_WORDS.has(word.toLowerCase().replace(/[.']/g, '').replace(/s$/, '')))) return null;
+  return { name, role: tail[1].trim() };
+}
 function tidyPersonRole(text) {
   const value = clean(text);
-  if (!value || /[A-Z]/.test(value)) return value;
+  if (!value) return value;
+  if (/[A-Z]/.test(value)) {
+    const split = value.includes(',') ? null : splitRole(value);
+    return split ? `${split.name}, ${/[A-Z]/.test(split.role) ? split.role : tidyRole(split.role)}` : value;
+  }
   const at = value.indexOf(',');
   if (at < 0) {
     const words = value.split(/\s+/);
     if (words.every((word) => ROLE_PHRASE_WORDS.has(word.replace(/[.']/g, '').replace(/s$/, '')) || ROLE_PHRASE_WORDS.has(word.replace(/[.]/g, '')))) {
       return capitalFirst(value.replace(/\b(builder|contractor|client)s\s+(?=(?:site\s+)?(?:first|supervisor|manager|foreman|safety|hse|whs|engineer|crew)\b)/g, "$1's "));
     }
-    const tail = ROLE_TAIL.exec(value);
-    if (tail && value.slice(0, tail.index).trim().split(/\s+/).length >= 2) return `${tidyName(value.slice(0, tail.index))}, ${tidyRole(tail[1])}`;
+    const split = splitRole(value);
+    if (split) return `${tidyName(split.name)}, ${tidyRole(split.role)}`;
     return tidyName(value);
   }
   const rest = value.slice(at + 1).trim();
@@ -210,14 +243,17 @@ function tidyNote(text, names = []) {
 // A role typed all in lower case: its first letter, and a short title such as HSE, in capitals
 // ("hse" reads "HSE", "hse manager" reads "HSE manager"; messy round 8, wording 1).
 const ROLE_SHORT = new Set(['hse', 'whs', 'ohs', 'ohse', 'hseq', 'qhse', 'she', 'sheq', 'ehs', 'pm', 'cm', 'ceo', 'cfo', 'coo', 'md', 'gm', 'hr', 'qa', 'qs', 'it']);
+// A role that says whose it is ("our supervisor", "the builder's foreman") reads as part of the sentence after the
+// name: "Rob, our supervisor", not "Rob, Our supervisor" (messy round 13, B run 8).
 function tidyRole(text) {
   const value = clean(text);
   if (!value || /[A-Z]/.test(value)) return value;
   const words = value.replace(/[a-z]+/g, (word) => (ROLE_SHORT.has(word) ? word.toUpperCase() : word));
+  if (/^(?:our|the|my|his|her|their|your|a|an)\s/.test(words)) return words;
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

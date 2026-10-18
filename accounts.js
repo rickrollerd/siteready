@@ -129,7 +129,7 @@ router.put('/company', requireUser, route(async (req, res) => {
   // Once a SWMS has been saved or downloaded, the company name and ABN are fixed.
   // A name typed all in lower case takes its capitals, as SiteLink's does (messy round 9, run 3:
   // "lockwise security" printed so in the header of the SWMS).
-  const name = require('./sitelink-answers').tidyName(textField(body.name, 200));
+  const name = require('./sitelink-answers').tidyCompany(textField(body.name, 200));
   const abn = textField(body.abn, 40);
   if (!name) throw fail(400, 'Enter your business name.');
   // The same words as SiteLink's (messy round 7).
@@ -279,7 +279,7 @@ function titleFor(body, input) {
   // was named "dismantel ... scafold" though the SWMS said "dismantle ... scaffold").
   // Pasted scope lines lose their clause numbers first, and a title is never a bare number (messy round 6,
   // run 2: "1. Installation of vinyl..." named the SWMS and its files "1").
-  const task = require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text;
+  const task = require('./draft').andForN(require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text);
   // A task typed in lower case is titled with a capital, as it prints (messy round 11, run 4).
   const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
