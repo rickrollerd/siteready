@@ -203,6 +203,8 @@ function normaliseSwms(input = {}) {
     stepSubstanceLines: list(input.stepSubstanceLines),
     // The types of hazardous substance a SiteWrite draft marks "Not required on this job" (substances.js).
     notRequired: list(input.notRequired),
+    // The reason given for each type marked "Not required", by type, where the SWMS prints one.
+    notRequiredWhy: input.notRequiredWhy && typeof input.notRequiredWhy === 'object' ? Object.fromEntries(Object.entries(input.notRequiredWhy).filter(([, why]) => typeof why === 'string').map(([type, why]) => [type, text(why)])) : {},
     responsiblePerson: text(input.responsiblePerson),
     consultation: text(input.consultation),
     signatures,
@@ -539,7 +541,9 @@ const MINIMUM = [
       pattern: new RegExp(`${PHYSICAL_FALL.source}|^(?=.*\\bnot (?:reasonably )?practicable\\b)(?=.*\\b(?:edge protection|guard ?rails?|scaffold\\w*|ewps?|elevating work platforms?)\\b)`, 'i') },
     { name: 'the fall protection inspected before use (the scaffold tag, the EWP pre-start, the harness and anchors)',
       pattern: /\b(scaffold\w*|guard ?rails?|edge protection|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|harness\w*|lanyards?|anchor\w*|static lines?|lifelines?|safety mesh|(?:work(?:ing)? )?platforms?|fall (?:arrest|protection|restraint)\w*|ladders?|roof rails?|covers?)\b[^.]{0,80}\b(inspect\w*|tag(?:s|ged)?|check\w*|handover|hand-?over|certif\w*|pre-?start|pre-?use|tested|log ?books?)\b|\b(inspect\w*|tag(?:s|ged)?|check\w*|handover|hand-?over|certif\w*|pre-?start|pre-?use|tested)\b[^.]{0,80}\b(scaffold\w*|guard ?rails?|edge protection|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|harness\w*|lanyards?|anchor\w*|static lines?|lifelines?|safety mesh|(?:work(?:ing)? )?platforms?|fall (?:arrest|protection|restraint)\w*|ladders?|roof rails?|covers?)\b|\bscaff ?tags?\b/i },
-    { name: 'a rated or certified anchor point for each harness', whenControls: /\b(harness\w*|fall arrest|lanyards?|static lines?)\b/i,
+    // A tool lanyard keeps tools from falling: it is not a harness (messy round 12, B run 5: anchor points asked of a
+    // painter with no harness, from "Use tool lanyards so tools cannot fall").
+    { name: 'a rated or certified anchor point for each harness', whenControls: /\b(harness\w*|fall arrest|(?<!tool )lanyards?|static lines?)\b/i,
       pattern: /\b(anchor\w*|static lines?|lifelines?|tie[- ]off points?)\b[^.]{0,80}\b(rated|certif\w*|tested|inspected|engineer\w*|\d+(?:\.\d+)?\s?kn|as\/?nzs\s?(?:1891|5532)|load[- ]rated|manufacturer\w*|basket|platform|ewp|boom lift)\b|\b(rated|certif\w*|engineer\w*|\d+(?:\.\d+)?\s?kn|as\/?nzs\s?(?:1891|5532)|basket|platform|ewp)\b[^.]{0,80}\b(anchor\w*|static lines?|lifelines?|tie[- ]off points?)\b/i } ] },
   { id: 'trench', label: 'trenches', musts: [
     { name: 'shoring, benching or battering for a trench 1.5 m or deeper (s 306)',
@@ -689,7 +693,9 @@ function minimumSets(swms, state, context) {
   if (DIG.work.test(ownWork) && DIG.near.test(allText)) use('services', (words) => DIG.work.test(words));
   // Electrical: work near overhead lines, and work on or near energised installations. A SWMS that
   // lists the category with neither wording is taken as near an installation.
-  const lines = POWER_LINE.test(said) && !(off.has('electrical') && !namedIds.has('electrical'));
+  // The ladder's hazard "Contact with power lines or live electrical parts" names no power line of its own: beside live
+  // power points it is the parts (messy round 12, B run 5: a safety observer asked of a painter with no power lines).
+  const lines = POWER_LINE.test(said.replace(/\bpower lines or live electrical parts\b/gi, 'live electrical parts')) && !(off.has('electrical') && !namedIds.has('electrical'));
   if (lines) use('lines', (words) => POWER_LINE.test(words));
   if (ids.has('electrical') && (!lines || ELECTRICAL_WORK.test([ownWork, ...swms.highRisk].join('\n')))) use('energised', (words) => ELECTRICAL_WORK.test(words) || byCategory('electrical')(words));
   // Road and rail, by the SWMS's own wording: the category's label names both.
@@ -1142,7 +1148,9 @@ function weighted(swms, state, context) {
     // Operator competency for other plant is read beside the plant: a licence line, a plant list row
     // or a control that names both, or one that covers all plant operators.
     const credentialLines = [...swms.licences, ...allControls, ...swms.plant];
-    const unmatched = needed.filter((item) => (item.beside
+    // The builder's hoist is run by the builder's licensed operator: the crew rides it, it does not operate it (messy round
+    // 12, B run 6: "Match a licence or ticket to the plant and work: builders hoist" for a waterproofer).
+    const unmatched = needed.filter((item) => !/^builders?'?s?\s+hoists?$/i.test(item.name)).filter((item) => (item.beside
       ? !credentialLines.some((line) => (namesPlant(item.name, line) || ALL_OPERATORS.test(line)) && item.licence.test(line))
       : !item.licence.test(credentials)));
     points += needed.length ? 3 * ((needed.length - unmatched.length) / needed.length) : 3;
@@ -1390,6 +1398,11 @@ function weighted(swms, state, context) {
     // and fuel beside a line refuelling the crew's plant count too (messy round 9: "supplied and applied by
     // others" beside "Silica dust from ballast", and fuel "by others" beside the refuelling line, unflagged).
     const usedAnyway = (swms.notRequired || []).filter((type) => rules.TYPES.includes(type) && !(type === rules.SILICA && silicaCut)).map((type) => ({ type, used: rules.usedByStep(type, { jobSteps: steps }) || (/^Fuels/.test(type) ? rules.refuelStep({ jobSteps: steps }) : null) })).filter((item) => item.used);
+    // A step that uses the product only on a condition ("when cleaning with solvents") is settled by a reason that says why
+    // it is not used here, as on the page (messy round 12, B run 5: "water based paints only, brushes washed in water" was
+    // accepted, then the check said "Clean brushes and rollers" uses solvent).
+    const settled = (item) => item.used.conditional && rules.reasonNeed((swms.notRequiredWhy || {})[item.type]) === '' && !rules.BY_OTHERS.test(rules.clean((swms.notRequiredWhy || {})[item.type]));
+    usedAnyway.splice(0, usedAnyway.length, ...usedAnyway.filter((item) => !settled(item)));
     for (const item of usedAnyway) fixes.push(`${item.type} is marked "Not required", but the step "${item.used.step}" uses "${item.used.word.toLowerCase()}". List the product used, with its safety data sheet, or take the step off.`);
     points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0) - (silicaCut || usedAnyway.length ? 2 : 0));
     add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length || products.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
@@ -1563,6 +1576,7 @@ function fromDraft(draft, extra = {}) {
     highRisk: draft.highRisk || [],
     notApply: draft.highRiskNotApply || [],
     notRequired: ((draft.substances && draft.substances.notRequired) || []).map((item) => item.type),
+    notRequiredWhy: Object.fromEntries(((draft.substances && draft.substances.notRequired) || []).map((item) => [item.type, item.reason || ''])),
     steps,
     controls: tableControls,
     // Every PPE item ticked, for all work or for particular steps (D246): one a single step needs is

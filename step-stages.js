@@ -257,6 +257,10 @@ function contextStages(names, flags = {}) {
   // Core fill in blockwork others laid is one of the pours, finished and cured with them (messy round 9, run 2); where the
   // crew lays the blocks too, it follows the laying (round 10, run 3).
   if (!has('Lay blocks and bricks')) out['Core fill blockwork'] = 60.5;
+  // Mounting plates, brackets and seismic restraints a services trade fixes go up with the hangers and supports, before
+  // the pipework or cable hung from them (messy round 12, A run 3: "Fix rails, fittings and equipment to walls and
+  // floors" came at step 16 of a sprinkler SWMS, after the painting).
+  if (flags.mountingFirst && [...names].some((name) => typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 78 && BY_NAME[name] < 83)) out['Fix rails, fittings and equipment to walls and floors'] = 79;
   return out;
 }
 
@@ -280,7 +284,10 @@ const FALL_HAZARD = (step) => Array.isArray(step && step.hazards) && step.hazard
 // "Run earthmoving plant" printed after the reinstatement).
 // Earthmoving plant works in the demolition, the dig and the backfill: it goes before the first of those.
 const EARTHMOVING = (stage) => (stage >= 22 && stage < 48) || (stage >= 93 && stage < 97);
-const HOME = { 'Run earthmoving plant': EARTHMOVING, 'Operate small earthmoving plant': EARTHMOVING };
+// Road plant works in the road work: the saw cutting and old line marking taken off, the paving, sealing and marking (messy
+// round 12, B run 8: "Run the road plant inside the work zone" printed after "Lay and roll asphalt").
+const ROAD_WORK = (stage) => stage === 21 || (stage >= 93 && stage <= 101);
+const HOME = { 'Run earthmoving plant': EARTHMOVING, 'Operate small earthmoving plant': EARTHMOVING, 'Run the road plant inside the work zone': ROAD_WORK };
 
 // The steps in stage order. Steps with no stage go with the staged step they are written before
 // ('lead') or after ('trail', and any step not named in the library); a run of them goes as one, by
@@ -289,7 +296,7 @@ function inStageOrder(steps, nameOf = (step) => step.step, flags = {}) {
   const list = Array.isArray(steps) ? steps : [];
   const context = contextStages(new Set(list.map(nameOf)), flags);
   const stages = list.map((step) => stageOf(nameOf(step), context));
-  if (stages.filter((stage) => typeof stage === 'number').length < 2) return list;
+  if (stages.filter((stage) => typeof stage === 'number').length < 2) return firmOrder(list, nameOf);
   const blocks = [];
   const byIndex = new Map();
   list.forEach((step, index) => {
@@ -336,7 +343,21 @@ function inStageOrder(steps, nameOf = (step) => step.step, flags = {}) {
     if (ahead) anchor.before.push(...run);
     else anchor.after.push(...run);
   }
-  return blocks.sort((a, b) => a.stage - b.stage || a.index - b.index).flatMap((block) => [...block.before, ...block.steps, ...block.after]);
+  return firmOrder(blocks.sort((a, b) => a.stage - b.stage || a.index - b.index).flatMap((block) => [...block.before, ...block.steps, ...block.after]), nameOf);
+}
+
+// The orders the map is sure of, kept for steps with no stage of their own as well (messy round 12: the crane set up after
+// the lifts, B run 7, and the roof fall protection after the loads landed on the roof, A run 2 and B run 7). A step printed
+// after one it must come before is moved to just before it. SiteWrite's own order then never fails W17.
+function firmOrder(list, nameOf = (step) => step.step) {
+  let out = [...list];
+  for (let pass = 0; pass < 20; pass += 1) {
+    const fault = firmFaults(out, nameOf)[0];
+    if (!fault) break;
+    const [step] = out.splice(fault.at - 1, 1);
+    out.splice(fault.afterAt - 1, 0, step);
+  }
+  return out;
 }
 
 // The orders the map is sure of (messy round 11, B fault 3: W17 pushed correct orders the wrong way). Each chain is
@@ -405,10 +426,31 @@ const FIRM = [
   [['Strip out the room', 'Strip out ceilings, partitions and floor coverings'], ['Demolish', 'Demolish the structure']],
   [['Strip out the room', 'Strip out ceilings, partitions and floor coverings', 'Remove the old services', 'Remove the wall', 'Remove the old tiles', 'Break out the cracked tiles', 'Strip the old membrane', 'Strip wallpaper',
     'Strip the water-damaged linings', 'Strip flood-damaged linings and insulation', 'Remove the old frames', 'Take down the old fence', 'Remove the old fan coil unit', 'Lift and move out the plant being removed', 'Isolate and lift out the failed pump',
-    'Remove the old septic tank', 'Break out the pool', 'Break out damaged concrete'],
+    'Remove the old septic tank', 'Break out the pool', 'Break out damaged concrete', 'Remove old roofing', 'Strip the roof tiles', 'Strip the slates'],
   ['Frame walls and bulkheads', 'Move and fix plasterboard sheets', 'Fix new wall sheets', 'Fix ceiling sheets', 'Install insulation', 'Apply primers and liquid membranes', 'Lay tiles', 'Fix the wall tiles', 'Install windows',
     'Replace the window frame', 'Build the fence', 'Lift the fan coil unit into place and fix it', 'Lower in and connect the new pump', 'Install vanities and fixtures', 'Repair the concrete', 'Paint', 'Lay floor coverings',
-    'Install suspended grid ceilings', 'Install joinery and cabinets']],
+    'Install suspended grid ceilings', 'Install joinery and cabinets', 'Lay torch-on membranes', 'Replace the box gutter', 'Replace the flashing', 'Replace the valley iron']],
+  // Messy round 12 (W17 silent on clearly wrong moves). Set-up before the work it serves: the crane is set up before any
+  // lift (A run 1: landing moved above the crane set-up), the heavy and dual lifts are planned first, the load is rigged
+  // and lifted before it is landed, the pump is set up before the pour, and the traffic set-up comes before road work on a
+  // live road (B run 8: paving moved above it).
+  [['Set up the crane'], ['Rig and lift the load', 'Land and release the load', 'Lift equipment and materials to the roof', 'Lift materials to and from the roof', 'Carry out the heavy lift', 'Carry out the dual lift',
+    'Lift and land steel with the crane company', 'Lift and land steel with the crane']],
+  [['Rig and lift the load'], ['Land and release the load']],
+  [['Plan the heavy lift'], ['Carry out the heavy lift']],
+  [['Plan the dual lift'], ['Carry out the dual lift']],
+  [['Set up the concrete pump and placing boom', 'Set up the concrete pump'], ['Pump and place concrete', 'Place concrete', 'Pour the core walls', 'Pour the retaining wall', 'Pour the tank walls']],
+  [['Set up traffic management', 'Set up the traffic switch and message signs'], ['Lay and roll asphalt', 'Reinstate asphalt', 'Spray seal the road', 'Run the road plant inside the work zone', 'Saw cut asphalt',
+    'Remove old line marking', 'Paint line marking', 'Heat and lay thermoplastic markings with a gas torch', 'Install raised pavement markers', 'Install road safety barrier', 'Form and pour the kerb and channel']],
+  // The roof: the way onto it and its fall protection before anything is lifted to it or worked on it (A run 2: materials
+  // landed on the roof before anyone had fall protection there).
+  [['Get onto the roof', 'Set up roof access', 'Set up roof fall protection', 'Install roof edge protection'],
+    ['Lift equipment and materials to the roof', 'Lift materials to and from the roof', 'Remove old roofing', 'Fix new roofing', 'Strip the roof tiles', 'Lay the roof tiles', 'Replace the box gutter']],
+  // A box gutter is replaced, then lined with its membrane (A run 2: the membrane moved above the gutter).
+  [['Replace the box gutter'], ['Lay torch-on membranes', 'Apply primers and liquid membranes']],
+  // Holes are drilled, then sealed (A run 3: fire stopping moved above the core drilling).
+  [['Plan core holes'], ['Core drill through the slab or wall']],
+  [['Core drill through the slab or wall'], ['Seal penetrations and fire stop', 'Fix fire collars to the slab', 'Fit the fire dampers']],
 ];
 // For each step, the group it is in in each chain.
 const FIRM_AT = new Map();
@@ -458,4 +500,4 @@ function orderFaults(steps, nameOf = (step) => step.step, flags = {}) {
   return faults;
 }
 
-module.exports = { STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults };
+module.exports = { STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };

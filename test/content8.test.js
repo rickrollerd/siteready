@@ -121,7 +121,10 @@ const CHART = { craneChart: '6.4 t at 18 m radius from the crane chart', groundB
 test('where our company runs the crane, no line says a crane company runs the lifts, and the steel step is not named for one', () => {
   const draft = draftOf({ state: 'nsw', fallRisk: 'yes', crane: 'own', facts: CHART, task: 'Crane lift structural steel. Erect structural steel roof frame.' });
   assert.ok(!/Crane lifts are done by the crane company|The crane company operates the crane|crane company's wind limits|Our SWMS and the crane company's/.test(lines(draft)), lines(draft));
-  assert.ok(names(draft).includes('Lift and land steel with the crane'), names(draft).join('; '));
+  // Our crane's own lifting step carries the steel lifting lines, so the steel is not rigged, lifted and landed twice
+  // (content13, messy round 12, A run 1).
+  assert.ok(!names(draft).some((name) => /^Lift and land steel/.test(name)), names(draft).join('; '));
+  assert.ok(draft.jobSteps.find((step) => step.step === 'Rig and lift the load').controls.some((line) => /Members are not rigged one below another/.test(line)));
   assert.ok(draft.qualifications.some((name) => /basic rigging/.test(name)), draft.qualifications.join('; '));
   // A crane company's crane keeps its lines and its step.
   const company = draftOf({ state: 'nsw', fallRisk: 'yes', crane: 'company', slinging: 'crane', task: 'Crane lift structural steel. Erect structural steel roof frame.' });

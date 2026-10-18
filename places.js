@@ -298,9 +298,11 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
       .map((place) => ({ id: place.id || '', name: placeName(place.displayName.text), address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed', otherState: Boolean(jobState) && Boolean(stateIn(place.formattedAddress)) && stateIn(place.formattedAddress) !== jobState }));
     // Each place once: by Google's id, then by name, then (for practices) by the first two words of the name.
     // Best first (rank, then distance), then each place once: by Google's id, by name without
-    // "emergency room", and by the first two words of the name, so a hospital and its emergency
+    // "emergency room", and for practices by the first two words of the name, so a hospital and its emergency
     // department listing, or one practice's several listings, show once.
-    const nearest = (items, keep, count, rank) => {
+    // Hospitals are told apart by their whole name: two that share their first two words are two hospitals (messy round
+    // 12, A runs 1 and 3: "Port Macquarie Private" and "Gold Coast Private" were dropped beside the public hospitals).
+    const nearest = (items, keep, count, rank, practices = false) => {
       const ed = new Set(items.filter((item) => item.ed).map((item) => item.id || item.name.toLowerCase()));
       const seen = new Set();
       return items
@@ -308,8 +310,9 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
         .map((item) => ({ ...item, ed: ed.has(item.id || item.name.toLowerCase()) }))
         .sort((a, b) => rank(a) - rank(b) || a.km - b.km)
         .filter((item) => {
-          const plain = item.name.toLowerCase().replace(EMERGENCY_NAME, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
-          const keys = [item.id, plain, plain.split(' ').slice(0, 2).join(' ')].filter(Boolean);
+          // A hospital's emergency listing ("... Emergency Centre", "... ED") is the hospital.
+          const plain = item.name.toLowerCase().replace(EMERGENCY_NAME, ' ').replace(/\b(?:emergency(?: (?:centre|center|services?|unit))?|ed)\b/g, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+          const keys = [item.id, plain, practices ? plain.split(' ').slice(0, 2).join(' ') : ''].filter(Boolean);
           if (keys.some((k) => seen.has(k))) return false;
           keys.forEach((k) => seen.add(k));
           return true;
@@ -328,7 +331,7 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     // twice the first one's distance) they are left out, but the first is always kept.
     const ranked = nearest(hospitalPool, isHospital, 5, hospitalRank);
     const hospitals = ranked.filter((item, index) => index === 0 || item.km <= Math.max(150, ranked[0].km * 2));
-    const result = { enabled: true, hospitals, clinics: nearest(clinicPool, isGeneralClinic, 3, clinicRank) };
+    const result = { enabled: true, hospitals, clinics: nearest(clinicPool, isGeneralClinic, 3, clinicRank, true) };
     if (careCache.size >= CACHE_LIMIT) careCache.delete(careCache.keys().next().value);
     careCache.set(key, { at: Date.now(), result });
     return result;

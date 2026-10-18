@@ -15,7 +15,9 @@ const SLANG = [
   [/\blvl\b/gi, 'level'],
   [/\bL(\d{1,3})\b/g, 'level $1'],
   [/\bcar ?park\b/gi, 'car park'],
-  [/\bTC\b/g, 'tower crane'],
+  // On road work "TC" is traffic control (messy round 12, B run 8: "traffic control by our TC crew" read as a tower
+  // crane crew, which brought a crane step, a tower crane and "Crane operated by: Crane company").
+  [/\bTC(s?)\b/g, (match, plural, offset, text) => (/\b(?:traffic|TGS|TMP|TCPs?|lane closures?|road closures?|roads?|rd|streets?|st|highway|hwy|stop[- ]?slow|TC (?:crew|compound|controllers?|signs?|layout))\b/i.test(text) ? `traffic control${plural ? 'lers' : ''}` : `tower crane${plural}`)],
   [/\bMEWPs?\b/g, 'EWP'],
   [/\bPT (slabs?|beams?|bands?)\b/g, 'post-tensioned $1'],
   [/\bRCP\b/g, 'reinforced concrete pipe'],

@@ -89,7 +89,8 @@ test('every firm order agrees with the stage map, so SiteWrite\'s own sorted ste
   for (const chain of FIRM) {
     for (let g = 0; g < chain.length; g += 1) {
       for (let h = g + 1; h < chain.length; h += 1) {
-        for (const a of chain[g]) for (const b of chain[h]) if (!(typeof stageOf(a) === 'number' && typeof stageOf(b) === 'number' && stageOf(a) < stageOf(b))) against.push(`${a} / ${b}`);
+        // Steps with no stage of their own (the crane set-up, the way onto a roof: content13) are kept in order by firmOrder.
+        for (const a of chain[g]) for (const b of chain[h]) if (typeof stageOf(a) === 'number' && typeof stageOf(b) === 'number' && !(stageOf(a) < stageOf(b))) against.push(`${a} / ${b}`);
       }
     }
   }
