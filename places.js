@@ -231,6 +231,10 @@ const NOT_GENERAL = /\b(travel\w*|mental|youth|fit lab|skin|aesthetic\w*|cosmeti
 const GENERAL_NAME = /\b(medical|clinic|doctors|GP|general practice|family practice|health)\b/i;
 const isGeneralClinic = (name) => GENERAL_NAME.test(name) && !NOT_GENERAL.test(name) && !/\b(pty|ltd|limited|solutions|hospitals?)\b/i.test(name);
 
+// A place name Google holds all in lower case takes its capitals, as a name typed so does ("new norfolk public hospital"
+// reads "New Norfolk Public Hospital": messy round 12, run 6). A name with any capital is left as Google gives it.
+const placeName = (name) => require('./sitelink-answers').tidyName(name);
+
 async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw = false } = {}) {
   const address = cleanQuery(rawAddress);
   if (!enabled()) return { enabled: false, hospitals: [], clinics: [] };
@@ -291,7 +295,7 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     ]);
     const list = (data, fallbackType = '') => (data.places || [])
       .filter((place) => place.displayName && place.displayName.text && place.location)
-      .map((place) => ({ id: place.id || '', name: place.displayName.text, address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed', otherState: Boolean(jobState) && Boolean(stateIn(place.formattedAddress)) && stateIn(place.formattedAddress) !== jobState }));
+      .map((place) => ({ id: place.id || '', name: placeName(place.displayName.text), address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed', otherState: Boolean(jobState) && Boolean(stateIn(place.formattedAddress)) && stateIn(place.formattedAddress) !== jobState }));
     // Each place once: by Google's id, then by name, then (for practices) by the first two words of the name.
     // Best first (rank, then distance), then each place once: by Google's id, by name without
     // "emergency room", and by the first two words of the name, so a hospital and its emergency

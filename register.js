@@ -301,13 +301,13 @@ function ratedSteps(steps) {
 }
 
 // Plant operated or erected by others: the licence belongs to them.
-function othersLicence(item, allText, task, ownCrane = false, chart = '') {
-  const out = othersLicenceOf(item, allText, task, ownCrane, chart);
+function othersLicence(item, allText, task, ownCrane = false, chart = '', scaffoldByOthers = false) {
+  const out = othersLicenceOf(item, allText, task, ownCrane, chart, scaffoldByOthers);
   // Plant that may or may not be used stays that way, whoever holds its licence (messy round 4: a
   // scaffold named only as one way to reach a window was ticked as used).
   return WHERE_USED.test(item.licence) && !WHERE_USED.test(out.licence) ? { ...out, licence: whereUsed(out.licence) } : out;
 }
-function othersLicenceOf(item, allText, task, ownCrane, chart = '') {
+function othersLicenceOf(item, allText, task, ownCrane, chart = '', scaffoldByOthers = false) {
   if (item.item === 'Mobile crane or crane truck') item = craneClass(item, task, chart);
   // Tube and coupler scaffolds need intermediate scaffolding, hung and suspended scaffolds advanced.
   // The scaffold type answered sets the class too (the line SiteWrite writes for it).
@@ -322,7 +322,9 @@ function othersLicenceOf(item, allText, task, ownCrane, chart = '') {
   // "Pre-start check and log book." is used in its place.
   if (/crane/i.test(item.item) && ownCrane && /^Crane company's log book and pre-start check\. /.test(item.inspection || '')) item = { ...item, inspection: item.inspection.replace(/^Crane company's log book and pre-start check\. /, 'Pre-start check and log book. ') };
   if (/crane/i.test(item.item) && /\bcrane company\b/i.test(allText) && !ownCrane) return { ...item, licence: `Held by the crane company's operator and crew: ${item.licence.replace(/^Yes,?\s*/, '')}` };
-  if (item.item === 'Scaffold' && !/\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b)\w*|install\w*|put up)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) return { ...item, licence: `Erected and altered only by a licensed scaffolder (${item.licence.match(/\(([^()]*S[BIA][^()]*)\)/)[1]}) where a fall of more than 4 m is possible. Our crew uses it and does not alter it` };
+  // A scaffold the user says is by others ("Not our work" at Scaffold type), or the builder's, is used, not erected
+  // (messy round 12, run 6: "the builders scaffold" printed the scaffolding licence for a waterproofer).
+  if (item.item === 'Scaffold' && (scaffoldByOthers || !/\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b|er)\w*|install\w*|put up)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task))) return { ...item, licence: `Erected and altered only by a licensed scaffolder (${item.licence.match(/\(([^()]*S[BIA][^()]*)\)/)[1]}) where a fall of more than 4 m is possible. Our crew uses it and does not alter it` };
   if (/Personnel or materials hoist/.test(item.item) && !/\b(erect\w*|install\w*|operat\w*|dismantl\w*)\b[^.]{0,30}\bhoists?\b/i.test(task)) return { ...item, licence: `Held by the principal contractor's licensed hoist operator: ${item.licence.replace(/^Yes[,:]?\s*/, '')}` };
   if (item.item === 'Concrete placing boom' && !/\b(we|our crew|our own)\b[^.]{0,30}\b(operat\w*|run\w*)\b[^.]{0,20}\b(pump|boom)/i.test(allText)) return { ...item, licence: `Held by the pumping company's licensed operator: ${item.licence.replace(/^Yes,?\s*/, '')}` };
   return item;
@@ -496,7 +498,7 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const muster = String(input.musterPoint || '').replace(/\s+/g, ' ').trim();
   rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: muster ? names.tidyPlace(muster) : '' });
   rows.push({ type: 'Fire', equipment: /\b(hot work|weld\w*|torch\w*|brazing|grinding|oxy|lpg|electric\w*)\b/i.test(text) ? 'Fire extinguisher suited to the hazard (dry powder or CO2 near electrical equipment)' : 'Fire extinguisher', detail: '' });
-  rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${names.tidyPersonRole(String(input.firstAider).replace(/\s+/g, ' ').trim())}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${input.hospital}` : '' });
+  rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${names.tidyPersonRole(String(input.firstAider).replace(/\s+/g, ' ').trim())}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${names.tidyName(String(input.hospital).replace(/\s+/g, ' ').trim())}` : '' });
   // With falls answered No, a line that only names a harness or EWP as one way up does not bring the row:
   // an EWP in the plant does, and so does a harness the lines say is used (messy round 6: a "Work at
   // height" row with falls No for cleaning).
@@ -856,6 +858,9 @@ function registersFor(draft, input = {}) {
   fromAccess.sort((a, b) => Number(WHERE_USED.test(a.licence)) - Number(WHERE_USED.test(b.licence)));
   for (const item of fromAccess) if (!named.includes(item.item) && !maybe.some((other) => other.item === item.item) && !accessExtra.some((other) => other.item === item.item)) accessExtra.push(item);
   const ownCrane = /^(own|ours?|us|we|our company|yes)$/i.test(String(input.crane || '').trim());
+  // "Not our work: the scaffold is by others" at Scaffold type (draft.js scaffoldTypeAnswer).
+  const scaffoldType = String((input.facts || {}).scaffoldType || '');
+  const scaffoldByOthers = scaffoldType.toLowerCase().replace(/[^a-z]/g, '') === 'byothers' || /^\s*not our work\b/i.test(scaffoldType);
   const noCrane = /^(none|no|no crane|not used)$/i.test(String(input.crane || '').trim());
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe.filter((item) => !accessExtra.some((other) => other.item === item.item)), ...accessExtra]
     .filter((item) => !(buildingGenerator && item.item === 'Generator'))
@@ -863,7 +868,7 @@ function registersFor(draft, input = {}) {
     // track work, and no crane where the user said no crane is used and the task names none.
     .filter((item) => !RAIL_PLANT.has(item.item) || RAIL_WORK.test(`${ownTask}\n${steps.map((step) => step.step).join('\n')}`))
     .filter((item) => !(noCrane && /crane/i.test(item.item) && !/\bcranes?\b|\bhiabs?\b|\bfrannas?\b/i.test(ownTask)))
-    .map((item) => othersLicence(item, allText, task, ownCrane, ownCrane ? (input.facts || {}).craneChart : ''));
+    .map((item) => othersLicence(item, allText, task, ownCrane, ownCrane ? (input.facts || {}).craneChart : '', scaffoldByOthers));
   if (plant.some((item) => /^(Boom-type elevating work platform|Scissor lift)$/.test(item.item)) && !SEPARATE_EWP.test(withoutScissorEwp(ownTask).replace(/\bboom(?:[- ]type)? (?:ewps?|elevating work platforms?)\b/gi, ' boom lift '))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Elevating work platform'));
   // A truck loading crane job's "the crane" is the loading crane.
   if (plant.some((item) => /^Vehicle loading crane/.test(item.item)) && !/\b(mobile|crawler|franna|all terrain|slewing|tower) cranes?\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => !/^Mobile crane or crane truck$/.test(item.item)));

@@ -253,6 +253,18 @@ function siteRules(value) {
 }
 
 function draftBody(body) {
+  const out = draftFields(body);
+  // The job steps the user unticked by hand, sent while the steps follow the task's words (no picks of their own): the
+  // steps found in the words, less these, are the picks, so a step unticked stays unticked when the task is changed and
+  // Continue is pressed again (messy round 12, run 6: "Brazing and soldering (hot work)" came back ticked).
+  const off = Array.isArray(body.kindsOff) ? [...new Set(body.kindsOff.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 80) : [];
+  if (!out.kinds && off.length) {
+    const found = require('./draft').foundKinds(out);
+    if (Array.isArray(found)) out.kinds = found.filter((id) => !off.includes(id));
+  }
+  return out;
+}
+function draftFields(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
   const field = (value, max) => textField(value, max);

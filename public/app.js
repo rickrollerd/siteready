@@ -577,8 +577,9 @@ function payload() {
     ppeSteps: Object.keys(ppePlaced).length ? ppePlaced : undefined,
     // The items the user unticked by hand: plant they confirm or add does not tick them again.
     ppeOff: ppeUnticked(),
-    // The job steps picked, or none to use the ones SiteWrite finds in the task.
+    // The job steps picked, or none to use the ones SiteWrite finds in the task, less those the user unticked by hand.
     kinds: stepPicks || undefined,
+    kindsOff: !stepPicks && stepsOff.size ? [...stepsOff] : undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
     // The rows of a scope reading that the reader matched to no job steps, for the task as read,
@@ -1011,6 +1012,9 @@ document.addEventListener('click', (event) => {
 
 // Job steps: null follows the steps SiteWrite finds in the task; a list is the user's own picks.
 let stepPicks = null;
+// The steps the user unticked by hand. They stay unticked when the task's words are changed and Continue is pressed again,
+// which starts again from the steps found in the new words (messy round 12, run 6: an unticked step came back ticked).
+let stepsOff = new Set();
 // Steps for work the scope gives to others, which the user chose to leave out.
 let leaveOut = null;
 // Rows of the scope reading with no job steps, while the task is the one read from the scope.
@@ -1083,6 +1087,7 @@ function replaceTask(written, answered = {}) {
   if (document.querySelector('[data-site]')) Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
   replaced = { labels: new Map(((questions && questions.required) || []).map((item) => [item.id, item.label])) };
   stepPicks = null;
+  stepsOff = new Set();
   leaveOut = null;
   scopeUnmatched = null;
   scopeWordsNow = null;
@@ -1146,6 +1151,7 @@ function sayUnasked(required) {
 // Typing in the task box keeps the user's changes: those that no longer match are reported.
 function newSwms() {
   stepPicks = null;
+  stepsOff = new Set();
   leaveOut = null;
   scopeUnmatched = null;
   scopeWordsNow = null;
@@ -1412,6 +1418,8 @@ document.getElementById('ppe-block').addEventListener('click', (event) => {
 document.getElementById('steps-block').addEventListener('change', (event) => {
   if (!event.target.matches('[data-step]')) return;
   stepPicks = [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value);
+  if (event.target.checked) stepsOff.delete(event.target.value);
+  else stepsOff.add(event.target.value);
   refreshSteps();
 });
 
@@ -1421,6 +1429,7 @@ document.getElementById('step-add').addEventListener('change', (event) => {
   // The steps for the work around it come back with the first step added for the work itself.
   const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value).concat(stepsAround);
   stepPicks = [...new Set([...current, id])];
+  stepsOff.delete(id);
   document.getElementById('step-search').value = '';
   stepSearchIds = null;
   refreshSteps();
@@ -1430,6 +1439,7 @@ document.getElementById('step-search').addEventListener('input', searchStepsLate
 
 document.getElementById('steps-reset').addEventListener('click', () => {
   stepPicks = null;
+  stepsOff.clear();
   refreshSteps();
 });
 
@@ -1447,6 +1457,7 @@ const methodSteps = {
     const added = ids.filter((id) => !current.includes(id));
     if (!added.length) return [];
     stepPicks = [...new Set([...current, ...added])];
+    added.forEach((id) => stepsOff.delete(id));
     refreshSteps();
     return added;
   },
@@ -1995,6 +2006,7 @@ function fillStart(input) {
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
+  stepsOff = new Set();
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
   scopeWordsNow = input.scopeTask && typeof input.scopeTask === 'object' ? { ...input.scopeTask } : null;
@@ -3257,7 +3269,7 @@ document.getElementById('hospital-find').addEventListener('click', async () => {
     const data = await (await fetch(api(`/api/nearby-care?address=${encodeURIComponent(address)}`))).json();
     if (!data.enabled) { box.innerHTML = '<p class="meta">Suggestions are not set up. Type the hospital.</p>'; return; }
     if (data.error) { box.innerHTML = `<p class="meta">${esc(data.error)}</p>`; return; }
-    const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">About ${esc(place.km)} km away in a straight line</span></button></li>`;
+    const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">${place.km ? `About ${esc(place.km)} km` : 'Less than 0.1 km'} away in a straight line</span></button></li>`;
     box.innerHTML = `${data.hospitals.length ? `<p class="meta"><strong>Hospitals.</strong> Check the one you pick has a 24 hour emergency department.</p><ul class="care-list">${data.hospitals.map(option).join('')}</ul>` : '<p class="meta">No hospital found nearby. Type the hospital.</p>'}
       ${data.clinics.length ? `<p class="meta"><strong>Medical centres</strong>, for minor injuries in opening hours. Serious injuries go to an emergency department.</p><ul class="care-list">${data.clinics.map(option).join('')}</ul>` : ''}`;
   } catch {

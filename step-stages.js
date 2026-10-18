@@ -126,8 +126,11 @@ const BY_NAME = {
   'Cut and flash the roof penetration': 76, 'Fix fittings on the roof': 78, 'Install bird netting at height': 78, 'Install bird spikes at height': 78, 'Wrap columns with fibre reinforced polymer': 76,
   'Fit and grout the pile jacket': 76, 'Seal and inject cracks': 76, 'Take down and replace the awning': 76, 'Cut out and replace the steel handrail': 76, 'Cut out and replace the window sill': 77,
   'Drill fixing holes in the slab edge': 75.5, 'Fix brackets at the slab edge': 76, 'Lift panels with the floor crane or monorail': 77, 'Install panels at the open slab edge': 77,
-  'Install windows': 77, 'Replace the window frame': 77, 'Install the shopfront frames': 77, 'Install doors': 77, 'Hang the shopfront doors': 77, 'Install louvres': 77,
-  'Replace the broken louvre blades': 77, 'Drill tiled walls for fixings': 77.5, 'Handle and install glass panels': 86, 'Seal glazing': 86.5, 'Seal the facade joints': 79, 'Handle glass in the wind': 'lead',
+  'Install windows': 77, 'Replace the window frame': 77, 'Install the shopfront frames': 77, 'Install doors': 77, 'Install louvres': 77,
+  'Replace the broken louvre blades': 77, 'Drill tiled walls for fixings': 77.5, 'Handle and install glass panels': 86,
+  // A shopfront's glass doors are hung once its frames are glazed (messy round 12, run 4: the doors were hung before the
+  // glass went in).
+  'Hang the shopfront doors': 86.2, 'Seal glazing': 86.5, 'Seal the facade joints': 79, 'Handle glass in the wind': 'lead',
   'Install cyclone shutters': 85, 'Erect coolroom panels': 82,
   // Rough-in.
   'Remove the old board and fit the new one': 79, 'Set and fix the substation equipment': 79, 'Core drill through the slab or wall': 78, 'Fix hangers and supports': 79,
