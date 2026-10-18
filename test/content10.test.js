@@ -73,6 +73,11 @@ test('the stages agree with the pairs of steps the library already orders, apart
     'Deliver and install commercial kitchen equipment > Plumbing rough-in',
     'Plumbing fit-off > Backfill the trench',
     'Remove and fit the vanity > Plumbing rough-in',
+    // Content14 (messy round 13, A run 1): a tiler drills tiled walls once the tiles are laid (a glazier's shower screen is
+    // drilled before its glass, by the context stages), and tiles near open edges are laid after the old tiles are broken
+    // out, with the other tiling.
+    'Drill tiled walls for fixings > Handle and install glass panels',
+    'Lay tiles near open edges > Break out the cracked tiles',
   ].sort());
 });
 

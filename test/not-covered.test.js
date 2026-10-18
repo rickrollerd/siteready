@@ -30,7 +30,8 @@ test('a part of the task with no job steps is listed in the user\'s words', () =
 test('work that has job steps is not listed', () => {
   assert.deepEqual(draft('Install the generator.').notCovered, []);
   // A step named for the work covers it: "Grout the tiles", "Clean out and seal floor joints".
-  assert.deepEqual(draft('Lay the floor tiles, grout the tiles and seal the joints.').notCovered, []);
+  // Tiles are cut, so the silica controls are asked (content14, messy round 13 A run 1).
+  assert.deepEqual(draft('Lay the floor tiles, grout the tiles and seal the joints.', { facts: { ...FACTS, silicaControls: 'Tiles are cut wet on the tile saw, and fit tested P2 respirators are worn.' } }).notCovered, []);
   // Access covered by the access step, and a lift covered by the lifting steps.
   assert.deepEqual(draft('Install the generator, working from a scissor lift.').notCovered, []);
   assert.deepEqual(draft('Lift the generator onto the plinth with a mobile crane and install it.', { crane: 'company' }).notCovered, []);

@@ -253,7 +253,9 @@
   // are taken, so a line's other words do not count.
   // Fuel for the petrol-driven plant the lines name, and for a generator or petrol plant in the plant list (messy
   // round 7: fuel "Not required" with no reason beside "Petrol-driven saws, trowels and generators").
-  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)'];
+  // Wood dust a line names as made by the crew's tools counts too (messy round 13, B run 6: "Not required" taken with no
+  // reason beside "Use power tools", whose line says MDF dust is hazardous).
+  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)', 'Wood dust (MDF and hardwood)'];
   // Earthmoving and other engine-driven plant runs on diesel or petrol too (messy round 11, run 2: fuel "Not required"
   // taken with no reason beside the crew's own excavator, compactor, dewatering pump and directional drill). A reason
   // that says why ("battery and electric plant only") still settles it.
@@ -338,6 +340,12 @@
     return found ? found.step : '';
   }
   const cutStep = silicaStep;
+  // The first plant item that cuts, cores or grinds concrete, masonry or stone, in the plant list, or ''.
+  const SILICA_PLANT = /\b(?:concrete saws?|road saws?|floor saws?|wall saws?|core drills?|floor grinders?|demolition saws?|cut-?off saws?|quick ?cut saws?|jackhammers?|demolition hammers?|hydraulic breakers?|rock breakers?)\b/i;
+  function silicaPlant(draft) {
+    const found = [...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || '')).find((name) => SILICA_PLANT.test(name));
+    return found || '';
+  }
   // A reason that says another trade or others do it ("painters do it", "by others") does not settle a type
   // the user's own step uses (messy round 7: paint "painters do it" beside the user's own "Paint shadowline
   // packers"). Beside SiteWrite's own steps a short reason still settles it (D292), silica apart.
@@ -387,6 +395,7 @@
   // A fuel or gas line, pipe, tank or system the step installs is not the product used ("Install generators
   // and fuel systems"), as for the user's own steps.
   const WORKED_ON = /\b(?:fuel|gas|refrigerant|diesel|petrol)\s+(?:lines?|pipes?|pipework|mains?|systems?|tanks?|meters?|dispensers?|connections?)\b/gi;
+  const PRODUCT_CLASS = /\bepoxy (?:grouts|adhesives|products|resins)\b/gi;
   function usedByStep(type, draft) {
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step) && !(step.own || OWN_STEP.test(String(step.step || ''))));
     // A step that uses the product is named before one that only moves or prepares for it ("Move membrane rolls and
@@ -403,7 +412,9 @@
       // solvents" beside the water-based washout line) is marked conditional: a reason that says why it is not used
       // settles it (messy round 10, run 4: solvents refused for a water-based sealer's brush washout).
       const conditional = (step.controls || []).some((line) => typeof line === 'string' && /\b(?:when|where|if)\b/i.test(withoutSource(line)) && namedIn(type, withoutSource(line)));
-      const line = (step.hazards || []).find((text) => typeof text === 'string' && !NOT_THIS_JOB.test(text) && !CONDITION.test(text) && !NOT_USING.test(text) && !NOT_EXPOSURE.test(text) && exposure(type, text) && namedIn(type, text.replace(WORKED_ON, ' ')) && kindsIn(text.replace(WORKED_ON, ' ')) < 2);
+      // A kind of product named as a class the step may use ("epoxy grouts and sealers") is not this crew using it (messy
+      // round 13, A run 4: epoxy "Not required" refused beside the grouting step, where the crew used cement grout).
+      const line = (step.hazards || []).find((text) => typeof text === 'string' && !NOT_THIS_JOB.test(text) && !CONDITION.test(text) && !NOT_USING.test(text) && !NOT_EXPOSURE.test(text) && exposure(type, text) && namedIn(type, text.replace(WORKED_ON, ' ').replace(PRODUCT_CLASS, ' ')) && kindsIn(text.replace(WORKED_ON, ' ')) < 2);
       if (line) return { step: String(step.step || ''), word: namedIn(type, line.replace(WORKED_ON, ' ')), ...(conditional ? { conditional: true } : {}) };
     }
     return null;
@@ -462,6 +473,10 @@
     if (mine) return `${SHORT.get(type)}: the job step "${mine.step}" in this SWMS uses "${mine.word.toLowerCase()}", so it cannot be "Not required". Add the product you use with its safety data sheet, or take that step off if your crew does not do it.`;
     // While that step is in the SWMS, no reason settles it: the product being cut is asked for.
     if (type === SILICA && cut) return `${SHORT.get(type)}: the job step "${cut}" cuts, drills or grinds concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
+    // Plant in the plant list that cuts, cores or grinds concrete makes silica dust too, while it is listed (messy round 13, A
+    // run 2: silica "no cutting" was accepted beside the concrete saw in the confirmed plant).
+    const sawPlant = type === SILICA && draft && !cut ? silicaPlant(draft) : '';
+    if (sawPlant) return `${SHORT.get(type)}: your plant list has "${sawPlant}", which cuts, cores or grinds concrete, masonry or stone, so it cannot be "Not required". Add what is cut as the product, for example the concrete or the pavement, with its safety data sheet, or take that plant off if it is not used.`;
     // A step whose own hazard is the silica dust it makes ("Silica dust from ballast": messy round 9, run 5).
     const dust = type === SILICA ? (draft ? usedByStep(type, draft) : known && !known.own ? known : null) : null;
     if (dust) return `${SHORT.get(type)}: the job step "${dust.step}" makes silica dust, so it cannot be "Not required". Add the material that gives off the dust, for example the ballast or the concrete, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
@@ -505,9 +520,13 @@
   // A pipe cement or primer, by its own name ("BlazeMaster CPVC one step cement"), goes in the step that
   // joins the pipe, whatever type it was added as (messy round 8, run 3: it was matched to "Label pipes,
   // ducts and equipment").
+  // Messy round 13: a bearing or non-shrink grout goes to the bearing or base step, not the concrete pour (B run 7); a tile
+  // grout or adhesive with no grouting or adhesive step goes to the step that lays the tiles, not the cutting or screed
+  // (A run 1).
   const PRODUCT_STEPS = [
-    [/\bgrout\b/i, /\bgrout\w*\b/i],
-    [/\b(?:tile )?adhesives?\b|\bglue\b/i, /\badhesive\b/i],
+    [/\bbearings?\b|\bnon[- ]?shrink\b|\bbedding grout\b/i, [/\bbearings?\b/i, /^Grout the base$/i, /\bgrout\w*\b/i]],
+    [/\bgrout\b/i, [/\bgrout\w*\b/i, /^Lay tiles$/i, /^Fix the wall tiles$/i, /^Lay tiles near open edges$/i]],
+    [/\b(?:tile )?adhesives?\b|\bglue\b/i, [/\badhesive\b/i, /^Lay tiles$/i, /^Fix the wall tiles$/i, /^Lay tiles near open edges$/i]],
     [/\b(?:bedding|sand (?:and )?cement|screed)\b/i, [/\bscreed\b/i, /\bbed(?:s|ding)?\b/i, /^Lay (?:the )?(?:tiles|pavers|stone|granite|coping)$/i, /^Lay\b/i]],
     [/\btorch[- ]?on\b|\bsbs\b|\bbitumen (?:sheets?|membranes?)\b/i, [/\btorch[- ]?on\b/i, /\bmembranes?\b/i]],
     [/\bprimers?\b/i, [/\bprimers?\b/i]],
@@ -524,6 +543,7 @@
     [/\bconduits?\b/i, [/^Lay conduits$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i, /^Rough-in$/i]],
   ];
   // Words a product name shares with many steps, which say nothing of the step it goes in.
+  const PLACE_PRODUCT_WORDS = new Set(['pool', 'pools', 'spa', 'spas', 'tank', 'tanks', 'room', 'rooms', 'floor', 'floors', 'wall', 'walls', 'roof', 'roofs', 'deck', 'decks', 'area', 'areas', 'bathroom', 'kitchen', 'balcony', 'external', 'internal']);
   const GENERIC_PRODUCT_WORDS = new Set(['emulsion', 'product', 'products', 'based', 'water', 'solvent', 'pack', 'part', 'general', 'purpose', 'grade', 'type', 'high', 'with', 'from', 'standard', 'premium', 'liquid', 'sheet', 'litre', 'litres', 'used', 'this', 'that', 'site']);
   // A torch-on (SBS bitumen) sheet goes in the torch-on step, and a primer in the step that applies it.
   const PIPE_PRODUCT = /\b(?:c?pvc|u-?pvc|pipe (?:cement|glue|primer)|solvent cement)\b/i;
@@ -559,7 +579,9 @@
     // The type's own words ("fuel", "bitumen") say what the product is, not which step it is for.
     const typeWords = String((row && row.type) || '').toLowerCase().split(/[^a-z]+/).filter((word) => word.length > 3);
     const words = named.toLowerCase().split(/[^a-z]+/).filter((word) => word.length > 3 && !GENERIC_PRODUCT_WORDS.has(word) && !typeWords.some((other) => other.startsWith(word) || word.startsWith(other)));
-    const shared = (name) => words.filter((word) => new RegExp(`\\b${word}`, 'i').test(String(name || '').replace(OWN_STEP, ''))).length;
+    // A place both name ("pool") does not say the product is for that step (A run 4: the pool tile and pebble product went to
+    // the user's own robotic pool cleaner step).
+    const shared = (name) => words.filter((word) => !PLACE_PRODUCT_WORDS.has(word) && new RegExp(`\\b${word}`, 'i').test(String(name || '').replace(OWN_STEP, ''))).length;
     const typed = matchStep(row && row.type, steps);
     const mine = list.filter((item) => item && (item.own || OWN_STEP.test(item.step || ''))).map((item) => ({ step: item.step, n: shared(item.step) })).filter((item) => item.n > shared(typed)).sort((a, b) => b.n - a.n)[0];
     return mine ? mine.step : typed;
@@ -613,9 +635,12 @@
 
   // A product listed covers its own type, and a bitumen sheet listed as a waterproofing membrane covers bitumen too, so
   // the same SBS torch-on membrane is not added twice (messy round 12, A run 2).
+  // A cement-based tile adhesive listed under cement covers the adhesive type too (messy round 13, A run 1: adhesive
+  // "Not required" was refused beside it, so it had to be listed twice).
   function coversType(row, type) {
     const item = row && typeof row === 'object' ? row : {};
     if (item.type === type) return true;
+    if (type === 'Adhesives' && /\b(?:adhesives?|glues?)\b/i.test(clean(item.product))) return true;
     return type === 'Bitumen and asphalt' && /\b(?:bitumen|bituminous|sbs|app|torch[- ]?on)\b/i.test(clean(item.product));
   }
   const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };

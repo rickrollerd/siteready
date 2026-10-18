@@ -391,8 +391,9 @@ const PERMITS = [
   { label: 'confined space entry', name: 'a confined space entry permit',
     work: /\bconfined spaces?\b/i,
     permit: /\b(?:confined space (?:entry )?|entry )permits?\b/i },
+  // An excavator named as the plant does not dig on its own (messy round 13, B run 5: a hi-rail excavator changing sleepers).
   { label: 'excavation or digging near services', name: 'an excavation or dig permit',
-    work: /\b(excavat\w*|trench\w*|dig(?:s|ging)?|pot[- ]?hol\w*|post holes?|auger\w*|directional drill\w*|bor(?:e|ing) under)\b/i,
+    work: /\b(excavat(?!ors?\b)\w*|trench\w*|dig(?:s|ging)?|pot[- ]?hol\w*|post holes?|auger\w*|directional drill\w*|bor(?:e|ing) under)\b/i,
     near: /\b(services?|cables?|pipes?|gas|mains|power|electric\w*|before you dig|dbyd|byda)\b/i,
     permit: /\b(?:excavation|dig(?:ging)?|ground (?:disturbance|penetration)|penetration) permits?\b|\bpermits? to (?:dig|excavate)\b/i },
   { label: 'work near overhead or underground electric lines', name: 'a permit to work near the lines, or the network operator\'s written permission',
@@ -700,7 +701,9 @@ function minimumSets(swms, state, context) {
   if (ids.has('electrical') && (!lines || ELECTRICAL_WORK.test([ownWork, ...swms.highRisk].join('\n')))) use('energised', (words) => ELECTRICAL_WORK.test(words) || byCategory('electrical')(words));
   // Road and rail, by the SWMS's own wording: the category's label names both.
   if (ids.has('road')) {
-    const own = [swms.task, ...swms.highRisk.filter((line) => !(ROAD_WORDS.test(line) && RAIL.test(line))), ...steps.flatMap((step) => [step.step, ...step.hazards]), ...swms.plant].join('\n');
+    // A road rail (hi-rail) vehicle runs on the track, not a road (messy round 13, B run 5: a traffic plan for "work beside a
+    // road" on every rail step).
+    const own = [swms.task, ...swms.highRisk.filter((line) => !(ROAD_WORDS.test(line) && RAIL.test(line))), ...steps.flatMap((step) => [step.step, ...step.hazards]), ...swms.plant].join('\n').replace(/\broad[- ]rail (?:vehicles?|plant|trucks?|excavators?)\b|\brrvs?\b|\bhi-?rail\b/gi, ' rail plant ');
     const rail = RAIL.test(own);
     if (rail) use('rail', (words) => RAIL.test(words));
     if (!rail || ROAD_WORDS.test(own)) use('road', byCategory('road'));
@@ -708,7 +711,9 @@ function minimumSets(swms, state, context) {
   // Silica: listed, or concrete or masonry cut, drilled or ground.
   if (swms.highRisk.some((line) => NAMED.silica.test(line)) || SILICA_WORK.test([swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards])].join('\n'))) use('silica', (words) => SILICA_WORK.test(words) || NAMED.silica.test(words));
   // A crane named for a lift, in the task, a step name or the plant list (before its first colon).
-  const craneText = [swms.task, ...workNames, ...swms.plant.map((line) => line.split(':')[0])].join('\n');
+  // A crane the task rules out ("no crane", "without a crane") is not one (messy round 13, A run 3: a lift plan asked of poles
+  // stood by hand).
+  const craneText = [String(swms.task || '').replace(/\b(?:no|not|nil|without(?: a| any)?|never)\s+(?:a\s+|any\s+)?(?:crane|hiab)\w*(?:\s+(?:truck|lift)s?)?/gi, ' '), ...workNames, ...swms.plant.map((line) => line.split(':')[0])].join('\n');
   if (CRANE.test(craneText) && LIFT_WORDS.test([swms.task, ...workNames].join('\n'))) use('crane', (words) => CRANE.test(words));
   return out;
 }
@@ -1306,7 +1311,9 @@ function weighted(swms, state, context) {
     const ownWork = [swms.task, ...steps.map((step) => step.step).filter((name) => !checkOnly(name))].join('\n');
     const work = [ownWork, ...swms.highRisk].join('\n');
     // A step named for its permit ("Work permit system") names it too.
-    const permitText = [...allControls, ...steps.map((step) => step.step), ...swms.site.conditions, ...swms.licences, ...swms.plant, ...swms.emergency, swms.review].join('\n');
+    // The Controls table counts too: the user's permit answer prints there when no step carries it (messy round 13, B run 5:
+    // the rail operator's hot work permit).
+    const permitText = [...allControls, ...(swms.controls || []), ...steps.map((step) => step.step), ...swms.site.conditions, ...swms.licences, ...swms.plant, ...swms.emergency, swms.review].join('\n');
     const sitePermits = SITE_PERMITS.test([allText, ...swms.emergency].join('\n'));
     const hazards = steps.flatMap((step) => step.hazards).join('\n');
     const controls = [...allControls, ...swms.site.conditions].join('\n');
@@ -1397,11 +1404,13 @@ function weighted(swms, state, context) {
     // Silica beside a step whose own hazard is the silica dust it makes, wood dust beside a step cutting timber,
     // and fuel beside a line refuelling the crew's plant count too (messy round 9: "supplied and applied by
     // others" beside "Silica dust from ballast", and fuel "by others" beside the refuelling line, unflagged).
-    const usedAnyway = (swms.notRequired || []).filter((type) => rules.TYPES.includes(type) && !(type === rules.SILICA && silicaCut)).map((type) => ({ type, used: rules.usedByStep(type, { jobSteps: steps }) || (/^Fuels/.test(type) ? rules.refuelStep({ jobSteps: steps }) : null) })).filter((item) => item.used);
+    const usedAnyway = (swms.notRequired || []).filter((type) => rules.TYPES.includes(type) && !(type === rules.SILICA && silicaCut)).map((type) => ({ type, used: rules.usedByStep(type, { jobSteps: steps }) || (/^Fuels/.test(type) && rules.refuelStep({ jobSteps: steps }) ? { ...rules.refuelStep({ jobSteps: steps }), refuel: true } : null) })).filter((item) => item.used);
     // A step that uses the product only on a condition ("when cleaning with solvents") is settled by a reason that says why
     // it is not used here, as on the page (messy round 12, B run 5: "water based paints only, brushes washed in water" was
     // accepted, then the check said "Clean brushes and rollers" uses solvent).
-    const settled = (item) => item.used.conditional && rules.reasonNeed((swms.notRequiredWhy || {})[item.type]) === '' && !rules.BY_OTHERS.test(rules.clean((swms.notRequiredWhy || {})[item.type]));
+    // A refuelling line is settled the same way, as the page settles it (messy round 13, B run 7: "genny n compressor are
+    // diesel but we fill them at the yard" was accepted, then the check said "Saw cut concrete" uses "refuelled").
+    const settled = (item) => (item.used.conditional || item.used.refuel) && rules.reasonNeed((swms.notRequiredWhy || {})[item.type]) === '' && !rules.BY_OTHERS.test(rules.clean((swms.notRequiredWhy || {})[item.type]));
     usedAnyway.splice(0, usedAnyway.length, ...usedAnyway.filter((item) => !settled(item)));
     for (const item of usedAnyway) fixes.push(`${item.type} is marked "Not required", but the step "${item.used.step}" uses "${item.used.word.toLowerCase()}". List the product used, with its safety data sheet, or take the step off.`);
     points = Math.max(0, points - (noControls.length ? 2 : 0) - (unchecked.length ? 1 : 0) - (silicaCut || usedAnyway.length ? 2 : 0));

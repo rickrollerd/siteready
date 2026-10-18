@@ -150,7 +150,8 @@ test('a hoist driver\'s own SWMS is not stood down for having only the hoist ste
   assert.equal(draft.kind, 'draft');
   assert.ok(draft.jobSteps.some((step) => step.step === 'Operate the hoist'));
   // Riding the hoist to do other work still is not the work.
-  const ride = prepareDraft(draftBody({ state: 'qld', task: 'Take the tiles up in the builders hoist and lay them on level 3.', fallRisk: 'no', residential: 'no' }));
+  // Tiles are cut, so the silica controls are asked (content14, messy round 13 A run 1).
+  const ride = prepareDraft(draftBody({ state: 'qld', task: 'Take the tiles up in the builders hoist and lay them on level 3.', fallRisk: 'no', residential: 'no', facts: { silicaControls: 'Tiles are cut wet on the tile saw, and fit tested P2 respirators are worn.' } }));
   assert.ok(ride.jobSteps.some((step) => step.step === 'Lay tiles'));
 });
 

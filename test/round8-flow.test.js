@@ -53,7 +53,8 @@ test('cut-short words and -s plurals are fixed, and the task line prints the sam
   assert.equal(fixSpelling('the boss said to kiss the grass').text, 'the boss said to kiss the grass');
   const task = 'Tile 6 bathrms on lvl 3 with ceramic floor tiles.';
   const stood = draftOf({ state: 'tas', task, facts: {}, kinds: [] });
-  const full = draftOf({ state: 'tas', task });
+  // Tiles are cut, so the silica controls are asked (content14, messy round 13 A run 1).
+  const full = draftOf({ state: 'tas', task, facts: { silicaControls: 'Tiles are cut wet on the tile saw, and fit tested P2 respirators are worn.' } });
   assert.equal(stood.kind, 'stand-down');
   assert.equal(full.kind, 'draft', (full.missing || []).join('; '));
   assert.equal(stood.task, full.task);

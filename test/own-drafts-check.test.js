@@ -26,7 +26,8 @@ const STATES = ['qld', 'nsw', 'vic', 'wa', 'sa', 'tas', 'act', 'nt'];
 // Other trades, typed as a user would type them.
 const TYPED = [
   { task: 'Replace an electric hot water system in the laundry of a house.' },
-  { task: 'Tile a bathroom floor and walls in a house.' },
+  // Tiles are cut, so the silica controls are asked (content14, messy round 13 A run 1).
+  { task: 'Tile a bathroom floor and walls in a house.', facts: { silicaControls: 'Tiles are cut wet on the tile saw, and fit tested P2 respirators are worn.' } },
   { task: 'Build a timber deck at the back of a house, with post holes dug by hand.' },
   { task: 'Install a pool fence around an inground pool.' },
   { task: 'Dig a trench 600 mm deep across the front yard to lay a new stormwater pipe.' },
