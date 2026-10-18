@@ -154,13 +154,19 @@
   function ownWorkNaming(rows, step) {
     const words = String(step || '').toLowerCase().replace(STEP_VERBS, ' ').split(/[^a-z]+/).filter((word) => word.length >= 4).map((word) => word.replace(/s$/, ''));
     if (!words.length) return '';
+    // The sentence that also does the step's own work ("Hang timber doors" for "Hang the doors") is the one quoted, before one
+    // that only works on the same thing ("Seal (paint) bottoms of doors before hanging"): messy round 14, A run 4.
+    const verb = (String(step || '').toLowerCase().match(/^[a-z]+/) || [''])[0].replace(/e$/, '');
+    const doing = verb.length >= 3 ? new RegExp(`\\b${verb}(?:e|es|s|ed|ing)?\\b`, 'i') : null;
+    const found = [];
     for (const row of rows || []) {
       for (const sentence of [row.activity, ...(row.quotes || [])].join('. ').split(/(?<=[.;])\s+/)) {
         const lower = sentence.toLowerCase();
-        if (words.every((word) => new RegExp(`\\b${word}`).test(lower)) && !TO_OTHERS.test(sentence) && !/\b(?:excluded|not included|not part of|by the (?:builder|principal|head contractor|client))\b/i.test(sentence)) return sentence.trim();
+        if (words.every((word) => new RegExp(`\\b${word}`).test(lower)) && !TO_OTHERS.test(sentence) && !/\b(?:excluded|not included|not part of|by the (?:builder|principal|head contractor|client))\b/i.test(sentence)) found.push(sentence.trim());
       }
     }
-    return '';
+    const own = doing && found.find((sentence) => doing.test(sentence.replace(/\b(?:before|prior to|after|ready for|until)\s+\w+/gi, ' ')));
+    return own || found[0] || '';
   }
 
   // One SWMS in the project for each package chosen. answers holds the scope review answers by

@@ -2671,13 +2671,15 @@ const ACTIVITIES = [
     steps: [{
       step: 'Move materials into place',
       // Doors and frames only: the door hanging step's own strain hazard, and no sheet lines (messy round 6).
-      hazards: [{ unless: ['unitsOnly', 'doorsOnly'], text: 'Back and shoulder strain carrying sheets, studs and other materials.' }, { only: 'unitsOnly', text: 'Back and shoulder strain carrying cabinets, benchtops and appliances.' }, { only: 'doorsOnly', text: 'Strain handling heavy doors.' }, { unless: ['unitsOnly', 'doorsOnly'], text: 'Wind catches large sheets.' }],
+      // Floor covering rolls only: the floor laying step's own roll lines (messy round 14, A run 2).
+      hazards: [{ unless: ['unitsOnly', 'doorsOnly', 'rollsOnly'], text: 'Back and shoulder strain carrying sheets, studs and other materials.' }, { only: 'unitsOnly', text: 'Back and shoulder strain carrying cabinets, benchtops and appliances.' }, { only: 'doorsOnly', text: 'Strain handling heavy doors.' }, { only: 'rollsOnly', text: 'Strain moving rolls.' }, { unless: ['unitsOnly', 'doorsOnly', 'rollsOnly'], text: 'Wind catches large sheets.' }],
       controls: [
         src('Where there is a materials hoist, move materials between levels with it, not by hand.', QCODE('Hazardous manual tasks', 's 4.1, s 4.4')),
         src('Have materials delivered as close as possible to where they are used.', MODEL('Hazardous manual tasks', 's 4.7')),
-        src('Use trolleys, lift trolleys, panel lifters, and hooks or suction pads for sheets. Keep trolleys maintained.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')),
+        { unless: 'rollsOnly', ...src('Use trolleys, lift trolleys, panel lifters, and hooks or suction pads for sheets. Keep trolleys maintained.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')) },
         src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
-        { unless: ['unitsOnly', 'doorsOnly'], ...src('Handle large sheets in low wind, especially on balconies and at hoist landings.', MODEL('Hazardous manual tasks', 's 4.8')) },
+        { unless: ['unitsOnly', 'doorsOnly', 'rollsOnly'], ...src('Handle large sheets in low wind, especially on balconies and at hoist landings.', MODEL('Hazardous manual tasks', 's 4.8')) },
+        { only: 'rollsOnly', ...src('Move rolls with trolleys or hand trucks, pushing rather than pulling, and order smaller loads or move large rolls mechanically.', `${QCODE('Hazardous manual tasks', 's 4.4')}; ${NSWC('NSW Manual tasks', 's 4.4')}`) },
         'Where a hoist is used, unload only inside the hoist landing gates. Gates stay closed except while the hoist is at the landing.',
         'In a shopping centre or other occupied building, deliveries use the centre\'s loading dock and delivery times, and goods are unloaded in a set area closed off from the public.',
       ],
@@ -4993,7 +4995,8 @@ const ACTIVITIES = [
         'Electrical connections are made by a licensed electrician.',
         src('Refrigeration connections are made only by the holder of a refrigerant handling licence.', ARC('s 1.1.1, s 12.1')),
         'Panels stored at the work area are stacked flat and stable, with bollards and flagging at each corner of the stack so no one walks into the sheet edges.',
-        'Tall wall panels are stood with the bottom end resting on the floor beside their final position while a worker in an EWP beside the wall guides the top into the head track. Panels are not footed by hand.',
+        // Not where the task works from a mobile scaffold or other platform and names no EWP (messy round 14, A run 1).
+        { unless: 'noEwpNamed', text: 'Tall wall panels are stood with the bottom end resting on the floor beside their final position while a worker in an EWP beside the wall guides the top into the head track. Panels are not footed by hand.' },
         'One worker directs each panel lift, a second is ready at the head track to receive it, and everyone checks their fingers are clear of the interlocking joint before it is pushed home.',
       ],
     }],

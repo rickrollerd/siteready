@@ -28,7 +28,7 @@
   // A bracket that names a place, a condition or plant comes off the plain task; one that lists the
   // items of the work ("cast in items (plates, ferrules, conduits)") becomes part of the sentence.
   const PLACE = /\b(levels?|floors?|roofs?|zones?|areas?|stages?|buildings?|blocks?|basements?|ground|lots?|rooms?|stairs?|suspended|slabs?|sites?|wings?|towers?|podiums?|carparks?|grid(?:line)?s?|throughout|all)\b/i;
-  const CONDITION = /\b(if required|as required|where required|as directed|as shown|as set out|hours?|night|weekends?|out of hours|by others|tbc|tbd|to be (?:determined|confirmed)|approved|live|operating|energised|occupied|near|adjacent|within|unless)\b/i;
+  const CONDITION = /\b(if required|as required|where required|as directed|as shown|as set out|hours?|night|weekends?|out of hours|by others|tbc|tbd|to be (?:determined|confirmed)|approved|live|operating|energised|occupied|near|adjacent|within|unless|incidental)\b/i;
   const PLANT = /\b(cranes?|pumps?|ewps?|scissor|boom|forklifts?|telehandlers?|excavators?|trucks?|hoists?|saws?|grinders?|trowels?|vibrators?|lifts?|bobcats?|loaders?|rollers?|generators?|compressors?)\b/i;
   // A project, building or builder named by its own name: "for the Northside Correctional Centre",
   // "at Smith Street Apartments", "for Acme Builders". Plain words ("the site", "the builder") stay.
@@ -37,6 +37,9 @@
   function plainLine(row) {
     let text = String(row.activity || '').replace(/\s+/g, ' ').trim();
     text = text.replace(NAMED, '');
+    // One word in brackets straight after the first verb says how it is done ("Seal (paint) bottoms of doors"): it reads
+    // "Seal or paint", not "Seal: paint bottoms of doors" (messy round 14, A run 4).
+    text = text.replace(/^([A-Za-z]+)\s*\(([a-z]+)\)\s+/, (whole, verb, other) => `${verb} or ${other} `);
     text = text.replace(/\s*\(([^)]*)\)/g, (whole, inside) => {
       const words = inside.trim();
       if (!words || PLACE.test(words) || CONDITION.test(words) || PLANT.test(words)) return '';
@@ -137,9 +140,16 @@
   }
 
   // The plant the scope names for the work, for the plant list to check.
+  // A note in brackets on a plant item ("Drill (not named)", "Heat welding equipment (heat weld named)") is not plant, and
+  // nor is a product the row names with it ("epoxy adhesive", "Adhesive (direct stick)"): messy round 14, A runs 2 and 4, the
+  // plant chips read "Heat welding equipment, heat weld named, epoxy adhesive, Adhesive, direct stick" and "Drill, not named".
+  const NOT_PLANT = /\b(?:adhesives?|glues?|epox\w*|sealants?|silicone|mastics?|paints?|primers?|membranes?|grouts?|mortars?|compounds?|chemicals?|products?|materials?|consumables?|fixings?|levell?ing compounds?)\b/i;
   function scopePlant(rows) {
     const out = [];
-    for (const row of rows || []) for (const part of kept(row.plant).split(/\s*[;,]\s*/).filter(Boolean)) if (!out.some((item) => item.toLowerCase() === part.toLowerCase())) out.push(part);
+    for (const row of rows || []) {
+      const parts = String(row.plant || '').replace(/\s*\([^)]*\)/g, ' ').split(/\s*[;,]\s*/).map((part) => part.replace(/\s+/g, ' ').replace(/[\s.]+$/, '').trim()).filter(Boolean);
+      for (const part of parts) if (!OUT.test(part) && !NOT_PLANT.test(part) && !/\b(?:not |un)named\b/i.test(part) && !out.some((item) => item.toLowerCase() === part.toLowerCase())) out.push(part);
+    }
     return out;
   }
 

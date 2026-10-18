@@ -27,7 +27,9 @@
     ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i, 'Waterproofing product'],
     ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack|chem-?set|chemical anchors?)\b/i, 'Epoxy or resin'],
     // Fibre cement sheet is not a cement product (messy round 11, run 6: cement asked for CFC cladding).
-    ['Cement, concrete, grout and mortar', /\b((?<!solvent |pvc |fibre[- ]|compressed fibre[- ])cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i, 'Cement product'],
+    // Posts concreted in, or set in bagged concrete, use wet concrete too (messy round 14, A run 3: "stand steel H posts n
+    // concrete them in" asked no cement).
+    ['Cement, concrete, grout and mortar', /\b((?<!solvent |pvc |fibre[- ]|compressed fibre[- ])cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*|concrete(?:d)? (?:them|it|each|the posts?|posts?) in|concreted in|(?:set|stood|bedded|fixed) in (?:wet |bagged )?concrete|bag(?:s|ged)? (?:of )?concrete|concrete (?:from|in) bags|postcrete|premix(?:ed)? concrete)\b/i, 'Cement product'],
     // Plasterboard that is painted over, or swept up, is not plaster work: plasterboard brings the type
     // only where it is fixed, set or jointed (messy round 4).
     ['Plaster, jointing and setting compounds', /\b(plaster(?!board)\w*|jointing|setting compounds?|set(?:ting)? and sand\w*|(?:fix|hang|install|set|stop|joint|sheet)\w* [^.\n]{0,30}\bplasterboard|plasterboard (?:fix|hang|install|lining|setting|stopping|jointing)\w*)\b/i, 'Plaster or setting compound'],
@@ -86,6 +88,8 @@
   const PREFER = {
     'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b)/i,
     'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
+    // The refrigerant is charged in the charging step, not the pipe run that names it (messy round 14, A run 1).
+    'Refrigerants': /^(?:Evacuate and charge|Charge|Recover)\b/i,
   };
   const STEP_HINT = { 'Fuels (diesel, petrol)': /\b(plant|machines?|generators?|trucks?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
   // The job step that uses a product of this type: the first whose name names the type, else the
@@ -337,8 +341,13 @@
     const steps = ((draft && draft.jobSteps) || []).filter((step) => step && !GENERAL.has(step.step));
     const own = (step) => step.own || OWN_STEP.test(String(step.step || ''));
     const lines = (step) => (step.controls || []).filter((line) => typeof line === 'string' && !(step.substanceLines || []).includes(line));
+    // A hazard of SiteWrite's own step whose cutting lines all say where or if it is done ("Where posts are set in paving or
+    // concrete, core or cut the hole ...") is a condition of that work, not this job cutting (messy round 14, B run 8: silica
+    // "Not required" refused beside post holes augered in sand).
+    const cutLines = (step) => lines(step).filter((line) => /\b(?:silica|cut\w*|saw\w*|cor(?:e|es|ing)|drill\w*|grind\w*|chas\w*)\b/i.test(withoutSource(line)));
+    const onlyIf = (step) => !own(step) && cutLines(step).length > 0 && cutLines(step).every((line) => CONDITION.test(withoutSource(line)));
     const found = steps.find((step) => CUTS_CONCRETE.test(String(step.step || '').replace(OWN_STEP, '')))
-      || steps.find((step) => (step.hazards || []).some((line) => typeof line === 'string' && madeHere(line))
+      || steps.find((step) => ((step.hazards || []).some((line) => typeof line === 'string' && madeHere(line)) && !onlyIf(step))
         || lines(step).some((line) => (own(step) ? madeHere(line) : controlHere(line))));
     return found ? found.step : '';
   }
@@ -482,7 +491,9 @@
     if (sawPlant) return `${SHORT.get(type)}: your plant list has "${sawPlant}", which cuts, cores or grinds concrete, masonry or stone, so it cannot be "Not required". Add what is cut as the product, for example the concrete or the pavement, with its safety data sheet, or take that plant off if it is not used.`;
     // A step whose own hazard is the silica dust it makes ("Silica dust from ballast": messy round 9, run 5).
     const dust = type === SILICA ? (draft ? usedByStep(type, draft) : known && !known.own ? known : null) : null;
-    if (dust) return `${SHORT.get(type)}: the job step "${dust.step}" makes silica dust, so it cannot be "Not required". Add the material that gives off the dust, for example the ballast or the concrete, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
+    // A step whose own silica lines say where or if it cuts ("Where posts are set in paving or concrete") is settled by a reason
+    // that says why it does not here (messy round 14, B run 8: holes augered in sand).
+    if (dust && !(dust.conditional && clean(reason) && !['missing', 'weak'].includes(reasonNeed(reason)))) return `${SHORT.get(type)}: the job step "${dust.step}" makes silica dust, so it cannot be "Not required". Add the material that gives off the dust, for example the ballast or the concrete, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`;
     // The user's own task names the work as the crew's ("Make roof penetrations, waterproof them"): a reason that says
     // another trade does it does not settle it (messy round 11, run 2: "the roofer does it").
     const ownSaid = OTHERS_REASON.test(clean(reason)) ? ownTaskUse(type, words) : '';
@@ -495,6 +506,17 @@
     const need = reasonNeed(reason);
     if (need === 'missing') return `${SHORT.get(type)}: ${asked.said}. Add the product you use, or give a short reason it is not required, ${reasonExample(type)}.`;
     if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${reasonExample(type)}, or add the product you use.`;
+    // A reason that names one machine ("we fill the excavator at the yard") does not settle the other fuelled plant in the plant
+    // list (messy round 14, A run 3: the plate compactor runs on fuel too). An auger on the excavator or skid steer is its
+    // attachment, not plant of its own.
+    if (type === FUEL && draft && /\b(?:we|our|us|ourselves)\b/i.test(clean(reason))) {
+      const said = (clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []).map((word) => word.toLowerCase().replace(/s$/, ''));
+      const listed = [...new Set([...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || '')).filter((name) => FUELLED_PLANT.test(name) && !/\b(?:electric|battery|hand)\b/i.test(name)))];
+      const carrier = listed.some((name) => /\b(?:excavators?|skid steers?|posi-?tracks?|bobcats?)\b/i.test(name));
+      // A crane, truck or forklift is often another firm's plant: only the crew's own small and earthmoving plant is named.
+      const others = listed.filter((name) => !(carrier && /\bauger\b/i.test(name)) && !/\b(?:cranes?|trucks?|forklifts?|telehandlers?)\b/i.test(name) && !said.some((word) => name.toLowerCase().includes(word)));
+      if (said.length && said.every((word) => !/^(?:petrol|diesel|plant)$/.test(word)) && others.length) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" names the ${said[0]}, but the plant list also has ${others.slice(0, 3).join(' and ')}, which ${others.length > 1 ? 'run' : 'runs'} on diesel or petrol. Say how that plant is fuelled too, for example "all our plant is filled at the yard", or add the fuel you use.`;
+    }
     return '';
   }
 
@@ -527,6 +549,10 @@
   // grout or adhesive with no grouting or adhesive step goes to the step that lays the tiles, not the cutting or screed
   // (A run 1).
   const PRODUCT_STEPS = [
+    // Messy round 14. Old concrete or footings dug out are worked in the removal step (B run 8: "old concrete footings" went to
+    // "Dig post holes" by "post"); a fire rated sealant seals the frames and penetrations, not the drilling (A run 4).
+    [/\b(?:old|existing|removed|demolished)\b[^.]{0,30}\b(?:concrete|footings?|slabs?|pavers?|masonry|brick\w*|blocks?)\b/i, [/^(?:Take down|Remove|Break out|Demolish|Strip|Cut out)\b/i]],
+    [/\bfire[- ]?(?:rated|resistant|stop\w*)\b[^.]{0,20}\b(?:sealants?|mastics?|silicone|caulk\w*|foam)\b|\bintumescent\b/i, [/\bfire ?stop\w*|\bpenetrations?\b/i, /^(?:Stand the door frames|Install doors|Hang the doors|Install windows|Install the shopfront frames)$/i, /\bseal\w*/i]],
     [/\bbearings?\b|\bnon[- ]?shrink\b|\bbedding grout\b/i, [/\bbearings?\b/i, /^Grout the base$/i, /\bgrout\w*\b/i]],
     [/\bgrout\b/i, [/\bgrout\w*\b/i, /^Lay tiles$/i, /^Fix the wall tiles$/i, /^Lay tiles near open edges$/i]],
     [/\b(?:tile )?adhesives?\b|\bglue\b/i, [/\badhesive\b/i, /^Lay tiles$/i, /^Fix the wall tiles$/i, /^Lay tiles near open edges$/i]],
@@ -586,7 +612,9 @@
     // the user's own robotic pool cleaner step).
     const shared = (name) => words.filter((word) => !PLACE_PRODUCT_WORDS.has(word) && new RegExp(`\\b${word}`, 'i').test(String(name || '').replace(OWN_STEP, ''))).length;
     const typed = matchStep(row && row.type, steps);
-    const mine = list.filter((item) => item && (item.own || OWN_STEP.test(item.step || ''))).map((item) => ({ step: item.step, n: shared(item.step) })).filter((item) => item.n > shared(typed)).sort((a, b) => b.n - a.n)[0];
+    // An own step that only protects or covers finished work does not use the products (A run 4: the MDF dust and the masonry
+    // drilled for anchors went to "Protect finished floors, walls and frames").
+    const mine = list.filter((item) => item && (item.own || OWN_STEP.test(item.step || '')) && !/^\s*(?:protect|cover|mask)\w*\b/i.test(item.step || '')).map((item) => ({ step: item.step, n: shared(item.step) })).filter((item) => item.n > shared(typed)).sort((a, b) => b.n - a.n)[0];
     return mine ? mine.step : typed;
   }
 

@@ -460,7 +460,10 @@ function workTitle(item, pack) {
   if (!part && !bare) return '';
   const area = part ? part[1].trim() : '';
   const whole = /^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i.test(area);
-  const areaName = Boolean(part) && !/\b(?:finish(?:es|ing)?|coverings?)\b/i.test(area) && (whole || AREA.test(area) || /\b(?:interiors?|custodial|precincts?|stages?|towers?|podiums?)\b/i.test(area));
+  // Rooms that are the work, not where it is ("Trade installation: cool rooms", messy round 14, A run 1: the SWMS title used the
+  // package name).
+  const workRoom = /^(?:(?:walk-in )?(?:cool ?rooms?|coolrooms?|freezer rooms?|cold ?rooms?|clean ?rooms?))$/i.test(area);
+  const areaName = Boolean(part) && !workRoom && !/\b(?:finish(?:es|ing)?|coverings?)\b/i.test(area) && (whole || AREA.test(area) || /\b(?:interiors?|custodial|precincts?|stages?|towers?|podiums?)\b/i.test(area));
   // A work, not an area ("Trade installation: structural steel"): the work's own name.
   if (part && !areaName) {
     const work = area.replace(/^./, (letter) => letter.toUpperCase());

@@ -220,6 +220,16 @@ function typedWords(places, names) {
   return new Set((all.match(/[A-Za-z]{3,}/g) || []).map((word) => word.toLowerCase()));
 }
 
+// A slip for one of the trade words SiteWrite reads work by (retaining, scaffold, excavator, formwork, plasterboard and the like):
+// not an English word, and corrected to one of them.
+const TRADE_SET = new Set(EXTRA);
+function tradeSlip(word) {
+  const lower = word.toLowerCase();
+  if (englishWords().has(lower) || vocabularyWords().has(lower)) return false;
+  const fixed = correction(word);
+  return Boolean(fixed) && TRADE_SET.has(fixed.toLowerCase());
+}
+
 // { text, fixes: [{ from, to }] }. places: the job address, whose place names are spelt as it spells them.
 // names: the other names the user typed (a string or a list), whose words are left as typed.
 function fixSpelling(text, { places = '', names = [] } = {}) {
@@ -227,7 +237,9 @@ function fixSpelling(text, { places = '', names = [] } = {}) {
   const named = placeWords(places);
   const kept = typedWords(places, names);
   const out = String(text || '').replace(/[A-Za-z]{4,}|\b(?:wals?)\b/g, (word, at, whole) => {
-    if (kept.has(word.toLowerCase())) return word;
+    // A name's word is kept as typed, unless it is a slip for a trade word, typed in lower case in the task too (messy
+    // round 14, A run 3: the company "north qld retaning walls" kept "retaning" in the task, which then found no wall step).
+    if (kept.has(word.toLowerCase()) && !(word === word.toLowerCase() && tradeSlip(word))) return word;
     const place = placeCorrection(word, named);
     if (place) { fixes.push({ from: word, to: place }); return place; }
     // Words in capitals are names or codes, and a capital inside a sentence is a name or brand.
@@ -248,4 +260,18 @@ function fixSpelling(text, { places = '', names = [] } = {}) {
   return { text: out, fixes };
 }
 
-module.exports = { fixSpelling, distance };
+// The words of a task SiteWrite could not read: not English, not its own vocabulary, not a name the user typed, and with no
+// spelling fix (messy round 14, A run 3: a stand-down for want of job steps said nothing of the word it could not read).
+function unreadWords(text, { places = '', names = [] } = {}) {
+  const kept = typedWords(places, names);
+  const out = [];
+  for (const word of String(text || '').match(/\b[a-z][a-z]{4,}\b/g) || []) {
+    const lower = word.toLowerCase();
+    if (kept.has(lower) || englishWords().has(lower) || vocabularyWords().has(lower) || correction(word)) continue;
+    if (!englishWords().size || compound(lower) || [lower.replace(/s$/, ''), lower.replace(/es$/, ''), lower.replace(/ed$/, ''), lower.replace(/ing$/, '')].some((base) => englishWords().has(base) || vocabularyWords().has(base))) continue;
+    if (!out.includes(word)) out.push(word);
+  }
+  return out;
+}
+
+module.exports = { fixSpelling, distance, unreadWords };

@@ -414,6 +414,8 @@
     for (const row of own) if (!out.some((other) => other.id === row.id)) out.push(row);
     return out;
   }
+  // The task changed on this page from the words the scope reading gave it.
+  const reworded = (item) => item.goTask !== undefined && String(item.goTask).replace(/\s+/g, ' ').trim() !== String(item.task || '').replace(/\s+/g, ' ').trim();
   function payloadFor(index) {
     const item = project.items[index];
     const designs = designsFor(index);
@@ -429,7 +431,11 @@
       task: (item.goTask !== undefined ? item.goTask : item.task) || '',
       scopeTask: item.scopeTask || undefined,
       trade: item.trade || '',
-      kinds: item.kinds || undefined,
+      // A task reworded on this page starts from the steps its new words find, keeping the scope reading's steps those words
+      // still name (messy round 14, A run 1: the reworded cool room task named a mobile scaffold, and "Use mobile scaffolds"
+      // stayed unticked).
+      kinds: (reworded(item) ? undefined : item.kinds) || undefined,
+      priorKinds: reworded(item) && Array.isArray(item.kinds) && item.kinds.length ? [...item.kinds] : undefined,
       leaveOut: item.leaveOut || undefined,
       unmatched: item.unmatched || undefined,
       fallRisk: item.fallRisk || item.goFall || '',

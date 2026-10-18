@@ -238,7 +238,7 @@ test('"n/a" for Live services beside a step whose hazard is a live supply is ref
   const named = { ...base, site: { ...base.site, liveServices: 'Live 400 V supply to the lift controller in the machine room.' } };
   assert.ok(!downloadGaps(draftBody(named), prepareDraft(draftBody(named))).some((item) => item.id === 'site.liveServices'));
   // A shock from the crew's own leads is not a live service at the work: "None" stays an answer.
-  const tiling = answered({ state: 'act', task: RUN7, fallRisk: 'no', crane: 'none', ...ANSWERED });
+  const tiling = answered({ state: 'act', task: 'Cut and lay porcelain floor tiles in the bathrooms with a wet saw, and grout them.', fallRisk: 'no', crane: 'none', ...ANSWERED });
   assert.ok(prepareDraft(draftBody(tiling)).jobSteps.flatMap((step) => step.hazards).some((line) => /Electric shock from tools used with water/.test(line)));
   assert.ok(!downloadGaps(draftBody(tiling), prepareDraft(draftBody(tiling))).some((item) => item.id === 'site.liveServices'));
 });
