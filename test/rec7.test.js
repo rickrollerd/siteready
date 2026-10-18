@@ -50,8 +50,10 @@ test('silica cannot be "Not required" while SiteWrite\'s own step cuts or drills
     assert.equal(silica.need, `Product with crystalline silica: the job step "${step}" cuts, drills or grinds concrete, masonry or stone, so this work makes silica dust and it cannot be "Not required". Add what is cut as the product, for example the concrete slab or the blockwork, with its safety data sheet. If this job does not do that, take the step off, or change the lines that say it does.`);
   }
   // Without such a step a short reason still settles it (D292 item 3), and other types are as before.
-  assert.equal(rules.notUsedNeed(rules.SILICA, 'Supplied and applied by others', 'grind the silica tiles', '', '', ''), '');
-  assert.equal(rules.notUsedNeed('Fuels (diesel, petrol)', 'Supplied and applied by others', 'petrol saw', '', '', 'Saw cut concrete'), '');
+  assert.equal(rules.notUsedNeed(rules.SILICA, 'Tiles come cut to size, no grinding here', 'grind the silica tiles', '', '', ''), '');
+  // A reason that gives the crew's own named work to others does not (messy round 11, run 2: "the roofer does it").
+  assert.match(rules.notUsedNeed(rules.SILICA, 'Supplied and applied by others', 'grind the silica tiles', '', '', ''), /says another trade does it, but your task names "silica"/);
+  assert.equal(rules.notUsedNeed('Fuels (diesel, petrol)', 'Saw is refuelled off site, no fuel kept here', 'petrol saw', '', '', 'Saw cut concrete'), '');
   // Steps that cut, drill, core, grind or break out concrete, masonry or stone count.
   const cut = (name, extra = {}) => rules.cutStep({ jobSteps: [{ step: name, ...extra }] });
   for (const name of ['Drill or cut concrete, masonry or stone', 'Prepare and grind floors', 'Drill fixing holes in the slab edge', 'Break out damaged concrete', 'Cut blocks and bricks']) assert.equal(cut(name), name);

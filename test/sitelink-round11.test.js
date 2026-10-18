@@ -50,8 +50,10 @@ test('no change: high risk work a SWMS finds in its own task, steps or plant nev
     ['Install three below ground temporary sewer pump stations. Install temporary sanitary plumbing and drainage.', {}],
     ['Install seismic restraints and clips. Install risers and pipework in the services riser.', {}],
   ]) {
-    const shared = prepareDraft(draftBody(base(task, { ...own, siteShared: true })));
-    const none = prepareDraft(draftBody(base(task, { ...own, site: {}, siteShared: true })));
+    // Installing a pump station now asks whether it is a confined space (content11, SiteLink blocker 4): answered.
+    const facts = { spaceAssessment: 'notConfined' };
+    const shared = prepareDraft(draftBody(base(task, { ...own, facts, siteShared: true })));
+    const none = prepareDraft(draftBody(base(task, { ...own, facts, site: {}, siteShared: true })));
     assert.equal(shared.kind, 'draft', task);
     assert.deepEqual(sources(shared).filter((where) => /answer$/.test(where)), [], `${task}: ${JSON.stringify(shared.highRiskFrom)}`);
     // The answers every SWMS shares bring nothing: the same high risk work with them as without them.
@@ -59,7 +61,7 @@ test('no change: high risk work a SWMS finds in its own task, steps or plant nev
     assert.deepEqual((shared.plant || []).map((item) => item.item), (none.plant || []).map((item) => item.item), task);
   }
   // A pump station's wet well is the task's own dig, said so.
-  const pump = prepareDraft(draftBody(base('Install three below ground temporary sewer pump stations.', { siteShared: true })));
+  const pump = prepareDraft(draftBody(base('Install three below ground temporary sewer pump stations.', { facts: { spaceAssessment: 'notConfined' }, siteShared: true })));
   const trench = pump.highRisk.find((label) => /trench/.test(label));
   assert.ok(trench, JSON.stringify(pump.highRisk));
   assert.equal(pump.highRiskFrom[trench], 'the task');

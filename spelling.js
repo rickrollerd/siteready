@@ -113,7 +113,9 @@ const KNOWN = { cieling: 'ceiling', cielings: 'ceilings', guage: 'gauge', sepera
   bathrm: 'bathroom', bathrms: 'bathrooms', nite: 'night', nites: 'nights',
   // Short words below the five letters the closest-word search looks at (messy round 10: "besser blok" and "3m retaning wal"
   // stayed in the task line). "wal" only typed in lower case: "Wal" is a name.
-  blok: 'block', bloks: 'blocks', blokwork: 'blockwork', blokwall: 'blockwall', wal: 'wall', wals: 'walls' };
+  blok: 'block', bloks: 'blocks', blokwork: 'blockwork', blokwall: 'blockwall', wal: 'wall', wals: 'walls',
+  // Four-letter slips for a building part (messy round 11, run 7: "the 2 storey brick anex" stayed in the task line).
+  anex: 'annex', anexe: 'annexe', anexes: 'annexes' };
 const LOWER_ONLY = new Set(['wal', 'wals']);
 
 function correction(word) {

@@ -121,7 +121,8 @@ test('the sign-on question pool of an electrical draft is the same with or witho
       const asked = questionsFor({ ...input, facts });
       const open = (asked.required || []).filter((item) => !facts[item.id]);
       if (!open.length) break;
-      for (const item of open) facts[item.id] = item.id === 'liveElectrical' ? 'no' : item.choices ? item.choices[0].value : (answersFor(item.id, asked.task)[0] || {}).text || 'As set out in the site plan.';
+      // Energised testing keeps the energised step's lines, which carry the references (content11: "None" leaves them out).
+      for (const item of open) facts[item.id] = item.id === 'liveElectrical' ? 'no' : item.id === 'energisedWork' ? 'testing' : item.choices ? item.choices[0].value : (answersFor(item.id, asked.task)[0] || {}).text || 'As set out in the site plan.';
     }
     return prepareDraft({ ...input, facts });
   };

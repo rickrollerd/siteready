@@ -374,9 +374,10 @@ test('cable tray and the cabling laid on it are separate steps, and cabling come
   assert.ok(pulled.includes('Pull cables and handle cable drums') && !pulled.includes('Install cabling'));
 });
 
-test('electrical rough-in and fit-off are separate steps, with the circuit isolated first', () => {
+test('electrical rough-in and fit-off are separate steps, with the circuit isolated for the connection', () => {
   const both = steps(draft('Rough-in and fit-off the electrical installation in the apartments.', 'electrical'));
-  assert.ok(both.indexOf('Isolate and prove de-energised') < both.indexOf('Rough-in'));
+  // New work is isolated where it is connected and tested, after the installation (messy round 11, runs 2 and 3).
+  assert.ok(both.indexOf('Fit off') < both.indexOf('Isolate and prove de-energised'));
   assert.ok(both.indexOf('Rough-in') < both.indexOf('Fit off'));
   const roughIn = steps(draft('Rough-in the electrical for the new house.', 'electrical'));
   assert.ok(roughIn.includes('Rough-in') && !roughIn.includes('Fit off'));

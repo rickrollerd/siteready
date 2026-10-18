@@ -193,7 +193,9 @@ function km(a, b) {
 
 // A place that reads as a hospital that could take an injured worker. Clinics, health
 // centres, day surgeries, rehabilitation, mental health, vets and the like are left out.
-const HOSPITAL_NAME = /\b(hospitals?|health service|health campus|multi-?purpose (?:service|centre|health)|MPS)\b/i;
+// Some public hospitals are named "Medical Centre" (messy round 11, run 5: Flinders Medical Centre, 2 km from Clovelly
+// Park, was left out).
+const HOSPITAL_NAME = /\b(hospitals?|health service|health campus|multi-?purpose (?:service|centre|health)|MPS|(?:flinders|monash) medical centre)\b/i;
 const NOT_EMERGENCY = /\b(day (?:hospital|surgery|procedure)|rehab\w*|mental health|psychiatr\w*|veterinar\w*|vets?|animals?|pets?|equine|dental|dentists?|skin|hand unit|radiology|imaging|pathology|eye and ear|wellness|cancer|house|cottage|fertility|sleep|cosmetic|aesthetic\w*|hospice|palliative|aged care|nursing home|pharmacy|chemist|car ?park|parking|caf[eé]|kiosk|auxiliary|foundation|chapel|lodge|accommodation|school|clinic)\b/i;
 // Google's own type must also say hospital: a clinic that calls itself a "medical hospital" is left out.
 // The nearest public emergency department matters most: hospitals Google returns for an
@@ -209,9 +211,16 @@ const EMERGENCY_NAME = /\bemergency (?:room|department|dept)\b/i;
 // Private hospitals often have no "private" in the name: the private operators' names count too (messy round 10, run 6:
 // Calvary's Lenah Valley hospital, with no emergency department, came first in Hobart). Calvary's public hospitals
 // (Calvary Mater, Calvary Public) are not private.
-const PRIVATE_NAME = /\b(private|calvary(?! (?:mater|public))|st john of god|ramsay|healthscope|epworth|hollywood|pindara|john flynn|greenslopes|cabrini|warringal|knox private|mater private|st andrew'?s war memorial|north west private|hobart private|st helen'?s|mayo private)\b/i;
+// Adelaide's private hospitals with no "private" in the name (messy round 11, run 5: four came before the public emergency
+// departments).
+const PRIVATE_NAME = /\b(private|calvary(?! (?:mater|public))|st john of god|ramsay|healthscope|epworth|hollywood|pindara|john flynn|greenslopes|cabrini|warringal|knox private|mater private|st andrew'?s(?: war memorial)?|north west private|hobart private|st helen'?s|mayo private|blackwood|ashford|burnside|wakefield|allamanda)\b/i;
 const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || (Boolean(item.ed) && !PRIVATE_NAME.test(item.name));
-const hospitalRank = (item) => (hasEmergency(item) ? 0 : PRIVATE_NAME.test(item.name) ? 3 : 2);
+// A public emergency department first, then a private one (a private emergency room charges, and was listed first on the
+// Gold Coast: messy round 11, run 3), then other public hospitals, then private ones. A hospital in another state comes
+// after those in the job's state (run 3: a New South Wales hospital offered for a Queensland site).
+const hospitalRank = (item) => (item.otherState ? 4 : 0) + (hasEmergency(item) ? (PRIVATE_NAME.test(item.name) ? 1 : 0) : PRIVATE_NAME.test(item.name) ? 3 : 2);
+const STATE_IN = /\b(NSW|QLD|VIC|SA|WA|TAS|NT|ACT)\b(?:\s+\d{4})?(?:,\s*Australia)?\s*$/i;
+const stateIn = (address) => ((STATE_IN.exec(String(address || '')) || [])[1] || '').toUpperCase();
 // General practices and medical centres before other practices.
 const clinicRank = (item) => (/\b(medical (?:centre|center|clinic|practice|group)|family (?:medical|practice|doctors)|general practice|GP|doctors)\b/i.test(item.name) ? 0 : 1);
 // A listing named as an emergency department is kept whatever Google types it (often "service").
@@ -247,8 +256,9 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     }
   };
   try {
-    const found = await post(SEARCH_TEXT, { textQuery: address, regionCode: 'au', languageCode: 'en-AU', pageSize: 1 }, 'places.location');
+    const found = await post(SEARCH_TEXT, { textQuery: address, regionCode: 'au', languageCode: 'en-AU', pageSize: 1 }, 'places.location,places.formattedAddress');
     const centre = found.places && found.places[0] && found.places[0].location;
+    const jobState = stateIn((found.places && found.places[0] && found.places[0].formattedAddress) || '') || stateIn(address);
     if (!centre) return { enabled: true, hospitals: [], clinics: [], error: 'The job address could not be found on the map. Type the hospital.' };
     const fields = 'places.id,places.displayName,places.formattedAddress,places.location,places.primaryType';
     const near = (types, count) => post(SEARCH_NEARBY, {
@@ -267,17 +277,21 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     const safe = (label, promise) => promise.catch((error) => { errors.push(`${label}: ${error.message}`); return { places: [] }; });
     const bias = { circle: { center: centre, radius: 50000 } };
     const text = (textQuery, extra) => post(SEARCH_TEXT, { textQuery, regionCode: 'au', languageCode: 'en-AU', pageSize: 20, locationBias: bias, ...extra }, fields);
-    const [nearHospitals, typedHospitals, edSearch, edNearest, clinics, clinicSearch] = await Promise.all([
+    // In a city with many private and day hospitals, the nearest public emergency department can fall outside the 20
+    // nearest of every search (messy round 11, run 3: Gold Coast University Hospital was not offered), so the nearest
+    // places Google types as hospitals that answer "public hospital emergency department" are searched too.
+    const [nearHospitals, typedHospitals, edSearch, edNearest, clinics, clinicSearch, publicNearest] = await Promise.all([
       safe('nearby hospitals', near(['hospital'], 20)),
       safe('typed hospitals', text('hospital', { includedType: 'hospital', strictTypeFiltering: true, rankPreference: 'DISTANCE' })),
       safe('emergency departments', text('public hospital emergency department', { pageSize: 10 })),
       safe('nearest emergency departments', text('hospital emergency department', { rankPreference: 'DISTANCE' })),
       safe('nearby clinics', near(['medical_clinic', 'medical_center', 'doctor'], 20)),
       safe('medical centres', text('medical centre general practice', { rankPreference: 'DISTANCE' })),
+      safe('nearest public emergency departments', text('public hospital emergency department', { includedType: 'hospital', strictTypeFiltering: true, rankPreference: 'DISTANCE' })),
     ]);
     const list = (data, fallbackType = '') => (data.places || [])
       .filter((place) => place.displayName && place.displayName.text && place.location)
-      .map((place) => ({ id: place.id || '', name: place.displayName.text, address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed' }));
+      .map((place) => ({ id: place.id || '', name: place.displayName.text, address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed', otherState: Boolean(jobState) && Boolean(stateIn(place.formattedAddress)) && stateIn(place.formattedAddress) !== jobState }));
     // Each place once: by Google's id, then by name, then (for practices) by the first two words of the name.
     // Best first (rank, then distance), then each place once: by Google's id, by name without
     // "emergency room", and by the first two words of the name, so a hospital and its emergency
@@ -297,15 +311,15 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
           return true;
         })
         .slice(0, count)
-        .map(({ type, id, ed: _ed, ...item }) => item);
+        .map(({ type, id, ed: _ed, otherState: _other, ...item }) => item);
     };
-    const hospitalPool = [...list(nearHospitals, 'hospital'), ...list(typedHospitals, 'hospital'), ...list(edSearch, 'ed'), ...list(edNearest, 'ed')];
+    const hospitalPool = [...list(nearHospitals, 'hospital'), ...list(typedHospitals, 'hospital'), ...list(edSearch, 'ed'), ...list(edNearest, 'ed'), ...list(publicNearest, 'ed')];
     const clinicPool = [...list(clinics), ...list(clinicSearch)];
     if (raw) {
       const show = (items, keep) => items.map((item) => ({ ...item, kept: keep(item.name, item.type === 'ed' ? 'hospital' : item.type) })).sort((a, b) => a.km - b.km);
       return { centre, errors, hospitals: show(hospitalPool, isHospital), clinics: show(clinicPool, isGeneralClinic) };
     }
-    if (errors.length === 6) throw new Error(errors.join('; '));
+    if (errors.length === 7) throw new Error(errors.join('; '));
     // At a remote site the next hospitals can be hundreds of kilometres away: past 150 km (or
     // twice the first one's distance) they are left out, but the first is always kept.
     const ranked = nearest(hospitalPool, isHospital, 5, hospitalRank);

@@ -79,7 +79,8 @@ const HELP = {
   },
   safetyDataSheet: {
     need: 'Name the product and say where its safety data sheet is kept.',
-    example: 'Curing compound CC-200; its safety data sheet is in the site folder and the ute.',
+    // Not one trade's product (messy round 11, run 5: a curing compound example for a plumber).
+    example: 'Each product by the name on its label, such as the sealant and primer used; their safety data sheets are in the site folder and the ute.',
   },
   harnessSystem: {
     need: 'Give the harness and lanyard used, the anchor points and who rated them, and who trained the users.',

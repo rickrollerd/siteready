@@ -102,6 +102,11 @@ const BY_SENTENCE = {
   goggles: (sentence) => handlesSubstance(sentence) || wetConcrete(sentence) || slurryMade(sentence) || /\bgoggles\b|\bcorrosive\w*|\bliquid nitrogen\b|\bcryogenic\b/i.test(sentence),
   gumboots: (sentence) => wetConcrete(sentence) || slurryMade(sentence) || (/\bwet concrete\b/i.test(sentence) && HANDLES.test(sentence)) || WET_GROUND.test(sentence) || /\bgumboots\b/i.test(sentence),
 };
+// An arc-rated face shield and flame-resistant clothing are for work on or near energised parts: switching, live testing,
+// terminating at a live board, arc flash (messy round 11, run 2: printed in 17 steps, from scaffolds and EWPs to the
+// earth stakes, as any test, cable or isolation word counted). Not a part proved de-energised.
+const ENERGISED = /\barc[- ]?flash\w*|\barc[- ]rated\b|\bincident energy\b|(?<!de-)\benergi[sz]ed (?:parts?|equipment|work|testing|switchboards?|boards?|conductors?|circuits?|installations?|electrical)\b|\b(?:on or near|near|on) (?:energi[sz]ed|live) |\blive (?:parts?|work|working|testing|conductors?|switchboards?|boards?|low voltage|electrical|terminals?|busbars?)\b|\b(?:switching|fault[- ]finding) (?:is|are) done\b|\bwhile (?:it is )?energi[sz]ed\b/i;
+BY_SENTENCE.arcRated = (sentence) => ENERGISED.test(sentence) || /\barc[- ]rated\b/i.test(sentence);
 BY_SENTENCE.halfFace = (sentence) => BY_SENTENCE.p2(sentence) || (VAPOUR.test(sentence) && MAKES_DUST.test(sentence)) || WEARS(String.raw`half[- ]face|respirators? with (?:\w+ )?filters`).test(sentence);
 // A step's sentences, from its name, hazards and controls, with the ones that say the work is not done left out.
 const doneSentences = (step) => stepLines(step).flatMap(sentencesOf).filter((sentence) => !NOT_DONE.test(sentence));
