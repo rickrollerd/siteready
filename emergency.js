@@ -122,6 +122,20 @@ function fallAwayFromPlatform(draft = {}) {
   return (draft.jobSteps || []).some((step) => !EWP_STEP.test(String(step.step || '')) && ['Before starting', 'Finish and clean up'].indexOf(step.step) < 0
     && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && PERSON_FALLS.test(String(line).trim()) && !PLATFORM_LINE.test(String(line)) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b|\bobjects?\b|\btools?\b/i.test(String(line))));
 }
+// A harness used on this SWMS: ticked in the PPE, or named in a step's controls as what the crew wears or clips on
+// to ("Where harnesses are used, ..." names it only as a condition).
+const HARNESS = /\b(?:harness\w*|fall arrest|lanyards?|anchor points?|static lines?)\b/i;
+function harnessUsed(draft = {}) {
+  const ticked = (draft.ppe || []).some((group) => (group.items || []).some((item) => item && item.id === 'harness' && item.ticked));
+  return ticked || (draft.jobSteps || []).some((step) => (step.controls || []).some((line) => HARNESS.test(String(line)) && !/^\s*(?:where|if|when|unless)\b/i.test(String(line)) && !/\bwhere (?:a )?harness\w* (?:is|are) used\b/i.test(String(line))));
+}
+// A person's fall in this SWMS that is not into the trench or hole, whose own rescue the trench questions ask
+// (messy round 14, B run 6: with falls Yes for a 2.2 m deep trench, "left hanging in a harness" was asked beside the
+// trench rescue, though no harness was used).
+const INTO_HOLE = /\binto\b[^.]{0,20}\b(?:trench\w*|excavation\w*|pits?|holes?|shafts?|pier holes?|footings?|basements?|manholes?|sump)\b/i;
+function fallAwayFromTrench(draft = {}) {
+  return (draft.jobSteps || []).some((step) => (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && PERSON_FALLS.test(String(line).trim()) && !INTO_HOLE.test(String(line)) && !/\binto (?:the )?water\b|\bobjects?\b|\btools?\b/i.test(String(line))));
+}
 function categoriesFor(draft = {}) {
   const highRisk = Array.isArray(draft.highRisk) ? draft.highRisk : [];
   const plant = plantInUse(draft);
@@ -131,13 +145,15 @@ function categoriesFor(draft = {}) {
   // terrain mobile crane" in place of an unticked crawler crane lost the plant stop question and row).
   const mobile = plant.some((item) => MOBILE_PLANT.test(String(item && item.item)) || MOBILE_PLANT.test(String((item && item.known) || '')));
   const has = (pattern) => highRisk.some((item) => pattern.test(String(item)));
+  // A fall only into the trench, with no harness used, is rescued as the trench questions ask.
+  const trenchOnly = has(/\b(?:trench|shaft|tunnel)\b/i) && !harnessUsed(draft) && !fallAwayFromTrench(draft);
   return [
     ewp ? 'ewp' : '',
     // With an EWP, the fall rescue is still asked where a step away from the platform rates a person's fall
     // (messy round 11, A fault 4: with the EWP ticked, roof work lost its fall rescue questions, and the
     // file's "Work at height" row had only the EWP lowering answer). Lowering the platform does not
     // rescue a person who falls from the roof.
-    has(FALL) && (!ewp || fallAwayFromPlatform(draft)) ? 'fall' : '',
+    has(FALL) && (!ewp || fallAwayFromPlatform(draft)) && !trenchOnly ? 'fall' : '',
     // Not where the only energised services are power lines (draft.js electricalLinesOnly): the power line row covers them.
     has(/energised electrical/i) && draft.electricalWork !== false && !draft.electricalLinesOnly ? 'electrical' : '',
     has(/\b(?:trench|shaft|tunnel)\b/i) ? 'trench' : '',
@@ -150,7 +166,9 @@ function categoriesFor(draft = {}) {
 function emergencyQuestions(draft = {}, answers = {}) {
   if (!draft || draft.kind !== 'draft') return [];
   const on = new Set(categoriesFor(draft));
-  return QUESTIONS.filter((item) => on.has(item.category)).map(({ source: _source, ...item }) => ({ ...item, answer: typeof (answers || {})[item.id] === 'string' ? answers[item.id] : '' }));
+  // The rescue of a person left hanging in a harness is asked only where a harness is used.
+  const harness = on.has('fall') && harnessUsed(draft);
+  return QUESTIONS.filter((item) => on.has(item.category)).map(({ source: _source, ...item }) => ({ ...item, ...(item.id === 'fallRescue' && !harness ? { ask: 'How is a person who falls rescued straight away, and by whom?' } : {}), answer: typeof (answers || {})[item.id] === 'string' ? answers[item.id] : '' }));
 }
 
 // The emergency row each category's answers print in.
@@ -167,6 +185,8 @@ const NEW_ROW = {
 };
 
 const clean = (value) => String(typeof value === 'string' ? value : '').replace(/\s+/g, ' ').trim();
+// A lone "n" typed for "and" prints "and", as in the task line (draft.js andForN; messy round 14, A run 1).
+const andForN = (text) => String(text || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
 
 // The draft with the emergency questions for the page, and each answer given printed in its row
 // as "Short label: answer". A row that already has a detail keeps it, with the answers after.
@@ -180,10 +200,10 @@ function withEmergencyAnswers(draft, answers = {}) {
   for (const category of [...new Set(asked.map((item) => item.category))]) {
     let index = rows.findIndex((row) => ROW[category].test(String(row.type)));
     if (index < 0) { rows.push(local(NEW_ROW[category])); index = rows.length - 1; }
-    const said = asked.filter((item) => item.category === category && clean(item.answer)).map((item) => `${item.short}: ${clean(item.answer)}`);
+    const said = asked.filter((item) => item.category === category && clean(item.answer)).map((item) => `${item.short}: ${andForN(clean(item.answer))}`);
     if (said.length) rows[index] = { ...rows[index], detail: [rows[index].detail, ...said].filter(Boolean).join('\n') };
   }
   return { ...draft, emergency: rows, emergencyQuestions: asked };
 }
 
-module.exports = { QUESTIONS, INVOLVES, SHORT, MOBILE_PLANT, plantInUse, categoriesFor, emergencyQuestions, withEmergencyAnswers };
+module.exports = { QUESTIONS, INVOLVES, SHORT, MOBILE_PLANT, plantInUse, categoriesFor, harnessUsed, emergencyQuestions, withEmergencyAnswers };

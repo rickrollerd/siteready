@@ -12,13 +12,15 @@ const { draftBody } = require('../input');
 const { downloadGaps, gateMessage } = require('../download-gate');
 const { blankKey, fillLine, withFills } = require('../blanks');
 const { checkSwms, fromDraft } = require('../builder-check');
-const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, LIVE_SERVICES, ready, checked } = require('./helpers');
 
 const FENCE = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
 // Live testing in a switchboard brings two library lines with blanks in them.
 const LIVE = { state: 'qld', task: 'Test the switchboard live and fault find on energised circuits in the plant room.', fallRisk: 'no', facts: { energisedWork: 'testing', isolationProcedure: 'Isolate at the main switch, lock and tag, and test before touching.' } };
 const AUTHORISED = 'Energised work is authorised by: ____________ (position), after consulting ____________ (position) for the person with management or control of the workplace, usually the principal contractor.';
 const SIGNS = 'The principal contractor\'s ____________ (position) signs the permit.';
+// The energised work's live services, named ("None" is refused beside them: messy round 14).
+const LIVE_SITE = { site: { ...ANSWERED.site, liveServices: LIVE_SERVICES } };
 const LIVE_FILLS = { [AUTHORISED]: ['Electrical supervisor', 'Site manager'], [SIGNS]: ['site manager'] };
 
 // The plant and emergency response are confirmed (ready) for the tests about the other questions.
@@ -106,7 +108,7 @@ test('the scaffold supervisor is asked for and printed only where the SWMS invol
 });
 
 test('a control line with a blank is filled with the user\'s answer, and nothing else in it changes', () => {
-  const open = gaps({ ...LIVE, ...ANSWERED });
+  const open = gaps({ ...LIVE, ...ANSWERED, ...LIVE_SITE });
   const lines = open.gaps.filter((gap) => gap.kind === 'line');
   assert.deepEqual(lines.map((gap) => gap.key), [AUTHORISED, SIGNS]);
   assert.deepEqual(lines[0].parts, ['Energised work is authorised by: ', ' (position), after consulting ', ' (position) for the person with management or control of the workplace, usually the principal contractor.']);
@@ -114,7 +116,7 @@ test('a control line with a blank is filled with the user\'s answer, and nothing
   // The printed line carries its sources; the blank is filled by the line's own words.
   const printed = open.draft.jobSteps.flatMap((step) => step.controls).find((line) => line.startsWith('Energised work is authorised by'));
   assert.equal(blankKey(printed), AUTHORISED);
-  const filled = gaps({ ...LIVE, ...ANSWERED, fills: LIVE_FILLS });
+  const filled = gaps({ ...LIVE, ...ANSWERED, ...LIVE_SITE, fills: LIVE_FILLS });
   assert.deepEqual(filled.gaps, []);
   const after = filled.draft.jobSteps.flatMap((step) => step.controls);
   const line = after.find((text) => text.startsWith('Energised work is authorised by'));
@@ -123,10 +125,10 @@ test('a control line with a blank is filled with the user\'s answer, and nothing
   assert.ok(!after.some((text) => /_{3,}/.test(text)));
   // A blank left unanswered stays a blank, and the gate still asks for it, in the line as it now reads.
   const part = { [AUTHORISED]: ['Electrical supervisor', ''] };
-  const half = gaps({ ...LIVE, ...ANSWERED, fills: part });
+  const half = gaps({ ...LIVE, ...ANSWERED, ...LIVE_SITE, fills: part });
   const rest = AUTHORISED.replace('____________', 'Electrical supervisor');
   assert.deepEqual(half.gaps.map((gap) => gap.key), [rest, SIGNS]);
-  assert.deepEqual(ids({ ...LIVE, ...ANSWERED, fills: { ...part, [rest]: ['Site manager'], [SIGNS]: ['site manager'] } }), []);
+  assert.deepEqual(ids({ ...LIVE, ...ANSWERED, ...LIVE_SITE, fills: { ...part, [rest]: ['Site manager'], [SIGNS]: ['site manager'] } }), []);
   assert.equal(fillLine('Rated for ____ t at ____ m.', ['5.', ' 12 ']), 'Rated for 5 t at 12 m.');
   assert.equal(fillLine('Rated for ____ t.', ['____']), 'Rated for ____ t.', 'a blank is not an answer');
   assert.equal(withFills({ kind: 'stand-down' }, LIVE_FILLS).kind, 'stand-down');
@@ -142,13 +144,13 @@ test('a standard answer with its blank left in is filled in its own box, not in 
 
 test('the builder check fails a blank or a "To be completed" left in the SWMS (H8), and passes it once filled', () => {
   const failed = (draft) => checkSwms(fromDraft(draft, { state: 'qld', swms: { signatures: [{ name: 'Jo Smith', date: '5 October 2026' }] } }), { state: 'qld', today: '2026-10-05' });
-  const open = failed(prepareDraft(draftBody({ ...LIVE, ...ANSWERED, musterPoint: '' })));
+  const open = failed(prepareDraft(draftBody({ ...LIVE, ...ANSWERED, ...LIVE_SITE, musterPoint: '' })));
   assert.ok(open.hardFails.includes('H8'));
   assert.equal(open.band, 'Not accepted');
   const message = open.findings.find((item) => item.rule === 'H8').message;
   assert.match(message, /Energised work is authorised by: ____________/);
   assert.match(message, /Muster point: To be completed before submitting for approval/);
-  const done = failed(prepareDraft(draftBody({ ...LIVE, ...ANSWERED, fills: LIVE_FILLS })));
+  const done = failed(prepareDraft(draftBody({ ...LIVE, ...ANSWERED, ...LIVE_SITE, fills: LIVE_FILLS })));
   assert.ok(!done.hardFails.includes('H8'), done.hardFails.join());
   // An instruction that a permit is to be completed is not a placeholder; "Supervisor: TBC" is.
   const swms = (controls) => ({ state: 'qld', task: 'Weld brackets.', site: { address: '1 Test St, Brisbane QLD 4000', conditions: ['Access: stairs.'] }, steps: [{ step: 'Weld', hazards: ['Fire.'], controls, responsible: 'Supervisor' }], responsiblePerson: 'Sam Lee' });
@@ -210,7 +212,7 @@ test('Word and PDF are refused with the list of what is needed, then download wi
   }
   // Nothing was saved by the refused downloads.
   assert.equal((await (await call('GET', '/api/swms', { token })).json()).swms.length, 0);
-  const body = checked(ready({ ...LIVE, ...ANSWERED, fills: LIVE_FILLS, ...CONFIRM }));
+  const body = checked(ready({ ...LIVE, ...ANSWERED, ...LIVE_SITE, fills: LIVE_FILLS, ...CONFIRM }));
   const docx = await call('POST', '/api/draft.docx', { token, body });
   assert.equal(docx.status, 200, await docx.clone().text());
   const text = await wordText(Buffer.from(await docx.arrayBuffer()));

@@ -275,7 +275,10 @@ function designsAsked(input) {
     const rules = require('./public/substance-rules');
     const uses = types.length ? rules.stepUses(draft) : {};
     const silica = types.length ? rules.silicaStep(draft) : '';
-    return { ...said, ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types, substanceUses: uses, ...(silica ? { silicaStep: silica } : {}) } : {}) };
+    // The job steps' words too, so a type they name asks its reason on the page, as the SWMS does (messy round 14, A
+    // runs 1 and 2: refrigerants "Not required" took no reason there, then read as still needed).
+    const steps = types.length ? rules.stepWords(draft) : '';
+    return { ...said, ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types, substanceUses: uses, ...(silica ? { silicaStep: silica } : {}), ...(steps ? { stepWords: steps } : {}) } : {}) };
   } catch (error) {
     return {};
   }

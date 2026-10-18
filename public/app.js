@@ -678,9 +678,12 @@ let stateKept = '';
 const stateNow = () => (document.querySelector('input[name="state"]:checked') || {}).value || '';
 // The plain question when the address typed does not say its state and none is ticked (D292 item 1).
 const STATE_ASK = 'Which state or territory is this job in? Pick the job address from the list under the box, or tick the state below.';
+// Said by Continue when the job address is typed but not picked (addressNeedsPick).
+const ADDRESS_PICK = 'Pick the job address from the list under the box, so SiteWrite knows which state\'s law applies. If it is not listed, tick the state below.';
 function stateChosen() {
   const note = document.getElementById('state-ask');
   if (note && stateNow()) { note.textContent = ''; note.classList.add('hidden'); }
+  addressNoteDone();
   if (stateNow() && !window.SiteWriteAddress?.stateFromAddress(workplaceEl.value).state && workplaceEl.value.trim()) applyAddressState();
 }
 function applyAddressState() {
@@ -719,6 +722,7 @@ function applyAddressState() {
   addressStateBefore = found.state;
   workplaceState.innerHTML = `<strong>${law}</strong>${found.from === 'postcode' ? ' Read from the postcode: check it is right.' : ''} <button type="button" class="link" data-state-change>Change the address</button>`;
   workplaceState.classList.add('state-said');
+  addressNoteDone();
 }
 // "Change the address" does something the user can see (messy round 3, run 4: it seemed to do
 // nothing): the box is brought into view, outlined, its words selected, and the note says what to do.
@@ -939,7 +943,6 @@ const scopeWaiting = () => {
 // A job address typed but not picked, with no state ticked: Continue says so beside the address box, where the
 // person is looking for it, before the page checks anything else (messy round 13, B run 6: Continue seemed to do
 // nothing until the address suggestion was picked).
-const ADDRESS_PICK = 'Pick the job address from the list under the box, so SiteWrite knows which state\'s law applies. If it is not listed, tick the state below.';
 function addressNeedsPick() {
   if (stateNow() || !workplaceEl.value.trim()) return false;
   if (window.SiteWriteAddress && window.SiteWriteAddress.stateFromAddress(workplaceEl.value).state) return false;
@@ -949,6 +952,13 @@ function addressNeedsPick() {
   workplaceEl.classList.add('address-change');
   workplaceEl.setAttribute('aria-describedby', 'workplace-state');
   return true;
+}
+// Once the address is picked or the state ticked, the note by Continue that asked for it goes (messy round 14, B run
+// 6: with the address picked, Continue with falls unanswered still said "Pick the job address from the list under the
+// box", as the browser stopped at the falls question before the page could check again).
+function addressNoteDone() {
+  const said = document.getElementById('start-error');
+  if (said && stateNow() && [ADDRESS_PICK, STATE_ASK].includes(said.textContent)) said.textContent = '';
 }
 document.getElementById('continue').addEventListener('click', (event) => {
   // Said and shown first: the browser would otherwise stop at the next unanswered question below and the note
@@ -960,6 +970,8 @@ document.getElementById('continue').addEventListener('click', (event) => {
     workplaceEl.focus({ preventScroll: true });
     return;
   }
+  if (!stateNow()) applyAddressState();
+  addressNoteDone();
   if (document.getElementById('task').value.trim() || !scopeWaiting()) return;
   event.preventDefault();
   const panel = document.getElementById('scope-panel');
@@ -1031,6 +1043,8 @@ document.getElementById('start').addEventListener('submit', (event) => {
       leaveOut = picked.leaveOut && picked.leaveOut.length ? [...picked.leaveOut] : null;
     }
     pickGaps = picked && picked.gaps && picked.gaps.length ? [...picked.gaps] : null;
+    // The scope reading's or pick list's own steps are ticked, as they were before any untick by hand.
+    if (stepPicks) stepPicks.forEach((id) => stepsOff.delete(id));
     choicesTask = task;
   }
   // The scope's words go with a task from a scope, changed by the user or not.
@@ -1306,7 +1320,8 @@ const tickedSteps = () => [...document.querySelectorAll('#steps-block input[data
 const pickerName = (name) => ((document.querySelector('input[name="crane"]:checked') || {}).value === 'own' ? String(name).replace(/ with the crane company$/, ' with the crane') : name);
 
 function renderSteps(steps) {
-  const chosen = new Set(steps.chosen || []);
+  // A step the user unticked by hand is drawn unticked, whatever the server last said.
+  const chosen = new Set((steps.chosen || []).filter((id) => !stepsOff.has(id)));
   const locked = new Set(steps.locked || []);
   const around = new Set(steps.around || []);
   stepsAround = [...around];
@@ -1929,6 +1944,7 @@ function drawSpellingFixes() {
 }
 if (document.getElementById('task')) document.getElementById('task').addEventListener('input', drawSpellingFixes);
 
+let questionsSeq = 0;
 async function loadQuestions(options = {}) {
   document.getElementById('start-error').textContent = '';
   if (!options.keepDraft) resultEl.classList.add('hidden');
@@ -1944,7 +1960,13 @@ async function loadQuestions(options = {}) {
   if (!fresh && !document.querySelector('#required-block [data-fact]') && Object.keys(factMemory).length) sent.facts = { ...factMemory, ...(sent.facts || {}) };
   // An ask already on its way is out of date once this one is sent.
   askSeq += 1;
+  // So is an earlier load of the questions: its steps were ticked as they were before the latest click, and
+  // drawing them would tick again a step unticked since (messy round 14, B run 7: "External painting at height"
+  // came back ticked when "Handle and install glass panels" was unticked about a second later). Only the latest
+  // load draws the page.
+  const loadSeq = ++questionsSeq;
   const { response, data } = await postJson('/api/draft/questions', sent);
+  if (loadSeq !== questionsSeq) return false;
   if (!response.ok) {
     document.getElementById('start-error').textContent = data.message || 'That state is not available.';
     return false;
@@ -2058,7 +2080,7 @@ function fillStart(input) {
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
-  stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string') : []);
+  stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string' && !(stepPicks || []).includes(id)) : []);
   priorKinds = Array.isArray(input.priorKinds) ? input.priorKinds.filter((id) => typeof id === 'string') : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
@@ -3507,7 +3529,10 @@ function fallCheckBlock(data) {
   const left = fall.leftOut || [];
   const listed = (names) => { const quoted = names.map((name) => `"${esc(name)}"`); return quoted.length > 1 ? `${quoted.slice(0, -1).join(', ')} and ${quoted[quoted.length - 1]}` : quoted[0] || ''; };
   const leftText = left.length ? `${left.length === 1 ? 'the step' : 'the steps'} ${listed(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS` : '';
-  const said = steps.length
+  // A depth of the fall height or more named in the task or a step (messy round 14, B run 6: a 2.2 m deep trench).
+  const said = fall.depth
+    ? `but the work is ${esc(fall.depth)} metres deep${steps.length ? `, and ${steps.length === 1 ? 'the step' : 'the steps'} ${listed(steps)} ${steps.length === 1 ? 'rates' : 'rate'} a fall` : ''}${leftText ? `, and with No ${leftText}` : ''}.`
+    : steps.length
     ? `but ${steps.length === 1 ? 'the step' : 'the steps'} ${listed(steps)} ${steps.length === 1 ? 'rates' : 'rate'} a fall from height High${leftText ? `, and with No ${leftText}` : ''}.`
     : `so ${leftText}.`;
   return `<div class="warning fall-check" id="fall-check" tabindex="-1"><p><strong>Check your answer on falls.</strong> You answered No to "Could a person fall more than ${esc(fall.metres)} metres?", ${said} If anyone could fall more than ${esc(fall.metres)} metres, answer Yes.${steps.length ? ' If the step is not part of this job, untick it under Job steps.' : ''}</p>
@@ -3977,6 +4002,7 @@ resultEl.addEventListener('click', async (event) => {
       if (kind) {
         const shown = new Set(((shownDraft && shownDraft.jobSteps) || []).map((step) => step.step));
         stepPicks = [...stepPicks, kind.id];
+        stepsOff.delete(kind.id);
         leaveOut = [...new Set([...leaveOut, ...kind.steps.filter((other) => other !== name && !shown.has(other))])];
       }
     }

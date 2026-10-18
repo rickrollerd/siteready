@@ -137,10 +137,17 @@ function phoneOnly(text) {
 // Doors and Hardware" (messy round 10, flow9 decision 4 B, recommended). Capitals the person typed are never
 // lowered: a name with any capital is left as typed.
 const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by']);
+// A surname's own capitals come back too (messy round 14, B run 7: "sharon mcgrath" printed "Sharon Mcgrath"):
+// "Mc" always ("McGrath"), "O'" and each part of a hyphenated name ("O'Brien", "Smith-Jones"), and "Mac" only
+// in the Scottish and Irish names where it is nearly always so written, as "Mack", "Macey" and "Machado" are not.
+const MAC_NAMES = new Set(['macarthur', 'macaulay', 'macdonald', 'macdougall', 'macfarlane', 'macgregor', 'macinnes', 'macintyre', 'mackenzie', 'mackinnon', 'maclachlan', 'maclean', 'macleod', 'macmillan', 'macnamara', 'macneil', 'macpherson', 'macqueen']);
+const surnameCapitals = (word) => (/^Mc[a-z]{2,}$/.test(word) ? `Mc${word.charAt(2).toUpperCase()}${word.slice(3)}`
+  : /^Mac[a-z]{3,}$/.test(word) && MAC_NAMES.has(word.toLowerCase()) ? `Mac${word.charAt(3).toUpperCase()}${word.slice(4)}` : word);
 function tidyName(text, small = SMALL_WORDS) {
   const value = clean(text);
   if (!value || /[A-Z]/.test(value)) return value;
-  return value.replace(/(^|[\s'’-])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && small.has(`${letter}${rest}`) ? whole : `${before}${letter.toUpperCase()}${rest}`));
+  // After an apostrophe only in "O'" and "D'" names ("O'Brien", "D'Arcy"), not "Don's".
+  return value.replace(/(^|[\s-]|(?<=(?:^|[\s-])[a-z])['’])([a-z])([a-z]*)/g, (whole, before, letter, rest, at) => (at > 0 && /\s/.test(before) && small.has(`${letter}${rest}`) ? whole : `${before}${surnameCapitals(`${letter.toUpperCase()}${rest}`)}`));
 }
 // A company's name: a lone "n" typed for "and" stays in lower case too, "tamar joinery n fitout" reads "Tamar
 // Joinery n Fitout", not "Tamar Joinery N Fitout" (messy round 13, B runs 2 and 6). A person's "n" may be an

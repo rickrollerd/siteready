@@ -268,8 +268,8 @@ test('a thing in a person\'s box, a short company phone and one-word SDS control
     assert.match(gate.answerNeed(rule(id), 'none'), /cannot be "none"/);
     assert.match(gate.answerNeed(rule(id), 'TBC'), /is not an answer yet/);
   }
-  // A first name alone is not refused (a decision for the owner).
-  assert.equal(gate.answerNeed(rule('complianceResponsible'), 'Dave'), '');
+  // A first name alone is asked for in full since messy round 14 ("dean", "Sharon").
+  assert.match(gate.answerNeed(rule('complianceResponsible'), 'Dave'), /gives one name only/);
   assert.equal(gate.answerNeed(rule('reviewer'), 'Sam Lee, supervisor'), '');
   const input = draftBody({ ...ANSWERED, state: 'qld', task: 'Install timber paling fence panels and posts along the boundary.', fallRisk: 'no', residential: 'no', crane: 'none', companyPhone: '0412 555 81' });
   const draft = prepareDraft(input);

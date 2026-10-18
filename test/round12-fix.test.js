@@ -151,7 +151,9 @@ test('a step unticked by hand stays unticked when the task is changed and Contin
   // Only a new task, a task picked in its place or a reset clears it: Continue does not.
   const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
   const submit = source.slice(source.indexOf("document.getElementById('start').addEventListener('submit'"), source.indexOf('// Job steps: null follows'));
-  assert.doesNotMatch(submit, /stepsOff/);
+  // Continue only lets the scope reading's or pick list's own steps for a task picked in its place show ticked
+  // (messy round 14: an untick by hand is otherwise kept, see test/round14-flow.test.js).
+  assert.doesNotMatch(submit.replace('if (stepPicks) stepPicks.forEach((id) => stepsOff.delete(id));', ''), /stepsOff/);
 });
 
 // ---- 4. Puddle flanges ----

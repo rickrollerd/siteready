@@ -65,7 +65,7 @@
 //   riskBefore, riskAfter, riskResponse }], ppe[], responsiblePerson, consultation, signatures[{ name, date }], revision,
 //   date, reviewDate, principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix, riskAcceptance }
 const { findState, highRiskList } = require('./legislation');
-const { highRiskMatches, domesticWork } = require('./draft');
+const { highRiskMatches, domesticWork, depthFall, FALL_INTO } = require('./draft');
 const { leftOpen } = require('./blanks');
 const { isHoldPoint } = require('./designs');
 const { firmFaults } = require('./step-stages');
@@ -873,9 +873,15 @@ function hardFails(swms, state, stage = 'review') {
 
   // Falls: a higher order control (eliminate, edge protection, scaffold, EWP, mesh, covers) must be in place,
   // unless the SWMS says why those are not reasonably practicable.
-  const falls = namedIds.has('fall') || implied.some((item) => item.id === 'fall');
+  // A depth of the fall height or more, named in the task or a step, with a step that rates a fall into it, is a fall
+  // risk over the height too, whatever the falls answer (messy round 14, B run 6: a 2.2 m deep trench passed as "No
+  // fall risk over the height is listed or implied").
+  const fallHeight = (state && state.fallMetres) || 2;
+  const intoSteps = swms.steps.filter((step) => step.hazards.some((line) => FALL_INTO.test(line) && !/\(Does not apply to this job\)$/.test(line)));
+  const deep = intoSteps.length ? depthFall([swms.task, ...swms.steps.map((step) => step.step)].join('\n'), fallHeight) : 0;
+  const falls = namedIds.has('fall') || implied.some((item) => item.id === 'fall') || Boolean(deep);
   if (falls) {
-    const fallSteps = swms.steps.filter((step) => /\b(falls?|falling|height|roofs?|edges?|ladders?|scaffold\w*|voids?|openings?|ewps?|elevat\w*|platforms?|harness\w*)\b/i.test(stepText(step, swms.task)));
+    const fallSteps = [...new Set([...swms.steps.filter((step) => /\b(falls?|falling|height|roofs?|edges?|ladders?|scaffold\w*|voids?|openings?|ewps?|elevat\w*|platforms?|harness\w*)\b/i.test(stepText(step, swms.task))), ...intoSteps])];
     // The Controls table counts too: the fall answer prints there when no step carries it.
     const fallControls = [...allControls, ...swms.controls];
     const fallLines = [...new Set([...fallSteps.flatMap((step) => step.controls), ...fallControls.filter((line) => ANSWERS.fall.test(line))])];
@@ -890,10 +896,11 @@ function hardFails(swms, state, stage = 'review') {
     // positioning or fall arrest") or as a condition ("Where harnesses are used, ...") does not say
     // a harness is the fall control.
     const harness = fallLines.some((line) => /\b(harness|fall arrest|lanyard)\b/i.test(line) && !HARNESS_NAMED_ONLY.test(line));
+    const deepNote = deep && !namedIds.has('fall') && !implied.some((item) => item.id === 'fall') ? `The work is ${deep} m deep: a person could fall that far into it. ` : '';
     add('H3', 'Falls controlled by edge protection, scaffold or EWP, not harness alone', higher || justified,
-      higher || justified ? 'Falls are controlled by edge protection, a scaffold, an EWP or another higher order control.'
+      deepNote + (higher || justified ? 'Falls are controlled by edge protection, a scaffold, an EWP or another higher order control.'
         : harness ? 'Falls are controlled by a harness alone. Use edge protection, a scaffold or an EWP, or say why they are not reasonably practicable.'
-          : 'Falls have no edge protection, scaffold, EWP or other physical control.');
+          : 'Falls have no edge protection, scaffold, EWP or other physical control.'));
   } else {
     add('H3', 'Falls controlled by edge protection, scaffold or EWP, not harness alone', true, 'No fall risk over the height is listed or implied.');
   }
