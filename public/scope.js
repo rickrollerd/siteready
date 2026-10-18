@@ -79,15 +79,17 @@
     $('scope-results').innerHTML = '';
     // Taken off, the reading of it is not brought back on the next visit either, nor the scope kept for sign-in.
     if ((keptReading() || {}).done) keepReading(null);
-    if (waiting || keptShown) { waiting = null; keptShown = false; keptScope('readwrite', (store) => store.delete('scope')); }
+    if (waiting ? Boolean(waiting.file) : keptShown) forgetKept();
   });
 
   $('scope-read').addEventListener('click', async () => {
     const button = $('scope-read');
     $('scope-error').textContent = '';
+    // A file kept on this device for sign-in, named under the file box, is read as if attached.
+    const keptFile = !dropped && !$('scope-file').files[0] && keptShown && waiting && waiting.file ? waiting : null;
     const file = dropped || $('scope-file').files[0];
     const text = $('scope-text').value.trim();
-    if (!file && !text) {
+    if (!file && !text && !keptFile) {
       $('scope-error').textContent = notScope ? notScopeText() : 'Attach the scope or paste it first.';
       return;
     }
@@ -102,10 +104,12 @@
     button.disabled = true;
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
-      const body = file ? { file: { name: file.name, data: await readFile(file) }, state } : { text, state };
+      const body = file ? { file: { name: file.name, data: await readFile(file) }, state } : keptFile && !text ? { file: keptFile.file, state } : { text, state };
       // Owner decision, 7 October 2026: reading a scope needs an account, and the AI reads every
       // scope. Signed out, the scope is kept and read once the user signs in.
       if (!S.signedIn || !S.signedIn()) { await askToSignIn(body); return; }
+      // Read now: nothing is kept for a later sign-in.
+      if (waiting || keptShown) forgetKept();
       // A new scope read: the finished reading kept from before is done with.
       if ((keptReading() || {}).done) keepReading(null);
       await readScope(body);
@@ -121,6 +125,8 @@
   // Owner decision, 7 October 2026: SiteWrite's keyword quick read is no longer used on this page.
   // When the AI is off or fails, the page says so and the user tries again later or types the tasks.
   async function readScope(body) {
+    // Nothing is read from an empty box (messy round 12, run 5).
+    if (!body || (!(body.file && body.file.data) && !String(body.text || '').trim())) return;
     if (!(await aiOn())) {
       $('scope-results').innerHTML = `<p class="note">The AI reading of scopes is not switched on just now. Try again later. ${TYPE_TASKS}</p>`;
       return;
@@ -166,19 +172,64 @@
     return body;
   };
 
-  // A scope kept for sign-in is named in the file box when the page is opened again signed out, so the box
-  // does not look empty while the scope is still to be read (messy round 8, run 3: after Back the box looked
-  // empty, yet the reading used the file once he signed in).
+  // A scope kept for sign-in is shown in its box when the page is opened again, so the box does not look
+  // empty while the scope is still to be read (messy round 8, run 3: after Back the box looked empty, yet the
+  // reading used the file once he signed in). A file kept is named under the file box; words pasted go back
+  // in the box itself.
   let keptShown = false;
+  // Set once the user types in or clears the scope box on this page: the box as they left it is what counts.
+  let boxTouched = false;
+  const attachedName = () => (dropped ? dropped.name : (($('scope-file').files || [])[0] || {}).name) || '';
+  function putBack(body, signedIn) {
+    if (!body || boxTouched) return;
+    if (body.file && body.file.name) {
+      if (attachedName()) return;
+      keptShown = true;
+      $('scope-drop-note').textContent = `${body.file.name} is kept on this device. ${signedIn ? 'Press "Find the tasks that need a SWMS" to read it.' : 'It is read once you sign in.'}`;
+      $('scope-file-clear').classList.remove('hidden');
+    } else if (typeof body.text === 'string' && !$('scope-text').value.trim()) {
+      $('scope-text').value = body.text;
+      keptShown = true;
+      $('scope-drop-note').textContent = signedIn ? 'or drag the file here' : 'The scope pasted below is kept on this device. It is read once you sign in.';
+    }
+  }
+  // The scope kept for sign-in is read only while it is still in the scope box: the same words in the box, or
+  // the same file attached or named there (messy round 12, run 5: the box was cleared and the lines moved to
+  // the Task box, yet a paid reading of them started on its own at sign-in).
+  function inBox(body) {
+    if (!body) return null;
+    if (body.file && body.file.name) return keptShown || attachedName() === body.file.name ? body : null;
+    const now = $('scope-text').value.trim();
+    return now && typeof body.text === 'string' && now === body.text.trim() ? body : null;
+  }
+  // The scope kept for sign-in is forgotten, and the promise to read it once signed in goes with it.
+  function forgetKept() {
+    const promised = waiting || keptShown;
+    waiting = null;
+    keptShown = false;
+    keptScope('readwrite', (store) => store.delete('scope'));
+    if (!attachedName()) { $('scope-drop-note').textContent = 'or drag the file here'; $('scope-file-clear').classList.add('hidden'); }
+    if (promised && /once you are signed in, the reading starts on its own/i.test($('scope-results').textContent || $('scope-results').innerHTML)) $('scope-results').innerHTML = '';
+  }
   setTimeout(async () => {
     if (S.accountReady) await S.accountReady;
     if (S.signedIn && S.signedIn()) return;
     const body = await keptScope('readonly', (store) => store.get('scope'));
-    if (!body || dropped || $('scope-file').files.length) return;
-    keptShown = true;
-    $('scope-drop-note').textContent = body.file && body.file.name ? `${body.file.name} is kept on this device. It is read once you sign in.` : 'The scope you pasted is kept on this device. It is read once you sign in.';
-    $('scope-file-clear').classList.remove('hidden');
+    if (!body) return;
+    waiting = waiting || body;
+    putBack(body, false);
   }, 0);
+  // The words kept follow the box as it is typed in: cleared, the scope kept is forgotten; changed, the
+  // new words are what is read once the user signs in.
+  $('scope-text').addEventListener('input', async () => {
+    boxTouched = true;
+    const text = $('scope-text').value.trim();
+    const body = waiting || await keptScope('readonly', (store) => store.get('scope'));
+    if (!body || (body.file && body.file.name)) return;
+    if (!text) { forgetKept(); return; }
+    waiting = { ...body, text };
+    keepScope(waiting);
+  });
 
   async function askToSignIn(body) {
     if (S.accountsOn && !S.accountsOn()) {
@@ -191,15 +242,28 @@
       <div class="actions"><button type="button" data-open="signin">Sign in or start free trial</button></div>`;
   }
 
-  // Called by account.js once the user is signed in: a scope given while signed out is read now, and a
-  // reading still running when the page was left or reloaded is picked up again.
-  S.onSignedIn = async () => {
-    const body = await takeScope();
+  // Called by account.js once the user is signed in (justSignedIn), and when a page opens already signed in:
+  // a scope given while signed out is read at sign-in if it is still in the scope box, and never from an
+  // empty or cleared box. A page opened again (a reload or Back) puts the scope back in its box for Find,
+  // and reads nothing new. A reading still running when the page was left or reloaded is picked up again.
+  S.onSignedIn = async ({ justSignedIn = false } = {}) => {
+    const kept = waiting || await keptScope('readonly', (store) => store.get('scope'));
     // Signed in with nothing started, the scope section is open on a phone too: reading a scope is
     // what signing in opens up (messy round 5, run 4: it was closed, and the scope went into the logo box).
     const task = document.getElementById('task');
-    if (!body && !project && !(task && task.value.trim())) $('scope-panel').open = true;
-    if (!body) { await resumeReading(); return; }
+    if (!kept && !project && !(task && task.value.trim())) $('scope-panel').open = true;
+    if (!kept) { await resumeReading(); return; }
+    putBack(kept, true);
+    const body = inBox(kept);
+    if (!body) { forgetKept(); await resumeReading(); return; }
+    if (!justSignedIn) {
+      waiting = kept;
+      $('scope-panel').open = true;
+      $('scope-results').innerHTML = '<p class="note" role="status">The scope you gave before signing in is in the box above. Press "Find the tasks that need a SWMS" to read it.</p>';
+      await resumeReading();
+      return;
+    }
+    await takeScope();
     if (keptShown) { keptShown = false; $('scope-drop-note').textContent = 'or drag the file here'; $('scope-file-clear').classList.add('hidden'); }
     $('scope-panel').open = true;
     $('scope-error').textContent = '';

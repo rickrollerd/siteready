@@ -86,7 +86,10 @@ function taskLine(value) {
   const text = lines.join('\n').replace(INLINE_CLAUSE, '$1 ').replace(SECTION_POINTER, '').replace(PRICE_POINTER, '').replace(TENDER_POINTER, '').replace(DRAWING_POINTER, '').replace(PRICE_LABEL_AFTER, '')
     .replace(SCOPE_LEAD_IN, (_whole, lead) => `${lead}\u0000`).replace(WHO_SHALL, (_whole, lead) => `${lead}\u0000`)
     .replace(COMMERCIAL_LABEL, (_whole, lead) => `${lead}\u0000`).replace(/(?:\u0000\s*)+(\S)?/g, (_whole, first) => (first ? first.toUpperCase() : ''))
-    .replace(NOT_LIMITED, '').replace(/,?[ \t]*\bincluding[ \t]*:/gi, ':');
+    .replace(NOT_LIMITED, '').replace(/,?[ \t]*\bincluding[ \t]*:/gi, ':')
+    // A pointer taken out after "or" or "and" takes the word with it ("3 coats minimum or as per door manufacturers
+    // specifications" read "3 coats minimum or.": messy round 12, run 5).
+    .replace(/,?[ \t]+(?:and\/or|or|and|&)[ \t]*(?=[.;:]|\n|$)/gi, '');
   return cleanLine(text.replace(/[ \t]+([.,;:])/g, '$1').replace(/,(?=[.;:])/g, '').replace(/([.;:])(?:\s*\.)+/g, '$1'));
 }
 
@@ -1236,8 +1239,11 @@ function fallLineFor(source, facts) {
 // drive in gate, scissor and EWP on a float.").
 const fallSource = (task, facts) => combinedFacts(task, { ...(facts || {}), siteConditions: '' });
 
-// Where a fall control sits in the hierarchy.
-function fallControlLevel(line) {
+// Where a fall control sits in the hierarchy. The answer is read with its typing errors fixed, so "mobile
+// scafold with rails" or "e.w.p" is the working platform or EWP it names (messy round 12, run 5: read as
+// Administrative, it printed "a working platform or an EWP was considered first ... because na").
+function fallControlLevel(typed) {
+  const line = readSlang(fixSpelling(String(typed || '')).text).replace(/\be\.\s?w\.\s?p\.?(?=\s|$|[,;])/gi, 'EWP').replace(/\bs[ck]af+o?l+d?\w*/gi, 'scaffold').replace(/\bplat(?:f|t)?(?:or|ro)m(s?)\b/gi, 'platform$1');
   if (/\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(line)) return 'Eliminate';
   // A scissor lift or boom lift is an EWP, and a riser screened off is screened (messy round 11, run 3:
   // "scissor lift" asked for the other fall controls considered, and its standard line said "an EWP was
@@ -2213,6 +2219,12 @@ function withoutOthersKinds(flags, task, facts, ownCrane, nested = false) {
 }
 
 // The kinds of work that use each fact in their job steps.
+// Each kind of work's job step names.
+const KIND_STEP_NAMES = (() => {
+  const map = new Map();
+  for (const activity of ACTIVITIES) map.set(activity.when, [...(map.get(activity.when) || []), ...(activity.steps || []).map((step) => step.step)]);
+  return map;
+})();
 const FACT_KINDS = (() => {
   const map = new Map();
   const walk = (item, when) => {
@@ -2270,6 +2282,10 @@ function printsSomewhere(item, task, state) {
   const kinds = FACT_KINDS.get(item.id);
   if (!kinds || WHOLE_SWMS_FACTS.has(item.id)) return true;
   if (kinds.some((when) => state.kinds.includes(when))) return true;
+  // An answer that goes into the step its work is done in (FACT_STEP: the crane chart and ground under the
+  // user's own hiab) prints while such a step is ticked (messy round 12, A run 2: with a step unticked in the
+  // signed-out preview, the crane chart and ground were not asked; after sign-in, with the untick lost, they were).
+  if (FACT_STEP[item.id] && state.kinds.some((when) => (KIND_STEP_NAMES.get(when) || []).some((name) => FACT_STEP[item.id].test(name)))) return true;
   if (kinds.some((when) => suggestedKinds(task, {}, { ...state, kinds: null }).includes(when))) return false;
   if (REFERENCE_FACTS.some(([id]) => id === item.id)) return true;
   const category = CATEGORY_FACTS.find((entry) => entry.id === item.id);
@@ -2758,7 +2774,8 @@ function controlsFor(task, facts, pack) {
   const push = (level, text) => {
     const line = withoutTaskSentences(cleanLine(text), task);
     if (!line || isDenialLine(line)) return;
-    items.push(control(level, line));
+    // The user's own answers start with a capital, as the library's lines do (messy round 12, run 5).
+    items.push(control(level, nameCase.capitalFirst(line)));
   };
 
   if (isScaffoldErection(task)) {
@@ -2996,7 +3013,9 @@ function involvesScaffold(draft) {
 // the SWMS involves a scaffold. "Not applicable" leaves the row off.
 function scaffoldRow(draft, input) {
   if (!involvesScaffold(draft) || noneAnswer(input.scaffoldSupervisor)) return '';
-  return keptFact(input.scaffoldSupervisor) || TO_COMPLETE;
+  // Typed in lower case, it prints with its capitals as the other people do (messy round 12, run 2: "dave,
+  // westside scaffolding supervisor").
+  return nameCase.tidyPersonRole(keptFact(input.scaffoldSupervisor)) || TO_COMPLETE;
 }
 
 function methodSteps(task, facts, site, pack) {
@@ -8882,8 +8901,10 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
   };
 }
 
+// An answer printed as a control is a sentence: a capital to start each sentence and a full stop to end it (messy
+// round 12: "hiab chart 1.2t at 8m." and lower-case fall answers printed as typed).
 function asSentence(text) {
-  const line = cleanLine(text);
+  const line = nameCase.capitalSentences(cleanLine(text));
   return line && !/[.!?]$/.test(line) ? `${line}.` : line;
 }
 

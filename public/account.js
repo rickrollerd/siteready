@@ -197,12 +197,13 @@
     // A company with lists from main contractors sees them first (Goal 12 stage 6).
     const lists = me && S.builderListsReady ? await S.builderListsReady().catch(() => 0) : 0;
     showPanel(lists ? 'from-builders' : 'my-swms');
-    scopeWaiting();
+    scopeWaiting(true);
   }
 
-  // A scope given while signed out is read by the AI once the user is signed in (scope.js).
-  function scopeWaiting() {
-    if (me && S.onSignedIn) S.onSignedIn();
+  // A scope given while signed out is read by the AI once the user signs in, if it is still in the scope box
+  // (scope.js). A page opened already signed in (a reload or Back) reads nothing new.
+  function scopeWaiting(justSignedIn = false) {
+    if (me && S.onSignedIn) S.onSignedIn({ justSignedIn });
   }
 
   function signedOut() {

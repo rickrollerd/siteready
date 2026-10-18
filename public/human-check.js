@@ -16,6 +16,8 @@
   const P = () => window.SiteWriteCheckParts;
   // Why the name typed is not a person's name, as the server judges it (public/gate-rules.js), or ''.
   const nameNote = (name) => (window.SiteWriteGate && window.SiteWriteGate.checkerNameNeed ? window.SiteWriteGate.checkerNameNeed(name) : '');
+  // The role, as it prints after the name: not a place (messy round 12, run 5: "Checked by Tanya Russo, Office").
+  const roleNote = (role) => (window.SiteWriteGate && window.SiteWriteGate.checkerRoleNeed ? window.SiteWriteGate.checkerRoleNeed(role) : '');
   const STORE = 'sitewrite.check';
   const NAME_KEY = 'sitewrite-reviewer';
   const ROLE_KEY = 'sitewrite-role';
@@ -62,7 +64,8 @@
       </div>
       <div class="field">
         <label for="${prefix}-role">Your role (printed on the SWMS)</label>
-        <input id="${prefix}-role" type="text" autocomplete="organization-title" maxlength="120" placeholder="For example Supervisor or Director" value="${esc(role)}">
+        <input id="${prefix}-role" type="text" autocomplete="organization-title" maxlength="120" placeholder="For example Supervisor or Director" value="${esc(role)}" aria-describedby="${prefix}-role-note">
+        <p class="answer-note" id="${prefix}-role-note" role="alert"${roleNote(role) ? '' : ' hidden'}>${esc(roleNote(role))}</p>
       </div>
       <p class="meta">The date is set by SiteWrite when you ${esc(verb)}.</p>
       <label class="check"><input type="checkbox" id="${prefix}-confirm"><span>I understand this is a draft. My business will check it against the site, change it where needed, and approve it before it is used. <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
@@ -294,6 +297,11 @@
     if (note) note.hidden = !weak;
     if (weak) return { ready: false, why: weak };
     if (!role.trim()) need.push('give your role');
+    const weakRole = roleNote(role);
+    const roleSaid = $(`${prefix}-role-note`);
+    if (roleSaid && roleSaid.textContent !== weakRole) roleSaid.textContent = weakRole;
+    if (roleSaid) roleSaid.hidden = !weakRole;
+    if (weakRole) return { ready: false, why: weakRole };
     if (!panel.ack) need.push('tick the last box');
     const what = verb || (panel.initial ? 'mark it as checked' : 'download or save');
     return need.length ? { ready: false, why: `To ${what}, ${joinWords(need)}.` } : { ready: true, why: '' };

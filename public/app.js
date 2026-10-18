@@ -579,7 +579,9 @@ function payload() {
     ppeOff: ppeUnticked(),
     // The job steps picked, or none to use the ones SiteWrite finds in the task, less those the user unticked by hand.
     kinds: stepPicks || undefined,
-    kindsOff: !stepPicks && stepsOff.size ? [...stepsOff] : undefined,
+    // Kept with the work, on this device and in a saved SWMS, so a step unticked by hand stays unticked after a
+    // reload or sign-in and the task is then reworded (messy round 12, B run 8 and A run 2).
+    kindsOff: stepsOff.size ? [...stepsOff] : undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
     // The rows of a scope reading that the reader matched to no job steps, for the task as read,
@@ -1255,14 +1257,18 @@ function searchStepsLater() {
 
 // Steps for where the work is done, for a task SiteWrite has no job steps for: shown, not ticked.
 let stepsAround = [];
+// The job steps ticked in the Job steps list, and nothing else on the page: the scope review's "No, leave it
+// out" ticks carry a data-step too (messy round 12, run 3: a step tick labelled only "no" came in).
+const tickedSteps = () => [...document.querySelectorAll('#steps-block input[data-step]:checked')].map((el) => el.value);
 
 function renderSteps(steps) {
   const chosen = new Set(steps.chosen || []);
   const locked = new Set(steps.locked || []);
   const around = new Set(steps.around || []);
   stepsAround = [...around];
-  // Suggested steps keep their place when unticked; added steps follow them.
-  const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || [])])];
+  // Suggested steps keep their place when unticked; added steps follow them. A step unticked by hand stays in the
+  // list to tick again, and an id the step library does not hold is not shown (messy round 12, run 3: "no").
+  const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || []), ...stepsOff])].filter((id) => !stepById.size || stepById.has(id));
   document.getElementById('steps-block').innerHTML = ids.length ? ids.map((id) => {
     const kind = stepById.get(id) || { label: id, steps: [] };
     const others = kind.steps.filter((name) => name !== kind.label);
@@ -1417,7 +1423,7 @@ document.getElementById('ppe-block').addEventListener('click', (event) => {
 
 document.getElementById('steps-block').addEventListener('change', (event) => {
   if (!event.target.matches('[data-step]')) return;
-  stepPicks = [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value);
+  stepPicks = tickedSteps();
   if (event.target.checked) stepsOff.delete(event.target.value);
   else stepsOff.add(event.target.value);
   refreshSteps();
@@ -1427,7 +1433,7 @@ document.getElementById('step-add').addEventListener('change', (event) => {
   const id = event.target.value;
   if (!id) return;
   // The steps for the work around it come back with the first step added for the work itself.
-  const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value).concat(stepsAround);
+  const current = stepPicks || tickedSteps().concat(stepsAround);
   stepPicks = [...new Set([...current, id])];
   stepsOff.delete(id);
   document.getElementById('step-search').value = '';
@@ -1453,7 +1459,7 @@ const methodSteps = {
   libraryGroups: () => stepLibrary.groups,
   libraryKind: (id) => stepById.get(id) || null,
   addKinds(ids) {
-    const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value).concat(stepsAround);
+    const current = stepPicks || tickedSteps().concat(stepsAround);
     const added = ids.filter((id) => !current.includes(id));
     if (!added.length) return [];
     stepPicks = [...new Set([...current, ...added])];
@@ -2006,7 +2012,7 @@ function fillStart(input) {
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
-  stepsOff = new Set();
+  stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string') : []);
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
   scopeWordsNow = input.scopeTask && typeof input.scopeTask === 'object' ? { ...input.scopeTask } : null;
@@ -5184,6 +5190,10 @@ function showSameName() {
 const scriptsRun = document.readyState === 'loading'
   ? new Promise((resolve) => { document.addEventListener('DOMContentLoaded', resolve, { once: true }); })
   : Promise.resolve();
-loadStates().then(() => scriptsRun.then(() => restoreUnsaved()).catch(() => false), () => {
+// Until it has, the project page waits for the state it brings back before saying the state is not set (messy
+// round 12, A run 1: "questions show once the state is set" flashed up after a reload with the state set).
+let restoreDone = false;
+const restored = loadStates().then(() => scriptsRun.then(() => restoreUnsaved()).catch(() => false), () => {
   document.getElementById('start-error').textContent = 'The state list could not be loaded.';
-});
+}).finally(() => { restoreDone = true; });
+window.SiteWrite = Object.assign(window.SiteWrite || {}, { restoring: () => !restoreDone, restored });

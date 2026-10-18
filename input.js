@@ -262,6 +262,9 @@ function draftBody(body) {
     const found = require('./draft').foundKinds(out);
     if (Array.isArray(found)) out.kinds = found.filter((id) => !off.includes(id));
   }
+  // Kept with the input, so a saved SWMS opened again still knows which steps were unticked by hand (messy round
+  // 12: an unticked step came back after a reload or sign-in once the task was reworded).
+  if (off.length) out.kindsOff = off;
   return out;
 }
 function draftFields(body) {
