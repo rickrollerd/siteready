@@ -719,13 +719,27 @@ app.use('/api', (_req, res) => {
   res.status(404).json({ kind: 'error', message: 'Not found.' });
 });
 
+// A plain message for a failure on the server, said for what the person was doing: never the database's own words, and
+// not "The statement could not be prepared." for a sign-in (messy round 12: with the database down, both sign-in pages
+// showed that drafting message).
+function serverMessage(path) {
+  const at = String(path || '');
+  if (/^\/api\/auth\/email\/?$/.test(at)) return 'SiteWrite could not send the sign-in email just now. Try again in a few minutes.';
+  if (/^\/api\/auth\//.test(at)) return 'SiteWrite could not sign you in just now. Try again in a few minutes.';
+  if (/^\/api\/hse\/email\/?$/.test(at)) return 'SiteLink could not send the sign-in email just now. Try again in a few minutes.';
+  if (/^\/api\/hse\/verify\/?$/.test(at)) return 'SiteLink could not sign you in just now. Try again in a few minutes.';
+  if (/^\/api\/hse\//.test(at)) return 'SiteLink could not do that just now. Try again in a few minutes.';
+  if (/^\/api\/(?:draft|project\.zip)/.test(at)) return 'The statement could not be prepared just now. Try again in a few minutes.';
+  return 'SiteWrite could not do that just now. Try again in a few minutes.';
+}
+
 // Details go to the log. The client gets a plain message.
 app.use((error, req, res, _next) => {
   const status = error.status || error.statusCode || 500;
   // A worker sign-on key is never written to the error log.
   // Nor is a list page's link or its stop link (stage 5).
   if (status >= 500) recordError(`${req.method} ${req.path.replace(/^\/api\/sign\/[^/]+/, '/api/sign/:token').replace(/^\/api\/list\/stop\/[^/]+/, '/api/list/stop/:token').replace(/^\/api\/list\/(?!stop\/)[^/]+/, '/api/list/:token')}`, error);
-  const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : 'The statement could not be prepared.';
+  const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : serverMessage(req.originalUrl ? req.originalUrl.split('?')[0] : req.path);
   // What a SWMS still needs before it is saved or downloaded (goal 2), for the page to show.
   const gate = error.publicMessage && Array.isArray(error.gate) ? { gate: error.gate } : {};
   // The box a refusal is about, for the page to mark (the review response's boxes).
