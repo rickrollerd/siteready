@@ -1261,6 +1261,10 @@ let stepsAround = [];
 // out" ticks carry a data-step too (messy round 12, run 3: a step tick labelled only "no" came in).
 const tickedSteps = () => [...document.querySelectorAll('#steps-block input[data-step]:checked')].map((el) => el.value);
 
+// Our own crane: the steel lifting step is not done with a crane company (messy round 12, A run 1: the picker said
+// "Lift and land steel with the crane company" for the crew's own crane).
+const pickerName = (name) => ((document.querySelector('input[name="crane"]:checked') || {}).value === 'own' ? String(name).replace(/ with the crane company$/, ' with the crane') : name);
+
 function renderSteps(steps) {
   const chosen = new Set(steps.chosen || []);
   const locked = new Set(steps.locked || []);
@@ -1271,13 +1275,13 @@ function renderSteps(steps) {
   const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || []), ...stepsOff])].filter((id) => !stepById.size || stepById.has(id));
   document.getElementById('steps-block').innerHTML = ids.length ? ids.map((id) => {
     const kind = stepById.get(id) || { label: id, steps: [] };
-    const others = kind.steps.filter((name) => name !== kind.label);
+    const others = kind.steps.filter((name) => name !== kind.label).map(pickerName);
     const names = others.length ? `<span class="step-names">${esc(others.join('; '))}</span>` : '';
     const off = locked.has(id) && !chosen.has(id) && !around.has(id);
     const warning = around.has(id)
       ? '<span class="step-note">For where the work is done, not the work itself. It is ticked again when you add a step for the work.</span>'
       : off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || 'The task calls for this step. Make sure this risk is covered another way before work starts.')}</span>` : '';
-    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
+    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(pickerName(kind.label))}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
   }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
   fillStepAdd();
 }

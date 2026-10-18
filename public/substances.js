@@ -146,7 +146,7 @@
   // The types SiteWrite suggests for the work, and whether a product of each is added (D277: each needs
   // a product or the tick "Not required").
   const suggestedTypes = () => ((shown && shown.substances && shown.substances.items) || []).map((item) => item.product).filter((label) => R.TYPES.includes(label));
-  const productsOf = (type) => products.filter((row) => row.type === type && typed(row));
+  const productsOf = (type) => products.filter((row) => (R.coversType ? R.coversType(row, type) : row.type === type) && typed(row));
   const TYPE_NEED = (type) => `${R.SHORT.get(type)}: add the product you use, or tick "Not required".`;
   // What a suggested type still needs, judged as the user ticks or adds (the server checks again).
   // The old safety data sheet answer, while no product is listed (D277 item 3): a type it names cannot be "Not required".

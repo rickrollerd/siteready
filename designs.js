@@ -161,6 +161,9 @@ const KINDS = [
   {
     id: 'steelErection', label: 'Steel erection sequence and bracing design',
     lines: [/\bas the erection engineer's sequential erection procedure and marking plan show\b/],
+    // The steel is erected in that sequence, so the erection step is held too, not only the bracing step (messy round 12,
+    // A run 1: "Not issued yet" held "Install and remove temporary bracing" but not "Erect and connect steel at height").
+    holdSteps: /^(Erect and connect steel at height|Install and remove temporary bracing|Land steel on temporary support towers)$/,
   },
   {
     id: 'timberErection', label: 'Erection sequence and bracing design',
@@ -404,7 +407,8 @@ function withDesigns(draft, input) {
     if (!kind || !kind.holdSteps || row.status === 'notNeeded') continue;
     const doing = jobSteps.filter((step) => !step.own && kind.holdSteps.test(step.step || ''));
     if (!doing.length) continue;
-    row.steps = [...new Set([...row.steps, ...doing.map((step) => step.step)])];
+    const order = jobSteps.map((step) => step.step);
+    row.steps = [...new Set([...row.steps, ...doing.map((step) => step.step)])].sort((a, b) => order.indexOf(a) - order.indexOf(b));
     if (row.status !== 'notIssued' || designNeed(row) !== '') continue;
     const hold = holdLine(row);
     for (const step of doing) {

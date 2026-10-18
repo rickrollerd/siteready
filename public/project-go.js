@@ -515,7 +515,7 @@
     const rules = window.SiteWriteSubstanceRules;
     if (item.kind !== 'draft' || !rules) return;
     const label = `${TYPE_LABEL}${rules.promptName(type)}`;
-    const covered = ((item.body && item.body.substances) || []).some((row) => row && row.type === type && String(row.product || '').trim());
+    const covered = ((item.body && item.body.substances) || []).some((row) => row && (rules.coversType ? rules.coversType(row, type) : row.type === type) && String(row.product || '').trim());
     const ticked = notUsedOf(item).includes(type);
     const needs = (item.needs || []).filter((need) => need !== label);
     if (!covered && (!ticked || notUsedNeed(index, type))) needs.push(label);
@@ -531,7 +531,7 @@
     const ticked = new Set(notUsedOf(item));
     const products = ((item.body && item.body.substances) || []).filter((row) => row && String(row.product || '').trim());
     const rows = types.filter((type) => rules.TYPES.includes(type)).map((type) => {
-      const added = products.filter((row) => row.type === type).map((row) => row.product);
+      const added = products.filter((row) => (rules.coversType ? rules.coversType(row, type) : row.type === type)).map((row) => row.product);
       const said = rules.namedIn ? rules.namedIn(type, wordsOf(index)) : '';
       // Fuel for the plant list's diesel or petrol plant asks a reason too (messy round 11, run 2).
       const got = asked.get(index) || {};

@@ -154,7 +154,7 @@ const ASBESTOS_REMOVALIST = 'Licensed asbestos removalist (Class A for friable a
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
-  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting(?! pelmets?| troughs?| recess\w*| bulkheads?| baffles?| bridges?| boxes)|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|(?<!(?:roof|rainwater|siphonic|floor|stormwater|drainage|pit|gutter|sump|tank|overflow|air|duct|exhaust) )outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|(?<!clean\w* )solar(?! hot water| powered| farm piles?)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
+  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting(?! pelmets?| troughs?| recess\w*| bulkheads?| baffles?| bridges?| boxes| towers?| plants?| masts?)|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|(?<!(?:roof|rainwater|siphonic|floor|stormwater|drainage|pit|gutter|sump|tank|overflow|air|duct|exhaust) )outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|(?<!clean\w* )solar(?! hot water| powered| farm piles?)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
   ['Plumbing and drainage licence', /\b(vanit(?:y|ies)(?! walls?| enclosures?| frames?| nibs?)|plumbing|plumber|hydraulic (?:services (?:pipework|pipes?)|pipework|pipes?|piping|risers?|stacks?)|sanitary (?:stacks?|plumbing|drainage|pipework)|(?<!(?:wall|ag|agricultural|subsoil|retaining|pit) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump(?:ing)? stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?|install\w* (?:split |reverse cycle )?air ?condition\w*)\b/i],
   ['Gas work licence', /\b(?<!medical )(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
@@ -265,8 +265,19 @@ const ANSWERED_BY = [
 // where it is of the kind that answers the step's worst hazard (ANSWERED_BY).
 // strict leaves out the old rule that any engineering line counts, to tell which controls a
 // rating relies on (ratedSteps).
+// The user's own step that says its work is under 2 m ("Platform under 2 m, no work off the plank ends"): a fall from it
+// is a major injury, not a fatal one, so it is not left High after its own controls (messy round 12, A run 1: an own
+// trestle step under 2 m stayed High).
+const UNDER_TWO_METRES = /\b(?:platforms?|work(?:ing)?|heights?|planks?|trestles?|decks?)\b[^.]{0,30}\b(?:under|below|less than)\s*2(?:\.0)?\s?m(?:etres?)?\b(?!\s*(?:below|under|beneath|from)\b)/i;
+const OVER_TWO_METRES = /\b(?:over|above|more than|2 m or more|exceed\w*)\s*2(?:\.0)?\s?m(?:etres?)?\b|\bfall of more\b/i;
+function lowFall(step) {
+  const words = [...(step.hazards || []), ...(step.controls || [])].join(' ');
+  return Boolean(step.own) && UNDER_TWO_METRES.test(words) && !OVER_TWO_METRES.test(words);
+}
 function riskFor(step, shared = [], strict = false) {
-  const consequence = consequenceOf(step.hazards || []);
+  const fatal = consequenceOf(step.hazards || []);
+  // Only a person's fall is made a major injury: any other fatal hazard keeps the step catastrophic.
+  const consequence = fatal === 5 && lowFall(step) && consequenceOf((step.hazards || []).filter((line) => !PERSON_FALL(line) && !/\b(?:tips?|collaps\w*)\b/i.test(line))) < 5 ? 4 : fatal;
   const before = consequence >= 4 ? 3 : 4;
   const higher = [...(step.controls || []), ...shared].filter(higherOrder);
   const worst = (step.hazards || []).filter((line) => (consequence === 5 ? CATASTROPHIC.test(String(line).replace(HANDS_CRUSHED, ' ')) : true));
@@ -867,7 +878,9 @@ function registersFor(draft, input = {}) {
     // Plant suggestions come from the task's own work (messy round 4): rail track plant only for rail
     // track work, and no crane where the user said no crane is used and the task names none.
     .filter((item) => !RAIL_PLANT.has(item.item) || RAIL_WORK.test(`${ownTask}\n${steps.map((step) => step.step).join('\n')}`))
-    .filter((item) => !(noCrane && /crane/i.test(item.item) && !/\bcranes?\b|\bhiabs?\b|\bfrannas?\b/i.test(ownTask)))
+    // A crane denied or given to others in the task ("no crane", "crane by others") is not one the crew uses (messy round
+    // 12, B run 8), as the draft reads it (draft.js craneNamed).
+    .filter((item) => !(noCrane && /crane/i.test(item.item) && !require('./draft').craneNamed(ownTask)))
     .map((item) => othersLicence(item, allText, task, ownCrane, ownCrane ? (input.facts || {}).craneChart : '', scaffoldByOthers));
   if (plant.some((item) => /^(Boom-type elevating work platform|Scissor lift)$/.test(item.item)) && !SEPARATE_EWP.test(withoutScissorEwp(ownTask).replace(/\bboom(?:[- ]type)? (?:ewps?|elevating work platforms?)\b/gi, ' boom lift '))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Elevating work platform'));
   // A truck loading crane job's "the crane" is the loading crane.
@@ -949,7 +962,10 @@ function registersFor(draft, input = {}) {
   // Plant that runs on fuel brings fuel as a product type, as an excavator or generator does (D282): road plant
   // (an asphalt paver or road profiler) and plant named for its fuel, listed or added by the user ("diesel air
   // compressor", "abrasive rail saw (petrol)"; content8 decision 6 A, messy round 9, run 7).
-  const fuelled = [...plant.map((item) => item.item), ...listed.filter((item) => item.own).map((item) => item.item)].some((name) => /^(?:Asphalt paver|Road profiler)$/.test(name) || /\b(?:petrol|diesel)\b/i.test(name));
+  // Our own mobile crane runs on diesel too (messy round 12, B run 7: once "Receive plant" was taken off, fuel was no
+  // longer asked beside a 60 t crane in the plant list).
+  const ownMobileCrane = (name) => ownCrane && /^(?:Mobile crane|Crawler crane|Non-slewing mobile crane)\b/.test(name);
+  const fuelled = [...plant.map((item) => item.item), ...listed.filter((item) => item.own).map((item) => item.item)].some((name) => /^(?:Asphalt paver|Road profiler)$/.test(name) || /\b(?:petrol|diesel)\b/i.test(name) || ownMobileCrane(name));
   if (fuelled && !substances.items.some((item) => /^Fuels/.test(item.product))) substances.items.push({ product: 'Fuels (diesel, petrol)', sds: '', quantity: '' });
   // Gases and fuels named only for plant the user has said is not used are not asked for (messy round 4:
   // acetylene after the torch was unticked).

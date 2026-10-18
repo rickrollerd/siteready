@@ -188,7 +188,9 @@
     // no reason beside SiteWrite's own step "Clean with chemicals").
     'Cleaning chemicals': /\b(?:acid wash\w*|cleaning chemicals?|cleaning products?|clean\w* with chemicals|chemical clean\w*|detergents?|hydrochloric|muriatic|degreasers?)\b/i,
     'Herbicides and termiticides': /\b(?:herbicides?|termiticides?|weed ?killers?|glyphosate|termite treatment)\b/i,
-    'Bitumen and asphalt': /\b(?:bitumen|asphalt|hot mix|tack coat|prime coat|emulsion)\b/i,
+    // A torch-on membrane is a bitumen sheet (messy round 12, A run 2: "no hot bitumen, membrane only" was taken beside
+    // the crew's own SBS bitumen torch-on membrane).
+    'Bitumen and asphalt': /\b(?:bitumen|asphalt|hot mix|tack coat|prime coat|emulsion|torch[- ]?on (?:membranes?|sheets?))\b/i,
     'Pool and water treatment chemicals': /\b(?:pool chemicals?|pool chlorine|chlorine|hypochlorite|hydrochloric|pool acid)\b/i,
     'Potting mix, soil conditioners and fertilisers': /\b(?:potting mix|fertili[sz]ers?|soil conditioners?)\b/i,
   };
@@ -507,6 +509,8 @@
     [/\bgrout\b/i, /\bgrout\w*\b/i],
     [/\b(?:tile )?adhesives?\b|\bglue\b/i, /\badhesive\b/i],
     [/\b(?:bedding|sand (?:and )?cement|screed)\b/i, [/\bscreed\b/i, /\bbed(?:s|ding)?\b/i, /^Lay (?:the )?(?:tiles|pavers|stone|granite|coping)$/i, /^Lay\b/i]],
+    [/\btorch[- ]?on\b|\bsbs\b|\bbitumen (?:sheets?|membranes?)\b/i, [/\btorch[- ]?on\b/i, /\bmembranes?\b/i]],
+    [/\bprimers?\b/i, [/\bprimers?\b/i]],
     [/\bmembranes?\b|\bwaterproof\w*\b/i, /\bmembranes?\b|\bwaterproof\w*\b/i],
     [/\b(?:sealants?|silicone|caulk\w*|mastics?)\b/i, /\b(?:seal\w*|caulk\w*)\b/i],
     // Petrol runs the small plant (saws, compactors, generators), not the diesel earthmoving plant (messy round 9,
@@ -519,6 +523,9 @@
     [/\b(?:release agents?|form ?oil|form release)\b/i, [/^Lay the formwork deck$/i, /^Stand and brace wall and column forms$/i, /^Form the\b/i, /\bform(?:work)?\b/i]],
     [/\bconduits?\b/i, [/^Lay conduits$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i, /^Rough-in$/i]],
   ];
+  // Words a product name shares with many steps, which say nothing of the step it goes in.
+  const GENERIC_PRODUCT_WORDS = new Set(['emulsion', 'product', 'products', 'based', 'water', 'solvent', 'pack', 'part', 'general', 'purpose', 'grade', 'type', 'high', 'with', 'from', 'standard', 'premium', 'liquid', 'sheet', 'litre', 'litres', 'used', 'this', 'that', 'site']);
+  // A torch-on (SBS bitumen) sheet goes in the torch-on step, and a primer in the step that applies it.
   const PIPE_PRODUCT = /\b(?:c?pvc|u-?pvc|pipe (?:cement|glue|primer)|solvent cement)\b/i;
   const PIPE_STEP = /\b(?:pipe\w*|plumb\w*|drain\w*|sprinkler|hydrant|stacks?|sanitary|join\w*)\b/i;
   function stepOf(row, steps) {
@@ -536,14 +543,26 @@
     // grouting step, a sand and cement bedding in the laying step (messy round 9, run 1: products reused from
     // another SWMS printed in the adhesive and grouting steps the other way round).
     const named = clean(row && row.product);
+    // A step that uses the product before one that only moves or prepares for it (messy round 12, B run 6: the liquid
+    // membrane, the primer and the torch-on sheet all went to "Move membrane rolls and materials").
+    const library = list.filter((item) => item && !item.own && !OWN_STEP.test(item.step || '') && !GENERAL.has(item.step));
+    const using = [...library.filter((item) => !PREPARES.test(item.step || '')), ...library.filter((item) => PREPARES.test(item.step || ''))];
     for (const [product, wanted] of PRODUCT_STEPS) {
       if (!product.test(named)) continue;
       for (const step of [].concat(wanted)) {
-        const found = list.find((item) => item && !item.own && !GENERAL.has(item.step) && step.test(item.step || ''));
+        const found = using.find((item) => step.test(item.step || ''));
         if (found) return found.step;
       }
     }
-    return matchStep(row && row.type, steps);
+    // The user's own step that names what the product is for ("tack coat emulsion" in "Spray tack coat with the sprayer
+    // truck"), before the library step for its type (B run 8: the emulsion went to "Lay and roll asphalt").
+    // The type's own words ("fuel", "bitumen") say what the product is, not which step it is for.
+    const typeWords = String((row && row.type) || '').toLowerCase().split(/[^a-z]+/).filter((word) => word.length > 3);
+    const words = named.toLowerCase().split(/[^a-z]+/).filter((word) => word.length > 3 && !GENERIC_PRODUCT_WORDS.has(word) && !typeWords.some((other) => other.startsWith(word) || word.startsWith(other)));
+    const shared = (name) => words.filter((word) => new RegExp(`\\b${word}`, 'i').test(String(name || '').replace(OWN_STEP, ''))).length;
+    const typed = matchStep(row && row.type, steps);
+    const mine = list.filter((item) => item && (item.own || OWN_STEP.test(item.step || ''))).map((item) => ({ step: item.step, n: shared(item.step) })).filter((item) => item.n > shared(typed)).sort((a, b) => b.n - a.n)[0];
+    return mine ? mine.step : typed;
   }
 
   const joinWords = (list) => (list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}` : list[0]);
@@ -592,7 +611,14 @@
   // The types the work usually uses, as the prompt says them: "cement, concrete, grout and mortar".
   const promptName = (label) => (/^(PVC|LPG)/.test(label) ? label : `${label[0].toLowerCase()}${label.slice(1)}`);
 
-  const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses };
+  // A product listed covers its own type, and a bitumen sheet listed as a waterproofing membrane covers bitumen too, so
+  // the same SBS torch-on membrane is not added twice (messy round 12, A run 2).
+  function coversType(row, type) {
+    const item = row && typeof row === 'object' ? row : {};
+    if (item.type === type) return true;
+    return type === 'Bitumen and asphalt' && /\b(?:bitumen|bituminous|sbs|app|torch[- ]?on)\b/i.test(clean(item.product));
+  }
+  const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

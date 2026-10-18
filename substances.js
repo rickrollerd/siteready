@@ -161,7 +161,7 @@ function typeItems(draft, input) {
   const notUsed = new Set(Array.isArray(input && input.substancesNotUsed) ? input.substancesNotUsed : []);
   const why = (input && input.substancesNotUsedWhy) || {};
   const words = rules.ownWords(input);
-  const covered = new Set(listed(input).map((row) => row.type).filter(Boolean));
+  const covered = new Set(rules.TYPES.filter((type) => listed(input).some((row) => rules.coversType(row, type))));
   return (draft.substances.items || []).map((item) => item.product).filter((type) => rules.TYPES.includes(type))
     .map((type) => ({ type, n: rules.TYPES.indexOf(type), need: covered.has(type) ? '' : notUsed.has(type) ? rules.notUsedNeed(type, why[type], words, rules.stepWords(draft), sdsAnswer(input), rules.cutStep(draft), draft) : TYPE_NEED(rules.SHORT.get(type)) }));
 }
