@@ -31,6 +31,10 @@ const ANSWERS = {
     ['Stair void platforms', 'Work over the stair void is done from stair platforms or a scaffold with guardrails, built to fit the stairs, and no one works from a ladder on the stairs or leans over the balustrade.'],
     // From the Excavation work code's guardrails or barrier set back from the trench (scenarios/code-controls.json).
     ['Excavation edge barriers', 'Wherever a person could fall into the excavation, guardrails or a barrier set back from the edge are fitted so people cannot approach it, and open pits are covered or fenced when left.'],
+    // From the Excavation work code s 4.4, as the library's trench lines have it (scenarios/code-controls.json): for a trench
+    // only (messy round 15, B run 8: only building and roof answers were offered for a 2.6 m trench).
+    ['Shields above ground', 'Trench shields or trench sheets stand above ground level, or guardrails or mesh covers are fitted to them.'],
+    ['Fenced or covered', 'Open trenches are fenced or covered when no one is working at them.'],
   ],
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
@@ -144,6 +148,10 @@ const FALL_FIRST = [
   ['EWP or mobile scaffold', /\b(shade (?:structures?|sails?|covers?)|carports?|awnings?|verandahs?|patio (?:roofs?|covers?)|doors?|ceilings?|cabl\w*|data|wi-?fi|access points?|lights?|lighting|ducts?|ductwork|dampers?|signs?|signage|pylons?|cameras?|cctv|sprinklers?|alarms?|detectors?|screens?|windows?|pergolas?|walls?|paint\w*|exterior|cladding|awnings?|netting|spikes|frames?|beams?|pipework|pipes?|trays?|conduits?|fans?|heaters?|shelving|racking|curtains?|blinds?|poles?|street ?lights?)\b/i],
 ];
 
+// The answers for a fall into the ground only.
+const GROUND_ONLY = ['Excavation edge barriers', 'Shields above ground', 'Fenced or covered'];
+const CIVIL_PARTS = /\b(?:precast|concrete|gully|junction|stormwater|sewer|drainage)\s+(?:\w+\s+)?(?:pits?|pipes?|culverts?|headwalls?|manholes?|chambers?|units?)\b|\btrench (?:walls?|shields?|boxes?|sheets?)\b/gi;
+const TRENCH_LAID = /\b(?:pipes?|pipework|pipelines?|conduits?|cables?|drains?|pits?|culverts?)\b/gi;
 const OPEN_GROUND = /\b(excavat\w*|trench\w*|dig(?:s|ging)?|earthworks?|batters?|bulk earthworks?)\b/i;
 const BURIED_SERVICES = /\b(?:underground|buried|in-ground|below-ground|stormwater|sewer|drainage)\s+(?:\w+\s+)?(?:pipes?|pipework|pipelines?|conduits?|cables?|services)\b/gi;
 const BUILDING_HEIGHT = /\b(roofs?|ceilings?|scaffold\w*|storeys?|level [1-9]\d*|upper (?:floors?|levels?)|suspended|decks?(?! pool)|balcon\w*|risers?|shafts?(?! excavat)|stairs?|mezzanine\w*|ewps?|scissor lifts?|boom lifts?|ladders?|walls?|facades?|towers?|bridges?|formwork|falsework|precast|steel)\b/i;
@@ -156,14 +164,27 @@ function answersFor(id, task) {
   if (id === 'silicaControls') return silicaAnswers(list, task);
   // The hospital's shutdown answer only where the work is at a hospital (messy round 10, run 6).
   if (id === 'serviceShutdown' && task && !/\b(hospitals?|medical gas\w*|patients?|wards?|clinic\w*|aged care|nursing homes?)\b/i.test(task)) return list.filter((answer) => answer.label !== 'Hospital shutdown permit');
-  if (id !== 'fallControl' || !task) return list.filter((answer) => answer.label !== 'Excavation edge barriers');
+  if (id !== 'fallControl' || !task) return list.filter((answer) => !GROUND_ONLY.includes(answer.label));
   // A fall into an open excavation, pit or pool hole, with no building work at height: the excavation's
   // own answers, not roof mesh, riser screens or scissor lifts (messy round 5).
   // Pipes, cables or conduits laid in the ground are not work reached from below.
-  const above = String(task).replace(BURIED_SERVICES, '');
-  if (OPEN_GROUND.test(task) && !BUILDING_HEIGHT.test(task) && !FALL_FIRST.some(([label, pattern]) => label !== 'Edge protection' && pattern.test(above))) return ['Excavation edge barriers', 'Penetration covers', 'Edge protection'].map((label) => list.find((answer) => answer.label === label)).filter(Boolean);
-  list.splice(0, list.length, ...list.filter((answer) => answer.label !== 'Excavation edge barriers'));
+  // Nor are the precast pits, pipes and culverts a trench crew places, or the trench's walls and shields: in a trench
+  // the pipes, pits and drains are laid in the ground (messy round 15, B run 8: "place the precast pits" and "the pipes"
+  // gave a 2.6 m stormwater trench only building and roof answers).
+  const ground = String(task).replace(CIVIL_PARTS, ' ');
+  const above = ground.replace(BURIED_SERVICES, '').replace(TRENCH_LAID, ' ');
+  if (OPEN_GROUND.test(task) && !BUILDING_HEIGHT.test(ground) && !FALL_FIRST.some(([label, pattern]) => label !== 'Edge protection' && pattern.test(above))) {
+    // The trench answers only for a trench, and the shields answer only where the task names shields or sheets.
+    const trench = /\btrench\w*\b/i.test(task);
+    const shields = /\b(?:shields?|trench (?:sheets?|boxes?)|shor(?:e|ed|ing)|sheet piles?)\b/i.test(task);
+    const labels = trench ? ['Excavation edge barriers', ...(shields ? ['Shields above ground'] : []), 'Fenced or covered', 'Edge protection'] : ['Excavation edge barriers', 'Penetration covers', 'Edge protection'];
+    return labels.map((label) => list.find((answer) => answer.label === label)).filter(Boolean);
+  }
+  list.splice(0, list.length, ...list.filter((answer) => !GROUND_ONLY.includes(answer.label)));
   const first = FALL_FIRST.find(([, pattern]) => pattern.test(task));
+  // The crew that erects the scaffold is not handed it over by a licensed scaffolder: that answer is for the trades that
+  // work from it (messy round 15, A run 4: it printed as the first control of "Erect the scaffold").
+  if (first && first[0] === 'Advance guardrails') list.splice(0, list.length, ...list.filter((answer) => answer.label !== 'Scaffold'));
   if (!first) return list;
   const pick = list.find((answer) => answer.label === first[0]);
   return [pick, ...list.filter((answer) => answer !== pick)];

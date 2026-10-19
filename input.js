@@ -265,6 +265,21 @@ function draftBody(body) {
   // Kept with the input, so a saved SWMS opened again still knows which steps were unticked by hand (messy round
   // 12: an unticked step came back after a reload or sign-in once the task was reworded).
   if (off.length) out.kindsOff = off;
+  // A Recommended step found since the step list was last drawn (kindsSeen, the steps it suggested then), from a site
+  // answer or a reworded task, is ticked with the user's picks unless they unticked it by hand: they never saw it to
+  // untick (messy round 15, A run 4: "Plan the work near overhead power lines", from the Live services answer "power
+  // lines out front", was dropped by Prepare once an unrelated step was unticked). kindsKept says which, for the page.
+  const seen = Array.isArray(body.kindsSeen) ? [...new Set(body.kindsSeen.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 200) : null;
+  if (seen && Array.isArray(out.kinds)) {
+    out.kindsSeen = seen;
+    const draft = require('./draft');
+    const found = draft.foundKinds({ ...out, kinds: undefined });
+    const kept = Array.isArray(found) ? found.filter((id) => draft.LOCKED_KINDS.has(id) && !seen.includes(id) && !off.includes(id) && !out.kinds.includes(id)) : [];
+    if (kept.length) {
+      out.kinds = [...out.kinds, ...kept];
+      out.kindsKept = kept;
+    }
+  }
   // The job steps the scope reading or pick list chose before the user reworded the task: those the new words still name
   // are kept with the steps found in the new words (messy round 13, A runs 2 and 3).
   const prior = Array.isArray(body.priorKinds) ? [...new Set(body.priorKinds.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 80) : [];

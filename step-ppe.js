@@ -417,7 +417,9 @@ function agreePpe(draft) {
 function wornSaid(draft) {
   const out = new Map();
   if (!draft || !Array.isArray(draft.jobSteps)) return out;
-  const saysWorn = (id, line) => sentencesOf(line).some((sentence) => !CONDITIONAL.test(sentence) && !NOT_DONE.test(sentence) && WORN_SAID[id].test(sentence));
+  // A line that opens with a condition holds its later sentences under it ("Where temporary edge protection must be
+  // opened, ... Workers at the opening use travel restraint": messy round 15, B run 5).
+  const saysWorn = (id, line) => !CONDITIONAL.test(sentencesOf(line)[0] || '') && sentencesOf(line).some((sentence) => !CONDITIONAL.test(sentence) && !NOT_DONE.test(sentence) && WORN_SAID[id].test(sentence));
   const work = draft.jobSteps.filter(isWorkStep);
   for (const id of Object.keys(WORN_SAID)) {
     let steps = draft.jobSteps.filter((step) => (step.controls || []).some((line) => saysWorn(id, line))).map((step) => step.step);

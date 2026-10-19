@@ -144,8 +144,10 @@ test('site answers print whole in the site table, as typed, and never run into a
   for (const answer of Object.values(site)) assert.ok(!controls.some((line) => line.includes(answer.slice(0, 25))), `"${answer}" is not in a control`);
   assert.ok(!controls.some((line) => /highway/.test(line)));
   const printed = Object.fromEntries(draft.site.map((field) => [field.id, field.text]));
-  assert.equal(printed.liveServices, site.liveServices);
-  assert.equal(printed.access, site.access);
+  // As typed, with the first capital a sentence takes (messy round 15: "liverpool st" printed in lower case).
+  const sentence = (text) => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+  assert.equal(printed.liveServices, sentence(site.liveServices));
+  assert.equal(printed.access, sentence(site.access));
 });
 
 // ---- 9. A box drawn again keeps the whole text ----

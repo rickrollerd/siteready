@@ -289,7 +289,8 @@ const designFileLimit = limiter('design-files', positiveNumber(process.env.RATE_
 app.use('/api/designs/files', (req, res, next) => (req.method === 'POST' ? designFileLimit(req, res, next) : next()));
 
 app.post('/api/draft/questions', (req, res) => {
-  const result = questionsFor(draftBody(req.body || {}));
+  const body = draftBody(req.body || {});
+  const result = questionsFor(body);
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   // Standard answers the user can pick, then change.
   // Outside Queensland the answers use the state's wording.
@@ -298,7 +299,8 @@ app.post('/api/draft/questions', (req, res) => {
   result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: local(answersFor(item.id, result.task)) }));
   // The designs the job steps rely on, asked under the site questions (designs.js), as the draft
   // would print them now. Nothing is said while the draft would be stood down.
-  res.json({ ...result, ...designsAsked(draftBody(req.body || {})) });
+  // A Recommended step ticked with the user's picks because it was not in the list they saw (input.js kindsKept).
+  res.json({ ...result, ...designsAsked(body), ...(body.kindsKept ? { kindsKept: body.kindsKept } : {}) });
 });
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
@@ -460,7 +462,8 @@ app.get('/api/check/:id', auth.requireUser, async (req, res, next) => {
 });
 
 app.post('/api/draft', (req, res) => {
-  const result = prepareDraft(draftBody(req.body || {}));
+  const body = draftBody(req.body || {});
+  const result = prepareDraft(body);
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   record(req.user ? 'preview_signed_in' : 'preview', req.company && req.company.id);
   // For the preview only: the source of each control line that is a legal requirement, and why
@@ -485,7 +488,7 @@ app.post('/api/draft', (req, res) => {
   const checkParts = result.kind === 'draft' ? { checkParts: partHashes(result) } : {};
   // The high risk work the page offers to add, and the items the user added (messy round 5).
   const options = highRiskOptions(draftBody(req.body || {}), result);
-  res.json({ ...result, ...legal, ...checkParts, ...options });
+  res.json({ ...result, ...legal, ...checkParts, ...options, ...(body.kindsKept ? { kindsKept: body.kindsKept } : {}) });
 });
 
 // SiteWrite's own check before the person's (D286): the download gate, then Builder check on the

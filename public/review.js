@@ -125,7 +125,7 @@
       <h3>Job steps</h3><div class="table-wrap"><table class="steps"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${stepRows}</tbody></table></div>
       <h3>Personal protective equipment</h3>${stepPpe.length ? '<p class="note"><strong>For all work</strong></p>' : ''}${pairs(allWork)}
       ${stepPpe.length ? `<p class="note"><strong>For particular steps</strong>. Worn as well as the PPE for all work, in the steps listed.</p>${pairs(stepPpe.map((item) => [item.label, item.steps.join('; ')]))}` : ''}
-      ${(draft.plant || []).length ? `<h3>Plant and equipment</h3>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
+      ${(draft.plant || []).length ? `<h3>Plant and equipment</h3>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.shown || item.item, item.inspection, item.licence]))}` : ''}
       ${table(tables.substances)}
       ${(draft.qualifications || []).length ? `<h3>Licences, tickets and training</h3><ul>${draft.qualifications.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>` : ''}
       ${(draft.emergency || []).length ? `<h3>Emergency arrangements</h3>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}` : ''}

@@ -177,9 +177,14 @@ function splitRole(value) {
   if (name.split(/\s+/).every((word) => ROLE_PHRASE_WORDS.has(word.toLowerCase().replace(/[.]/g, '')) || ROLE_PHRASE_WORDS.has(word.toLowerCase().replace(/[.']/g, '').replace(/s$/, '')))) return null;
   return { name, role: tail[1].trim() };
 }
+// A name typed in lower case before a dash or a bracket takes its capitals, whatever follows ("jake morrow - holds HRW
+// scaffolding intermediate" reads "Jake Morrow - holds HRW scaffolding intermediate": messy round 15, A run 4).
+const NAME_THEN_NOTE = /^([a-z][a-z'’-]*(?:\s+[a-z][a-z'’-]*){1,2})(\s+[-–]\s+|\s*\()/;
 function tidyPersonRole(text) {
   const value = clean(text);
   if (!value) return value;
+  const noted = NAME_THEN_NOTE.exec(value);
+  if (noted && !noted[1].split(/\s+/).every((word) => ROLE_PHRASE_WORDS.has(word.replace(/[.']/g, '').replace(/s$/, '')))) return `${tidyName(noted[1])}${noted[2]}${value.slice(noted[0].length)}`;
   if (/[A-Z]/.test(value)) {
     const split = value.includes(',') ? null : splitRole(value);
     return split ? `${split.name}, ${/[A-Z]/.test(split.role) ? split.role : tidyRole(split.role)}` : value;
@@ -211,6 +216,28 @@ function withCompanyNames(text, names = []) {
         out = out.replace(pattern, (found) => (/[A-Z]/.test(found.slice(1)) ? found : run.join(' ')));
       }
     }
+  }
+  return out;
+}
+
+// The people the SWMS names, written with their capitals, take them inside other answers too: "jake morrow n the other
+// scaffolder get them back onto the deck" reads "Jake Morrow ..." where Jake Morrow is the scaffold supervisor (messy
+// round 15, A run 4). Only a name of two or three words, and only where it is typed all in lower case.
+function personNames(values) {
+  const out = [];
+  for (const value of values || []) {
+    const tidy = tidyPersonRole(clean(value));
+    const name = clean(tidy.split(/,|\s[-–]\s|\s\(/)[0]);
+    const words = name.split(/\s+/);
+    if (words.length >= 2 && words.length <= 3 && words.every((word) => /^[A-Z][A-Za-z'’-]+$/.test(word)) && !out.includes(name)) out.push(name);
+  }
+  return out;
+}
+function withPersonNames(text, names = []) {
+  let out = String(text || '');
+  for (const name of names) {
+    const pattern = new RegExp(`\\b${name.split(/\s+/).map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+')}\\b`, 'gi');
+    out = out.replace(pattern, (found) => (found === found.toLowerCase() ? name : found));
   }
   return out;
 }
@@ -263,4 +290,4 @@ function tidyRole(text) {
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { personNames, withPersonNames, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

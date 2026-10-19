@@ -222,7 +222,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
   for (const item of emergencyQuestions(draft, said)) {
-    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}), ...(item.stop ? { stop: true } : {}), ...(item.controls ? { controls: true } : {}) }, item.answer);
+    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}), ...(item.stop ? { stop: true } : {}), ...(item.controls ? { controls: true } : {}), ...(item.role ? { role: true } : {}), ...(item.category === 'fall' && item.rescue ? { fall: true } : {}) }, item.answer);
   }
   // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
   // its number and date; "Not issued yet", which prints as a hold point; or "Not needed for this
@@ -276,7 +276,9 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // it is saved (messy round 3).
   (draft.jobSteps || []).filter((step) => step.own).forEach((step, n) => {
     const open = [step.step, ...(step.hazards || []), ...(step.controls || []), step.responsible].find((text) => typeof text === 'string' && leftOpen(text));
-    const short = [...(step.hazards || []).map((text) => ownLineProblem(text, 'hazard')), ...(step.controls || []).map((text) => ownLineProblem(text, 'control'))].find(Boolean);
+    // Judged as typed, so the check quotes the line as the page does (the printed line takes a capital: messy round 15).
+    const typed = step.typed || step;
+    const short = [...(typed.hazards || []).map((text) => ownLineProblem(text, 'hazard')), ...(typed.controls || []).map((text) => ownLineProblem(text, 'control'))].find(Boolean);
     if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open)}". Change your step to say what applies.` });
     else if (short) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `${short} Change your step to say what is done and how.` });
   });
