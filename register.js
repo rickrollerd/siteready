@@ -523,7 +523,9 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   // runs 2 and 4: "front gate ..." in the Emergency table under "Front gate on St Georges Tce").
   const names = require('./sitelink-answers');
   const muster = String(input.musterPoint || '').replace(/\s+/g, ' ').trim();
-  rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: muster ? names.tidyPlace(muster) : '' });
+  // A lone "n" typed for "and" prints "and", as the header's muster point does (messy round 15, A run 4: "Pakenham St n
+  // High St" in the Emergency table).
+  rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: muster ? names.tidyPlace(muster.replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and')) : '' });
   rows.push({ type: 'Fire', equipment: /\b(hot work|weld\w*|torch\w*|brazing|grinding|oxy|lpg|electric\w*)\b/i.test(text) ? 'Fire extinguisher suited to the hazard (dry powder or CO2 near electrical equipment)' : 'Fire extinguisher', detail: '' });
   rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${names.tidyPersonRole(String(input.firstAider).replace(/\s+/g, ' ').trim())}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${names.tidyName(String(input.hospital).replace(/\s+/g, ' ').trim())}` : '' });
   // With falls answered No, a line that only names a harness or EWP as one way up does not bring the row:
@@ -825,7 +827,10 @@ function confirmedPlant(plant, choice, stateId) {
     // needed (messy round 6: a HIAB with licence "No" printed no CV licence and no dogging).
     const needs = known && /^Yes\b/.test(known.licence) ? known.licence.replace(WHERE_USED, '') : '';
     const bareNo = /^(?:no|nope|none|nil|not needed|not required|n\/?a)\.?$/i.test(licence);
-    kept.push({ item: name, inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : licence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) });
+    // The name prints with its first capital and a lone "n" as "and" ("gin wheel n rope" reads "Gin wheel and rope": messy
+    // round 15, A run 4). The item keeps the name as typed, which the page's plant list goes by.
+    const shown = `${name.charAt(0).toUpperCase()}${name.slice(1)}`.replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
+    kept.push({ item: name, ...(shown !== name ? { shown } : {}), inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : licence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) });
   }
   return kept;
 }

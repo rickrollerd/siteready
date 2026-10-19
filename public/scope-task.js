@@ -102,17 +102,29 @@
   const TRADE_NAMED = /\b(?:electric\w*|sparky|sparkies|plumb\w*|hydraulic\w*|mechanical|hvac|air ?con\w*|fire\w*|sprinkler\w*|carpent\w*|joiner\w*|joinery|til(?:er|ers|ing)|paint\w*|plaster\w*|ceiling\w*|partition\w*|concret\w*|formwork\w*|steel ?fix\w*|reo|steel\w*|scaffold\w*|cranes?|crane crew|rigg\w*|roof\w*|glaz\w*|windows?|facade\w*|cladding|landscap\w*|civil\w*|earthwork\w*|demoli\w*|asbestos|clean\w*|security|data|comms|cabling|lifts?|floor ?(?:layers?|finish\w*|cover\w*)|carpet\w*|vinyl|waterproof\w*|insulat\w*|duct\w*|fans?|kitchens?|masonry|brick\w*|block ?lay\w*|render\w*|signage|traffic control\w*|survey\w*|cabinet\w*|services trades?|pump\w*|piling|drill\w*|welders?|fitters?|electricians?|labourers?)\b/i;
   const WHERE_NAMED = /\b(?:above|below|beneath|overhead|same (?:level|floor|area|room|zone)|levels? \d+|floors? \d+|L\d+|ground floor|basement|roof|plant ?room|riser|shaft|zone \w+|next door|adjacent (?:room|area|level|unit|lot))\b/i;
   const OTHERS_WORK = /\bby (?:other trades|others|other contractors|another contractor|the builder|the main contractor|the head contractor)\b/i;
+  // A condition is offered for Public interface only where it names people or traffic near the work, and for Access only
+  // where it names a way in or up (messy round 15, A runs 2 and 4: "Existing live HV network of an operating facility."
+  // and "Buildings isolated from the network in an operating facility." were offered as Public interface, and "Vehicle
+  // access point." as Access). A live network goes to Live services.
+  const PUBLIC_NAMED = /\b(?:public|footpaths?|roads?|streets?|traffic|pedestrians?|neighbou?rs?|occupied|occupants?|tenants?|patients?|visitors?|shoppers?|customers?|students?|pupils?|children|staff|residents?|school|car ?parks?|people)\b/i;
+  const ACCESS_NAMED = /\b(?:gates?|stairs?|stair ?towers?|hoists?|lifts?|ladders?|ramps?|loading (?:zones?|docks?|bays?)|laydown|lanes?|driveways?|entr(?:y|ies|ance|ances)|via|through|off|levels?|floors?|escort\w*|security|induct\w*|swipe|passes|permits?|street|st|road|rd|deliver\w*|hours?|times?)\b/i;
+  // An occupied or operating facility has people in it, unless the condition is about its network or services.
+  const SERVICE_NAMED = /\b(?:networks?|hv|lv|high voltage|low voltage|power|electric\w*|energis\w*|gas|water mains?|switch ?boards?|cables?|services?|substations?|isolat\w*)\b/i;
   const namesSomething = (id, text) => (id === 'otherTrades' ? TRADE_NAMED.test(text) || WHERE_NAMED.test(text)
-    : id === 'liveServices' ? !OTHERS_WORK.test(text) : true);
+    : id === 'liveServices' ? !OTHERS_WORK.test(text)
+      : id === 'publicInterface' ? PUBLIC_NAMED.test(text) || (/\b(?:occupied|operating|in use|live)\b/i.test(text) && !SERVICE_NAMED.test(text))
+        : id === 'access' ? ACCESS_NAMED.test(text) : true);
   const offerable = (id, text) => { const rules = gate(); return (!rules || !rules.siteNeed || !rules.siteNeed(id, text)) && namesSomething(id, text); };
   function scopeSite(rows) {
     const out = {};
     for (const row of rows || []) {
       for (const part of kept(row.conditions).split(/\s*;\s*/).filter(Boolean)) {
         // Work by other trades is an Other trades condition, whatever services it names.
-        const rule = OTHERS_WORK.test(part) ? SITE_RULES.find(([id]) => id === 'otherTrades') : SITE_RULES.find(([, pattern]) => pattern.test(part));
-        if (!rule) continue;
+        // The first site question the condition answers for this crew: a facility's live network is a live service, not
+        // the public (messy round 15, A run 2).
         const text = `${part.charAt(0).toUpperCase()}${part.slice(1)}`;
+        const rule = OTHERS_WORK.test(part) ? SITE_RULES.find(([id]) => id === 'otherTrades') : SITE_RULES.find(([id, pattern]) => pattern.test(part) && offerable(id, text));
+        if (!rule) continue;
         if (!offerable(rule[0], text)) continue;
         out[rule[0]] = [...new Set([...(out[rule[0]] || []), text])];
       }

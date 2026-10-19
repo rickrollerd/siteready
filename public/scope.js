@@ -1288,6 +1288,8 @@
         const site = S.siteId ? S.siteId() : '';
         // Word and PDF of each, in one zip (D240).
         const result = await S.download('/api/project.zip', 'SiteWrite-project-SWMS.zip', { swms, siteId: site || undefined, pdf: true });
+        // Downloaded: the note that the work is not saved yet goes (messy round 15, A run 1).
+        if (S.unsavedNoteOff) S.unsavedNoteOff();
         // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
         for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
         saveProject();

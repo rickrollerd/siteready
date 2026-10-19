@@ -34,17 +34,17 @@ const EWP = /elevating work platform|^Scissor lift/i;
 // Each question: its id, the category it belongs to, what is asked, a hint, the short label the
 // answer prints under, and the emergency row it prints in.
 const QUESTIONS = [
-  { id: 'ewpLower', category: 'ewp', ask: 'Who on the ground lowers the platform in an emergency?', hint: 'Name the role, not the person: on a big site the person changes. They must be trained on this EWP\'s ground or emergency lowering controls.', short: 'Lowered in an emergency by', source: 'SafeWork NSW Elevating work platforms Code s 2.6' },
+  { id: 'ewpLower', role: true, category: 'ewp', ask: 'Who on the ground lowers the platform in an emergency?', hint: 'Name the role, not the person: on a big site the person changes. They must be trained on this EWP\'s ground or emergency lowering controls.', short: 'Lowered in an emergency by', source: 'SafeWork NSW Elevating work platforms Code s 2.6' },
   { id: 'ewpControls', controls: true, category: 'ewp', ask: 'Where are the ground or emergency lowering controls, and the key for them?', hint: 'For example: ground control panel at the rear of the base, key kept on the machine; emergency lowering valve under the platform at the front. Check it on this machine.', short: 'Ground controls and key', source: 'SafeWork NSW Elevating work platforms Code s 2.6, s 5.3' },
-  { id: 'fallRescue', rescue: true, category: 'fall', ask: 'How is a person who falls, or is left hanging in a harness, rescued straight away, and by whom?', hint: 'The rescue cannot wait for emergency services. Say which role does it and how, for example with the rescue kit kept at the work.', short: 'Rescue', source: 'Managing the risk of falls Code s 7.3, s 10, s 10.1; WHS Reg s 80' },
+  { id: 'fallRescue', role: true, rescue: true, category: 'fall', ask: 'How is a person who falls, or is left hanging in a harness, rescued straight away, and by whom?', hint: 'The rescue cannot wait for emergency services. Say which role does it and how, for example with the rescue kit kept at the work.', short: 'Rescue', source: 'Managing the risk of falls Code s 7.3, s 10, s 10.1; WHS Reg s 80' },
   { id: 'fallKit', kit: true, category: 'fall', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'Kept close to the work so it can be used at once.', short: 'Rescue equipment', source: 'Managing the risk of falls Code s 10, Table 1' },
-  { id: 'elecIsolate', rescue: true, category: 'electrical', ask: 'Who isolates the supply if someone gets a shock, and who does the rescue?', hint: 'Name the roles. The safety observer must have been assessed in rescue and resuscitation in the last 12 months.', short: 'Isolated and rescued by', source: 'Managing electrical risks in the workplace Code s 6.3' },
+  { id: 'elecIsolate', role: true, rescue: true, category: 'electrical', ask: 'Who isolates the supply if someone gets a shock, and who does the rescue?', hint: 'Name the roles. The safety observer must have been assessed in rescue and resuscitation in the last 12 months.', short: 'Isolated and rescued by', source: 'Managing electrical risks in the workplace Code s 6.3' },
   { id: 'elecIsolator', category: 'electrical', ask: 'Where is the isolator or switchboard that cuts the supply to this work?', hint: 'For example: main switchboard in the level 3 riser cupboard, circuits labelled.', short: 'Isolation point', source: 'Managing electrical risks in the workplace Code s 5, s 6.3' },
-  { id: 'trenchRescue', rescue: true, category: 'trench', ask: 'How is a person got out of the excavation without anyone going in unprotected, and by whom?', hint: 'For example: lifted out with the harness and line from the top, or reached from inside the shield. Name the roles, not the people.', short: 'Rescue', source: 'Excavation work Code s 3.8, s 4.4' },
+  { id: 'trenchRescue', role: true, rescue: true, category: 'trench', ask: 'How is a person got out of the excavation without anyone going in unprotected, and by whom?', hint: 'For example: lifted out with the harness and line from the top, or reached from inside the shield. Name the roles, not the people.', short: 'Rescue', source: 'Excavation work Code s 3.8, s 4.4' },
   { id: 'trenchKit', kit: true, category: 'trench', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'For example: ladder, harness and line at the trench box; first aid kit in the site ute.', short: 'Rescue equipment', source: 'Excavation work Code s 3.8' },
-  { id: 'confinedRescue', rescue: true, category: 'confined', ask: 'Who is the stand-by person, and how is a person rescued from outside the space?', hint: 'The stand-by person stays outside and never goes in to rescue. Name the role, not the person.', short: 'Stand-by person and rescue', source: 'Confined spaces Code s 4.6, s 5; WHS Reg s 74' },
+  { id: 'confinedRescue', role: true, rescue: true, category: 'confined', ask: 'Who is the stand-by person, and how is a person rescued from outside the space?', hint: 'The stand-by person stays outside and never goes in to rescue. Name the role, not the person.', short: 'Stand-by person and rescue', source: 'Confined spaces Code s 4.6, s 5; WHS Reg s 74' },
   { id: 'confinedKit', kit: true, category: 'confined', ask: 'What rescue equipment is kept at the entry?', hint: 'For example: tripod and winch, harness and lifeline, gas detector.', short: 'Rescue equipment at the entry', source: 'Confined spaces Code s 4.6, s 5' },
-  { id: 'plantStop', stop: true, category: 'plant', ask: 'How is the plant stopped in an emergency, and by whom?', hint: 'Say where its emergency stop or key is, and which role stops it.', short: 'Stopped by', source: 'Managing risks of plant Code s 1.4, s 4.3; WHS Reg s 211' },
+  { id: 'plantStop', role: true, stop: true, category: 'plant', ask: 'How is the plant stopped in an emergency, and by whom?', hint: 'Say where its emergency stop or key is, and which role stops it.', short: 'Stopped by', source: 'Managing risks of plant Code s 1.4, s 4.3; WHS Reg s 211' },
 ];
 
 // Standard answers for each question (D259, owner, 13 October 2026): roles, not people, as "it could be
@@ -122,12 +122,14 @@ function fallAwayFromPlatform(draft = {}) {
   return (draft.jobSteps || []).some((step) => !EWP_STEP.test(String(step.step || '')) && ['Before starting', 'Finish and clean up'].indexOf(step.step) < 0
     && (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && PERSON_FALLS.test(String(line).trim()) && !PLATFORM_LINE.test(String(line)) && !/\binto (?:the )?water\b|\b(?:truck|tray|trailer|vehicle|ute)\b|\bobjects?\b|\btools?\b/i.test(String(line))));
 }
-// A harness used on this SWMS: ticked in the PPE, or named in a step's controls as what the crew wears or clips on
-// to ("Where harnesses are used, ..." names it only as a condition).
-const HARNESS = /\b(?:harness\w*|fall arrest|lanyards?|anchor points?|static lines?)\b/i;
+// A harness used on this SWMS: ticked in the PPE, or said in a printed line to be worn, clipped on or used, as the PPE
+// table reads the lines (step-ppe.js wornSaid). A line that names a harness only as a condition ("Where harnesses are
+// used, ..."), a rescue plan for anyone "held by a harness", training in fall arrest, a ban ("No one uses a fall arrest
+// harness while working alone") or a tool lanyard is not one (messy round 15, B runs 5 to 7: "or is left hanging in a
+// harness" was asked for scissor lift, scaffold and void jobs with no harness).
 function harnessUsed(draft = {}) {
   const ticked = (draft.ppe || []).some((group) => (group.items || []).some((item) => item && item.id === 'harness' && item.ticked));
-  return ticked || (draft.jobSteps || []).some((step) => (step.controls || []).some((line) => HARNESS.test(String(line)) && !/^\s*(?:where|if|when|unless)\b/i.test(String(line)) && !/\bwhere (?:a )?harness\w* (?:is|are) used\b/i.test(String(line))));
+  return ticked || require('./step-ppe').wornSaid(draft).has('harness');
 }
 // A person's fall in this SWMS that is not into the trench or hole, whose own rescue the trench questions ask
 // (messy round 14, B run 6: with falls Yes for a 2.2 m deep trench, "left hanging in a harness" was asked beside the
@@ -135,6 +137,13 @@ function harnessUsed(draft = {}) {
 const INTO_HOLE = /\binto\b[^.]{0,20}\b(?:trench\w*|excavation\w*|pits?|holes?|shafts?|pier holes?|footings?|basements?|manholes?|sump)\b/i;
 function fallAwayFromTrench(draft = {}) {
   return (draft.jobSteps || []).some((step) => (step.hazards || []).some((line) => !/\(Does not apply to this job\)$/.test(String(line)) && PERSON_FALLS.test(String(line).trim()) && !INTO_HOLE.test(String(line)) && !/\binto (?:the )?water\b|\bobjects?\b|\btools?\b/i.test(String(line))));
+}
+// A job step that digs, or works in a trench, an excavation or a tunnel: the trench rescue is asked for that work, not
+// for a building's shaft or riser (messy round 15, B run 5: with the trench steps unticked, the trench rescue questions
+// stayed for a plumber's service shafts).
+const EXCAVATION_STEP = /\b(?:trench\w*|excavat\w*|dig(?:s|ging)?|tunnel\w*|TBM)\b/i;
+function excavationStep(draft = {}) {
+  return (draft.jobSteps || []).some((step) => EXCAVATION_STEP.test([step.step, ...(step.hazards || []).filter((line) => !/\(Does not apply to this job\)$/.test(String(line)))].join(' ')));
 }
 function categoriesFor(draft = {}) {
   const highRisk = Array.isArray(draft.highRisk) ? draft.highRisk : [];
@@ -156,7 +165,7 @@ function categoriesFor(draft = {}) {
     has(FALL) && (!ewp || fallAwayFromPlatform(draft)) && !trenchOnly ? 'fall' : '',
     // Not where the only energised services are power lines (draft.js electricalLinesOnly): the power line row covers them.
     has(/energised electrical/i) && draft.electricalWork !== false && !draft.electricalLinesOnly ? 'electrical' : '',
-    has(/\b(?:trench|shaft|tunnel)\b/i) ? 'trench' : '',
+    has(/\b(?:trench|shaft|tunnel)\b/i) && (!Array.isArray(draft.jobSteps) || excavationStep(draft)) ? 'trench' : '',
     has(/confined space/i) ? 'confined' : '',
     has(/powered mobile plant/i) && mobile ? 'plant' : '',
   ].filter(Boolean);
@@ -190,7 +199,14 @@ const andForN = (text) => String(text || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?
 
 // The draft with the emergency questions for the page, and each answer given printed in its row
 // as "Short label: answer". A row that already has a detail keeps it, with the answers after.
-function withEmergencyAnswers(draft, answers = {}) {
+// Each answer prints with a capital to start each sentence, and the people the SWMS names with their capitals ("jake
+// morrow n the other scaffolder get them back ..." reads "Jake Morrow and the other scaffolder ...": messy round 15,
+// A run 4). The answer on the page stays as typed.
+function printedAnswer(answer, names = []) {
+  const tidy = require('./sitelink-answers');
+  return tidy.capitalSentences(tidy.withPersonNames(andForN(clean(answer)), names));
+}
+function withEmergencyAnswers(draft, answers = {}, names = []) {
   if (!draft || draft.kind !== 'draft') return draft;
   const asked = emergencyQuestions(draft, answers);
   if (!asked.length) return { ...draft, emergencyQuestions: [] };
@@ -200,7 +216,7 @@ function withEmergencyAnswers(draft, answers = {}) {
   for (const category of [...new Set(asked.map((item) => item.category))]) {
     let index = rows.findIndex((row) => ROW[category].test(String(row.type)));
     if (index < 0) { rows.push(local(NEW_ROW[category])); index = rows.length - 1; }
-    const said = asked.filter((item) => item.category === category && clean(item.answer)).map((item) => `${item.short}: ${andForN(clean(item.answer))}`);
+    const said = asked.filter((item) => item.category === category && clean(item.answer)).map((item) => `${item.short}: ${printedAnswer(item.answer, names)}`);
     if (said.length) rows[index] = { ...rows[index], detail: [rows[index].detail, ...said].filter(Boolean).join('\n') };
   }
   return { ...draft, emergency: rows, emergencyQuestions: asked };

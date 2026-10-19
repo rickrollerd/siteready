@@ -215,7 +215,7 @@ function registers(doc, draft, w) {
   if ((draft.plant || []).length) {
     heading(doc, 'Plant and equipment');
     text(doc, 'Keep the inspection and maintenance records, and sight each licence before work.', { size: 8.5, color: MUTED });
-    table(doc, { widths: [150, w - 150 - 210, 210], header: ['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], rows: draft.plant.map((item) => row(item.item, item.inspection, item.licence)) });
+    table(doc, { widths: [150, w - 150 - 210, 210], header: ['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], rows: draft.plant.map((item) => row(item.shown || item.item, item.inspection, item.licence)) });
   }
   // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
   // D256, D257). A type of substance with no product does not print.

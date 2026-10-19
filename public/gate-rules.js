@@ -303,6 +303,11 @@
       if (rule.kit && /\bfirst aid\b/i.test(text) && !RESCUE_KIT.test(text) && onlyFirstAid(text)) return `${quoted} is first aid, not rescue equipment. Say what is used to get the person out, and where it is kept.`;
       // One word ("builder", "gate", "spotter") does not tell the crew what to do.
       if (!/\s/.test(text)) return `${quoted} is too short to act on. ${rule.ask}`;
+      // A question that asks for the role, not the person, answered with a name alone ("Kim Nguyen": messy round 15, A run 3).
+      if (rule.role && nameOnly(text)) return `${quoted} is a person's name, not a role: on a big site the person changes. ${rule.ask}`;
+      // Lowering the platform does not rescue a person who has fallen ("spotter lowers the scissor lift": messy round 15,
+      // A run 3): the answer says who reaches the person, and how or with what.
+      if (rule.fall && PLATFORM_ONLY.test(text) && !PERSON_REACHED.test(text)) return `${quoted} says how the platform comes down, not how a person who falls is rescued. Say who reaches the person and how they are brought down, for example with the rescue kit or the EWP kept at the work.`;
       // "pull them out" does not say who does it or with what (messy round 3).
       if (rule.rescue && words(text) < 5) return `${quoted} does not say who rescues the person or how. ${rule.ask}`;
       // Rescue gear left in a vehicle is not at the work: "rope in the ute".
@@ -322,6 +327,14 @@
     return '';
   }
   const words = (text) => clean(text).split(/\s+/).filter(Boolean).length;
+  // A person's name and nothing else: two or three words, none of them a role, a common word or a verb.
+  const NOT_NAME = /^(?:the|a|an|our|my|his|her|their|its|it|them|they|he|she|we|us|and|n|or|by|with|from|on|at|in|to|of|for|is|are|who|then|spotter|operator|supervisor|foreman|leading|lead|hand|ground|person|worker|workers|crew|offsider|labourer|rigger|dogman|electrician|observer|attendant|first|aider|trained|team|apprentice|manager|engineer|scaffolder|fitter|driver|safety|site|stand-by|standby|lowers?|lowering|stops?|isolates?|rescues?|calls?|uses?|reaches?|brings?|lifts?|presses?|turns?|keys?|switch\w*|platform|ewp|lift|scissor|boom|plant|machine|controls?)$/i;
+  function nameOnly(text) {
+    const list = clean(text).replace(/[.]+$/, '').split(/\s+/);
+    return list.length >= 2 && list.length <= 3 && list.every((word) => /^[A-Za-z][A-Za-z'’-]+$/.test(word) && !NOT_NAME.test(word));
+  }
+  const PLATFORM_ONLY = /\blower\w*\b[^.;]{0,30}\b(?:scissor\w*|ewps?|e\.w\.p\.?|elevating work platforms?|platforms?|booms?|lifts?|baskets?)\b/i;
+  const PERSON_REACHED = /\b(?:person|people|them|him|her|worker|injured|casualty|patient|fallen|whoever)\b|\brescue (?:kit|equipment|harness|line|pole|stretcher)\b|\b(?:stretcher|spinal board|ladder|rope|line)\b/i;
   const IN_VEHICLE = /\b(?:in|on) (?:the |my |our |a |his |their )?(?:site )?(?:ute|truck|van|car|vehicle|wagon|trailer)\b/i;
   const AT_WORK = /\b(?:at|beside|next to|by|near) (?:the |each )?(?:work|trench|entry|edge|box|shield|pit|platform|lift|level|area|access|ladder|ewp|scaffold)\b|\bkept (?:at|on) (?:the )?(?:work|level|deck|site office)\b/i;
   // A kit said to be at a place that is not a vehicle ("on the slung platform").
@@ -503,6 +516,7 @@
 
   // The checker's role, printed as "Checked by {name}, {role}": a role, not a place or a placeholder (messy round
   // 12, run 5: "Checked by Tanya Russo, Office"). '' when it passes.
+  const SLANG_ROLE = /^(?:the |big |head |top |main )?(?:boss(?:man)?|bosses|gaffer|honcho|head honcho|top dog|chief|main man|the man|in charge|person in charge|head guy|big cheese|me boss)\.?$/i;
   const ROLE_PLACE = /^(?:the |our |my |site |head |main )?(?:office|site|yard|depot|workshop|shed|ute|truck|gate|home|admin office|site office|head office)\.?$/i;
   function checkerRoleNeed(value) {
     const text = clean(value);
@@ -511,6 +525,8 @@
     if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text) || HELD_OPEN.test(text) || NO_ANSWER.test(text)) return `${quoted} is not a role. Give your role, for example "Supervisor" or "Director".`;
     if (PRONOUN.test(text)) return `${quoted} does not say your role. Give it, for example "Supervisor" or "Director".`;
     if (ROLE_PLACE.test(text)) return `${quoted} is a place, not a role. Give your role, for example "Office manager", "Supervisor" or "Director".`;
+    // "Boss" says who is in charge, not the role a reviewer reads (messy round 15, A run 4).
+    if (SLANG_ROLE.test(text)) return `${quoted} is not a role a reviewer can read. Give your role, for example "Supervisor", "Director" or "Owner".`;
     return '';
   }
 
@@ -573,6 +589,23 @@
     return ACROSS_WORK.every(([said, has]) => !said.test(text) || has.test(words));
   }
 
+  // A rescue answer fits another SWMS only where its way of rescue fits that SWMS's work, as a fall control answer does
+  // (messy round 15, A run 2: the penetrations rescue "reach them from the floor below" was filled into the electrical
+  // SWMS, whose falls are from an EWP). An answer that reaches the person from the floor below, or through a
+  // penetration, void or opening, fits a SWMS whose words name penetrations, voids, openings, risers, shafts or slab
+  // edges; one by scaffold, a SWMS that names a scaffold.
+  const ACROSS_RESCUE = [
+    ...ACROSS_WORK,
+    [/\b(?:floors? below|levels? below|from (?:the floor )?below|penetrations?|voids?|core holes?|openings?|risers?|shafts?|slab edges?)\b/i, /\b(?:penetrations?|voids?|cor(?:e|es|ed|ing)\b|openings?|risers?|shafts?|slab edges?|floor edges?|holes?)\b/i],
+    [/\bscaffold\w*\b/i, /\bscaffold\w*\b/i],
+  ];
+  const RESCUE_IDS = ['fallRescue', 'fallKit', 'trenchRescue', 'trenchKit', 'confinedRescue', 'confinedKit', 'elecIsolate'];
+  function rescueFits(answer, itemWords) {
+    const text = clean(answer).replace(/\b(?:no|not|never|without|nobody)\b[^.;,]{0,40}/gi, ' ');
+    const words = String(itemWords || '');
+    return ACROSS_RESCUE.every(([said, has]) => !said.test(text) || has.test(words));
+  }
+
   // The answers filled into one SWMS from the others: for each question, the latest answer given that fits
   // it. history: { id: [answers, oldest first] }; latest: { id: answer } (a project kept from before);
   // itemWords: the SWMS's task and plant. The SWMS's own answers are never in it: they stay its own.
@@ -582,13 +615,13 @@
     for (const id of ids) {
       const list = [...((history || {})[id] || [])];
       if (latest && typeof latest[id] === 'string' && list[list.length - 1] !== latest[id]) list.push(latest[id]);
-      const fit = list.filter((answer) => clean(answer)).reverse().find((answer) => answerFits(answer, itemWords));
+      const fit = list.filter((answer) => clean(answer)).reverse().find((answer) => (RESCUE_IDS.includes(id) ? rescueFits(answer, itemWords) : answerFits(answer, itemWords)));
       if (fit) out[id] = fit;
     }
     return out;
   }
 
-  const api = { siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
+  const api = { siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, rescueFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

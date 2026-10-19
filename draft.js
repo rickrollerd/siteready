@@ -801,6 +801,20 @@ function keptFact(value) {
   return text;
 }
 
+// An answer that says only that its question does not apply ("Not applicable, there is no trench on this job") is not a
+// control and never prints as one (messy round 15, B run 5: typed to get past "Trench support", it printed as an
+// "Isolate or engineer" control). For a question about a job step's work it is not an answer: the step is unticked
+// instead. "Not applicable, no harness is used" stays the harness answer, and a document answer saying it is not
+// needed keeps its own row.
+const NOT_APPLICABLE_ANSWER = /^\s*(?:not applicable|n\/a|does not apply|doesn'?t apply|not relevant)\b/i;
+const notApplicable = (value) => NOT_APPLICABLE_ANSWER.test(cleanLine(value));
+function stepAnswerNotApplicable(id, value) {
+  return notApplicable(value) && !['harnessSystem', 'asbestosArrangement', 'controlsConsidered'].includes(id) && FACT_KINDS.has(id) && !REFERENCE_FACTS.some(([ref]) => ref === id);
+}
+function notApplicableWhy(id, value) {
+  return stepAnswerNotApplicable(id, value) ? `"${cleanLine(value)}" says this does not apply, so it cannot go in the SWMS as a control. If this work is not done, untick its job steps under Job steps; otherwise say how it is done.` : '';
+}
+
 function packIsTest(input) {
   const blob = [
     input.principalContractor,
@@ -839,7 +853,7 @@ function scaffoldBrief(task, site, pack) {
 function scaffoldMethod(brief) {
   const steps = [];
   if (brief.supervisor) {
-    steps.push(`The scaffold supervisor erects the scaffold: ${brief.supervisor.replace(/[.]+$/, '')}.`);
+    steps.push(`The scaffold supervisor erects the scaffold: ${nameCase.tidyPersonRole(brief.supervisor).replace(/[.]+$/, '')}.`);
   }
   if (brief.bays) {
     const kind = brief.modular ? 'modular scaffold' : 'scaffold';
@@ -866,7 +880,8 @@ function scaffoldControls(brief) {
   if (brief.ties) items.push(control('Isolate or engineer', 'Ties to the slab edge at every lift.'));
   if (brief.hoarded) items.push(control('Isolate or engineer', 'Public footpath below is hoarded.'));
   if (brief.supervisor) {
-    items.push(control('Administrative', `Scaffold supervisor: ${brief.supervisor.replace(/[.]+$/, '')}.`));
+    // With the capitals the header gives the name (messy round 15, A run 4: "jake morrow - holds HRW ..." printed so).
+    items.push(control('Administrative', `Scaffold supervisor: ${nameCase.tidyPersonRole(brief.supervisor).replace(/[.]+$/, '')}.`));
   }
   if (brief.clearElevation) {
     items.push(control('Administrative', 'No other trade is on the elevation.'));
@@ -2368,13 +2383,23 @@ const HEALTHCARE_WORDS = /\b(hospitals?|medical gas\w*|patients?|wards?|clinic\w
 function requiredFactsFor(fullTask, answer, state) {
   // The questions that exist only for high risk work the user marked "Does not apply" are not asked (D311).
   const offFacts = new Set([...((state && state.offIds) || [])].flatMap((id) => (NOT_APPLY_PARTS[id] && NOT_APPLY_PARTS[id].facts) || []));
-  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state));
+  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state) && (item.id !== 'trenchSupport' || digStepsOn(state)));
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
     const kinds = FACT_KINDS.get(item.id);
     return !kinds || kinds.some((when) => allowed.has(when));
   });
+}
+
+// The job steps that dig or work in an excavation: a step named for it, or whose hazards name a trench, an
+// excavation or digging.
+const DIG_KINDS = new Set(ACTIVITIES.filter((activity) => activity.when && (activity.steps || []).some((step) => /\b(?:trench\w*|excavat\w*|dig(?:s|ging)?)\b/i.test(`${step.step} ${(step.hazards || []).filter((line) => typeof line === 'string').join(' ')}`))).map((activity) => activity.when));
+// "Trench support" is asked, and its answer prints, only while a step that digs or works in an excavation is ticked
+// (messy round 15, B run 5: with the trench steps unticked it stayed, blocked Prepare, and the "Not applicable"
+// typed to get past it printed as a control). Where the steps follow the task's words, it is asked as before.
+function digStepsOn(state) {
+  return !state || !Array.isArray(state.kinds) || state.kinds.some((id) => DIG_KINDS.has(id));
 }
 
 // "Scaffold type" is asked only while the crew's scaffold steps are ticked: once the user unticks Scaffolding (and has
@@ -2731,7 +2756,7 @@ function missingHelpItem(item, facts, where) {
   const typed = cleanLine((facts || {})[item.id]);
   const placeholder = item.state === 'missing' && typed && !keptFact(typed);
   const state = placeholder ? 'vague' : item.state;
-  const why = state === 'vague' ? (presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
+  const why = state === 'vague' ? (notApplicableWhy(item.id, typed) || presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
   return { id: item.id, label: item.label, state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
 }
 
@@ -2817,6 +2842,7 @@ function factState(item, task, facts, state) {
   if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return 'supplied';
   if (item.id === 'trenchSupport' && trenchSupportOf(task, { ...facts, siteConditions: '' })) return 'supplied';
   if (TOPIC_PATTERNS[item.id]) return topicState(item.id, task, facts[item.id], TOPIC_PATTERNS[item.id]);
+  if (stepAnswerNotApplicable(item.id, (facts || {})[item.id])) return 'vague';
   const field = keptFact(facts[item.id]);
   if (!field) return 'missing';
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
@@ -2874,7 +2900,7 @@ function weakAnswers(input) {
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
       const typed = cleanLine(facts[item.id]);
-      const why = presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
+      const why = notApplicableWhy(item.id, typed) || presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
         || (item.id === 'safetyDataSheet' && sdsNamesOnly(typed) ? `"${typed}" names the products but not how they are handled. Say how, and where their safety data sheets are kept, for example "Adhesive and primer: nitrile gloves and good airflow, safety data sheets in the site folder".` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });
@@ -2938,8 +2964,9 @@ function controlsFor(task, facts, pack) {
   const push = (level, text) => {
     const line = withoutTaskSentences(cleanLine(text), task);
     if (!line || isDenialLine(line)) return;
-    // The user's own answers start with a capital, as the library's lines do (messy round 12, run 5).
-    items.push(control(level, nameCase.capitalFirst(line)));
+    // The user's own answers start with a capital, as the library's lines do (messy round 12, run 5), and so does
+    // each sentence of them (messy round 15, B run 8: "... trench shields. barrier mesh fence").
+    items.push(control(level, nameCase.capitalSentences(line)));
   };
 
   if (isScaffoldErection(task)) {
@@ -2998,6 +3025,7 @@ function controlsFor(task, facts, pack) {
 
   for (const item of CATEGORY_FACTS) {
     const value = keptFact(facts[item.id]);
+    if (!item.choices && notApplicable(value)) continue;
     if (item.choices) {
       const chosen = item.choices.find((choice) => choice.value === choiceAnswer(item.id, value));
       if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
@@ -3023,12 +3051,12 @@ function controlsFor(task, facts, pack) {
   }
 
   const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);
-  if (asbestos && !isDenialLine(asbestos)) push('Administrative', asbestos);
+  if (asbestos && !isDenialLine(asbestos) && !notApplicable(asbestos)) push('Administrative', asbestos);
 
   // Read from the task and the answers to the questions, not the site answers: those print whole in the
   // site table, never as part of a control (messy round 6, run 6).
   const trench = trenchSupportOf(task, { ...facts, siteConditions: '' }) || keptFact(facts.trenchSupport);
-  if (trenchDig(source) && trench) push('Isolate or engineer', trench);
+  if (trenchDig(source) && trench && !notApplicable(trench) && digStepsOn(pack && pack.state)) push('Isolate or engineer', trench);
 
   // The "Safety data sheet" answer prints whole under "Documents to keep on site", and in the steps that use
   // the products, not as a control in this table (messy round 8, run 1).
@@ -3161,8 +3189,14 @@ function siteLines(site) {
 }
 
 // The site answers as the SWMS prints them: "None" or "Not applicable" where the user said so.
-function printedSite(site) {
-  return siteLines(site).map((field) => ({ ...field, text: field.text || noneAnswer(site[field.id]) }));
+// Each sentence takes its capital, and a street named in it its own ("public footpath on liverpool st" reads "Public
+// footpath on Liverpool St", as the muster point does: messy round 15, B run 6), with the people the SWMS names.
+function printedSite(site, names = []) {
+  return siteLines(site).map((field) => ({ ...field, text: (field.text && nameCase.capitalSentences(nameCase.withPersonNames(nameCase.tidyPlace(field.text), names))) || noneAnswer(site[field.id]) }));
+}
+// The people the SWMS names, with their capitals, for the answers that name them (sitelink-answers.js personNames).
+function swmsNames(input) {
+  return nameCase.personNames(['scaffoldSupervisor', 'firstAider', 'siteManager', 'worksManager', 'complianceResponsible', 'reviewer', 'preparedBy'].map((key) => keptFact((input || {})[key])).filter(Boolean));
 }
 
 // A scaffold put up for the work (by a scaffolding company, with a handover), not a mobile tower
@@ -3222,7 +3256,8 @@ function reviewFor(draft, facts = {}) {
   const who = draft.reviewer || draft.complianceResponsible || draft.siteManager || 'the supervisor';
   // Every item is named, or the plant table is pointed to where there are more than four (messy round 5: the
   // plant the user added was left out of a list cut at four).
-  const allPlant = [...new Set((draft.plant || []).map((item) => plantName(item.item, Boolean(item.own))))];
+  // A lone "n" in the user's own plant reads "and" ("gin wheel n rope": messy round 15, A run 4).
+  const allPlant = [...new Set((draft.plant || []).map((item) => plantName(item.own ? andForN(item.item) : item.item, Boolean(item.own))))];
   const plant = allPlant.length > 4 ? [] : allPlant;
   const conditions = (draft.site || []).filter((row) => row.text && !/^(?:none|not applicable)$/i.test(row.text)).map((row) => CONDITION_LABELS[row.id]).filter(Boolean);
   if (OUTDOOR_NAMED.test(combinedFacts(draft.task || '', facts))) conditions.push('the weather');
@@ -4741,7 +4776,7 @@ function buildDraft(input, screen) {
     hazards,
     controls: finalControls,
     review: REVIEW,
-    site: printedSite(site),
+    site: printedSite(site, swmsNames(input)),
     method: steps,
     workers: [{ name: '', signature: '', date: '' }],
     signed: false,
@@ -5002,7 +5037,7 @@ function buildDraft(input, screen) {
   // Each hazardous product the user listed, in the substances table and in the step that uses it
   // (substances.js, owner D256, D257). A SWMS with no product listed is unchanged.
   // The PPE table agrees with every printed line, the products' lines and the user's own steps included.
-  return withoutUntickedPlant(withoutNotApplying(withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input), input))), input), input);
+  return withoutUntickedPlant(withoutNotApplying(withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency, swmsNames(input)), input), input))), input), input);
 }
 
 // Wherever a harness is listed, harness training is listed too, also where falls is No (a boom EWP)
@@ -5179,7 +5214,9 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     const said = jobSteps.flatMap((step) => step.controls).map(withoutStateCodes).join('\n');
     if (/\bknee pads?\b/i.test(said)) tick('kneePads');
     if (/\bsunglasses\b/i.test(said)) tick('glassesTinted');
-    if (/\buse travel restraint\b/i.test(said)) tick('harness');
+    // Not from a line that opens with a condition ("Where temporary edge protection must be opened, ... Workers at the
+    // opening use travel restraint"): no harness is used unless the edge is opened (messy round 15, B run 5).
+    if (jobSteps.flatMap((step) => step.controls).map(withoutStateCodes).some((line) => /\buse travel restraint\b/i.test(line) && !/^\s*(?:where|if|when|unless|whenever)\b/i.test(line))) tick('harness');
     if (access.accessRestraint) tick('harness');
     if (/\bheat resistant gloves\b/i.test(said)) tick('gloveWelding');
     if (/\bgumboots\b/i.test(said)) tick('gumboots');
@@ -6271,9 +6308,14 @@ function withOwnSteps(draft, input) {
   const written = Array.isArray(input && input.ownSteps) ? input.ownSteps : [];
   if (!written.length || !Array.isArray(draft.jobSteps)) return draft;
   const { riskFor } = require('./register');
+  // Each line of the user's own step prints as a sentence, a lone "n" as "and", and the people the SWMS names with their
+  // capitals (messy round 15, A run 4 and B run 6: "loading bay overloaded n collapses" printed as typed).
+  const names = swmsNames(input);
+  const line = (text) => nameCase.capitalSentences(nameCase.withPersonNames(andForN(cleanLine(text)), names));
   const made = ownStepsOf(input).map((item) => {
-    const step = { step: `${item.name} ${OWN_STEP_MARK}`, hazards: [...item.hazards], controls: [...item.controls], own: true };
-    return { ...step, responsible: item.who || positionFor({ step: item.name }), risk: riskFor(step) };
+    // The lines as typed are kept for the download check, which quotes them as the page does.
+    const step = { step: `${item.name} ${OWN_STEP_MARK}`, hazards: item.hazards.map(line), controls: item.controls.map(line), own: true, typed: { hazards: [...item.hazards], controls: [...item.controls] } };
+    return { ...step, responsible: (item.who && nameCase.tidyPersonRole(cleanLine(item.who))) || positionFor({ step: item.name }), risk: riskFor(step) };
   });
   const jobSteps = placeOwnSteps(draft.jobSteps, made, ownStepsOf(input));
   // The parts of the task the user wrote a printed step for, or whose own step's words cover them.
@@ -9447,8 +9489,10 @@ const FACT_STEP = {
 // the harness (messy round 10, run 4: it printed as a bare control in Before starting).
 function harnessAnswerLine(value) {
   const line = asSentence(value);
-  if (HARNESS_WORDS.test(line) || /\b(?:anchor\w*|lanyards?)\b/i.test(line)) return line;
   const bare = /^(?:not used|not needed|not required|none|nil|n\/?a|not applicable)\b[.,;:]?\s*/i.exec(line);
+  // "Not applicable, no harness is used on this job" prints what it says, without "Not applicable" (messy round 15, B run 5).
+  if (bare && /^not applicable\b|^n\/?a\b/i.test(line) && HARNESS_WORDS.test(line.slice(bare[0].length))) return nameCase.capitalFirst(line.slice(bare[0].length));
+  if (HARNESS_WORDS.test(line) || /\b(?:anchor\w*|lanyards?)\b/i.test(line)) return line;
   return bare ? `No harness is used.${line.slice(bare[0].length) ? ` ${line.slice(bare[0].length)}` : ''}` : `Harness and anchors: ${line}`;
 }
 function withHarnessAnswer(steps, facts, pack, source) {
@@ -9544,6 +9588,8 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
     if (id === 'asbestosAirMonitoring') return choiceAnswer(id, facts[id]) || 'no';
     if (id === 'asbestosQuantity') return choiceAnswer(id, facts[id]) || 'large';
     const given = keptFact(facts[id]);
+    // "Not applicable ..." is not a control (messy round 15, B run 5).
+    if (given && id !== 'harnessSystem' && notApplicable(given)) return '';
     // An answer saying the document is not needed for this work prints as that in its Documents row,
     // not as a control in a step (messy round 10, A fault 12: "slab on ground only" for load limits printed
     // in its row and in the pallet jack step).

@@ -268,6 +268,9 @@
   // that says why ("battery and electric plant only") still settles it.
   const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?|excavators?|compactors?|rollers?|(?:dewatering|trash|concrete|line) pumps?|directional (?:drills?|drilling rigs?)|drill(?:ing)? rigs?|skid steers?|bobcats?|posi-?tracks?|(?:wheel |front[- ]end |backhoe )?loaders?|backhoes?|graders?|dozers?|bulldozers?|tippers?|(?:tipper |dump |water |vacuum )?trucks?|water carts?|forklifts?|telehandlers?|(?:mobile |crawler |franna |pick and carry )?cranes?|chainsaws?|mulchers?|(?:concrete|road|cut-?off|quick ?cut) saws?|augers?|compressors?)\b/i;
   const FUEL = 'Fuels (diesel, petrol)';
+  // Plant said to be another firm's ("the builders", "hired with fuel") and words that say who fuels or fills it.
+  const OWNED_BY_OTHERS = /\b(?:builders?(?:'s|’s|s')?|principal contractor(?:'s|’s)?|main contractor(?:'s|’s)?|head contractor(?:'s|’s)?|pc(?:'s|’s)?|client(?:'s|’s)?|others?(?:'s|’s|s')?|hire company(?:'s|’s)?|not ours|not our)\b/i;
+  const FUELLED_SAID = /\b(?:fuel\w*|refuel\w*|fill\w*|top(?:s|ped)? up|diesel|petrol|battery|electric)\b/i;
   // The first engine-driven plant item in the draft's plant list, or ''.
   function fuelledPlant(draft) {
     const found = [...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || '')).find((name) => FUELLED_PLANT.test(name) && !/\b(?:electric|battery|hand)\b/i.test(name));
@@ -506,6 +509,14 @@
     const need = reasonNeed(reason);
     if (need === 'missing') return `${SHORT.get(type)}: ${asked.said}. Add the product you use, or give a short reason it is not required, ${reasonExample(type)}.`;
     if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${reasonExample(type)}, or add the product you use.`;
+    // A reason that says a machine in this SWMS's plant list is another firm's ("forklift is the builders") does not say who
+    // fuels it while the crew lists it as plant it uses (messy round 15, A run 3).
+    if (type === FUEL && draft && OWNED_BY_OTHERS.test(clean(reason)) && !FUELLED_SAID.test(clean(reason))) {
+      const said = (clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []).map((word) => word.toLowerCase().replace(/s$/, ''));
+      const listed = [...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || ''));
+      const named = said.find((word) => !/^(?:petrol|diesel)$/.test(word) && listed.some((name) => name.toLowerCase().includes(word)));
+      if (named) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says the ${named} is not yours, but it is in this SWMS's plant list. Say who fuels it, for example "The builder's ${named} is fuelled by the builder; we do not refuel on site", or untick it under Plant and equipment if your crew does not use it.`;
+    }
     // A reason that names one machine ("we fill the excavator at the yard") does not settle the other fuelled plant in the plant
     // list (messy round 14, A run 3: the plate compactor runs on fuel too). An auger on the excavator or skid steer is its
     // attachment, not plant of its own.

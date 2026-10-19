@@ -383,7 +383,7 @@ function registerBlocks(draft) {
   if ((draft.plant || []).length) {
     blocks.push(sectionHeading('Plant and equipment'));
     blocks.push(para('Keep the inspection and maintenance records, and sight each licence before work.', { size: 19, color: MUTED, before: 0, after: 80 }));
-    blocks.push(gridTable(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], [3400, 6400, CONTENT_WIDTH - 9800], draft.plant.map((item) => [item.item, item.inspection, item.licence])));
+    blocks.push(gridTable(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], [3400, 6400, CONTENT_WIDTH - 9800], draft.plant.map((item) => [item.shown || item.item, item.inspection, item.licence])));
   }
   // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
   // D256, D257). A type of substance with no product does not print.

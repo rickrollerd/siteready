@@ -120,6 +120,11 @@ const namesPlace = (item, words) => {
   const said = String(item.text || '').toLowerCase().split(/[^a-z0-9'-]+/).filter(Boolean);
   return words.every((word) => { const typed = word.replace(/[^a-z0-9'-]/g, ''); return said.some((other) => nearWord(typed, other)); });
 };
+// Whether the suggestion's suburb is the place typed, word for word (allowing a slip), not a suburb that only has it
+// after its own name: "22 hunter st newcastle" is "22 Hunter St, Newcastle NSW", not "22 Hunter St, Stockton
+// Newcastle NSW" (messy round 15, A run 1, real Google list).
+const suburbOf = (item) => String(String(item.text || '').split(',').slice(1).join(' ') || '').toLowerCase().replace(/\b(?:nsw|vic|qld|sa|wa|tas|nt|act|australia)\b|\b\d{4}\b/g, ' ').split(/[^a-z0-9'-]+/).filter(Boolean);
+const suburbIs = (item, words) => { const suburb = suburbOf(item); return words.length > 0 && suburb.length === words.length && words.every((word, i) => nearWord(word.replace(/[^a-z0-9'-]/g, ''), suburb[i])); };
 // The street number typed ("14 macquarie st", "2/14 smith st"), and whether a suggestion has it.
 const typedNumber = (query) => { const found = /(?:^|[\s,/-])(\d{1,5}[a-z]?)\s+[a-z]/i.exec(query); return found ? found[1].toLowerCase() : ''; };
 const hasNumber = (item, number) => Boolean(number) && new RegExp(`(?:^|[\\s,/-])${number}(?![\\d])`, 'i').test(String(item.text || '').split(',')[0]);
@@ -166,7 +171,7 @@ async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000, near = '
     // A suggestion with the street number typed, and the suburb typed, comes first (messy round 9: "Macquarie
     // St, Sydney NSW", with no number and the wrong suburb, came before "14 Macquarie St, Parramatta NSW").
     const number = typedNumber(query);
-    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? 0 : 4) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0);
+    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? 0 : 4) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0) + (words.length && namesPlace(item, words) && !suburbIs(item, words) ? 0.5 : 0);
     const suggestions = list.map((item, at) => ({ item, at })).sort((a, b) => rank(a.item) - rank(b.item) || a.at - b.at).map(({ item }) => item).slice(0, 6);
     toCache(key, suggestions);
     return { enabled: true, suggestions };
@@ -220,14 +225,38 @@ const hasEmergency = (item) => EMERGENCY_NAME.test(item.name) || (Boolean(item.e
 // after those in the job's state (run 3: a New South Wales hospital offered for a Queensland site).
 // A children's hospital comes after the general hospitals of its rank: the crew are adults (messy round 13, A run 1: John
 // Hunter Children's Hospital was listed first in Newcastle).
-const CHILDRENS = /\b(?:children'?s|childrens|kids|paediatric|pediatric)\b/i;
+// So does a hospital for women, or for women and children (messy round 15, B run 7: the Centenary Hospital for Women and
+// Children was listed before Canberra Hospital's emergency department). "Royal Brisbane and Women's Hospital" is a general
+// hospital.
+const CHILDRENS = /\b(?:children'?s|childrens|children|kids|paediatric|pediatric|maternity|obstetric\w*)\b|\b(?:for|of) women\b|\bwomen'?s and children'?s\b/i;
 const hospitalRank = (item) => (item.otherState ? 4 : 0) + (hasEmergency(item) ? (PRIVATE_NAME.test(item.name) ? 1 : 0) : PRIVATE_NAME.test(item.name) ? 3 : 2) + (CHILDRENS.test(item.name) ? 0.5 : 0);
+// The words that tell one hospital from another: not "hospital", "the", "emergency" and the like.
+const PLAIN_WORDS = /\b(?:the|a|an|hospitals?|public|general|emergency|room|department|dept|ed|centre|center|main|reception|entrance|campus|health|service|services|and|of|for|at|on|in|unit|wing|building|block|level|ward|wards)\b/g;
+const nameWords = (name) => String(name || '').toLowerCase().replace(/['’]s\b/g, 's').replace(/[^a-z\s]/g, ' ').replace(PLAIN_WORDS, ' ').split(/\s+/).filter((word) => word.length > 1);
+const plainAddress2 = (address) => String(address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// Two listings are one hospital where the words of one name are all in the other and they stand within 300 m of each
+// other, or at one street address where Google gives no place (messy round 15: "The Maitland Hospital: Emergency Room"
+// and "Maitland Hospital", "Main Reception Canberra Hospital" and "Canberra Hospital", two names at one address in New
+// Norfolk, Princess Alexandra twice). A suburb alone ("Adelaide SA 5000") is not one address, and a private hospital is
+// never the public one beside it ("Darwin Private Hospital" on the Royal Darwin campus).
+const sameHospital = (a, b) => {
+  const one = nameWords(a.name);
+  const two = nameWords(b.name);
+  if (!one.length || !two.length || PRIVATE_NAME.test(a.name) !== PRIVATE_NAME.test(b.name)) return false;
+  if (!one.every((word) => two.includes(word)) && !two.every((word) => one.includes(word))) return false;
+  if (a.at && b.at) return km(a.at, b.at) <= 0.3;
+  return Boolean(plainAddress2(a.address)) && plainAddress2(a.address) === plainAddress2(b.address) && /^\d/.test(plainAddress2(a.address));
+};
+// A regional or metropolitan health service or network is the body that runs hospitals, not a hospital (messy round 15, A
+// run 4: "North Metropolitan Health Service" was listed). "Kyneton District Health Service" is a hospital, so a district
+// name is not counted.
+const ADMIN_BODY = /\b(?:metropolitan|metro|country|statewide|state-wide)\b[^,]*\bhealth (?:services?|networks?)\b|\blocal health (?:networks?|districts?)\b|\bprimary health networks?\b/i;
 const STATE_IN = /\b(NSW|QLD|VIC|SA|WA|TAS|NT|ACT)\b(?:\s+\d{4})?(?:,\s*Australia)?\s*$/i;
 const stateIn = (address) => ((STATE_IN.exec(String(address || '')) || [])[1] || '').toUpperCase();
 // General practices and medical centres before other practices.
 const clinicRank = (item) => (/\b(medical (?:centre|center|clinic|practice|group)|family (?:medical|practice|doctors)|general practice|GP|doctors)\b/i.test(item.name) ? 0 : 1);
 // A listing named as an emergency department is kept whatever Google types it (often "service").
-const isHospital = (name, type = 'hospital') => (/hospital/i.test(type) || (EMERGENCY_NAME.test(name) && HOSPITAL_NAME.test(name))) && HOSPITAL_NAME.test(name) && !NOT_EMERGENCY.test(name) && !/\b(pty|ltd|limited|medical hospital)\b/i.test(name);
+const isHospital = (name, type = 'hospital') => (/hospital/i.test(type) || (EMERGENCY_NAME.test(name) && HOSPITAL_NAME.test(name))) && HOSPITAL_NAME.test(name) && !NOT_EMERGENCY.test(name) && !/\b(pty|ltd|limited|medical hospital)\b/i.test(name) && !(ADMIN_BODY.test(name) && !/\b(?:hospitals?|campus|emergency)\b/i.test(name));
 // A general practice or medical centre. Specialist and cosmetic practices are left out.
 const NOT_GENERAL = /\b(travel\w*|mental|youth|fit lab|skin|aesthetic\w*|cosmetic\w*|beauty|laser|skin cancer|skin clinic|dermatolog\w*|dental|dentists?|orthodont\w*|physio\w*|chiro\w*|osteo\w*|podiatr\w*|optom\w*|optical|eye|hearing|audiolog\w*|psycholog\w*|counsell\w*|fertility|IVF|vet\w*|animal|pharmacy|chemist|radiology|imaging|x-?ray|pathology|blood|massage|naturopath\w*|acupunct\w*|weight loss|sleep|plastic surg\w*|vein|hair|botox|dietitian|speech|cardiolog\w*|specialists?|surgeons?)\b/i;
 // The name must read as a general practice or medical centre, not a company or one specialist.
@@ -298,7 +327,7 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     ]);
     const list = (data, fallbackType = '') => (data.places || [])
       .filter((place) => place.displayName && place.displayName.text && place.location)
-      .map((place) => ({ id: place.id || '', name: placeName(place.displayName.text), address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed', otherState: Boolean(jobState) && Boolean(stateIn(place.formattedAddress)) && stateIn(place.formattedAddress) !== jobState }));
+      .map((place) => ({ id: place.id || '', name: placeName(place.displayName.text), address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, at: place.location, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed', otherState: Boolean(jobState) && Boolean(stateIn(place.formattedAddress)) && stateIn(place.formattedAddress) !== jobState }));
     // Each place once: by Google's id, then by name, then (for practices) by the first two words of the name.
     // Best first (rank, then distance), then each place once: by Google's id, by name without
     // "emergency room", and for practices by the first two words of the name, so a hospital and its emergency
@@ -308,20 +337,31 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     const nearest = (items, keep, count, rank, practices = false) => {
       const ed = new Set(items.filter((item) => item.ed).map((item) => item.id || item.name.toLowerCase()));
       const seen = new Set();
-      return items
+      const kept = [];
+      const shown = items
         .filter((item) => keep(item.name, item.type === 'ed' ? 'hospital' : item.type))
-        .map((item) => ({ ...item, ed: ed.has(item.id || item.name.toLowerCase()) }))
-        .sort((a, b) => rank(a) - rank(b) || a.km - b.km)
-        .filter((item) => {
-          // A hospital's emergency listing ("... Emergency Centre", "... ED") is the hospital.
-          const plain = item.name.toLowerCase().replace(EMERGENCY_NAME, ' ').replace(/\b(?:emergency(?: (?:centre|center|services?|unit))?|ed)\b/g, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
-          const keys = [item.id, plain, practices ? plain.split(' ').slice(0, 2).join(' ') : ''].filter(Boolean);
-          if (keys.some((k) => seen.has(k))) return false;
-          keys.forEach((k) => seen.add(k));
-          return true;
-        })
+        .map((item) => ({ ...item, ed: ed.has(item.id || item.name.toLowerCase()) }));
+      // A hospital with an emergency department listing of its own, or one at its place, says so on the page (Google's lists
+      // cannot show a hospital has none: messy round 15, A run 4, and content8's Canberra Hospital).
+      const listed = shown.filter((item) => EMERGENCY_NAME.test(item.name));
+      const sorted = shown
+        .map((item) => (practices ? item : { ...item, edListed: listed.some((other) => other === item || sameHospital(item, other)) }))
+        .sort((a, b) => rank(a) - rank(b) || a.km - b.km);
+      for (const item of sorted) {
+        // A hospital's emergency listing ("... Emergency Centre", "... ED") is the hospital, and so is a second listing
+        // at its place ("Main Reception ..."). Of the two, the listing named as the emergency department is shown.
+        const plain = item.name.toLowerCase().replace(EMERGENCY_NAME, ' ').replace(/\b(?:emergency(?: (?:centre|center|services?|unit))?|ed)\b/g, ' ').replace(/^the\s+|\bmain reception\b|\breception\b/g, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+        const keys = [item.id, plain, practices ? plain.split(' ').slice(0, 2).join(' ') : ''].filter(Boolean);
+        const twin = practices ? -1 : kept.findIndex((other) => sameHospital(item, other));
+        if (twin >= 0 && EMERGENCY_NAME.test(item.name) && !EMERGENCY_NAME.test(kept[twin].name)) kept[twin] = item;
+        if (twin >= 0 || keys.some((k) => seen.has(k))) { keys.forEach((k) => seen.add(k)); continue; }
+        keys.forEach((k) => seen.add(k));
+        kept.push(item);
+      }
+      return kept
         .slice(0, count)
-        .map(({ type, id, ed: _ed, otherState: _other, ...item }) => item);
+        // A private hospital is said to be one, as its name shows (messy round 15, A runs 2 and 3: listed with no note).
+        .map(({ type, id, ed: _ed, otherState: _other, at: _at, edListed, ...item }) => ({ ...item, ...(!practices && edListed ? { emergencyListed: true } : {}), ...(!practices && PRIVATE_NAME.test(item.name) ? { private: true } : {}) }));
     };
     const hospitalPool = [...list(nearHospitals, 'hospital'), ...list(typedHospitals, 'hospital'), ...list(edSearch, 'ed'), ...list(edNearest, 'ed'), ...list(publicNearest, 'ed')];
     const clinicPool = [...list(clinics), ...list(clinicSearch)];

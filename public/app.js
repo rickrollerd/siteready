@@ -177,14 +177,29 @@ function shrinkLogo(file) {
   });
 }
 
+// A file that is not a PNG or JPEG picture (a Word file, a PDF) is refused at once, with a plain message under the box
+// (messy round 15, A run 3: a Word file in the Logo box got no message).
+const LOGO_TYPES = /^image\/(?:png|jpeg|pjpeg)$/i;
+const LOGO_NAMES = /\.(?:png|jpe?g)$/i;
 document.getElementById('profile-logo').addEventListener('change', async (event) => {
   const file = event.target.files[0];
+  const error = document.getElementById('profile-logo-error');
+  if (error) error.textContent = '';
   if (!file) return;
+  if (!(LOGO_TYPES.test(file.type || '') || (!file.type && LOGO_NAMES.test(file.name || '')))) {
+    const said = `"${String(file.name || 'That file').slice(0, 80)}" is not a picture SiteWrite can use as a logo. Choose your logo as a PNG or JPEG image.`;
+    if (error) error.textContent = said;
+    else profileStatus(said);
+    event.target.value = '';
+    return;
+  }
   try {
     pendingLogo = await shrinkLogo(file);
     profileStatus('Logo ready. Save the profile to keep it.');
-  } catch (error) {
-    profileStatus(error.message);
+  } catch (failed) {
+    if (error) error.textContent = failed.message;
+    else profileStatus(failed.message);
+    event.target.value = '';
   }
   const preview = document.getElementById('profile-logo-preview');
   preview.src = pendingLogo || '';
@@ -582,6 +597,7 @@ function payload() {
     // Kept with the work, on this device and in a saved SWMS, so a step unticked by hand stays unticked after a
     // reload or sign-in and the task is then reworded (messy round 12, B run 8 and A run 2).
     kindsOff: stepsOff.size ? [...stepsOff] : undefined,
+    kindsSeen: stepPicks && stepsSeen ? stepsSeen : undefined,
     priorKinds: priorKinds && !stepPicks ? priorKinds : undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
@@ -1064,6 +1080,9 @@ document.addEventListener('click', (event) => {
 
 // Job steps: null follows the steps SiteWrite finds in the task; a list is the user's own picks.
 let stepPicks = null;
+// The steps the list suggested when it was last drawn. A Recommended step found after it (from a site answer) is
+// not in it, so the server ticks it with the picks: the user never saw it to untick (messy round 15, A run 4).
+let stepsSeen = null;
 // The scope reading's or pick list's steps for the task as it was before the user reworded it.
 let priorKinds = null;
 // The steps the user unticked by hand. They stay unticked when the task's words are changed and Continue is pressed again,
@@ -1325,6 +1344,7 @@ function renderSteps(steps) {
   const locked = new Set(steps.locked || []);
   const around = new Set(steps.around || []);
   stepsAround = [...around];
+  stepsSeen = [...(steps.suggested || [])];
   // Suggested steps keep their place when unticked; added steps follow them. A step unticked by hand stays in the
   // list to tick again, and an id the step library does not hold is not shown (messy round 12, run 3: "no").
   const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || []), ...stepsOff])].filter((id) => !stepById.size || stepById.has(id));
@@ -1339,6 +1359,12 @@ function renderSteps(steps) {
     return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(pickerName(kind.label))}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
   }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
   fillStepAdd();
+}
+
+// The Recommended steps the server ticked with the user's picks (input.js kindsKept) are picks from now on.
+function keepFoundSteps(data) {
+  if (!stepPicks || !data || !Array.isArray(data.kindsKept) || !data.kindsKept.length) return;
+  stepPicks = [...new Set([...stepPicks, ...data.kindsKept.filter((id) => typeof id === 'string' && !stepsOff.has(id))])];
 }
 
 // Shown when a step the task's words call for is taken off.
@@ -1958,6 +1984,9 @@ async function loadQuestions(options = {}) {
   // (messy round 8, run 3: once a product was listed, the reload dropped the "Safety data sheet" box, and
   // its answer went from the draft and the file). Only the questions are asked with them.
   if (!fresh && !document.querySelector('#required-block [data-fact]') && Object.keys(factMemory).length) sent.facts = { ...factMemory, ...(sent.facts || {}) };
+  // So are its site answers: a step a site answer calls for ("power lines out front") is found, and offered, after a
+  // sign-in or reload (messy round 15, A run 4: it was not offered at all after sign-in).
+  if (!fresh && !document.querySelector('[data-site]') && Object.keys(siteMemory).length) sent.site = { ...siteMemory, ...(sent.site || {}) };
   // An ask already on its way is out of date once this one is sent.
   askSeq += 1;
   // So is an earlier load of the questions: its steps were ticked as they were before the latest click, and
@@ -1973,6 +2002,7 @@ async function loadQuestions(options = {}) {
   }
   questions = data;
   freshFacts = false;
+  keepFoundSteps(data);
   // Spelling SiteWrite fixed in the task, shown so the user can check it.
   showSpellingFixes(data.spellingFixes);
   const warning = document.getElementById('fall-warning');
@@ -2081,6 +2111,7 @@ function fillStart(input) {
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string' && !(stepPicks || []).includes(id)) : []);
+  stepsSeen = Array.isArray(input.kindsSeen) ? input.kindsSeen.filter((id) => typeof id === 'string') : null;
   priorKinds = Array.isArray(input.priorKinds) ? input.priorKinds.filter((id) => typeof id === 'string') : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
@@ -3008,6 +3039,12 @@ function confirmedPlant(ticks, added) {
   const before = ((plantChoice && plantChoice.notUsed) || []).filter((name) => !names.includes(name));
   return { used, notUsed: [...new Set([...names.filter((name) => !ticks[name]), ...before])], added };
 }
+// The job steps that confirming the plant last added (an EWP, a mobile scaffold, a drill for concrete), said under the
+// plant so the page tells the truth (messy round 15, A run 1: a cordless drill added "Drill or cut concrete, masonry or
+// stone" while the page said the job steps stay as they are).
+let plantAddedSteps = [];
+// Kept while those steps are in the draft, so a second press (to tick plant SiteWrite then also lists) still says it.
+const plantAddedNote = () => (plantAddedSteps.length ? ` Confirming it added the job step${plantAddedSteps.length === 1 ? '' : 's'} ${plantAddedSteps.map((name) => `"${name}"`).join(' and ')}. Untick ${plantAddedSteps.length === 1 ? 'it' : 'them'} under Job steps if your crew does not do that work.` : '');
 const NOTHING_TO_ADD = /^(?:no|none|no other|nothing|nothing else|nil|n\/?a|not applicable)[.!]?$/i;
 const plantOwn = () => (plantPending && plantPending.own) || (plantChoice && plantChoice.added) || [];
 function plantBlock(draft) {
@@ -3016,7 +3053,7 @@ function plantBlock(draft) {
   const done = plantChoice && !gap && !plantPending;
   const status = plantPending ? 'You have changes. Press Confirm the plant to use them.'
     : !plantChoice ? 'Not confirmed yet. The download waits for it.'
-      : gap ? gap.need : 'Confirmed. Only the plant ticked here prints on the SWMS.';
+      : gap ? `${gap.need}${plantAddedNote()}` : `Confirmed. Only the plant ticked here prints on the SWMS.${plantAddedNote()}`;
   const ticks = listed.length
     ? listed.map((item) => `<label class="check"><input type="checkbox" data-plant-item="${esc(item.item)}"${plantTicked(item) ? ' checked' : ''}><span>${esc(item.item)}${item.maybe ? ' <span class="meta">SiteWrite is not sure this is used. Tick it only if it is.</span>' : ''}</span></label>`).join('')
     : '<p class="meta">SiteWrite found no plant in this task. Add the plant and equipment your crew uses, if any.</p>';
@@ -3025,7 +3062,7 @@ function plantBlock(draft) {
     : `<div class="plant-own"><label for="plant-own-licence-${i}"><strong>${esc(item.item)}</strong>: licence or ticket to operate it <span class="hint">Write No if none is needed.</span></label><input id="plant-own-licence-${i}" type="text" maxlength="300" data-plant-own-licence="${i}"> <button type="button" class="link" data-plant-remove="${i}">Remove</button></div>`)).join('');
   return `<div class="panel answer-panel${done ? ' done' : ''}" id="plant-panel">
     <fieldset class="field" id="plant-ticks" tabindex="-1"><legend>Confirm the plant and equipment for this job</legend>
-      <p class="meta">SiteWrite listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. The job steps stay as they are: change them under Job steps if the method changes.</p>
+      <p class="meta">SiteWrite listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. Plant that needs a job step of its own, such as an EWP or a drill for concrete, brings that step, and SiteWrite says which. Change the steps under Job steps if the method changes.</p>
       ${ticks}${own}
     </fieldset>
     <div class="field"><label for="plant-own-item">Add your own plant or equipment</label><input id="plant-own-item" type="text" maxlength="200" placeholder="For example: 1.7 t mini excavator"></div>
@@ -3287,7 +3324,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const steps = `${removedSteps}<table class="stack steps-table"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : `${libraryRow(step, index, all)}${movable ? ownHazardRows(index) : ''}`)).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
+  const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.shown || item.item, item.inspection, item.licence])) : '';
   const registers = `${plantTable || movable ? `<h4>Plant and equipment</h4>${movable ? plantBlock(draft) : ''}${plantTable || '<p class="meta">No plant prints on this SWMS.</p>'}` : ''}
     ${window.SiteWriteSubstances ? window.SiteWriteSubstances.section(draft, { movable }) : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
@@ -3344,7 +3381,10 @@ document.getElementById('hospital-find').addEventListener('click', async () => {
     const data = await (await fetch(api(`/api/nearby-care?address=${encodeURIComponent(address)}`))).json();
     if (!data.enabled) { box.innerHTML = '<p class="meta">Suggestions are not set up. Type the hospital.</p>'; return; }
     if (data.error) { box.innerHTML = `<p class="meta">${esc(data.error)}</p>`; return; }
-    const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">${place.km ? `About ${esc(place.km)} km` : 'Less than 0.1 km'} away in a straight line</span></button></li>`;
+    // What Google's list shows of each: an emergency department listed at the hospital, or a private hospital, which may
+    // have none or charge for it (messy round 15, A runs 2 to 4).
+    const careNote = (place) => (place.emergencyListed ? '<br><span class="meta">Emergency department listed</span>' : place.private ? '<br><span class="meta">Private hospital: it may have no emergency department, or charge for one</span>' : '');
+    const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">${place.km ? `About ${esc(place.km)} km` : 'Less than 0.1 km'} away in a straight line</span>${careNote(place)}</button></li>`;
     box.innerHTML = `${data.hospitals.length ? `<p class="meta"><strong>Hospitals.</strong> Check the one you pick has a 24 hour emergency department.</p><ul class="care-list">${data.hospitals.map(option).join('')}</ul>` : '<p class="meta">No hospital found nearby. Type the hospital.</p>'}
       ${data.clinics.length ? `<p class="meta"><strong>Medical centres</strong>, for minor injuries in opening hours. Serious injuries go to an emergency department.</p><ul class="care-list">${data.clinics.map(option).join('')}</ul>` : ''}`;
   } catch {
@@ -3789,6 +3829,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     const { response, data } = await postJson('/api/draft', body, { onRetry: () => draftNote(origin, 'The server did not answer straight away. Trying again.') });
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');
     draftNote(null, '');
+    keepFoundSteps(data);
     addPrincipals([JSON.parse(body).principalContractor], true);
     shownSteps = (data.jobSteps || []).map((step) => step.step);
     rememberFields();
@@ -3816,7 +3857,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     missingNotes = new Map(data.kind === 'stand-down' ? (data.missingHelp || []).map((item) => [item.id, item.state === 'vague' ? weakText(item) : `Still needed. ${item.help}`]) : []);
     if (data.kind === 'stand-down') askAgain(); else showAnswerNotes();
     // What is saved: the input sent, with changes moved onto any line SiteWrite has reworded.
-    const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
+    const sent = { ...JSON.parse(body), ...(stepPicks ? { kinds: [...stepPicks] } : {}), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     shownSent = sent;
     showGate();
     // Downloading and saving need an account; the account script adds those buttons.
@@ -3954,7 +3995,12 @@ resultEl.addEventListener('click', async (event) => {
     const ticks = plantTicksNow();
     plantChoice = confirmedPlant(ticks, [...plantOwn().map((item) => ({ ...item, licence: String(item.licence || '').trim() })), ...typed()]);
     plantPending = null;
+    const before = new Set(shownSteps || []);
     await prepareDraft({ scroll: false });
+    const now = shownSteps || [];
+    plantAddedSteps = [...new Set([...plantAddedSteps.filter((name) => now.includes(name)), ...now.filter((name) => before.size && !before.has(name) && !/\(Our own step\)$/.test(name))])];
+    const said = document.getElementById('plant-status');
+    if (said && plantAddedSteps.length && !said.textContent.includes(plantAddedNote().trim())) said.textContent = `${said.textContent}${plantAddedNote()}`;
     const panel = document.getElementById('plant-panel');
     if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
@@ -5006,6 +5052,13 @@ function keepUnsaved() {
 function clearUnsaved() {
   clearTimeout(keepTimer);
   try { localStorage.removeItem(UNSAVED_KEY); } catch { /* nothing kept */ }
+  unsavedNoteOff();
+}
+// "Your work is back as you left it (not saved yet, ...)" goes once the work is saved or downloaded (messy round 15,
+// A run 1: it stayed after preparing and downloading).
+function unsavedNoteOff() {
+  const note = document.getElementById('unsaved-note');
+  if (note) note.remove();
 }
 
 // Kept a moment after the typing stops. Boxes in the company profile, sign-in and team panels are
@@ -5222,7 +5275,7 @@ function goToEl(el) {
 
 window.SiteWrite = Object.assign(window.SiteWrite || {}, {
   mustFixPlace, goToMustFix, signedInProfile,
-  pickSwap, pickSwapNote, keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
+  pickSwap, pickSwapNote, keepUnsaved, clearUnsaved, unsavedNoteOff, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, showBuilderFields, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, ownStepProblem, OWN_HIERARCHY, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },

@@ -321,8 +321,10 @@ test('accepted suggestions go in as job steps and own steps; skipped or unused c
   const own = prepareDraft(draftBody({ ...input, ownSteps: [{ part: '', name: raise.step, hazards: raise.hazards, controls: raise.controls, who: '' }] }));
   const step = own.jobSteps.find((item) => item.own);
   assert.equal(step.step, 'Raise the machine platform with the chain blocks (Our own step)');
-  assert.deepEqual(step.controls, raise.controls);
-  assert.deepEqual(step.hazards, raise.hazards);
+  // Each line prints as a sentence, with its first capital (messy round 15: own step lines printed in lower case).
+  const sentence = (line) => `${line.charAt(0).toUpperCase()}${line.slice(1)}`;
+  assert.deepEqual(step.controls, raise.controls.map(sentence));
+  assert.deepEqual(step.hazards, raise.hazards.map(sentence));
   // A "Your step" with no hazard the methodology names does not print until the user adds one.
   const bare = JUMP_LIFT_READING.steps[7];
   const unprinted = prepareDraft(draftBody({ ...input, ownSteps: [{ part: '', name: bare.step, hazards: [], controls: ['Extend the guide rails and the travelling cable to suit the new level.'], who: '' }] }));

@@ -190,7 +190,9 @@ test('with falls Yes for the trench, the rescue of a person left hanging in a ha
   assert.match(ask(fallDraft(['Workers wear a full body harness clipped to the static line.'])), /left hanging in a harness/);
   assert.match(ask(fallDraft(['Edge protection at every open edge.'], [{ area: 'Body', items: [{ id: 'harness', ticked: true }] }])), /left hanging in a harness/);
   // A fall from height beside the trench keeps the fall rescue.
-  const both = { ...fallDraft(['Edge protection at every open edge.']), highRisk: ['Involves a risk of a person falling more than 2 metres', 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5 metres, or a tunnel'] };
+  // (The trench rescue is asked with a step that digs or works in the trench: messy round 15, B run 5.)
+  const slab = fallDraft(['Edge protection at every open edge.']);
+  const both = { ...slab, jobSteps: [...slab.jobSteps, { step: 'Excavate', hazards: ['The trench collapses onto a worker.'], controls: ['Trench shields to full depth.'] }], highRisk: ['Involves a risk of a person falling more than 2 metres', 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5 metres, or a tunnel'] };
   assert.deepEqual(categoriesFor(both), ['fall', 'trench']);
   const intoOnly = { ...both, jobSteps: [{ step: 'Work in the trench', hazards: ['Falling into the trench.'], controls: ['Barriers 1 m back from the edge.'] }] };
   assert.deepEqual(categoriesFor(intoOnly), ['trench']);
