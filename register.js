@@ -225,7 +225,9 @@ function rating(likelihood, consequence) {
 // Services found on site before the ground is broken (located, or potholed), and plant that stops itself
 // when its control fails, change the hazard too (messy round 9, run 2: "Set out" and "Trim and compact the
 // base by hand" left High after these lines).
-const ALSO_HIGHER = /\b(?:restrained (?:with|to|by)|load restraint|earthed or bonded|bonded|emergency shut-?offs?|prevent\w* re-?energi[sz]\w*)\b|\b(?:area|zone)s?\b[^.]{0,40}\bkept clear\b|\bwith the area clear\b|\blocate\w* (?:the )?services on site\b|\bservices? (?:are|is) (?:located|found)\b|\bpothol\w*|\bstops? safely if\b|\bfail[- ]safe\b|\bderail\w*|\bsignals?\b[^.]{0,40}\blocked\b|\bclosed to (?:trains|traffic|rail traffic|vehicles)\b|\bno (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)\b|\bno one (?:on foot )?is within the (?:\w+'? )?(?:working area|swing|reach)\b/i;
+// So does a delivery kept to its own zone with people kept clear of the truck ("unloaded only in the loading zone", "Spotter keeps
+// people clear of the truck and forklift": messy round 15, A run 1, a user's own delivery step left High after these lines).
+const ALSO_HIGHER = /\b(?:restrained (?:with|to|by)|load restraint|earthed or bonded|bonded|emergency shut-?offs?|prevent\w* re-?energi[sz]\w*)\b|\b(?:unload\w*|load\w*|deliver\w*)\b[^.]{0,30}\bonly (?:in|at|inside) (?:the |a )?(?:designated |marked )?(?:loading|unloading|delivery|laydown) (?:zones?|areas?|bays?)\b|\b(?:keeps?|kept)\s+(?:people|everyone|workers|pedestrians|the public|others)\s+(?:clear|out|away)\b|\b(?:area|zone)s?\b[^.]{0,40}\bkept clear\b|\bwith the area clear\b|\blocate\w* (?:the )?services on site\b|\bservices? (?:are|is) (?:located|found)\b|\bpothol\w*|\bstops? safely if\b|\bfail[- ]safe\b|\bderail\w*|\bsignals?\b[^.]{0,40}\blocked\b|\bclosed to (?:trains|traffic|rail traffic|vehicles)\b|\bno (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)\b|\bno one (?:on foot )?is within the (?:\w+'? )?(?:working area|swing|reach)\b/i;
 const higherOrder = (line) => ENGINEERING.test(line) || ALSO_HIGHER.test(line) || HIGHER.has(controlLevel(line));
 
 // What answers a catastrophic hazard, by its kind. A guardrail does not answer electric shock, a pipe
@@ -249,13 +251,13 @@ const ANSWERED_BY = [
   { hazard: (words) => /\btrains?\b/i.test(words),
     control: /\b(closed to (?:trains|rail traffic)|no trains? can (?:enter|reach|pass)|derail\w*|signals?\b[^.]{0,40}\blocked|track (?:is )?closed|isolat\w*)\b/i },
   { hazard: (words) => !/\btrains?\b/i.test(words) && (/\b(?:struck|strikes?|run over|hit)\b[^.]{0,40}\b(?:trucks?|plant|vehicles?|traffic|forklifts?|excavators?|machines?|machinery|sprayers?|spreaders?|rollers?|cars?)\b|\btraffic\b|\bvehicle strike\b|\bcrushed by (?:plant|a vehicle|a truck|a forklift|mobile plant)\b/i.test(words)),
-    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?|(?:truck[- ]mounted |impact )?attenuators?|tmas?|crash cushions?|kept out of (?:its|the) path|stops? safely|closed to (?:trains|traffic|rail traffic|vehicles)|no (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)|derail\w*|no one (?:on foot )?is within)\b/i },
+    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|(?:keeps?|kept) (?:people|everyone|workers|pedestrians|the public|others) (?:clear|out|away)|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?|(?:truck[- ]mounted |impact )?attenuators?|tmas?|crash cushions?|kept out of (?:its|the) path|stops? safely|closed to (?:trains|traffic|rail traffic|vehicles)|no (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)|derail\w*|no one (?:on foot )?is within)\b/i },
   // Striking a buried service: the service found on site first (located, potholed, the plans worked to).
   { hazard: (words) => /\bstrik\w* [^.]{0,40}\b(?:services?|cables?|gas|electrical)\b|\bhidden services\b|\bburied\b/i.test(words),
     control: /\b(locate\w* (?:the )?services|services? (?:are|is) (?:located|found)|pothol\w*|vacuum (?:excavat\w*|unit)|isolat\w*)\b/i },
   // A load or object that falls, swings, tips or crushes: no one under or beside it, the load secured or guided.
   { hazard: (words) => FALLING_THING.test(words) || /\b(crush\w*|loads? (?:falls?|drops?|swings?|shifts?)|falling objects?|objects? fall\w*|dropped|swings? into|tips? (?:over|or falls)|topple\w*|rolls? down)\b/i.test(words),
-    control: /\b(no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|within|beside|below|downhill)|tag lines?|exclusion zones?|drop zones?|barricad\w*|chock\w*|brac\w*|secured|restrained|tied|tethered|lanyards?|toe ?boards?|kept apart|separat\w*|guards?|catch (?:nets?|platforms?)|screens?)\b/i },
+    control: /\b(no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|within|beside|below|downhill)|(?:keeps?|kept) (?:people|everyone|workers|pedestrians|the public|others) (?:clear|out|away)|tag lines?|exclusion zones?|drop zones?|barricad\w*|chock\w*|brac\w*|secured|restrained|tied|tethered|lanyards?|toe ?boards?|kept apart|separat\w*|guards?|catch (?:nets?|platforms?)|screens?)\b/i },
   { hazard: (words) => /\b(collapse\w*|fails?|failure|overturn\w*|rolls? over|bursts?)\b/i.test(words),
     control: /\b(props?|propp\w*|shor\w*|brac\w*|engineer\w*|design\w*|certif\w*|rated|bench\w*|batter\w*|shields?|outriggers?|guards?|exclusion zones?|no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|beside)|kept clear|clear of people|area clear|relief valves?|landing gates?)\b/i },
 ];
@@ -844,6 +846,13 @@ function withoutServicedPlant(text) {
   return String(text || '').replace(/[^.]+\.?/g, (sentence) => (SERVICED_PLANT.test(sentence) ? sentence.replace(PLANT_WORDS, ' ') : sentence));
 }
 
+const HAZARD_ONLY_PLANT = new Set(['Generator', 'Air compressor', 'Concrete vibrator']);
+// Every line that names an EWP names it as one choice among others ("from a ladder, platform or elevating work platform").
+function ewpOnlyAsChoice(text) {
+  const lines = String(text || '').split('\n').filter((line) => /\b(?:elevating work platforms?|ewps?)\b/i.test(line));
+  return lines.length > 0 && lines.every((line) => /\b(?:or|and\/or)\s+(?:an?\s+|the\s+)?(?:elevating work platforms?|ewps?)\b|\b(?:elevating work platforms?|ewps?)\s+or\b/i.test(line));
+}
+
 function registersFor(draft, input = {}) {
   // The lines' words without the state's own code references (the printed lines are kept for the
   // sources list and the rated steps).
@@ -863,7 +872,11 @@ function registersFor(draft, input = {}) {
   // "hilti hammer drill" offered no drill or power tools). Their hazards are read as SiteWrite's are.
   const ownStepText = (Array.isArray(input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name)
     .flatMap((item) => [item.name, ...(Array.isArray(item.controls) ? item.controls : []), ...(Array.isArray(item.hazards) ? item.hazards : []).map((line) => String(line).replace(/\b(?:forklifts?|telehandlers?)\b/gi, ''))]).filter((line) => typeof line === 'string').join('\n');
-  const useText = `${withoutServicedPlant(ownTask)}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}\n${ownStepText}`;
+  // "Scaffold" in the user's own step, where the work is done from a mobile scaffold and the task names no other scaffold, is
+  // that mobile scaffold (messy round 15, B run 6: an own step's "scaffold" listed a fixed scaffold).
+  const mobileOnly = /\bmobile scaffolds?\b/i.test(`${ownTask}\n${steps.map((step) => step.step).join('\n')}\n${ownStepText}`) && !/(?<!mobile )\bscaffold(?:s|ing)?\b/i.test(withoutServicedPlant(ownTask).replace(/\bmobile scaffold\w*/gi, ' '));
+  const ownPlantText = mobileOnly ? ownStepText.replace(/(?<!mobile )\bscaffold(s|ing)?\b/gi, 'mobile scaffold$1') : ownStepText;
+  const useText = `${withoutServicedPlant(ownTask)}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}\n${ownPlantText}`;
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
   const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Nail guns?:|Line marking machines?|Sanders?\b|Mixers?\b|Mixer guards|Lifting beams?\b|Cut and trim bars|A trencher|Trenchers?\b)/.test(line) || /^(?:Use|Using|Cut)\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b|\bcut with\b|\b(?:is|are) mixed\b[^.]{0,40}\bwith an? \w+ mixers?\b/i.test(line) && !/\b(?:\w+ )or (?:an? )?(?:forklift|crane|telehandler|ewp|hoist)\b/i.test(line) && !/\b(keep (?:clear|away|out|back|well clear|people|everyone|workers|others)|clear of|away from|others|crane company|pumping company)\b/i.test(line)
     // A rule for any such tool's PPE ("Grinders and cut-off saws are used with a face shield") does not say this
@@ -896,6 +909,7 @@ function registersFor(draft, input = {}) {
   const scaffoldType = String((input.facts || {}).scaffoldType || '');
   const scaffoldByOthers = scaffoldType.toLowerCase().replace(/[^a-z]/g, '') === 'byothers' || /^\s*not our work\b/i.test(scaffoldType);
   const noCrane = /^(none|no|no crane|not used)$/i.test(String(input.crane || '').trim());
+  const craneByCompany = Boolean(String(input.crane || '').trim()) && !ownCrane && !noCrane;
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe.filter((item) => !accessExtra.some((other) => other.item === item.item)), ...accessExtra]
     .filter((item) => !(buildingGenerator && item.item === 'Generator'))
     // Plant suggestions come from the task's own work (messy round 4): rail track plant only for rail
@@ -909,8 +923,19 @@ function registersFor(draft, input = {}) {
     .filter((item) => !(/^(?:Elevating work platform|Boom-type elevating work platform|Scissor lift)$/.test(item.item) && require('./draft').ewpRuledOut(ownTask) && !steps.some((step) => /\b(?:EWP|elevating work platform|scissor lift|boom lift)\b/i.test(step.step))))
     // An EWP named only as one choice in a line ("fixed from a platform or EWP"), where the task works from a mobile scaffold or
     // scaffold and names no EWP, is not offered (messy round 14, A run 1: a cool room put up from a mobile scaffold).
-    .filter((item) => !(item.item === 'Elevating work platform' && WHERE_USED.test(item.licence) && /\b(?:mobile scaffolds?|scaffold\w*|trestles?)\b/i.test(ownTask) && !/\b(ewps?|boom lifts?|elevating work platforms?|scissor lifts?|cherry pickers?)\b/i.test(ownTask) && !steps.some((step) => /\b(?:EWP|elevating work platform)\b/i.test(step.step))))
-    .map((item) => othersLicence(item, allText, task, ownCrane, ownCrane ? (input.facts || {}).craneChart : '', scaffoldByOthers));
+    // So is one named only as a choice in a hazard ("A fall into a shaft or from a ladder, platform or elevating work
+    // platform"), where the task works from a mobile scaffold or podium steps (messy round 15, B run 5).
+    .filter((item) => !(item.item === 'Elevating work platform' && (WHERE_USED.test(item.licence) || ewpOnlyAsChoice(useText)) && (/\b(?:mobile scaffolds?|scaffold\w*|trestles?|podium (?:steps?|ladders?)|podiums?)\b/i.test(ownTask) || steps.some((step) => /^(?:Use mobile scaffolds|Work from trestle platforms)$/.test(step.step))) && !/\b(ewps?|boom lifts?|elevating work platforms?|scissor lifts?|cherry pickers?)\b/i.test(ownTask) && !steps.some((step) => /\b(?:EWP|elevating work platform)\b/i.test(step.step))))
+    // A chainsaw named only in a demolition line for cutting roof timbers and timber floors is not the crew's plant where the
+    // task names no timber, trees or chainsaw (messy round 15, B run 7: a brick annexe with a metal roof listed a chainsaw).
+    .filter((item) => !(item.item === 'Chainsaw' && !/\b(?:chainsaws?|trees?|stumps?|logs?|timber\w*|branch\w*|vegetation|prun\w*|scrub|weatherboards?|framing|joists?|bearers?|rafters?|trusses)\b/i.test(`${ownTask}\n${ownStepText}\n${steps.map((step) => step.step).join('\n')}`) && steps.every((step) => !/\bchainsaws?\b/i.test(step.step))))
+    // Plant a step names only among the sources of its hazards ("Exhaust fumes from generators", "Eye injury when blowing out
+    // decks with compressed air", "Noise from vibrators, trowels, pumps and generators") may or may not be the crew's: it is
+    // offered for the user to tick, not ticked (messy round 15, A run 1: a generator and an air compressor ticked for the pour).
+    .map((item) => (HAZARD_ONLY_PLANT.has(item.item) && !WHERE_USED.test(item.licence) && !(item.item === 'Concrete vibrator' && /\bvibrat\w*/i.test(ownTask)) && !plantFor(`${withoutServicedPlant(ownTask)}\n${(draft.controls || []).map((line) => line.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${ownStepText}\n${usedInControls.join('\n')}`).some((found) => found.item === item.item) ? { ...item, licence: whereUsed(item.licence) } : item))
+    // "A crane company" answered: its operator and crew hold the crane's licence, as where a line names the crane company (messy
+    // round 15, A run 1: the crane class licence printed for a formwork crew whose lifts the crane company did).
+    .map((item) => othersLicence(item, craneByCompany ? `${allText}\nThe crane company runs the crane.` : allText, task, ownCrane, ownCrane ? (input.facts || {}).craneChart : '', scaffoldByOthers));
   if (plant.some((item) => /^(Boom-type elevating work platform|Scissor lift)$/.test(item.item)) && !SEPARATE_EWP.test(withoutScissorEwp(ownTask).replace(/\bboom(?:[- ]type)? (?:ewps?|elevating work platforms?)\b/gi, ' boom lift '))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Elevating work platform'));
   // A truck loading crane job's "the crane" is the loading crane.
   if (plant.some((item) => /^Vehicle loading crane/.test(item.item)) && !/\b(mobile|crawler|franna|all terrain|slewing|tower) cranes?\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => !/^Mobile crane or crane truck$/.test(item.item)));

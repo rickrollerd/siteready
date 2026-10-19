@@ -62,7 +62,10 @@ const KINDS = [
   },
   {
     id: 'demolition', label: 'Engineer\'s demolition plan',
-    lines: [/\bin the sequence the engineer's demolition plan sets\b/],
+    // The structure's own demolition sequence and the engineer's written instructions are this plan too (messy round 15, B run
+    // 7: nothing asked for the engineer's sequence for a load-bearing brick annexe; the Demolition work code s 3.3).
+    lines: [/\bin the sequence the engineer's demolition plan sets\b/, /\bin the sequence the structural engineer's demolition design or instructions set\b/, /\buntil the structural engineer has given the demolition design or clear written instructions\b/],
+    holdSteps: /^(Demolish the structure|Demolish the bridge)$/,
   },
   {
     id: 'propping', label: 'Temporary works design (propping)',
@@ -109,6 +112,9 @@ const KINDS = [
   {
     id: 'formwork', label: 'Formwork design',
     steps: /^(?!.*jumpform)/i,
+    // The forming steps build to the design, so a design not issued yet holds them all, the deck too (messy round 15, A run 1:
+    // "Lay the formwork deck" was neither held nor named). The pour and the loading only keep within it (D291).
+    holdSteps: /^(?:Erect falsework and shores|Lay the formwork deck|Form penetrations and voids|Stand and brace wall and column forms|Form the (?:tank walls|retaining wall)|Inspect before the pour|Install backprops)$/,
     lines: [
       /\bErect falsework to the formwork design\b/,
       /\bas the formwork design sets out\b/,
@@ -245,6 +251,8 @@ const WHY = 'A reviewer checks the SWMS matches the design the work is done to. 
 
 const clean = (value) => String(typeof value === 'string' ? value : '').replace(/\s+/g, ' ').trim();
 const HOLD = 'Hold point:';
+// What a design blank in an answer reads while the design is not issued yet (public/design-fill.js NOT_ISSUED).
+const NOT_ISSUED_FILL = 'not issued yet: the work does not start until it is issued and this SWMS is updated';
 const isHoldPoint = (line) => clean(line).startsWith(HOLD);
 
 // The designs the printed steps rely on, in the order the steps print: a list of { id, label, steps },
@@ -409,6 +417,7 @@ function withDesigns(draft, input) {
     if (!doing.length) continue;
     const order = jobSteps.map((step) => step.step);
     row.steps = [...new Set([...row.steps, ...doing.map((step) => step.step)])].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    row.held = [...new Set([...(row.held || []), ...doing.map((step) => step.step)])].sort((a, b) => order.indexOf(a) - order.indexOf(b));
     if (row.status !== 'notIssued' || designNeed(row) !== '') continue;
     const hold = holdLine(row);
     for (const step of doing) {
@@ -429,6 +438,28 @@ function withDesigns(draft, input) {
     const using = jobSteps.filter((step) => !step.own && (step.controls || []).some((line) => typeof line === 'string' && clean(line).includes(said.slice(0, 60))));
     if (using.length) row.steps = using.map((step) => step.step);
   }
+  // One message for a design not issued yet, wherever it is said (messy round 15, A run 1: the pour SWMS's designs table said
+  // "Update this SWMS when it is issued" while its Controls table said the work does not start until it is issued, and the
+  // propping design's answer said the same). A design that holds steps here says those steps do not start until it is issued;
+  // one that holds none (the pour crew's formwork design, D291) says to update the SWMS when it is issued. The answer to the
+  // design's question is said the same way.
+  const sayOnce = (line, row, answer) => {
+    if (typeof line !== 'string') return line;
+    const label = clean(row.label || row.what);
+    const name = `${label.charAt(0).toLowerCase()}${label.slice(1)}`;
+    const holding = (row.held || []).length > 0;
+    let out = line.split(`Hold point: the ${name} is not issued yet, so the work it covers does not start until it is issued and this SWMS is updated.`)
+      .join(holding ? `Hold point: the ${name} is not issued yet, so the steps that rely on it do not start until it is issued and this SWMS is updated.` : `The ${name} is not issued yet. Update this SWMS when it is issued.`);
+    if (answer && clean(out).includes(answer.slice(0, 40))) out = out.split(NOT_ISSUED_FILL).join(holding ? 'not issued yet: the steps that rely on it do not start until it is issued and this SWMS is updated' : 'not issued yet: update this SWMS when it is issued');
+    return out;
+  };
+  for (const row of rows.filter((item) => item.status === 'notIssued' && item.kind !== 'method')) {
+    const question = Object.keys(QUESTION_DESIGNS).find((key) => QUESTION_DESIGNS[key].id === row.id);
+    const answer = question && typeof facts[question] === 'string' ? clean(facts[question]).replace(NOT_ISSUED_FILL, '').replace(/[.()\s]+$/, '') : '';
+    for (let n = 0; n < jobSteps.length; n += 1) jobSteps[n] = { ...jobSteps[n], controls: (jobSteps[n].controls || []).map((line) => sayOnce(line, row, answer)) };
+    if (Array.isArray(draft.controls)) draft = { ...draft, controls: draft.controls.map((item) => (item && typeof item.text === 'string' ? { ...item, text: sayOnce(item.text, row, answer) } : item)) };
+    if (Array.isArray(draft.references)) draft = { ...draft, references: draft.references.map((item) => (item && typeof item.text === 'string' ? { ...item, text: sayOnce(item.text, row, answer) } : item)) };
+  }
   return {
     ...draft,
     jobSteps,
@@ -440,7 +471,7 @@ function withDesigns(draft, input) {
 function statusText(row) {
   if (row.kind === 'method') return `The work follows this methodology.${row.file ? ` A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''}`;
   // A design whose steps only keep loads within it (the pour crew's formwork design) holds no step.
-  if (row.status === 'notIssued' && ((Array.isArray(row.held) && !row.held.length) || !(row.steps || []).length)) return 'Not issued yet. Update this SWMS when it is issued.';
+  if (row.status === 'notIssued' && !(Array.isArray(row.held) && row.held.length)) return 'Not issued yet. Update this SWMS when it is issued.';
   if (row.status === 'notIssued') return 'Not issued yet. Hold point: the steps that rely on it do not start until it is issued and this SWMS is updated.';
   if (row.status === 'notNeeded') return 'Not needed for this work (the business\'s choice when preparing this SWMS).';
   if (row.status === 'given' && designNeed(row) === '') return row.file ? `Issued. A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : 'Issued.';

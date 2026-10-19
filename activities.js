@@ -631,9 +631,11 @@ const ACTIVITIES = [
       hazards: ['Falling through brittle roofing or openings.', 'Cuts from sheet edges.', 'Sheets caught by wind.'],
       controls: [
         // The stripping itself, said once here rather than in the set-up step.
-        src('Old sheets come off bay by bay, and safety mesh is run out over each stripped bay from the protected edge before new sheets go on.', NSWC('NSW Work on roofs', 's 4.5, s 7.2')),
-        { unless: 'brittleRoof', ...src('Safety mesh is not walked on unless it is designed for that.', NSWC('NSW Work on roofs', 's 4.5, s 5.3')) },
-        { unless: 'brittleRoof', text: 'On the old roof sheeting, walk only on the sheets over the purlin lines. No one stands on bare purlins.' },
+        // Sheeting taken off from an EWP below, with no new roof (roofFromBelow), is not walked on and has no mesh run out for
+        // new sheets (messy round 15, B run 7).
+        { unless: 'roofFromBelow', ...src('Old sheets come off bay by bay, and safety mesh is run out over each stripped bay from the protected edge before new sheets go on.', NSWC('NSW Work on roofs', 's 4.5, s 7.2')) },
+        { unless: ['brittleRoof', 'roofFromBelow'], ...src('Safety mesh is not walked on unless it is designed for that.', NSWC('NSW Work on roofs', 's 4.5, s 5.3')) },
+        { unless: ['brittleRoof', 'roofFromBelow'], text: 'On the old roof sheeting, walk only on the sheets over the purlin lines. No one stands on bare purlins.' },
         { only: 'asbestosRoof', text: 'Asbestos cement sheets are wrapped on the roof and lowered by hoist, crane or by hand down a scaffold, never dropped or slid down.' },
         { only: 'brittleRoof', ...src('Old fibre cement sheets are treated as fragile no-go areas, and no one walks on them.', NSWC('NSW Work on roofs', 's 5.3')) },
         { only: 'brittleRoof', text: 'Work is done from roof ladders or crawl boards spanning the purlins, from an EWP, or from the edge protection.' },
@@ -1258,6 +1260,9 @@ const ACTIVITIES = [
           { unless: 'reoNoDeck', text: 'Work inside the edge protection at all times.' },
           { unless: 'reoNoDeck', ...src('Where our crew stays on the deck during the pour, they follow the formwork watcher\'s stop signal and do not go under the deck.', NSWC('NSW Formwork', 's 7.14')) },
           { unless: 'reoNoDeck', text: 'Crew on the deck during the pour keep clear of the pump hose end and placing boom, wear gumboots and chemical resistant gloves, and wash wet concrete off skin straight away.' },
+          // The pour step's own sourced line, for a reo crew whose work the engineer inspects before each pour (reoInspection, messy
+          // round 15, A run 1: the scope's reinforcement inspection hold point printed nowhere in the Reinforcement SWMS).
+          { only: 'reoInspection', ...src('Where the engineer inspects before the pour, the pour starts only once the inspection is passed.', NSWC('NSW Formwork', 's 7.12, s 7.15')) },
           'Tie wire is cut with nips held close to the bar so the offcut cannot flick into anyone\'s eyes, and tails are bent inward, away from where people walk, kneel or reach.',
           src('Cuts with an abrasive disc are hot work: they are made only under the site\'s hot work permit, with combustible materials cleared or covered, a fire extinguisher at the work, and a fire watch during the cutting and for at least 30 minutes after it stops.', `${QCODE('Welding processes', 's 3.4')}; ${NSWC('NSW Welding', 's 3.4')}`),
         ],
@@ -1286,6 +1291,8 @@ const ACTIVITIES = [
     when: 'concrete',
     steps: [
       {
+        // A formwork crew that only finishes the slab (concreteFinishOnly, messy round 15, A run 1) has the finishing step alone.
+        unless: 'concreteFinishOnly',
         step: 'Set up the concrete pump and placing boom',
         hazards: ['The boom contacts overhead power lines.', 'The pump or boom overturns.', 'The boom strikes a person or structure.', 'The boom or pipeline fails, or concrete falls from the boom, onto a person below.'],
         controls: [
@@ -1308,6 +1315,7 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'concreteFinishOnly',
         step: 'Pump and place concrete',
         hazards: ['Hose whip at start-up or when a blockage clears.', 'A burst line.', { unless: 'noDeck', text: 'A person falls from the edge or through the deck.' }, { only: 'noDeck', text: 'A person falls from the pour platform or into the open excavation.' }, 'A reversing concrete truck strikes a person.', 'Electric shock and vibration from vibrators.', 'Exhaust fumes from generators.', { unless: 'noDeck', text: 'Eye injury when blowing out decks with compressed air.' }],
         controls: [
@@ -1960,8 +1968,10 @@ const ACTIVITIES = [
           { unless: 'roofPlant', text: 'The respirator worn for anchor drilling is at least P2.' },
           ...SILICA_FOLLOW_UP.map((item) => ({ unless: 'roofPlant', ...(typeof item === 'string' ? { text: item } : item) })),
           { unless: 'roofPlant', text: 'Electrical connections are made by a licensed electrician after the plant is fixed.' },
-          { unless: 'roofPlant', ...src('Refrigerant connections are made only by the holder of a refrigerant handling licence.', ARC('s 1.1.1, s 12.1')) },
-          { unless: 'roofPlant', text: 'Refrigerant and pipe connections are made after the plant is fixed, and the pipe connections by the licensed trades.' },
+          // Only for plant with refrigerant in it (refrigerantPlant: messy round 15, A run 3, fans and ventilation plant printed
+          // the refrigerant licence, a refrigerant release emergency and the refrigerant code).
+          { unless: 'roofPlant', only: 'refrigerantPlant', ...src('Refrigerant connections are made only by the holder of a refrigerant handling licence.', ARC('s 1.1.1, s 12.1')) },
+          { unless: 'roofPlant', only: 'refrigerantPlant', text: 'Refrigerant and pipe connections are made after the plant is fixed, and the pipe connections by the licensed trades.' },
         ],
       },
     ],
@@ -6500,7 +6510,7 @@ const ACTIVITIES = [
         'Pit lids are lifted with lid lifters, by two people where they are heavy.',
         src('Pits are worked from the surface. A pit is not entered unless it has been assessed as not a confined space.', QCODE('Confined spaces', 's 1.1, s 4.1')),
         'The conduit is rodded and a draw rope fitted first. The cable is hauled with a winch fitted with a tension limiter or by hand, within the cable\'s pulling tension, and no one stands in line with the rope.',
-        'The work in the street follows the network operator\'s requirements for its pits and conduits.',
+        { unless: 'sitePits', text: 'The work in the street follows the network operator\'s requirements for its pits and conduits.' },
         'Before anyone reaches into a pit, it is checked for syringes, snakes and spiders. Syringes are picked up only with a sharps kit into a sharps container, never by hand.',
         'Before any hot work at a pit, or where gas, sewage, fuel or solvent odours are noticed, the air at the pit is tested with a calibrated four-gas detector. If gas is found, work stops and everyone moves clear until the readings are normal.',
       ],
@@ -11311,6 +11321,9 @@ ACTIVITIES.push(
           'Skips are loaded from the ground or a loading platform, never by climbing onto or into them.',
           'Skips are not filled above their sides, and long items are laid flat.',
           'Keep clear while the skip truck reverses, lifts or sets down a skip. A spotter guides it where people are nearby.',
+          // The plant step's own sourced line, for the skip truck that lifts and sets down skips (messy round 15, B run 7: the
+          // step stayed High after its controls, with nothing between people and the truck).
+          src('An exclusion zone, with signs and barricades, around trucks and plant while they load and unload.', `${WHS('s 214, s 215')}; ${QCODE('Managing the risks of plant in the workplace', 's 3.8')}`),
         ],
       },
       {

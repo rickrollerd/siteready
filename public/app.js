@@ -2747,6 +2747,12 @@ function readNote(row) {
   return `<div class="design-read${checked ? ' checked' : ''}">${checked ? '' : '<p class="warning design-read-note">Read from the drawing: check it matches the title block.</p>'}
     <label class="check"><input type="checkbox" data-design-read-check="${esc(row.id)}"${checked ? ' checked' : ''}> These match the drawing</label></div>`;
 }
+// What "Not issued yet" does, said as the SWMS says it (messy round 15, A run 1: the page said the steps print a hold point
+// where no step of the SWMS builds to the design, and the SWMS said only to update it when the design is issued).
+function designHoldNote(found, question) {
+  if (found && Array.isArray(found.held) && !found.held.length) return 'No step of this SWMS builds to this design, so no step is held. The SWMS says: "Not issued yet. Update this SWMS when it is issued."';
+  return question ? 'The answer above prints as a hold point: the steps that rely on the design do not start until it is issued and this SWMS is updated. You can leave the answer empty.' : 'The steps that build to it print a hold point: "Do not start this step until the design is issued and this SWMS is updated."';
+}
 function designCard(row, found, { question = false } = {}) {
   const id = esc(row.id);
   const added = /^added-/.test(row.id);
@@ -2768,7 +2774,7 @@ function designCard(row, found, { question = false } = {}) {
       ${box('date', 'Date on the design', '', 'date', 60)}
       ${designFileBox(row, 'drawing')}
     </div>
-    <p class="note design-hold">${question ? 'The answer above prints as a hold point: the work it covers does not start until the design is issued and this SWMS is updated. You can leave the answer empty.' : 'The steps that use it print a hold point: "Do not start this step until the design is issued and this SWMS is updated."'} When the design arrives, add its details here and save a new revision.</p>
+    <p class="note design-hold">${designHoldNote(found, question)} When the design arrives, add its details here and save a new revision.</p>
     <p class="note design-skip">Choose this only if the work in these steps is not done to a design on this job. The SWMS records it as your business's choice, and a reviewer may ask why.</p>
     ${added ? `<p><button type="button" class="link" data-design-remove="${id}">Remove this design</button></p>` : ''}
   </fieldset>`;

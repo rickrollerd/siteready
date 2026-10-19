@@ -9498,7 +9498,8 @@
   "step": "Remove old roofing",
   "text": "Asbestos cement roofing is never water blasted or cleaned with compressed air.",
   "code": "NSW Work on roofs",
-  "section": "s 6.1"
+  "section": "s 6.1",
+  "unless": "asbestosCleared"
  },
  {
   "op": "add",

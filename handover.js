@@ -381,7 +381,12 @@ function retitle(out, work, { all = false, folded = false } = {}) {
     const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
     const area = /^trade installation:\s*(.+)$/i.exec(item.package);
     const place = area && !/^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i.test(area[1].trim()) ? area[1].trim() : '';
-    const from = place ? `${title}, ${place}` : named.length === 1 ? named[0] : named.length === 2 ? `${named[0]} and ${later(named[1])}` : named.length ? named[0] : '';
+    // Two activities' words name the work only where they are all of it, and still read as a title; otherwise the first activity names it, never "and other work" (sl12, round 15 SiteLink wording 2) (messy round 15, A run 2: a
+    // package of ten activities was titled by two of them, "Terminate, joint and test cables and carry out electrical isolation
+    // and lock out", and its file name was cut off at "electrical is").
+    const rowCount = ((work[index] && work[index].rows) || []).length;
+    const pair = named.length === 2 ? `${named[0]} and ${later(named[1])}` : '';
+    const from = place ? `${title}, ${place}` : named.length === 1 && rowCount === 1 ? named[0] : pair && rowCount === 2 && pair.length <= 60 ? pair : named.length ? named[0] : '';
     if (!from || used().includes(from.toLowerCase())) return;
     if (inOther(item)) item.listTitle = from; else item.title = from;
   });

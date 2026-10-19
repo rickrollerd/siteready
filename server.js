@@ -668,7 +668,9 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
     // A point between numbers stays ("deeper than 1.5 m", messy round 3).
-    const base = `${String(number).padStart(2, '0')} ${String(title || 'SWMS').replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[^A-Za-z0-9 .,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
+    // Cut at a word, not part way through one (messy round 15, A run 2: "... carry out electrical is").
+    const words = String(title || 'SWMS').replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[^A-Za-z0-9 .,()-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const base = `${String(number).padStart(2, '0')} ${(words.length > 60 ? words.slice(0, 61).replace(/\s+\S*$/, '') : words).replace(/[\s,]+$/, '')}`;
     let stem = base;
     for (let n = 2; used.has(`${stem}.docx`); n += 1) stem = `${base} ${n}`;
     used.add(`${stem}.docx`);

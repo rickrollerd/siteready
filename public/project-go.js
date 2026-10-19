@@ -746,7 +746,7 @@
       const required = got.required || [];
       parts.push(required.length ? required.map((question) => questionHtml(index, question)).join('') : '<p class="meta">No further question for this SWMS.</p>');
       const found = (got.designs || []).filter((row) => row.needed && !required.some((question) => (questionDesign(question.id) || {}).id === row.id));
-      if (found.length) parts.push(`<p class="go-sub"><strong>Designs this work relies on</strong></p>${found.map((row) => designHtml(index, row.id, row.label || row.what, row.steps)).join('')}`);
+      if (found.length) parts.push(`<p class="go-sub"><strong>Designs this work relies on</strong></p>${found.map((row) => designHtml(index, row.id, row.label || row.what, row.steps, '', row.held)).join('')}`);
       const own = Boolean(item.siteOwn);
       parts.push(`<div class="go-site-own">${own ? `<p class="meta">This SWMS has its own site answers. <button type="button" class="link" data-go-site-same="${index}">Use the answers for every SWMS</button></p>${siteBoxes(`go-site-${index}`, item.siteOwn, `data-go-own-site="${index}"`)}` : `<p class="meta">Site questions: the answers for every SWMS, above. <button type="button" class="link" data-go-site-own="${index}">Change them for this SWMS</button></p>`}</div>`);
       parts.push(typesHtml(index, got.substanceTypes || []));
@@ -772,11 +772,11 @@
     }
     const picks = (question.suggestions || []).length ? `<div class="picks"><span class="picks-label">Standard answers:</span>${question.suggestions.map((pick, n) => `<button type="button" class="pick-button" data-go-pick="${index}" data-q="${esc(question.id)}" data-n="${n}">${esc(pick.label)}</button>`).join('')}</div>` : '';
     const design = questionDesign(question.id);
-    return `<div class="field" data-go-q="${esc(question.id)}"><label for="${id}">${esc(question.label)}${hint}</label>${picks}<textarea id="${id}" data-go-fact="${index}" data-q="${esc(question.id)}">${esc(value)}</textarea><p class="meta go-across" id="${id}-across" hidden></p><p class="answer-note" id="${id}-note" hidden></p><p class="blank-warning" id="${id}-blanks" hidden></p>${design ? designHtml(index, design.id, design.label, null, question.id) : ''}</div>`;
+    return `<div class="field" data-go-q="${esc(question.id)}"><label for="${id}">${esc(question.label)}${hint}</label>${picks}<textarea id="${id}" data-go-fact="${index}" data-q="${esc(question.id)}">${esc(value)}</textarea><p class="meta go-across" id="${id}-across" hidden></p><p class="answer-note" id="${id}-note" hidden></p><p class="blank-warning" id="${id}-blanks" hidden></p>${design ? designHtml(index, design.id, design.label, null, question.id, (((asked.get(index) || {}).designs || []).find((row) => row.id === design.id) || {}).held || null) : ''}</div>`;
   }
 
   // A design, given once for the project: whether it is issued, and its details.
-  function designHtml(index, designId, label, steps, questionId = '') {
+  function designHtml(index, designId, label, steps, questionId = '', held = null) {
     const row = designRow(designId, label);
     const name = `go-design-${index}-${designId}`;
     const radio = (value, text) => `<label><input type="radio" name="${name}" data-go-design="${esc(designId)}" data-field="status" value="${value}"${row.status === value ? ' checked' : ''}> ${text}</label>`;
@@ -787,7 +787,7 @@
       ${usedElsewhere ? '<p class="meta">Given once, used in every SWMS of this project that relies on it.</p>' : ''}
       <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
       <div class="design-given">${box('by', 'Who prepared it', 'The engineer or firm.')}<div class="design-pair">${box('number', 'Document or drawing number', 'From the title block.')}${box('revision', 'Revision', 'Leave it empty if it has none.')}</div>${box('date', 'Date on the design', '', 'date')}</div>
-      <p class="note design-hold">${questionId ? 'The answer above prints as a hold point: the work it covers does not start until the design is issued and the SWMS is updated. You can leave the answer empty.' : 'The steps that use it print a hold point until the design is issued and the SWMS is updated.'}</p>
+      <p class="note design-hold">${Array.isArray(held) && !held.length ? 'No step of this SWMS builds to this design, so no step is held. The SWMS says: "Not issued yet. Update this SWMS when it is issued."' : questionId ? 'The answer above prints as a hold point: the steps that rely on the design do not start until it is issued and the SWMS is updated. You can leave the answer empty.' : 'The steps that build to it print a hold point until the design is issued and the SWMS is updated.'}</p>
     </fieldset>`;
   }
 

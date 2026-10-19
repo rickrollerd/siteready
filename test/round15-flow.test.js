@@ -107,8 +107,10 @@ const NO_TRENCH = ['mobileScaffold', 'hydraulicRisers', 'hotWork', 'solventCemen
 
 test('"Trench support" goes as soon as the trench steps are unticked, and its answer no longer prints', () => {
   // B run 5: after the trench group was unticked, "Trench support" stayed and blocked Prepare.
+  // content16 reads the risers in service shafts as no excavation, so the trench steps are ticked here by hand, as the user had them.
   const base = { state: 'sa', task: RISERS, fallRisk: 'yes', crane: 'none' };
-  assert.ok(questionsFor(draftBody(base)).required.some((item) => item.id === 'trenchSupport'));
+  assert.ok(!questionsFor(draftBody(base)).steps.suggested.includes('trench'));
+  assert.ok(questionsFor(draftBody({ ...base, kinds: [...NO_TRENCH, 'trench'] })).required.some((item) => item.id === 'trenchSupport'));
   const asked = questionsFor(draftBody({ ...base, kinds: NO_TRENCH, kindsOff: ['trench'] }));
   assert.ok(!asked.required.some((item) => item.id === 'trenchSupport'), asked.required.map((item) => item.id).join());
   // A trench support answer left from before does not print as a control.
@@ -126,7 +128,7 @@ test('"Not applicable" typed to get past a step\'s question is not an answer, an
   // B run 5: "Not applicable, there is no trench on this job." passed and printed as an "Isolate or engineer" control.
   const base = { state: 'sa', task: RISERS, fallRisk: 'yes', crane: 'none' };
   const typed = 'Not applicable, there is no trench on this job.';
-  const held = prepareDraft(draftBody({ ...base, facts: { ...RISER_FACTS, trenchSupport: typed } }));
+  const held = prepareDraft(draftBody({ ...base, kinds: [...NO_TRENCH, 'trench'], facts: { ...RISER_FACTS, trenchSupport: typed } }));
   assert.equal(held.kind, 'stand-down');
   const item = held.missingHelp.find((one) => one.id === 'trenchSupport');
   assert.equal(item.state, 'vague');

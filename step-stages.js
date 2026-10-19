@@ -151,7 +151,8 @@ const BY_NAME = {
   'Install the MRI room shielding': 82, 'Install lead shielding': 82, 'Fix fire collars to the slab': 82, 'Fit the fire dampers': 82, 'Lay underfloor heating cables': 82,
   // Fit-out and equipment.
   'Install clean room walls and ceilings': 83, 'Cut and fix plasterboard': 83, 'Cut plasterboard': 83, 'Move and fix plasterboard sheets': 84, 'Fix ceiling sheets': 84,
-  'Fix new wall sheets': 84, 'Install suspended grid ceilings': 84, 'Install raised access flooring': 84, 'Fix plant on its supports': 79.5, 'Move and set the boiler': 84,
+  // The suspended grid and its hangers to the slab go up before any ceiling sheet is cut or fixed to it (messy round 15, B run 6).
+  'Fix new wall sheets': 84, 'Install suspended grid ceilings': 82.8, 'Install raised access flooring': 84, 'Fix plant on its supports': 79.5, 'Move and set the boiler': 84,
   'Install plant and equipment on the roof': 79.6, 'Install split system indoor and outdoor units': 85, 'Fix the units in place': 85, 'Install the exhaust hood': 85,
   'Deliver and install commercial kitchen equipment': 85, 'Install commercial laundry machines': 85, 'Set and connect the appliance': 85.5, 'Install the heater and flue': 85,
   'Install and connect the pool heater': 85, 'Disconnect and connect the water heater': 85, 'Set and connect the water heater': 85, 'Install the pool plant': 85, 'Install the chemical dosing': 85,
@@ -261,6 +262,12 @@ function contextStages(names, flags = {}) {
   const has = (name) => names.has(name);
   const out = {};
   if (!flags.existingLive && !existingWork(names)) Object.assign(out, { 'Isolate and prove de-energised': 109.5, 'Work on or near energised parts': 110 });
+  // A saw cut in a SWMS that builds the slab's formwork is the new slab's control joints, cut once it is poured and finished
+  // (messy round 15, A run 1: "Saw cut concrete" at step 2, before the falsework).
+  if (has('Saw cut concrete') && FORMED_SLAB.some(has)) out['Saw cut concrete'] = 63;
+  // High voltage cables are terminated and jointed into the network only once it is isolated and proved de-energised (messy
+  // round 15, A run 2: the isolation came at step 12, after the terminations, the HV testing and the fit-off).
+  if (has('Prepare and terminate the high voltage cables') && has('Isolate and prove de-energised')) Object.assign(out, { 'Isolate and prove de-energised': 81.4, 'Prepare and terminate the high voltage cables': 81.5 });
   // A crew doing no electrical work keeps clear of the parts that stay live from the start (messy round 13, A run 2).
   if (flags.liveNearby && !has('Isolate and prove de-energised')) out['Work on or near energised parts'] = 10.5;
   if (flags.treePits || has('Backfill the tree pits')) Object.assign(out, { 'Backfill the trench': 101.5, 'Backfill the tree pits': 101.5, 'Reinstate the surface': 101.6 });
@@ -489,6 +496,14 @@ const FIRM = [
   // rails and machine lifted into the shaft before they are installed (B run 5: the hoisting came after the install).
   [['Deliver and install commercial kitchen equipment', 'Receive plant and move it into position'], ['Set and connect the appliance']],
   [['Lift machines, rails and equipment into the shaft'], ['Install the lift rails, car and machine']],
+  // Messy round 15. The network is isolated
+  // before high voltage cables are terminated into it (A run 2). The suspended grid and its hangers go up before the ceiling
+  // sheets (B run 6). The trench is made safe to work in before the pipes are laid in it (B run 8: "Lay pipes" moved above
+  // "Work in the trench"). Plant is fixed on its supports once the hangers and supports are up (A run 3).
+  [['Isolate and prove de-energised'], ['Prepare and terminate the high voltage cables']],
+  [['Install suspended grid ceilings'], ['Fix ceiling sheets']],
+  [['Excavate', 'Dig the trench'], ['Work in the trench'], ['Lay pipes', 'Lay conduits', 'Install pits', 'Lay the pipe or cable', 'Lay the pipes', 'Lay the cable', 'Install pits and conduits', 'Lift and place tanks, pits or precast units']],
+  [['Fix hangers and supports'], ['Fix plant on its supports']],
   // Build before backfill: the wall is built before the ground behind it is backfilled (A run 3: backfill moved above the wall
   // named only the drainage).
   [['Build the retaining wall', 'Excavate and set out the retaining wall', 'Form the retaining wall', 'Pour the retaining wall', 'Lay blocks and bricks', 'Build the stone wall', 'Build and fill gabion baskets', 'Fix the retaining wall reo'],
@@ -512,11 +527,34 @@ function firmBefore(a, b) {
 
 // Each pair of steps printed in an order the map is sure is wrong: a step printed after a step that must come after it.
 // One fault per step, naming the first step it should come before.
+// The user's own steps for work whose place is sure (messy round 15: W17 said nothing when an own stair forming step went after
+// "Strip the formwork", A run 1, or an own loading bay after "Dismantle the scaffold", A run 4). Each is [its words, the
+// library steps it comes after, the library steps it comes before]; draft.js places these steps by the same work (OWN_STAGES).
+const FORMED_SLAB = ['Erect falsework and shores', 'Lay the formwork deck', 'Monitor the formwork during the pour'];
+const OWN_MARK = /\s*\(Our own step\)\s*$/;
+const OWN_FIRM = [
+  [/\b(?:form\w*|formwork|shutter\w*)\b[^.]{0,40}\bstairs?\b|\bstairs?\b[^.]{0,20}\b(?:forms?|formwork)\b/i, ['Erect falsework and shores'], ['Inspect before the pour', 'Pump and place concrete', 'Place concrete', 'Strip the formwork', 'Install backprops']],
+  [/\bloading (?:bays?|platforms?)\b/i, ['Erect the scaffold'], ['Inspect and hand over', 'Dismantle the scaffold']],
+  [/\bacoustic baffles?\b|\bbaffles?\b[^.]{0,30}\bceiling spaces?\b/i, ['Install suspended grid ceilings'], ['Fix ceiling sheets', 'Set the joints', 'Sand the joints']],
+  [/\b(?:set(?:s|ting)?|sand(?:s|ed|ing)?|finish(?:es|ed|ing)?)\b[^.]{0,40}\bjoints?\b|\bshadow ?lines?\b/i, ['Fix ceiling sheets', 'Move and fix plasterboard sheets', 'Fix new wall sheets', 'Cut and fix plasterboard'], []],
+];
+function ownFirm(name) {
+  if (!OWN_MARK.test(name)) return null;
+  const words = name.replace(OWN_MARK, '');
+  return OWN_FIRM.find(([said]) => said.test(words)) || null;
+}
 function firmFaults(steps, nameOf = (step) => step.step) {
   const list = (Array.isArray(steps) ? steps : []).map(nameOf);
   const faults = [];
+  const ownBefore = (a, b) => { const rule = ownFirm(a); return Boolean(rule) && rule[2].includes(b); };
+  // Control joints are cut in the new slab once it is poured: a saw cut in a SWMS that builds the slab's formwork comes after
+  // the falsework, the deck and the pour (messy round 15, A run 1: "Saw cut concrete" at step 2). Its stage in the map is the
+  // demolition saw cut's, so this pair is read here, where the formwork is in the SWMS (contextStages).
+  const sawAfter = (a, b) => b === 'Saw cut concrete' && FORMED_SLAB.includes(a);
+  const formed = list.some((name) => FORMED_SLAB.includes(name));
+  const ownAfter = (a, b) => { const rule = ownFirm(b); return Boolean(rule) && rule[1].includes(a); };
   list.forEach((name, index) => {
-    const earlier = list.slice(0, index).findIndex((other) => firmBefore(name, other));
+    const earlier = list.slice(0, index).findIndex((other) => firmBefore(name, other) || ownBefore(name, other) || ownAfter(name, other) || (formed && sawAfter(name, other)));
     if (earlier >= 0) faults.push({ step: name, at: index + 1, after: list[earlier], afterAt: earlier + 1 });
   });
   // The way up is set up before the work done from it (messy round 14, B run 7: "Use mobile scaffolds" moved below all the
