@@ -570,6 +570,13 @@
     // when the address no longer says it; a state the person chose is kept.
     if (autoState) $('pf-state').value = found.state || '';
     const chosen = $('pf-state').value;
+    // A state read from the address answers "Choose the state or territory": its red note goes (messy round 15,
+    // SiteLink: "The address does not say it." stayed in red after the state was read).
+    if (chosen && $('pf-state').classList.contains('has-error')) {
+      $('pf-state').classList.remove('has-error');
+      const said = $('pf-state-error');
+      if (said) { said.classList.add('hidden'); said.textContent = ''; }
+    }
     if (!$('pf-workplace').value.trim()) note.textContent = '';
     else if (found.state && chosen === found.state) note.textContent = `State read from the address: ${STATE_NAME[found.state]}.${found.from === 'postcode' ? ' Read from the postcode: check it is right.' : ''}`;
     else if (found.state && chosen && chosen !== found.state) note.textContent = `The address reads as ${STATE_NAME[found.state]}, but ${STATE_NAME[chosen]} is chosen. The law where the work is done applies.`;

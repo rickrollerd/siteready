@@ -127,8 +127,12 @@ function typed(value, max, label, field, { answer = false } = {}) {
   // (messy round 8, wording 10: the example was "The site supervisor").
   const weak = answer ? answers.notAnswer(text).replace(/Name the role, for example "The site supervisor"\.$/, 'Name the company, for example "The main contractor supplies them" or "The subcontractor supplies them".') : '';
   if (weak) throw Object.assign(fail(400, weak), { field });
+  // "na" or "n/a" answers nothing the point asks, as in a SWMS's blanks (messy round 15, SiteLink: "na" was
+  // saved as the answer "Na." and sent to the subcontractor, while "tbc" was refused). An empty point is not sent.
+  if (answer && NOT_AN_ANSWER.test(text.replace(/[.;,\s]+$/, ''))) throw Object.assign(fail(400, `"${text}" does not answer the point. Write the answer, or leave it empty: a point with no answer does not go to the subcontractor.`), { field });
   return text;
 }
+const NOT_AN_ANSWER = /^(?:n\.?\s?a\.?|n\/a|not applicable|nah|nope|nothing|nothing yet|ok|okay|same|ditto|as above|x|-+|\?+)$/i;
 
 // The subcontractor's ABN is optional (D308). With it, only a company with that ABN can take up the list
 // in SiteWrite; its check digits must work.
@@ -137,7 +141,8 @@ function cleanSubcontract(body) {
   // "echidna ductworks pty ltd" on the table, the log and the preview).
   const name = answers.tidyName(oneLine(body && body.name, 200));
   // Typed case is tidied (messy round 7: "(mechanical)").
-  const trade = answers.capitalFirst(oneLine(body && body.trade, 120));
+  // "Electrical n comms" reads "Electrical and comms" (messy round 15, SiteLink wording 6).
+  const trade = answers.tidyTitle(oneLine(body && body.trade, 120));
   const rawEmail = oneLine(body && body.email, 200);
   const abn = String((body && typeof body.abn === 'string' && body.abn) || '').replace(/\s+/g, '');
   if (!name) throw Object.assign(fail(400, 'Enter the subcontractor\'s company name.'), { field: 'name' });
@@ -232,7 +237,9 @@ function install(router, deps) {
   function pointView(row, state, rows = []) {
     const item = handover.pointItem(row, rows);
     return {
-      id: row.id, activity: row.activity, clause: row.clause, question: handover.sentence(row.question), answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '',
+      // The work it is about with its capital, as it reads (messy round 15, SiteLink wording 3: "remove existing
+      // submains (clause 1.30 (a))"); the activity matched against the list is kept as read.
+      id: row.id, activity: handover.sentence(row.activity), clause: row.clause, question: handover.sentence(row.question), answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '',
       // A point about a SWMS that is not on the list is not asked or sent (messy round 6).
       inPlay: handover.pointInPlay(row, rows), swms: item ? item.title : '',
     };
@@ -471,7 +478,7 @@ function install(router, deps) {
   router.post('/hse/subcontracts/:subId/items', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     const body = req.body || {};
-    const title = answers.capitalFirst(typed(body.title, 160, 'the title', 'title'));
+    const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'));
     const task = answers.capitalSentences(typed(body.task, 1500, 'the work', 'task'), { stop: true });
     if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
     if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
@@ -519,7 +526,7 @@ function install(router, deps) {
     // A new title (messy round 7: "Plant delivery and lifting: whole project" held the whole installation,
     // and could not be renamed). The same checks as a SWMS the lead adds: a capital first letter, no price.
     if (typeof body.title === 'string') {
-      const title = answers.capitalFirst(typed(body.title, 160, 'the title', 'title'));
+      const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'));
       if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
       const rows = await itemsOf(ctx.sub.id);
       if (rows.some((other) => other.id !== row.id && !other.removed_at && other.title.trim().toLowerCase() === title.toLowerCase())) throw Object.assign(fail(400, 'Another SWMS on this list has that title. Give this one another.'), { field: 'title' });

@@ -281,13 +281,21 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
   const given = typedBy.split(',')[0].replace(/\s+/g, ' ').trim().slice(0, 120);
   const who = String(req.user.name || (given && !given.includes('@') ? given : '')).slice(0, 200);
   const now = new Date();
-  const kept = { project, page };
+  // Which page saved (one id for each page load) and the version it started from, kept with the work.
+  const pageId = typeof body.pageId === 'string' ? body.pageId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) : '';
+  const kept = { project, page, ...(pageId ? { from: { page: pageId, base } } : {}) };
   let offBefore = [];
   const saved = await db.transaction(async (tx) => {
     const row = await tx.one('SELECT version, body, updated_at FROM sub_progress WHERE subcontract_id = $1 AND company_id = $2 FOR UPDATE', [found.sub.id, req.company.id]);
     const current = row ? Number(row.version) : 0;
     if (row && sameWork(row.body, kept)) return { version: current, at: row.updated_at };
-    if (current !== base) return { behind: true, current };
+    // The newer version is this page's own save, from the same version, whose answer was lost (a 502;
+    // no other device has saved since, or the newest save would be that device's):
+    // the page has that work and more since, so its save goes on top. Before, it was refused as "saved on
+    // another device" and the page put back the work it had sent, losing the change made since (messy
+    // round 15, SiteLink blocker 1: the foreman's own control was lost, and Submit sent revision 2).
+    const ownLost = Boolean(pageId) && row && current > base && row.body && row.body.from && row.body.from.page === pageId && Number(row.body.from.base) === base;
+    if (current !== base && !ownLost) return { behind: true, current };
     offBefore = offIds(row && row.body);
     if (row) {
       await tx.query('UPDATE sub_progress SET body = $1, seen = $2, overrides = $3, version = $4, updated_by = $5, updated_by_name = $6, updated_at = $7 WHERE subcontract_id = $8 AND company_id = $9',

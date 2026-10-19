@@ -171,7 +171,7 @@ test('page code: the lead is not told "The builder may still ask"; sign-on times
   // Save, Download and Submit keep one record: the project item takes the saved id.
   assert.equal((account.match(/S\.projectSaved\(/g) || []).length, 2);
   const scope = read('public/scope.js');
-  assert.match(scope, /S\.projectSaved = \(input, id\) =>/);
+  assert.match(scope, /S\.projectSaved = \(input, id, saved\) =>/);
   // A reload keeps the SWMS open to check, not SWMS 1.
   assert.match(scope, /if \(at >= 0\) project\.current = at;/);
   assert.match(scope, /if \(open && open\.body && \$\('result'\) && \$\('result'\)\.classList\.contains\('hidden'\)\) openItem\(project\.current\);/);

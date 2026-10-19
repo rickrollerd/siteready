@@ -270,9 +270,11 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
   const body = req.body || {};
   const response = Object.hasOwn(RESPONSES, body.response) ? body.response : '';
   if (!response) throw fail(400, 'Choose a response: Approved, Approved with conditions or Not approved.');
-  const text = textField(body.text, TEXT_LIMIT).trim();
-  if (RESPONSES[response].needs && !text) throw Object.assign(fail(400, RESPONSES[response].needs), { field: 'text' });
-  if (RESPONSES[response].needs && EMPTY_WORDS.test(text.replace(/[.!]+$/, '').trim())) throw Object.assign(fail(400, SAYS_NOTHING[response]), { field: 'text' });
+  const typedText = textField(body.text, TEXT_LIMIT).trim();
+  if (RESPONSES[response].needs && !typedText) throw Object.assign(fail(400, RESPONSES[response].needs), { field: 'text' });
+  if (RESPONSES[response].needs && EMPTY_WORDS.test(typedText.replace(/[.!]+$/, '').trim())) throw Object.assign(fail(400, SAYS_NOTHING[response]), { field: 'text' });
+  // Typed in a hurry, the conditions and the changes needed read as they print (messy round 15, SiteLink wording 5).
+  const text = require('./sitelink-answers').tidyLines(typedText);
   const name = textField(body.name, 120).replace(/\s+/g, ' ').trim();
   const reviewerCompany = textField(body.company, 200).replace(/\s+/g, ' ').trim();
   if (!name || !reviewerCompany) throw Object.assign(fail(400, !name && !reviewerCompany ? 'Enter your name and your company.' : !name ? 'Enter your name.' : 'Enter your company.'), { field: !name ? 'name' : 'company' });

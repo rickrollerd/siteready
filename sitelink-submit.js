@@ -665,14 +665,18 @@ function install(hseRouter, deps) {
     const body = req.body || {};
     const response = Object.hasOwn(reviews.RESPONSES, body.response) ? body.response : '';
     if (!response) throw Object.assign(fail(400, 'Choose a response: Approved, Approved with conditions or Not approved.'), { field: 'response' });
-    const text = textField(body.text, reviews.TEXT_LIMIT).trim();
+    const typedText = textField(body.text, reviews.TEXT_LIMIT).trim();
     const needs = reviews.RESPONSES[response].needs;
-    if (needs && !text) throw Object.assign(fail(400, needs), { field: 'text' });
-    if (needs && reviews.EMPTY_WORDS.test(text.replace(/[.!]+$/, '').trim())) throw Object.assign(fail(400, reviews.SAYS_NOTHING[response]), { field: 'text' });
-    const lines = response === 'conditions' ? conditionLines(text) : [];
-    if (lines.length > CONDITIONS_LIMIT) throw Object.assign(fail(400, `Write up to ${CONDITIONS_LIMIT} conditions, one to a line.`), { field: 'text' });
-    const weak = lines.find((line) => reviews.EMPTY_WORDS.test(line.replace(/[.!]+$/, '').trim()));
+    if (needs && !typedText) throw Object.assign(fail(400, needs), { field: 'text' });
+    if (needs && reviews.EMPTY_WORDS.test(typedText.replace(/[.!]+$/, '').trim())) throw Object.assign(fail(400, reviews.SAYS_NOTHING[response]), { field: 'text' });
+    const typedLines = response === 'conditions' ? conditionLines(typedText) : [];
+    if (typedLines.length > CONDITIONS_LIMIT) throw Object.assign(fail(400, `Write up to ${CONDITIONS_LIMIT} conditions, one to a line.`), { field: 'text' });
+    const weak = typedLines.find((line) => reviews.EMPTY_WORDS.test(line.replace(/[.!]+$/, '').trim()));
     if (weak) throw Object.assign(fail(400, `"${weak}" is not a condition. Write each condition in full, one to a line, or take it out.`), { field: 'text' });
+    // Typed in a hurry, the conditions and the changes needed read as they print and as the business sees them
+    // (messy round 15, SiteLink wording 5: they were shown and printed in lower case).
+    const text = require('./sitelink-answers').tidyLines(typedText);
+    const lines = response === 'conditions' ? conditionLines(text) : [];
     needName(req);
     const found = await submissionFor(req, req.params.id);
     const { row, sub, project, org } = found;

@@ -581,8 +581,10 @@
     askSeq.set(index, mine);
     try {
       // Asked again on a host's error before the page says so (app.js postJson, messy round 4).
-      const { response, data } = S.postJson ? await S.postJson('/api/draft/questions', payloadFor(index))
-        : await fetch(api('/api/draft/questions'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadFor(index)) }).then(async (got) => ({ response: got, data: await got.json() }));
+      // Asked with the PPE its prepared draft ticks, where that brings questions (askedOnceOpened).
+      const sent = { ...payloadFor(index), ...(Array.isArray(item.draftPpe) && item.draftPpe.length ? { ppe: item.draftPpe } : {}) };
+      const { response, data } = S.postJson ? await S.postJson('/api/draft/questions', sent)
+        : await fetch(api('/api/draft/questions'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sent) }).then(async (got) => ({ response: got, data: await got.json() }));
       if (askSeq.get(index) !== mine) return;
       if (!response.ok) { asked.set(index, { error: data.message || 'The questions could not be asked.' }); drawItem(index); return; }
       const before = asked.get(index);
@@ -1120,6 +1122,17 @@
       if (button) button.disabled = false;
     }
   }
+  // Whether a standard answer is in an answer already, its blanks filled or not (app.js pickPattern).
+  const escapeRe = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const flat = (text) => String(text || '').replace(/\s+/g, ' ').trim();
+  const hasPick = (text, value) => (S.pickPattern ? S.pickPattern(text).test(value) : new RegExp(flat(text).split(/_{3,}/).map(escapeRe).join('[^]*?')).test(flat(value)));
+  // The answer is the other's own sentence with its blanks filled in, and nothing else changed: the words
+  // typed in a blank go into the same blank there (messy round 15, SiteLink blocker 2).
+  const fillsBlanksOf = (theirs, value) => {
+    if (!/_{3,}/.test(theirs) || flat(theirs) === flat(value)) return false;
+    const found = S.blankValues ? S.blankValues(flat(theirs), value) : new RegExp(`^${flat(theirs).split(/_{3,}/).map(escapeRe).join('([^]*?)')}$`).exec(flat(value));
+    return Boolean(found);
+  };
   // The words that say what a SWMS of the project is: its title, its task as given and as changed, and its plant.
   const workWordsOf = (item) => [item.title, item.task, item.goTask, item.body && item.body.task, ...(item.plantNames || []), ...(Array.isArray(item.plant) ? item.plant : [])].filter((part) => typeof part === 'string' && part).join('\n');
   // The SWMS that use an answer given in one SWMS and filled across.
@@ -1144,11 +1157,11 @@
       if (!got || !(got.required || []).some((question) => question.id === questionId)) return;
       const theirs = (other.facts || {})[questionId] || '';
       const fromHere = (other.filledFrom || {})[questionId] === index;
-      if (theirs && !fromHere) return;
+      if (theirs && !fromHere && !fillsBlanksOf(theirs, value)) return;
       // A fall control, harness or trench answer goes only where the SWMS's own work fits it (messy round 12):
       // one that no longer fits, as it is typed, is taken back out of the SWMS it was filled into.
       const rules = gate();
-      if (value && rules && rules.workFits && (rules.ACROSS_WORK_IDS || []).includes(questionId) && !rules.workFits(value, workWordsOf(other))) {
+      if (value && rules && rules.workFits && (rules.ACROSS_WORK_IDS || []).includes(questionId) && !rules.workFits(value, workWordsOf(other), questionId)) {
         if (!fromHere) return;
         other.facts = { ...(other.facts || {}), [questionId]: '' };
         delete other.filledFrom[questionId];
@@ -1418,6 +1431,18 @@
       if (!answer || !box) return;
       // A refused or thin answer is replaced, not added to (messy round 3: "as per supplier The ____ system").
       // Another standard answer to the same question already in the box gives way to this one (app.js pickSwap).
+      // A standard answer already in the box (filled across from another SWMS, or pressed before) is kept
+      // once, with the words in its blanks, and is this SWMS's own answer from now on. It is never added a
+      // second time (messy round 15, SiteLink blocker 2: "Lock out and test" pressed where it was filled across
+      // printed twice, and the SDS answer pressed again put the whole sentence into its own blank).
+      if (box.value.trim() && hasPick(answer.text, box.value)) {
+        setFact(index, pick.dataset.q, box.value);
+        notesFor(index);
+        save();
+        const again = S.answerTarget ? S.answerTarget(box) : box;
+        again.focus();
+        return;
+      }
       const fresh = !box.value.trim() || weakAnswer(box);
       const swap = !fresh && S.pickSwap ? S.pickSwap(box, question.suggestions || [], Number(pick.dataset.n)) : null;
       box.value = fresh ? answer.text : swap ? swap.value : `${box.value.trim()} ${answer.text}`;
@@ -1765,6 +1790,7 @@
     item.needs = draft.kind === 'stand-down'
       ? ((draft.missingHelp || []).length ? draft.missingHelp.map((gap) => gap.label) : (draft.missing || []))
       : [...new Set([...(draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label)])];
+    if (draft.kind === 'draft') await askedOnceOpened(index, body, draft);
     item.status = hooks.statusOf(item);
     markSent(index);
     // A part ticked as checked that now prints differently (a detail every SWMS shares, changed on this
@@ -1782,6 +1808,41 @@
     }
   }
 
+  // The PPE a prepared draft ticks (a harness for its EWP step) brings questions the SWMS asks once it is
+  // opened. They are asked here too, in its section, and the SWMS is not counted as prepared until they are
+  // answered (messy round 15, SiteLink stuck point 2: Prepare all said "13 SWMS prepared", and three opened
+  // "This SWMS is not finished. Harness and anchors: Not answered yet", a question this page never asked; there
+  // the opened SWMS was asked its questions with no answers, app.js payload).
+  const PPE_QUESTIONS = { harness: 'harnessSystem', lifeJacket: 'lifeJacketDetails' };
+  // The PPE the SWMS prints, as the opened SWMS sends it: each item ticked for all work, and each item for
+  // particular steps (app.js ppeTicked).
+  const tickedOf = (groups) => [...new Set((Array.isArray(groups) ? groups : []).flatMap((group) => ((group && group.items) || []).filter((entry) => entry && (entry.ticked || (Array.isArray(entry.steps) && entry.steps.length))).map((entry) => entry.id)))];
+  async function askedOnceOpened(index, body, draft) {
+    const item = project.items[index];
+    if (Array.isArray(body.ppe)) return;
+    const ppe = tickedOf(draft.ppe);
+    const askedNow = new Set(((asked.get(index) || {}).required || []).map((question) => question.id));
+    const brought = Object.entries(PPE_QUESTIONS).filter(([id, question]) => ppe.includes(id) && !askedNow.has(question));
+    item.draftPpe = brought.length || (item.draftPpe || []).length ? ppe : undefined;
+    if (!brought.length) return;
+    const post = (route, sent) => (S.postJson ? S.postJson(route, sent)
+      : fetch(api(route), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sent) }).then(async (got) => ({ response: got, data: await got.json() })));
+    try {
+      const { response, data } = await post('/api/draft/questions', { ...payloadFor(index), ppe });
+      if (!response.ok || !data || !Array.isArray(data.required)) return;
+      // Prepared as the opened SWMS prepares it, with its PPE: does it still prepare with the answers given?
+      const { response: done, data: again } = await post('/api/draft', { ...body, ppe });
+      asked.set(index, data);
+      drawItem(index);
+      if (!done.ok || !again || again.kind !== 'stand-down') return;
+      item.kind = 'stand-down';
+      item.draftHelp = again.missingHelp || [];
+      item.needs = item.draftHelp.length ? item.draftHelp.map((gap) => gap.label) : (again.missing || []);
+      notesFor(index);
+    } catch {
+      // No signal: the SWMS says what it needs once it is opened.
+    }
+  }
   function afterPrepare() {
     const status = $('go-status');
     const unfinished = project.items.map((item, index) => (item.kind !== 'draft' ? index : -1)).filter((index) => index >= 0);
@@ -1822,10 +1883,15 @@
   // company) is put into each SWMS, and the list says again what each still needs.
   let refreshTimer = null;
   let refreshing = false;
+  // A change made while the list is being brought up to date is put in once that is done, so the list does not
+  // keep a need already given (messy round 15, SiteLink: "For every SWMS, still to give: Scaffold supervisor"
+  // stayed after it was filled in, until a reload).
+  let refreshAgain = false;
   // given: only the details given on the page are put in (as the page loads); otherwise all of them, as
   // the person typed them.
   async function refreshAll({ given = false } = {}) {
-    if (!project || project.stage !== 'review' || refreshing) return;
+    if (refreshing) { refreshAgain = true; return; }
+    if (!project || project.stage !== 'review') return;
     const base = given ? pageGiven() : pageBase();
     if (!base.state) return;
     refreshing = true;
@@ -1836,7 +1902,9 @@
         const own = item.stale ? changesFor(index) : {};
         if (given) for (const key of PAGE_KEYS) if (!(key in base)) delete own[key];
         // A detail the builder set that was changed for this SWMS alone stays its own (messy round 8).
-        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, ...(builder() && item.pageOwn ? item.pageOwn : {}), emergency: { ...(S.emergencyAcross ? S.emergencyAcross(item) : shared().emergency), ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
+        // An own detail left empty does not empty the one given for every SWMS.
+        const pageOwn = builder() && item.pageOwn ? Object.fromEntries(Object.entries(item.pageOwn).filter(([, value]) => String(value || '').trim())) : {};
+        if (item.body) await prepareOne(index, { ...item.body, ...own, ...base, ...pageOwn, emergency: { ...(S.emergencyAcross ? S.emergencyAcross(item) : shared().emergency), ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
       }
       save();
       if (project.stage === 'review') hooks.render();
@@ -1845,6 +1913,7 @@
     } finally {
       refreshing = false;
     }
+    if (refreshAgain) { refreshAgain = false; refreshAll(); }
   }
 
   // ---- The review list (D240) ----

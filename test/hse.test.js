@@ -287,7 +287,7 @@ test('two people editing at once: different details are both kept, the same deta
   // A version that does not exist yet is refused.
   assert.equal((await call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: lead, body: { baseRev: 9, details: v3 } })).status, 400);
   // Saves sent at the same moment never make two versions with one number.
-  const results = await Promise.all([1, 2, 3].map((n) => call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: n % 2 ? lead : member, body: { baseRev: 5, details: { ...v3, siteManager: `Site manager ${n}` } } })));
+  const results = await Promise.all([1, 2, 3].map((n) => call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: n % 2 ? lead : member, body: { baseRev: 5, details: { ...v3, siteManager: `Pat Ng ${n}` } } })));
   const revs = (await db.query('SELECT rev FROM project_site_details WHERE project_id = $1', [projectId])).map((row) => Number(row.rev));
   assert.equal(new Set(revs).size, revs.length);
   assert.ok(results.every((r) => [200, 409].includes(r.status)), JSON.stringify(results.map((r) => r.status)));

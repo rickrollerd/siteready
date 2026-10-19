@@ -48,11 +48,13 @@ test('a SWMS with every site question and key person blank lists each one as nee
 });
 
 test('"None" or "Not applicable" is accepted only where the question can truly have none, and prints as given', () => {
-  const none = { ...FENCE, ...ANSWERED, principalContractor: 'N/A', site: { liveServices: 'None', publicInterface: 'none', otherTrades: 'Nil', ground: 'Not applicable', access: 'Stairs from the car park.' } };
+  // The ground is said where a step digs (messy round 15, SiteLink): the fence's post holes do, so its ground is given.
+  const none = { ...FENCE, ...ANSWERED, principalContractor: 'N/A', site: { liveServices: 'None', publicInterface: 'none', otherTrades: 'Nil', ground: 'Firm clay along the fence line.', access: 'Stairs from the car park.' } };
   const { gaps: list, draft } = gaps(none);
   assert.deepEqual(list, []);
   assert.equal(draft.principalContractor, 'Not applicable');
-  assert.deepEqual(draft.site.map((row) => row.text), ['None', 'None', 'None', 'Not applicable', 'Stairs from the car park.']);
+  assert.deepEqual(draft.site.map((row) => row.text), ['None', 'None', 'None', 'Firm clay along the fence line.', 'Stairs from the car park.']);
+  assert.deepEqual(gaps({ ...none, site: { ...none.site, ground: 'Not applicable' } }).gaps.map((gap) => gap.id), ['site.ground']);
   // A "None" adds nothing to the method or the hazards.
   assert.ok(!(draft.method || []).some((line) => /^(Live services|Public interface|Other trades|Ground): (None|Not applicable)/.test(line)));
   // There is always a way to the work, a person checking the controls, a first aider and a muster point.

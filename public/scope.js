@@ -954,13 +954,21 @@
     return item && item.body && input && (sameTask(input.task, item.body.task) || taskShown(input.task)) ? item : null;
   };
   S.projectCheck = (input) => checkOf(itemShown(input));
+  // The SWMS open to check is one on a main contractor's list (account.js: no "Save to a site" for it).
+  S.onBuilderList = () => { const item = project && project.sitelink && !paused && project.stage === 'check' ? project.items[project.current] : null; return Boolean(item && item.requiredId); };
   // A project SWMS saved or downloaded on its own is that saved SWMS from then on, so Save, Download and
   // Submit add revisions to one record (messy round 11, SiteLink: My SWMS showed 4 SWMS for 2 submitted,
   // and a worker could sign on to a copy never submitted).
-  S.projectSaved = (input, id) => {
+  // The answers saved or downloaded are the SWMS's answers from then on, so Submit and Download all send
+  // the revision that printed, not an older copy the project kept (messy round 15, SiteLink blocker 1:
+  // Generator installation was downloaded as revision 1, then Submit with no change made revision 2).
+  S.projectSaved = (input, id, saved) => {
     const item = itemShown(input);
-    if (!item || !id || item.swmsId === id) return;
+    if (!item || !id) return;
+    const body = saved && typeof saved === 'object' && item.body ? { ...saved } : null;
+    if (item.swmsId === id && !body) return;
     item.swmsId = id;
+    if (body) item.body = body;
     saveProject();
   };
   // The name and role a SWMS was checked by, kept when its ticks come off, so ticking the parts again
@@ -1575,6 +1583,9 @@
   }
 
   // Kept on the server a moment after the last change, and when the page is put away.
+  // This page load's own id: a save whose answer was lost (a 502) is known as this page's when it is sent
+  // again with more work, not taken for another device's (messy round 15, SiteLink blocker 1).
+  const PAGE_ID = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
   let listTimer = null;
   let listSaving = null;
   function saveListSoon(wait = 2500) {
@@ -1595,7 +1606,7 @@
     if (listSaving) { await listSaving.catch(() => {}); if (project && project.sitelink && project.sitelink.dirty) saveListSoon(300); return; }
     const link = project.sitelink;
     const { sitelink, ...rest } = project;
-    const body = { baseVersion: link.version || 0, project: rest, page: listPage() };
+    const body = { baseVersion: link.version || 0, project: rest, page: listPage(), pageId: PAGE_ID };
     const work = workOf(body);
     link.dirty = false;
     // Nothing changed since this device last saved (a reload, a box typed back as it was): no save, so
