@@ -318,6 +318,23 @@ function listItems(reading) {
   return out.map(({ kind, ownHighRisk: own, ...item }) => item);
 }
 
+const WHOLE_AREA = /^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i;
+// A SWMS titled by the words of its own work, where its trade's title is taken: the trade's fit-out where its work
+// is mostly lights, outlets and final connections, else its one or two activities, or its first one ("Install HV
+// cabling and cable joints", never "... and other work", which says no work: messy round 15, SiteLink wording 2).
+// "Controls" is "Control systems", not safety controls.
+// A services trade's lights, outlets, switches and final connections across the project are its fit-out.
+const FIT_OUT = /\b(?:fit(?:s|ting)?[- ]?(?:off|out)|light fittings?|luminaires?|GPOs?|power points?|outlets?|switch(?:es)?|final connections?|floor boxes)\b/i;
+function ownWorkTitle(item, pack, taken = () => false) {
+  const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
+  const rows = (pack && pack.rows) || [];
+  const named = [...new Set(rows.map((row) => activityTitle(row.activity)).filter(Boolean))];
+  const two = named.length >= 2 ? `${named[0]} and ${later(named[1])}` : '';
+  const trade = tradeOf(pack);
+  const fitOut = trade && trade.kind === 'installation' && rows.length >= 2 && rows.filter((row) => FIT_OUT.test(row.activity || '')).length * 3 >= rows.length ? `${trade.name} fit-out` : '';
+  const choices = [/^controls?$/i.test(String(item.title || '').trim()) ? 'Control systems' : '', fitOut, named.length === 2 && two.length <= 80 ? two : '', ...named].filter(Boolean);
+  return choices.find((title) => !taken(title)) || '';
+}
 // Bare and area titles take work titles (above). Items set aside or folded keep theirs (all: false);
 // every package is titled for SiteWrite's own scope reading and SiteLink's list (all: true). folded: work
 // folded into another SWMS keeps its name for "Also covers", with the title it takes on the list kept as
@@ -336,7 +353,12 @@ function retitle(out, work, { all = false, folded = false } = {}) {
     titles.delete(item.title.toLowerCase());
     let better = workTitle(item, work[index]);
     const area = /^trade installation:\s*(.+)$/i.exec(item.title);
-    if (better && better.toLowerCase() !== item.title.toLowerCase() && taken(better) && area && !better.includes(',')) better = `${better}, ${area[1].trim()}`;
+    // A work title another SWMS has is told apart by its area, but "whole project" is no area: the SWMS takes
+    // its own work's words, and so does a bare name ("Controls") whose trade title is taken (messy round 15,
+    // SiteLink wording 2: "Electrical installation, whole project" and "Controls" were SWMS titles).
+    const noArea = area && WHOLE_AREA.test(area[1].trim());
+    if (better && better.toLowerCase() !== item.title.toLowerCase() && taken(better) && (noArea || (!area && genericName(item.title)))) better = ownWorkTitle(item, work[index], taken);
+    else if (better && better.toLowerCase() !== item.title.toLowerCase() && taken(better) && area && !better.includes(',')) better = `${better}, ${area[1].trim()}`;
     if (better && better.toLowerCase() !== item.title.toLowerCase() && !taken(better)) {
       if (inOther(item)) item.listTitle = better;
       else item.title = better;
@@ -359,7 +381,7 @@ function retitle(out, work, { all = false, folded = false } = {}) {
     const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
     const area = /^trade installation:\s*(.+)$/i.exec(item.package);
     const place = area && !/^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i.test(area[1].trim()) ? area[1].trim() : '';
-    const from = place ? `${title}, ${place}` : named.length === 1 ? named[0] : named.length === 2 ? `${named[0]} and ${later(named[1])}` : named.length ? `${named[0]} and other work` : '';
+    const from = place ? `${title}, ${place}` : named.length === 1 ? named[0] : named.length === 2 ? `${named[0]} and ${later(named[1])}` : named.length ? named[0] : '';
     if (!from || used().includes(from.toLowerCase())) return;
     if (inOther(item)) item.listTitle = from; else item.title = from;
   });
@@ -448,7 +470,7 @@ function workTitle(item, pack) {
   if (HAZARD_NAME.test(name)) {
     const named = rows.map((row) => activityTitle(row.activity)).filter(Boolean);
     const later = (text) => text.replace(/^./, (letter) => letter.toLowerCase());
-    if (named.length === 1 || (named.length && !tradeOf(pack))) return named.length > 2 ? `${named[0]} and other work` : named.length === 2 ? `${named[0]} and ${later(named[1])}` : named[0];
+    if (named.length === 1 || (named.length && !tradeOf(pack))) return named.length === 2 ? `${named[0]} and ${later(named[1])}` : named[0];
     const trade = tradeOf(pack);
     if (trade) return `${trade.name} ${trade.kind}`;
   }
@@ -772,14 +794,23 @@ const BARE_NOTE = /^[A-Za-z-]+(?:\s+(?:and\s+)?[A-Za-z-]+){0,2}\.?$/;
 // A note whose subject is only "they" or "it" ("Whether they will be instructed is open.") is said with the
 // work it is about too (messy round 11, SiteLink wording 2).
 const PRONOUN_NOTE = /^(?:whether\s+)?(?:they|it|this|these|those|its|their)\b/i;
+// A note that starts with what is done, not what it is about ("Only applies if the builder grants an exemption.",
+// "Takes over temporary infrastructure previously completed by others."), one that names its subject only as
+// "their" ("Access and their role are not defined."), and a few words naming a task with no verb ("Sequencing with
+// builder trades.") are said with the work they are about too (messy round 15, SiteLink wording 4).
+const VERB_FIRST_NOTE = /^(?:only\s+|also\s+|still\s+|then\s+)?(?:applies|apply|takes|requires|needs|depends|includes|covers|involves|relies|assumes|excludes|subject to|may|might|could|would|will|must|should|shall|can|cannot|is|are|was|were|has|have|had|does|do|did|being|to be|not)\b/i;
+const THEIR_NOTE = /^(?:\S+\s+){0,4}(?:their|its)\s/i;
+const NO_VERB = /\b(?:is|are|was|were|be|been|being|has|have|had|will|would|may|might|must|can|could|should|shall|does|do|did|not|no)\b|\b\w{3,}ed\b/i;
+const verbless = (note) => /^[A-Za-z]+ing\b/.test(note) && note.split(/\s+/).length <= 6 && !NO_VERB.test(note.replace(/[.\s]+$/, ''));
 function draftNotes(rows) {
   const out = [];
   for (const row of rows || []) {
     const activity = wordsWithoutPrices(row.activity).replace(/[.\s]+$/, '');
     for (let note of splitPoint(wordsWithoutPrices(row.unknowns)).notes.map(sentence)) {
-      if (note && activity && ((LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) || PRONOUN_NOTE.test(note))) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
-      // A bare word or two ("Dewatering.") says neither the work nor what is open (messy round 9, wording 8).
-      else if (note && activity && BARE_NOTE.test(note)) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
+      if (note && activity && ((LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) || PRONOUN_NOTE.test(note) || VERB_FIRST_NOTE.test(note) || THEIR_NOTE.test(note))) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
+      // A bare word or two ("Dewatering.") says neither the work nor what is open (messy round 9, wording 8), nor
+      // do a few words with no verb ("Sequencing with builder trades.").
+      else if (note && activity && (BARE_NOTE.test(note) || verbless(note))) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
       // Every note ends with a full stop (messy round 11, SiteLink wording 2).
       if (note) note = note.replace(/([^.!?])$/, '$1.');
       if (note && !out.includes(note)) out.push(note);
@@ -928,7 +959,7 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   const all = items || [];
   const kept = all.filter((item) => !item.removed_at && !item.removedAt);
   const answered = (points || []).filter((point) => String(point.answer || '').trim() && pointInPlay(point, all));
-  const answers = answered.map((point) => ({ activity: point.activity, clause: point.clause, question: point.question, answer: require('./sitelink-answers').capitalSentences(String(point.answer).trim(), { stop: true }), by: point.answered_by_name || '' }));
+  const answers = answered.map((point) => ({ activity: sentence(point.activity), clause: point.clause, question: point.question, answer: require('./sitelink-answers').capitalSentences(String(point.answer).trim(), { stop: true }), by: point.answered_by_name || '' }));
   return {
     from: org.name,
     // An account whose ABN does not match the ABN register shows Unverified beside its name.

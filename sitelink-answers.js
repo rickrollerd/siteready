@@ -50,6 +50,10 @@ function personProblem(text, { firstAider = false, example = 'Jo Park, 0412 345 
   if (phone) return phone;
   const name = value.replace(PHONE_RUN, ' ').replace(/[(),;:–-]+/g, ' ').replace(/\s+/g, ' ').trim();
   const words = name.split(' ').filter((word) => /[a-z]/i.test(word));
+  // A role with no name ("first aid officer", "the site manager") is not a person, in every person's box, as
+  // the SWMS app refuses a role with no name (messy round 15, SiteLink: "first aid officer" was saved as the
+  // site manager, with no name or phone).
+  if (words.length && words.every(roleWord)) return `${quoted(value)} is a role, not a person. Give their full name${example ? `, for example "${example}"` : ''}. Contractors print it on their SWMS.`;
   if (words.length < 2) return `${quoted(value)} does not say who. Give their full name${example ? `, for example "${example}"` : ''}.`;
   if (words.length === 2 && words[1].replace(/\./g, '').length === 1) return `${quoted(value)} gives a first name only. Give the full name${example ? `, for example "${example}"` : ''}.`;
   return '';
@@ -60,6 +64,7 @@ function personProblem(text, { firstAider = false, example = 'Jo Park, 0412 345 
 // and printed with no name or phone). The box's hint asks for both.
 const ROLE_WORDS = new Set('the a an our your their site main head principal contractor contractors builder builders subcontractor any on duty first aid aider aiders officer person staff supervisor supervisors foreman forewoman manager managers leading hand engineer project safety hse whs team member members nurse medic paramedic of for at in and or each every all trained qualified nominated appointed designated senior junior assistant general works construction office'.split(' '));
 const FIRST_AIDER_EXAMPLE = 'Jo Park, 0412 345 678';
+const roleWord = (word) => ROLE_WORDS.has(String(word).toLowerCase().replace(/['’]s$/, '').replace(/[.']/g, ''));
 function firstAiderProblem(text) {
   const value = clean(text);
   if (!value) return '';
@@ -72,7 +77,7 @@ function firstAiderProblem(text) {
   if (phone) return phone;
   const name = value.replace(PHONE_RUN, ' ').replace(/[(),;:–-]+/g, ' ').replace(/\s+/g, ' ').trim();
   const words = name.split(' ').filter((word) => /[a-z]/i.test(word));
-  if (!words.length || words.every((word) => ROLE_WORDS.has(word.toLowerCase().replace(/['’]s$/, '').replace(/[.']/g, '')))) return `${q} is a role, not a person. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}". Contractors print it on their SWMS.`;
+  if (!words.length || words.every(roleWord)) return `${q} is a role, not a person. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}". Contractors print it on their SWMS.`;
   if (words.length < 2) return `${q} gives a first name only. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}".`;
   if (words.length === 2 && words[1].replace(/\./g, '').length === 1) return `${q} gives a first name only. Give the first aider's full name and phone, for example "${FIRST_AIDER_EXAMPLE}".`;
   if (!(value.match(PHONE_RUN) || []).some((run) => gate.phoneNumber(run))) return `${q} has no phone number. Give the first aider's phone too, for example "${tidyName(name)}, 0412 345 678".`;
@@ -263,7 +268,7 @@ function capitalSentences(text, { stop = false } = {}) {
 // 9, wordings 5 and 9: "Emailed by dunnart office 17 oct", "... step 2 of the SWMS. add it ...").
 const MONTHS = /\b(\d{1,2}(?:st|nd|rd|th)?\s+)(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)(uary|ruary|ch|il|e|y|ust|tember|ober|ember)?\b/gi;
 function tidyNote(text, names = []) {
-  let out = capitalSentences(text);
+  let out = capitalSentences(typedWords(text));
   if (!out) return out;
   for (const name of names) {
     for (const word of String(name || '').split(/\s+/)) {
@@ -273,6 +278,9 @@ function tidyNote(text, names = []) {
   }
   return out.replace(MONTHS, (whole, day, month, rest) => `${day}${month.charAt(0).toUpperCase()}${month.slice(1).toLowerCase()}${rest || ''}`);
 }
+
+// Words typed one item to a line (a reviewer's conditions or changes needed), each line tidied as a note.
+const tidyLines = (text, names = []) => String(text || '').split('\n').map((line) => (line.trim() ? tidyNote(line, names) : line)).join('\n');
 
 // A role typed all in lower case: its first letter, and a short title such as HSE, in capitals
 // ("hse" reads "HSE", "hse manager" reads "HSE manager"; messy round 8, wording 1).
@@ -287,7 +295,31 @@ function tidyRole(text) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+// Short names typed in lower case keep their capitals: "hv and lv cabling" reads "HV and LV cabling", "ewps" reads
+// "EWPs" (messy round 15, SiteLink wording 1: the lead's title was saved as "Hv and lv cabling, terminations and
+// earthing"). Only names that are never a plain word; a word typed with any capital is left as typed.
+const SHORT_NAMES = new Set('hv lv elv ac dc cctv pvc upvc cpvc hdpe hvac ewp ict msb mdb db mcc plc bms fip ewis nbn rcd gpo ppe lpg frp ups swms hrcw rmu acb mep av ipa itp itps sds ohs whs hse qa rfi'.split(' '));
+// One typed with only its first capital ("Hv cabling", as a title's first word was saved before) is put right too,
+// except where it could be a word ("Ups").
+const NOT_ONLY_A_NAME = new Set(['ups', 'av', 'ipa', 'qa']);
+function withShortNames(text) {
+  return String(text || '').replace(/\b([A-Za-z][a-z]{1,4})\b/g, (word) => {
+    const lower = word.toLowerCase();
+    if (word !== lower) return SHORT_NAMES.has(lower) && !NOT_ONLY_A_NAME.has(lower) ? word.toUpperCase() : word;
+    if (SHORT_NAMES.has(word)) return word.toUpperCase();
+    if (/s$/.test(word) && SHORT_NAMES.has(word.slice(0, -1))) return `${word.slice(0, -1).toUpperCase()}s`;
+    return word;
+  });
+}
+// Free text typed in a hurry, as it prints (flow15's rules): a lone "n" for "and" reads "and", "b4" reads
+// "before", and short names keep their capitals (messy round 15, SiteLink wording 6: "Hi vis n steel caps",
+// "Sign in at the site office b4 starting", "Electrical n comms"). A company's own name keeps its "n".
+const loneN = (text) => String(text || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
+const typedWords = (text) => withShortNames(loneN(String(text || '').replace(/\bb4\b/gi, (word) => (word === 'B4' ? 'Before' : 'before'))));
+// A title the lead types: its first capital and its short names (messy round 15, SiteLink wording 1).
+const tidyTitle = (text) => capitalFirst(typedWords(text));
+
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { personNames, withPersonNames, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

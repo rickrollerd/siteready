@@ -547,6 +547,15 @@ function payload() {
     facts[el.dataset.fact] = el.value.trim();
   });
   document.querySelectorAll('[data-site]').forEach((el) => { site[el.dataset.site] = el.value.trim(); });
+  // A SWMS opened again asks its questions before their boxes are drawn: it is asked with its own answers, not
+  // none (messy round 15, SiteLink stuck point 2: asked with no site answers, the suggested PPE ticked a harness
+  // for the EWP step, and three SWMS prepared on the project page opened "not finished: Harness and anchors").
+  try {
+    if (!document.querySelector('[data-fact]')) for (const [id, value] of Object.entries(factMemory)) if (typeof value === 'string' && value.trim()) facts[id] = value.trim();
+    if (!document.querySelector('[data-site]')) for (const [id, value] of Object.entries(siteMemory)) if (typeof value === 'string' && value.trim()) site[id] = value.trim();
+  } catch {
+    // Asked while the page is still loading: there are no answers kept yet.
+  }
   const value = (id) => {
     const el = document.getElementById(id);
     return el ? el.value.trim() : '';
@@ -3140,6 +3149,14 @@ function render(draft, options = {}) {
   const mass = window.SiteWriteMass;
   return mass ? mass.withMassHtml(html) : html;
 }
+// The SWMS's own approval line (draft.js statusOf): a revision kept with "Not approved. Not signed." reads as the
+// business's own approval, not the builder's answer (messy round 15, SiteLink wording 7).
+function statusOf(draft) {
+  const said = String((draft && draft.status) || '');
+  if (said && !/^Not approved\. Not signed\./.test(said)) return said;
+  const owner = String((draft && draft.subcontractor) || '').replace(/\s+/g, ' ').trim().replace(/[.\s]+$/, '');
+  return `Approval by ${owner || 'the business'}: not signed yet.${/A test, not a site record/.test(said) ? ' A test, not a site record.' : ''}`;
+}
 function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
@@ -3148,7 +3165,7 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const head = `${logo || name || company ? `<div class="sheet-head"><div>${name}${company}</div>${logo}</div>` : ''}
     <h3>Safe work method statement</h3>
     <p class="meta">${esc(draft.instrument)} · ${esc(draft.versionLabel)} · ${esc(draft.sectionRef)}</p>
-    <p class="status">${esc(draft.status || 'Not approved. Not signed.')}</p>
+    <p class="status">${esc(statusOf(draft))}</p>
     <table>
       <tbody>
         <tr><th>State</th><td>${esc(draft.state)}</td></tr>
@@ -4869,10 +4886,19 @@ function lineEditor(holder, value, onSave, label = 'Control') {
   area.focus({ preventScroll: true });
   box.querySelector('[data-cancel]').addEventListener('click', () => { box.remove(); holder.classList.remove('hidden'); });
   box.querySelector('[data-save]').addEventListener('click', () => {
-    const text = area.value.replace(/\s+/g, ' ').trim();
+    const text = typedLine(area.value.replace(/\s+/g, ' ').trim());
     if (!text) { area.focus(); return; }
     onSave(text);
   });
+}
+// A line the user types reads as it prints: its first capital, a lone "n" for "and", "b4" for "before", and
+// short names in capitals (messy round 15, SiteLink wording 5: the foreman's own control "fuel lines are pressure
+// tested ..." printed in lower case). Words typed with capitals are left as typed.
+const SHORT_NAMES = new Set('hv lv elv ac dc cctv pvc upvc cpvc hdpe hvac ewp ict msb mdb db mcc plc bms fip ewis nbn rcd gpo ppe lpg frp ups swms hrcw rmu acb mep sds ohs whs hse rfi'.split(' '));
+function typedLine(text) {
+  const out = String(text || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and').replace(/\bb4\b/g, 'before')
+    .replace(/\b[a-z]{2,5}\b/g, (word) => (SHORT_NAMES.has(word) ? word.toUpperCase() : /s$/.test(word) && SHORT_NAMES.has(word.slice(0, -1)) ? `${word.slice(0, -1).toUpperCase()}s` : word));
+  return out.replace(/^[a-z]/, (letter) => letter.toUpperCase());
 }
 resultEl.addEventListener('click', (event) => {
   const discard = event.target.closest('[data-ctl-discard]');
@@ -5275,7 +5301,7 @@ function goToEl(el) {
 
 window.SiteWrite = Object.assign(window.SiteWrite || {}, {
   mustFixPlace, goToMustFix, signedInProfile,
-  pickSwap, pickSwapNote, keepUnsaved, clearUnsaved, unsavedNoteOff, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
+  pickSwap, pickSwapNote, pickPattern, blankValues, keepUnsaved, clearUnsaved, unsavedNoteOff, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, showBuilderFields, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, ownStepProblem, OWN_HIERARCHY, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },

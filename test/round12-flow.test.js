@@ -219,7 +219,8 @@ test('a fall control, harness or trench answer fills another SWMS only where its
   // An answer that names none of these, or says one is not used, goes anywhere.
   assert.equal(gate.workFits('Edge protection is installed at every open edge before work starts.', 'Anything'), true);
   assert.equal(gate.workFits('No EWP is used. All work is from the ground.', 'Anything'), true);
-  assert.deepEqual(gate.ACROSS_WORK_IDS, ['fallControl', 'fallAccess', 'controlsConsidered', 'harnessSystem', 'trenchSupport']);
+  // The energised testing choice too (messy round 15, SiteLink blocker 3).
+  assert.deepEqual(gate.ACROSS_WORK_IDS, ['fallControl', 'fallAccess', 'controlsConsidered', 'harnessSystem', 'trenchSupport', 'energisedWork']);
 });
 
 const GO = fs.readFileSync(path.join(__dirname, '..', 'public', 'project-go.js'), 'utf8');

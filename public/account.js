@@ -447,7 +447,9 @@
     const siteOptions = ['<option value="">No site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
     // A SWMS from a main contractor's list is for that list's project, not one of the company's own sites:
     // "Save to a site: No site" is not asked (messy round 11, SiteLink).
-    const fromList = Boolean(S.listSwmsTitle && S.listSwmsTitle());
+    // After a reload the project page may not be drawn yet when the draft is: the list kept on this device says
+    // so too (messy round 15, SiteLink: "Save to a site: No site" showed on Roof works once saved and reloaded).
+    const fromList = Boolean((S.listSwmsTitle && S.listSwmsTitle()) || (S.onBuilderList && S.onBuilderList()));
     // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
     const editing = !local && S.editing;
     // Goal 2: nothing downloads or saves until the site questions are answered and each part with no
@@ -538,7 +540,7 @@
       const revised = saved.revision > 1 && !(S.editing && S.editing.id === saved.id && S.editing.revision === saved.revision);
       S.editing = { id: saved.id, title: saved.title, revision: saved.revision };
       // A SWMS of a project is that saved SWMS from now on: Save, Download and Submit keep one record of it.
-      if (S.projectSaved) S.projectSaved(S.actionInput, saved.id);
+      if (S.projectSaved) S.projectSaved(S.actionInput, saved.id, { ...S.actionInput, ...answersNow(kind) });
       // Saved, so the copy kept on this device is no longer needed (goal 7).
       if (S.clearUnsaved) S.clearUnsaved();
       status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.${revised ? resignLine(saved.revision) : ''}`);
@@ -555,7 +557,7 @@
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
-        if (S.projectSaved) S.projectSaved(S.actionInput, data.swms.id);
+        if (S.projectSaved) S.projectSaved(S.actionInput, data.swms.id, body.input);
         if (S.clearUnsaved) S.clearUnsaved();
         status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.${data.swms.revision > 1 ? resignLine(data.swms.revision, data.swms.signedEarlier) : ''}`);
         $('new-save').textContent = 'Saved';
@@ -1046,7 +1048,7 @@
 
   async function loadTeam() {
     try {
-      const { users } = await call('GET', '/api/company/users');
+      const { users, invited = [] } = await call('GET', '/api/company/users');
       const admin = Boolean(me && me.user.isAdmin);
       // Each person by name, with the email beside it (messy round 9, wording 10: Team showed only the
       // office admin's email). A person with no name yet can give theirs here.
@@ -1054,7 +1056,9 @@
       $('team-list').innerHTML = users.map((user) => `<li>${user.name ? `${esc(user.name)} <span class="meta">${esc(user.email)}</span>` : esc(user.email)}`
         + `${user.is_admin ? ' <span class="meta">(administrator)</span>' : user.last_seen_at ? '' : ' <span class="meta">(invited)</span>'}`
         + `${admin && !user.is_admin ? ` <button type="button" class="link" data-remove="${esc(user.email)}">Remove</button>` : ''}`
-        + `${mine(user) && !user.name ? `<div class="field team-name"><label for="team-my-name">Your name, as your team sees it</label><input id="team-my-name" type="text" maxlength="120" autocomplete="name"><button type="button" class="small secondary" id="team-my-name-save">Save my name</button><span class="meta" id="team-my-name-status" role="status"></span></div>` : ''}</li>`).join('');
+        + `${mine(user) && !user.name ? `<div class="field team-name"><label for="team-my-name">Your name, as your team sees it</label><input id="team-my-name" type="text" maxlength="120" autocomplete="name"><button type="button" class="small secondary" id="team-my-name-save">Save my name</button><span class="meta" id="team-my-name-status" role="status"></span></div>` : ''}</li>`).join('')
+        // Invited, and not signed in yet: shown at once after "Send invitation".
+        + invited.map((email) => `<li>${esc(email)} <span class="meta">(invited, not signed in yet)</span></li>`).join('');
     } catch (error) {
       $('team-list').innerHTML = `<li class="error">${esc(error.message)}</li>`;
     }

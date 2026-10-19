@@ -265,7 +265,7 @@ function draftToPdf(draft, options = {}) {
 
   text(doc, 'Safe work method statement', { bold: true, size: 18 });
   text(doc, `${draft.instrument}  ·  ${draft.versionLabel}  ·  ${draft.sectionRef}`, { size: 9, color: MUTED });
-  text(doc, draft.status || 'Not approved. Not signed.', { size: 9, after: 0.4 });
+  text(doc, require('./draft').statusOf(draft), { size: 9, after: 0.4 });
   table(doc, { widths: pairWidths, rows: metaRows(draft) });
 
   if (draft.kind !== 'draft') {

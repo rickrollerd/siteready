@@ -39,7 +39,8 @@ const ANSWERED = {
   // Needed before download (D289).
   worksManager: 'Sam Lee',
   worksManagerPhone: '0412 345 678',
-  site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'None', access: 'Through the main site gate.' },
+  // Ground is asked where a step digs, so it says what the ground is (messy round 15, SiteLink: "None" is refused there).
+  site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'Firm level ground, no soft spots.', access: 'Through the main site gate.' },
 };
 
 // Live services named for work beside a live supply (messy round 14: "None" is refused there).

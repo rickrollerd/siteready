@@ -27,6 +27,16 @@ const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level
 
 const LIFT_BLEED = /\b(signallers?|slings?|exclusion zone|lift crew|under the panel|no free-fall|free-fall with a load|crane class, not the chart|dogm[ae]n|banksman|liebherr)\b/i;
 
+// The SWMS's own approval line at the top. A revision kept with the old words ("Not approved. Not signed.")
+// reads the same way when it is shown or printed again.
+function statusLine(company, test = false) {
+  const owner = String(company || '').replace(/\s+/g, ' ').trim().replace(/[.\s]+$/, '');
+  return `Approval by ${owner || 'the business'}: not signed yet.${test ? ' A test, not a site record.' : ''}`;
+}
+const statusOf = (draft) => {
+  const said = String((draft && draft.status) || '');
+  return !said || /^Not approved\. Not signed\./.test(said) ? statusLine(draft && draft.subcontractor, /A test, not a site record/.test(said)) : said;
+};
 function cleanLine(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
@@ -2875,9 +2885,11 @@ function withDesignHolds(given, designs) {
   const { QUESTION_DESIGNS } = require('./public/design-fill');
   for (const [id, design] of Object.entries(QUESTION_DESIGNS)) {
     const row = designs.find((item) => item && item.id === design.id);
-    if (!row || row.status !== 'notIssued') continue;
+    if (!row || !['notIssued', 'notNeeded'].includes(row.status)) continue;
     if (keptFact(facts[id]) && hasSubstance(id, keptFact(facts[id]))) continue;
-    facts[id] = designHoldLine(design.label);
+    // "Not needed for this work" ticked settles its question with no words typed (messy round 15, SiteLink stuck
+    // point 1: the formwork design and load limits stayed "Still needed" until the office typed a reason).
+    facts[id] = row.status === 'notNeeded' ? `Not needed for this work: the ${design.label.charAt(0).toLowerCase()}${design.label.slice(1)}.` : designHoldLine(design.label);
   }
   return facts;
 }
@@ -4648,9 +4660,10 @@ function buildDraft(input, screen) {
   const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, askedFallFacts(facts, pack.fallAnswer), state, input.ppe)).filter(notSdsQuestion(input));
   // The questions asked from the PPE or the fall control (the harness), whose answers print as asked.
   pack.asked = new Set(withHarness([], facts, ppeInUse(task, askedFallFacts(facts, pack.fallAnswer), state, input.ppe)).map((item) => item.id));
-  const status = packIsTest(input)
-    ? 'Not approved. Not signed. A test, not a site record.'
-    : 'Not approved. Not signed.';
+  // The SWMS's own approval, by the business that prepared it, said as that: on a SWMS a principal contractor
+  // approved with conditions, "Not approved. Not signed." at the top read as the builder's answer (messy round 15,
+  // SiteLink wording 7). The builder's response is in its own box.
+  const status = statusLine(input.company, packIsTest(input));
   const header = {
     state: state.name,
     instrument: state.instrument,
@@ -10111,7 +10124,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { andForN, depthFall, FALL_INTO, craneNamed, ewpRuledOut, cleanedSentences, cleanerProducts, withoutOthersWork: (text) => withoutOthersClauses(text), foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { statusOf, andForN, depthFall, FALL_INTO, craneNamed, ewpRuledOut, cleanedSentences, cleanerProducts, withoutOthersWork: (text) => withoutOthersClauses(text), foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

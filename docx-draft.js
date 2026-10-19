@@ -497,7 +497,7 @@ function childrenFor(draft, options = {}) {
   const blocks = [
     para('Safe work method statement', { bold: true, size: 36, before: 0, after: 40 }),
     para(`${draft.instrument}  ·  ${draft.versionLabel}  ·  ${draft.sectionRef}`, { size: 20, color: MUTED, after: 40 }),
-    para(draft.status || 'Not approved. Not signed.', { size: 20, before: 0, after: 160 }),
+    para(require('./draft').statusOf(draft), { size: 20, before: 0, after: 160 }),
     metaTable(metaRows(draft)),
   ];
 

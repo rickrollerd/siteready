@@ -581,9 +581,21 @@
     // A roof's fall control fits only a SWMS whose work names a roof (messy round 13, A run 1: "The roof top has the
     // builder's parapet and temporary edge guardrail" was filled into "all tiled areas", whose task names no roof).
     [/\b(?:roofs?|roof ?tops?|rooftops?|parapets?|roof (?:edges?|sheets?|sheeting|mesh)|safety mesh|skylights?|gutters?|eaves)\b/i, /\b(?:roofs?|roof ?tops?|rooftops?|roofing|parapets?|skylights?|gutters?|eaves|re-?roof\w*)\b/i],
+    // Penetrations, voids, risers and shafts fit only a SWMS whose work names them (messy round 15, SiteLink blocker
+    // 3: "Each penetration is covered with a fixed, marked cover as soon as it is formed" went from Penetrations into
+    // Temporary electrical services, pole lights and temporary boards).
+    [/\b(?:penetrations?|core holes?|cored holes?|floor openings?|voids?|risers?|shafts?)\b/i, /\b(?:penetrat\w*|cor(?:e|ed|ing)\b|core[- ]?drill\w*|holes?|voids?|openings?|risers?|shafts?)\b/i],
   ];
-  const ACROSS_WORK_IDS = ['fallControl', 'fallAccess', 'controlsConsidered', 'harnessSystem', 'trenchSupport'];
-  function workFits(answer, itemWords) {
+  // A choice that brings high risk work fills another SWMS only where that SWMS's own work names it too
+  // (messy round 15, SiteLink blocker 3: "Testing or commissioning on or near energised parts" went from Testing
+  // and commissioning into Temporary electrical services). "Test and tag" is not testing near energised parts.
+  const ACROSS_CHOICES = {
+    energisedWork: { testing: /\b(?:testing|tests?\b(?!\s+(?:and|&|n)\s+tag)|tested|commission\w*|energis\w*|live (?:work|testing)|fault[- ]?find\w*)/i },
+  };
+  const ACROSS_WORK_IDS = ['fallControl', 'fallAccess', 'controlsConsidered', 'harnessSystem', 'trenchSupport', ...Object.keys(ACROSS_CHOICES)];
+  function workFits(answer, itemWords, questionId = '') {
+    const rule = questionId && ACROSS_CHOICES[questionId] ? ACROSS_CHOICES[questionId][clean(answer)] : null;
+    if (questionId && ACROSS_CHOICES[questionId]) return !rule || rule.test(String(itemWords || ''));
     const text = clean(answer).replace(/\b(?:no|not|never|without|nobody)\b[^.;,]{0,40}/gi, ' ');
     const words = String(itemWords || '');
     return ACROSS_WORK.every(([said, has]) => !said.test(text) || has.test(words));

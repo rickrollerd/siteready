@@ -174,7 +174,12 @@ function requireAdmin(req, res, next) {
 
 router.get('/company/users', requireUser, route(async (req, res) => {
   const users = await db.query('SELECT email, name, is_admin, created_at, last_seen_at FROM users WHERE company_id = $1 ORDER BY created_at', [req.company.id]);
-  res.json({ users });
+  // A person invited who has not signed in yet is listed too, as invited (messy round 15, SiteLink: the team list
+  // did not show the foreman after "Send invitation", though the email went).
+  const joined = new Set(users.map((user) => user.email));
+  const invited = (await db.query('SELECT email FROM login_tokens WHERE company_id = $1 AND used_at IS NULL', [req.company.id]))
+    .map((row) => row.email).filter((email, at, all) => !joined.has(email) && all.indexOf(email) === at);
+  res.json({ users, invited });
 }));
 
 router.delete('/company/users/:email', requireUser, requireAdmin, route(async (req, res) => {
@@ -534,6 +539,21 @@ async function saveForDownload(req, body, options = {}) {
   if (result && result.row) keepSavedKey(req.company, key, result.row.id);
   return result;
 }
+// Two inputs give the same SWMS: the same answers, leaving out emergency answers this SWMS does not ask
+// (given for another SWMS of the project and filled across), which print nowhere in it. A project page kept
+// some of those and the SWMS's own page others, so Submit with nothing changed made a new revision under a
+// new reference (messy round 15, SiteLink blocker 1: Generator installation was downloaded as revision 1 and
+// submitted as revision 2).
+function sameAnswers(before, after, draft) {
+  const asked = new Set(((draft && draft.emergencyQuestions) || []).map((item) => item && item.id).filter(Boolean));
+  const trim = (input) => {
+    const out = { ...(input || {}) };
+    const kept = Object.entries(out.emergency && typeof out.emergency === 'object' ? out.emergency : {}).filter(([id, value]) => asked.has(id) && String(value || '').trim());
+    out.emergency = kept.length ? Object.fromEntries(kept) : undefined;
+    return out;
+  };
+  return revisions.stable(trim(before)) === revisions.stable(trim(after));
+}
 async function saveOnce(req, body, options) {
   const input = cleanInput(body);
   const draft = prepareDraft(withCompany(input, req.company));
@@ -547,7 +567,7 @@ async function saveOnce(req, body, options) {
     ? await db.one('SELECT * FROM swms WHERE id = $1 AND company_id = $2 AND archived = FALSE', [body.swmsId, req.company.id]) : null;
   if (existing) {
     const current = await revisions.revisionOf(existing, req.company, existing.revision || 1, withCompany);
-    if (current && revisions.stable(current.input) === revisions.stable(input)) {
+    if (current && sameAnswers(current.input, input, draft)) {
       // Unchanged, and checked by someone else (or with another role) than the check it printed with: the
       // file would print a different "Checked by" under the same reference and revision, so it is a new
       // revision (messy round 11, run 5: SW-8SBQ-8JFR revision 1 was both "Checked by Me" and "Checked by
@@ -905,14 +925,17 @@ router.post('/sign/:token', route(async (req, res) => {
     res.status(201).json({ ok: true, message: thanks(already.worker_name, row) });
     return;
   }
-  const name = textField(body.name, 120).replace(/\s+/g, ' ');
+  // Typed in lower case on a phone, the worker's name and company take their capitals, as they show on the
+  // sign-on sheet (messy round 15, SiteLink wording 5: "anh truong | echidna spark").
+  const nameCase = require('./sitelink-answers');
+  const name = nameCase.tidyName(textField(body.name, 120).replace(/\s+/g, ' '));
   const signature = String(body.signature || '');
   if (!name) throw fail(400, 'Enter your name.');
   if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature) || signature.length > MAX_SIGNATURE) throw fail(400, 'Sign in the box before submitting.');
   if (body.confirmed !== true) throw fail(400, 'Tick the box to confirm the SWMS has been explained to you.');
   const draft = await signedDraft(row, company);
   // A worker who cannot read the SWMS has it explained by their supervisor: no reading time or questions.
-  const explainedBy = body.explained === true ? textField(body.supervisor, 120).replace(/\s+/g, ' ') : '';
+  const explainedBy = body.explained === true ? nameCase.tidyName(textField(body.supervisor, 120).replace(/\s+/g, ' ')) : '';
   if (body.explained === true && !explainedBy) throw fail(400, 'Enter the name of the supervisor who explained the SWMS to you.');
   let reading = null;
   if (!explainedBy) {
@@ -955,7 +978,7 @@ router.post('/sign/:token', route(async (req, res) => {
   await db.query(
     `INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, section_seconds, check_attempts, explained_by, revision, client_key)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-    [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date(),
+    [auth.newId(), row.id, name, nameCase.tidyCompany(textField(body.company, 200).replace(/\s+/g, ' ')), signature, new Date(),
       reading ? reading.language : '', reading ? reading.readSeconds : null, reading ? reading.viewed : null, reading ? reading.total : null,
       reading ? JSON.stringify(reading.sectionSeconds) : null, reading ? reading.attempts : null, explainedBy, row.revision || 1, clientKey(body.key) || null],
   );

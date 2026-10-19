@@ -81,6 +81,12 @@ const erectsScaffold = (draft) => (draft.jobSteps || []).some((step) => /^(?:Ere
 // A job step whose hazard is a live electrical supply, or null: { step, hazard }. A shock from the crew's own leads,
 // tools or wet cutting is not a live service at the work.
 const LIVE_SUPPLY = /\b(?:electric(?:al)? shock|electrocution|arc flash)\b[^.]*\b(?:supply|supplies|switch ?boards?|mains|energised|live|circuits?|cables?|wiring|board|traction|isolated|connect\w*|controls?|motor)\b|\b(?:live|energised|energized) (?:parts?|cables?|circuits?|switch ?boards?|supply|supplies|services?|conductors?|mains|wiring|equipment|installations?)\b|\bcontact with (?:live|energised|buried|underground|overhead) (?:services|cables?|power|electrical|lines?|conductors?)\b/i;
+// The first job step that digs into the ground (a trench, an excavation, holes), unless it does not apply.
+const DIG_STEP = /\b(?:excavat\w*|trench\w*|dig(?:s|ging)?|pot ?hol\w*|bor(?:e|ing) (?:under|for|holes?)|footing holes?|post holes?|pier holes?|auger\w*|backfill\w*)\b/i;
+function digStep(draft) {
+  const step = (draft.jobSteps || []).find((one) => one && DIG_STEP.test(String(one.step || '')) && !/\(Does not apply to this job\)$/.test(String(one.step || '')));
+  return step ? step.step : '';
+}
 function liveSupplyHazard(draft) {
   for (const step of draft.jobSteps || []) {
     const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
@@ -252,11 +258,18 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // "None" for Live services beside a step whose hazard is a live supply is not an answer (messy round 14, B run 5:
   // "n/a" printed "Not applicable" beside "Electric shock from the lift supply").
   const live = liveSupplyHazard(draft);
+  // "None" for Ground where a step digs is not an answer either (messy round 15, SiteLink: "na" printed "Ground: Not
+  // applicable" in the In-ground (trench) SWMS).
+  const dig = digStep(draft);
   for (const field of SITE_FIELDS) {
     const rule = { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id), ...(SITE_KIND[field.id] ? { kind: SITE_KIND[field.id] } : {}) };
     if (field.id === 'liveServices' && live) {
       rule.noneRefused = `The step "${live.step}" has the hazard "${live.hazard.replace(/[.]+$/, '')}", so there are live services at the work.`;
       rule.ask = 'Name them and where they are, for example "Live 400 V supply to the lift controller in the machine room".';
+    }
+    if (field.id === 'ground' && dig) {
+      rule.noneRefused = `The step "${dig}" digs into the ground.`;
+      rule.ask = 'Say what the ground is like where you dig, for example "Firm clay fill, no groundwater" or "Sandy soil, trench shields below 1.5 m".';
     }
     judged({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}` }, rule, site[field.id]);
   }

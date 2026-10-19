@@ -91,7 +91,8 @@ function cleanDetails(body) {
         .filter(Boolean).slice(0, RULES_LIMIT);
       const bad = out[field.key].find((line) => PLACEHOLDER.test(line));
       const weak = bad ? '' : out[field.key].map((line) => answers.notAnswer(line)).find(Boolean);
-      out[field.key] = out[field.key].map(answers.tidyPlace);
+      // "Hi vis n steel caps" and "b4 starting" read as they print (messy round 15, SiteLink wording 6).
+      out[field.key] = out[field.key].map((line) => answers.tidyPlace(answers.typedWords(line)));
       if (bad) found[field.key] = `Take out the rule "${bad}". Add the site rules once you know them.`;
       else if (weak) found[field.key] = `${weak} Write the rule in full, or take it out.`;
     } else {
