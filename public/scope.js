@@ -407,7 +407,10 @@
     const first = cranage && C().packagesOf(aiReading.reading).work.findIndex((item) => C().isCranage(item.name)) === index;
     const slinging = first && choice.crane === 'company' ? `<fieldset class="scope-others scope-slinging"><legend>Who slings the loads and directs the crane?</legend>${SLINGING_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-slinging" value="${value}" ${choice.slinging === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>` : '';
     const question = first ? `<fieldset class="scope-others scope-crane"><legend>Is a crane used, and who operates it?</legend>${CRANE_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-crane" value="${value}" ${choice.crane === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>${slinging}` : '';
-    const name = offer && !offer.full ? `${esc(C().CRANAGE_TICK)}</strong> <span class="meta">(${esc(pack.name)}: ${count})</span>` : `${esc(pack.name)}</strong> <span class="meta">(${count})</span>`;
+    // The SWMS title the work prints under, not the reading's generic package name (messy round 15, B run 6: "Trade installation:
+    // residential tower" was what she ticked).
+    const titled = (aiReading.reading.titles && aiReading.reading.titles[pack.name]) || pack.name;
+    const name = offer && !offer.full ? `${esc(C().CRANAGE_TICK)}</strong> <span class="meta">(${esc(titled)}: ${count})</span>` : `${esc(titled)}</strong> <span class="meta">(${count})</span>`;
     const others = full ? ((mapped && mapped.byOthers) || []).map((entry, j) => {
       const yes = C().othersAnswer(choice.answers, pack, entry) === 'yes';
       // The crew's own work that names the same work keeps its step whatever is answered (messy round 10, run 4).

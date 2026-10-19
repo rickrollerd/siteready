@@ -8,7 +8,9 @@ const { TITLES } = require('./scope');
 // Names for kinds of work whose every step prints only for its own variant.
 const VARIANT_LABELS = { carpJoinery: 'Joinery, doors and trim (as the task names them)', tileMix: 'Tile screed, adhesive, grout and sealer (as the task names them)', landscape: 'Soil, mulch and planting (as the task names them)',
   // Messy round 14, A run 4: "Stand the door frames" showed ticked and "Hang the doors" printed.
-  doorHang: 'Door frames and doors (as the task names them)' };
+  doorHang: 'Door frames and doors (as the task names them)',
+  // Messy round 15, B run 6: "Set the joints" and "Sand the joints" could not be found by their own names.
+  plasterSanding: 'Cut, set and sand plasterboard (as the task names them)' };
 
 function stepLibrary() {
   const kinds = new Map();
@@ -50,6 +52,7 @@ const SYNONYMS = {
   bulk: ['bulk excavat', 'bulk earthwork', 'earthmov', 'excavat'], civil: ['civil', 'road', 'pavement', 'kerb', 'drain', 'earthmov', 'excavat'], roadworks: ['road', 'pavement', 'traffic', 'asphalt', 'kerb'],
   mech: ['mechanical', 'duct', 'hvac', 'air condition', 'fan coil', 'chiller', 'refrigera', 'air handling'], hvac: ['mechanical', 'duct', 'hvac', 'air condition'],
   aircon: ['air condition', 'split system', 'refrigera'], plumber: ['plumb', 'drain'], plumbing: ['plumb', 'drain'],
+  setting: ['set', 'setting'], stopping: ['set', 'stopping'], jointing: ['joint'], plasterboard: ['plasterboard', 'ceiling sheet', 'wall sheet'], gyprock: ['plasterboard'],
   asbestos: ['asbestos', 'fibro'], silica: ['silica', 'dust'], dust: ['dust', 'silica'], noise: ['noise', 'hearing'], confined: ['confined'],
 };
 
@@ -61,6 +64,13 @@ function stem(word) {
   return word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '').replace(/e$/, '');
 }
 
+// Every step name of each kind of work whose steps print only for their variant, so a search finds a step by its own name
+// (messy round 15, B run 6: "set the joints" found brazing and facade joints, not "Set the joints").
+const ALL_STEP_NAMES = (() => {
+  const names = new Map();
+  for (const activity of ACTIVITIES) if (activity.when && activity.steps && VARIANT_LABELS[activity.when]) names.set(activity.when, `${names.get(activity.when) || ''} ${activity.steps.map((step) => step.step).join(' ')}`);
+  return names;
+})();
 const SEARCH_TEXT = (() => {
   const text = new Map();
   for (const activity of ACTIVITIES) {
@@ -108,7 +118,7 @@ function searchSteps(query, trade = '') {
   for (const group of LIBRARY.groups) {
     for (const kind of group.kinds) {
       if (results.some((item) => item.id === kind.id)) continue;
-      const name = ` ${kind.label} ${kind.steps.join(' ')} ${ALIASES[kind.id] || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+      const name = ` ${kind.label} ${kind.steps.join(' ')} ${ALL_STEP_NAMES.get(kind.id) || ''} ${ALIASES[kind.id] || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, ' ');
       const body = ` ${SEARCH_TEXT.get(kind.id) || name}`.replace(/[^a-z0-9]+/g, ' ');
       // A term matches from the start of a word, so "dozer" does not find "bulldozer" text by accident and "lift" not "forklift".
       if (!terms.every((options) => options.some((term) => has(name, term) || has(body, term)))) continue;

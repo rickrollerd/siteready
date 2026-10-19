@@ -539,6 +539,10 @@ const SILICA_CONTEXT = /\b(dust|silica|slurry|concrete|masonry|bricks?|blocks?|s
 const LIFT_WORDS = /\b(lift\w*|hoist\w*|loads?|slung|sling\w*|rigg\w*|dogg\w*|pick\w*|lower\w*|install\w*|erect\w*|plac\w*)\b/i;
 
 const IF_HARNESS = /^\s*(?:where|if|when|wherever|should)\b[^.]*\b(?:harness\w*|fall arrest|lanyards?|static lines?)\b|\b(?:where|if|when) (?:a |the )?(?:harness\w*|fall arrest|lanyards?)(?: systems?)? (?:is|are) (?:used|worn|needed)\b|\bno (?:fall arrest )?harness\w*\b|\b(?:harness\w*|fall arrest)\b[^.]*\b(?:is|are) not (?:used|worn|needed)\b/i;
+// The steps a fall into a trench or excavation is from, and the check of the edge protection there (W13).
+const TRENCH_FALL_STEP = /^(?:Excavate|Dig the trench|Work in the trench|Backfill the trench|Backfill behind the retaining wall|Lay pipes|Lay conduits|Install pits|Lift and place tanks, pits or precast units|Work inside a deep excavation|Dig footing holes|Excavate pile caps, lift pits and trenches|Bulk excavate and load trucks)$|\b(?:trench\w*|excavat\w*)\b/i;
+const TRENCH_EDGE_CHECK = { name: 'the trench edge barriers or fencing checked before each shift',
+  pattern: /\b(barricad\w*|fenc\w*|barriers?|edge protection|guard ?rails?|covers?|trench (?:shields?|box\w*)|shoring|bench\w*|batter\w*)\b[^.]{0,80}\b(inspect\w*|check\w*|tag(?:s|ged)?|tested|certif\w*|each (?:day|shift)|daily)\b|\b(inspect\w*|check\w*)\b[^.]{0,80}\b(barricad\w*|fenc\w*|barriers?|edge protection|trench (?:edges?|sides?|walls?|shields?|box\w*)|excavation|trench(?:es)?)\b/i };
 const MINIMUM = [
   { id: 'fall', label: 'falls over 2 m', musts: [
     // As for H3, a stated reason that edge protection, a scaffold or an EWP is not reasonably practicable answers it.
@@ -1066,7 +1070,8 @@ function weighted(swms, state, context) {
     const keepsStructure = /\b(non[- ]load[- ]bearing|internal walls?|soft strip|strip[- ]?out|fit-?outs?|structur\w* (?:elements? )?(?:untouched|retained|kept|left))\b/i.test(swms.task)
       // A building, annex or wing knocked down whole as well as the strip out is demolished (messy round 11, run 7: "then
       // demo the 2 storey brick annex" was read as keeping the structure).
-      && !/\b(?:demolish\w*|demolition of|demo|knock\w* down|pull\w* down)\s+(?:[\w-]+\s+){0,4}?(?:buildings?|houses?|structures?|sheds?|garages?|warehouses?|annex(?:e|es)?|anex|extensions?|wings?)\b/i.test(swms.task);
+      // So is "the single storey brick rear annexe" (messy round 15, B run 7: five words before the annexe).
+      && !/\b(?:demolish\w*|demolition of|demo|knock\w* down|pull\w* down)\s+(?:[\w-]+\s+){0,6}?(?:buildings?|houses?|structures?|sheds?|garages?|warehouses?|annex(?:e|es)?|anex|extensions?|wings?)\b/i.test(swms.task);
     const wholeLines = keepsStructure ? steps.filter((step) => step.controls.some((line) => /\bfrom the roof down\b|\breverse order to its construction\b|\bGlass is taken out of windows\b|\bRoof timbers and timber floors are cut\b/i.test(line))).map((step) => step.step) : [];
     if (wholeLines.length) {
       points -= 2;
@@ -1385,8 +1390,12 @@ function weighted(swms, state, context) {
     // fenced off from, is asked to keep the work zone apart, not for a traffic plan (B run 8: a school boundary fence).
     const roadWork = ROAD_WORDS.test([String(swms.task || '').replace(/\b(?:fenced|screened|kept|separated|closed) (?:off )?from\b[^.;]*/gi, ' '), ...steps.map((step) => step.step).filter((name) => !checkOnly(name))].join('\n'));
     for (const { set, steps: where } of sets) {
+      // A fall only into a trench or excavation is stopped at its edge: the barriers or fencing there are what is checked before
+      // use, not a scaffold tag, an EWP pre-start or a harness (messy round 15, B run 8).
+      const trenchFallsOnly = set.id === 'fall' && where.length > 0 && where.every((name) => TRENCH_FALL_STEP.test(name));
       const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(usedText))
-        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist) && !(set.id === 'road' && must.plan && !roadWork));
+        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist) && !(set.id === 'road' && must.plan && !roadWork))
+        .map((must) => (trenchFallsOnly && /^the fall protection inspected before use\b/.test(must.name) ? TRENCH_EDGE_CHECK : must));
       const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
       if (missing.length) gaps.push({ set, where, missing });
     }

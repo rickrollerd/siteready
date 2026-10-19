@@ -33,8 +33,10 @@ test('"Not issued yet" for the designs asked at their questions is a hold point,
   const held = prepareDraft({ ...FORMWORK, facts, designs: NOT_ISSUED });
   assert.equal(held.kind, 'draft');
   const lines = held.controls.map((item) => item.text);
-  assert.ok(lines.includes('Hold point: the formwork design is not issued yet, so the work it covers does not start until it is issued and this SWMS is updated.'), lines.join('\n'));
-  assert.ok(lines.some((line) => /^Hold point: the structural engineer's drawing for the load limits is not issued yet/.test(line)), '"as per eng" gives way to the hold point');
+  // The formwork design holds the forming steps, and the Controls table says so in the same words as they do (messy round 15, A run 1).
+  assert.ok(lines.includes('Hold point: the formwork design is not issued yet, so the steps that rely on it do not start until it is issued and this SWMS is updated.'), lines.join('\n'));
+  // The load drawing holds no step here, so its line says to update the SWMS, as its designs row does (messy round 15, A run 1).
+  assert.ok(lines.some((line) => /^The structural engineer's drawing for the load limits is not issued yet\. Update this SWMS when it is issued\./.test(line)), `"as per eng" gives way to the not issued line: ${lines.join(' | ')}`);
   assert.ok(!lines.some((line) => /as per eng/.test(line)));
   assert.deepEqual(held.designs.filter((row) => row.status === 'notIssued').map((row) => row.id).sort(), ['formwork', 'loadDrawing', 'propping']);
   // An answer that says enough is kept as typed, the hold point aside.

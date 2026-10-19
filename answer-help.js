@@ -108,8 +108,15 @@ const lowerFirst = (text) => String(text || '').replace(/^[A-Z](?=[a-z])/, (lett
 
 // The help for one question: { need, example }. A question with no help of its own asks for what its
 // prompt names, and points to the standard answers, which are accepted.
+// Load limits asked where there is no formwork deck (draft.js taskPrompt): the example is for the floors and slabs the loads cross
+// (messy round 15, A run 3: the example spoke of a formwork deck for mechanical plant).
+const FLOOR_LOADS = {
+  need: 'Give the allowable load on each floor or slab the loads cross or are stacked on, where it is shown on site, and who checks it.',
+  example: '3 kPa on the level 2 slab, plant moved only on the marked route, checked by the leading hand.',
+};
 function answerHelp(item) {
   const own = item && HELP[item.id];
+  if (own && item.id === 'loadLimits' && item.prompt && !/\bformwork\b/i.test(String(item.prompt))) return { ...FLOOR_LOADS };
   if (own) return { ...own };
   const prompt = String((item && item.prompt) || '').trim().replace(/[.?]+$/, '');
   const need = !prompt || /^choose\b/i.test(prompt)

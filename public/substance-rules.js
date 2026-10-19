@@ -16,7 +16,8 @@
   // step names (register.js substancesFor). short: the type in a step line ("Curing compound or
   // release agent (Product X): ...").
   const SUBSTANCES = [
-    ['Paints and coatings', /(?<!once )\b(paint\w*|coatings?|enamels?)\b/i, 'Paint or coating'],
+    // The painters (people the work is for) are not paint (messy round 15, A run 4: a scaffold "for the roofers n painters").
+    ['Paints and coatings', /(?<!once )\b(paint(?!ers?\b)\w*|coatings?|enamels?)\b/i, 'Paint or coating'],
     // "Solvent cement" is the PVC primer and solvent cement row, not a solvent and a cement (messy round 7).
     ['Solvents and thinners', /\b(solvents?(?! cement| weld\w*)|thinners?|turps)\b/i, 'Solvent or thinner'],
     // An epoxy, resin or chemical anchor adhesive ("chemset epoxy anchor adhesive") is the epoxy row, not a second
@@ -69,6 +70,9 @@
     'Wood dust (MDF and hardwood)': /\b(?:mdf|wood|timber)(?: and mdf)? dust\b/i,
     'PVC primer and solvent cement': /\b(?:solvent cement|pvc primer|primer and solvent cement)\b/i,
     'Pool and water treatment chemicals': /\b(?:pool chemicals?|pool chlorine|hypochlorite)\b/i,
+    // A step whose lines have refrigerant connections made handles refrigerant (messy round 15, A run 3: the refrigerant licence
+    // printed and refrigerant was not asked).
+    'Refrigerants': /\brefrigerant connections are made\b/i,
   };
   // Fuel named in a step's lines, read only for a reason "Not required" needs (stepWords), not to list the type.
   const LINE_ONLY = { 'Fuels (diesel, petrol)': /\b(?:petrol|diesel)(?:[- ](?:driven|powered|engined))?\b/i };
@@ -86,7 +90,8 @@
   const PREPARES = /^(?:prepare|sand|clean|mask|protect|remove|strip|wash|cart|store|set up|plan|check|inspect|pressure clean|load|move|deliver)\b/i;
   // The step a type of product is used in, where no step names the type: fuel in the step running plant.
   const PREFER = {
-    'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b)/i,
+    // A formwork crew that finishes the slab uses the concrete in its finishing step (messy round 15, A run 1).
+    'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b|Finish concrete$)/i,
     'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
     // The refrigerant is charged in the charging step, not the pipe run that names it (messy round 14, A run 1).
     'Refrigerants': /^(?:Evacuate and charge|Charge|Recover)\b/i,
@@ -115,7 +120,8 @@
     // paint matched to "Prepare to paint", not "Paint").
     // A step done before the pour names the pour only as when it is done (messy round 11, run 1: concrete went to "Install
     // cast-in conduits on the deck before the pour").
-    const named = usable.filter((step) => pattern.test(String(step.step || '').replace(/\bbefore the pour\b/gi, ' ')));
+    // So does one done during or after it (messy round 15, A run 1: premixed concrete went to "Monitor the formwork during the pour").
+    const named = usable.filter((step) => pattern.test(String(step.step || '').replace(/\b(?:before|during|after) the pour\b/gi, ' ')));
     const byName = named.find((step) => !PREPARES.test(step.step || '')) || named[0];
     if (byName) return byName.step;
     // Fuel goes with the step that runs the fuelled plant (messy round 4: diesel matched to "Paint line marking").
@@ -128,6 +134,9 @@
     const byLines = usable.find((step) => pattern.test([...(step.hazards || []), ...used(step).map(withoutSource)].join('\n'))
       || (CONTROL_PRODUCTS[type] && CONTROL_PRODUCTS[type].test(used(step).join('\n'))));
     if (byLines) return byLines.step;
+    // With no step that works with it, the step done during the pour is where it is (content11: a formwork SWMS with no pour).
+    const atPour = usable.find((step) => pattern.test(String(step.step || '')) && /\b(?:during|after) the pour\b/i.test(step.step || ''));
+    if (atPour) return atPour.step;
     // Last, the user's own step that names it (messy round 10, run 8: "SiteWrite could not tell which step uses
     // it" for the chemset and cold gal the user's own step names).
     const own = (Array.isArray(steps) ? steps : []).find((step) => step && (step.own || OWN_STEP.test(String(step.step || ''))) && (pattern.test([step.step, ...(step.hazards || []), ...(step.controls || []).map(withoutSource)].join('\n')) || namedIn(type, [step.step, ...(step.hazards || []), ...(step.controls || [])].join('\n'))));
@@ -522,7 +531,11 @@
     // attachment, not plant of its own.
     if (type === FUEL && draft && /\b(?:we|our|us|ourselves)\b/i.test(clean(reason))) {
       const said = (clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []).map((word) => word.toLowerCase().replace(/s$/, ''));
-      const listed = [...new Set([...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || '')).filter((name) => FUELLED_PLANT.test(name) && !/\b(?:electric|battery|hand)\b/i.test(name)))];
+      // Only plant the SWMS lists as used: not an item SiteWrite is not sure of, nor one the user unticked (messy round 15, B run
+      // 8: the query named a water cart the user had left unticked).
+      const sure = (list) => list.filter((item) => item && !item.maybe && !/, where one is used\b/.test(String(item.licence || '')));
+      const pool = sure((draft && draft.plant) || []).length ? sure(draft.plant) : sure((draft && draft.plantInferred) || []);
+      const listed = [...new Set(pool.map((item) => String((item && (item.known || item.item)) || '')).filter((name) => FUELLED_PLANT.test(name) && !/\b(?:electric|battery|hand)\b/i.test(name)))];
       const carrier = listed.some((name) => /\b(?:excavators?|skid steers?|posi-?tracks?|bobcats?)\b/i.test(name));
       // A crane, truck or forklift is often another firm's plant: only the crew's own small and earthmoving plant is named.
       const others = listed.filter((name) => !(carrier && /\bauger\b/i.test(name)) && !/\b(?:cranes?|trucks?|forklifts?|telehandlers?)\b/i.test(name) && !said.some((word) => name.toLowerCase().includes(word)));
@@ -571,6 +584,14 @@
     [/\btorch[- ]?on\b|\bsbs\b|\bbitumen (?:sheets?|membranes?)\b/i, [/\btorch[- ]?on\b/i, /\bmembranes?\b/i]],
     [/\bprimers?\b/i, [/\bprimers?\b/i]],
     [/\bmembranes?\b|\bwaterproof\w*\b/i, /\bmembranes?\b|\bwaterproof\w*\b/i],
+    // Messy round 15: a duct sealant seals the duct joints as the ductwork goes in, not the insulation (A run 3); a cable jointing
+    // resin is used in the cable joints and terminations (A run 2: "could not tell"); PVC conduit cement joins the conduits run
+    // in the rough-in (A run 2: it went to the cable tray step); a cornice adhesive fixes the cornices with the trims, not the
+    // joint setting (B run 6).
+    [/\bduct\w*\b[^.]{0,20}\b(?:sealants?|mastics?|sealers?|tapes?)\b|\b(?:sealants?|mastics?)\b[^.]{0,20}\bduct\w*/i, [/^Install ductwork$/i, /\bduct\w*/i]],
+    [/\b(?:cable )?jointing resins?\b|\bcable joint\w* (?:resins?|compounds?|kits?)\b|\bresins?\b[^.]{0,20}\b(?:cable )?joints?\b/i, [/\bterminat\w*\b/i, /\bjoint\w*\b/i, /^Connect and commission$/i]],
+    [/\bconduits?\b[^.]{0,20}\b(?:solvent )?(?:cements?|glues?|primers?)\b|\b(?:pvc|solvent) (?:cements?|glues?)\b[^.]{0,20}\bconduits?\b/i, [/^Lay conduits$/i, /^Rough-in$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i]],
+    [/\bcornice (?:adhesives?|glues?)\b/i, [/^Fix skirting and architraves$/i, /^Set the joints$/i]],
     [/\b(?:sealants?|silicone|caulk\w*|mastics?)\b/i, /\b(?:seal\w*|caulk\w*)\b/i],
     // Petrol runs the small plant (saws, compactors, generators), not the diesel earthmoving plant (messy round 9,
     // run 2: petrol for the concrete saw matched to "Run earthmoving plant").
@@ -593,7 +614,7 @@
     const names = list.map((step) => step.step);
     const chosen = clean(row && row.step);
     if (chosen && names.includes(chosen)) return chosen;
-    if (PIPE_PRODUCT.test(clean(row && row.product))) {
+    if (PIPE_PRODUCT.test(clean(row && row.product)) && !/\bconduits?\b/i.test(clean(row && row.product))) {
       const piping = list.filter((step) => step && !step.own && !GENERAL.has(step.step) && PIPE_STEP.test(step.step || '') && !/^(?:Label|Test|Flush|Commission|Pressure test)\b/i.test(step.step || ''));
       // The step that joins PVC, not one that joins PE by electrofusion (messy round 11, run 5).
       const joins = piping.find((step) => /\b(?:pvc|solvent|primer)\b/i.test(step.step || '')) || piping.find((step) => /\b(?:join\w*|solvent)\b/i.test(step.step || '') && !/\belectrofusion|\bbutt fus/i.test(step.step || '')) || piping[0];
@@ -622,6 +643,12 @@
     // A place both name ("pool") does not say the product is for that step (A run 4: the pool tile and pebble product went to
     // the user's own robotic pool cleaner step).
     const shared = (name) => words.filter((word) => !PLACE_PRODUCT_WORDS.has(word) && new RegExp(`\\b${word}`, 'i').test(String(name || '').replace(OWN_STEP, ''))).length;
+    // A setting or jointing compound, with no library step that sets the joints, goes in the user's own step that sets them
+    // (messy round 15, B run 6: it stayed on "Fix ceiling sheets" once the user's own setting step was added).
+    if (/\b(?:jointing|setting|base ?coat|top ?coat|topping|stopping|finishing) (?:compounds?|cements?|plasters?)\b|\bcornice cements?\b/i.test(named) && !using.some((item) => /^Set the joints$/i.test(item.step || ''))) {
+      const setter = list.find((item) => item && (item.own || OWN_STEP.test(item.step || '')) && /\b(?:set(?:s|ting)?|stop(?:s|ping)?|finish\w*)\b[^.]{0,40}\bjoints?\b|\bjoints?\b[^.]{0,20}\b(?:set|setting|stopping)\b/i.test(item.step || ''));
+      if (setter) return setter.step;
+    }
     const typed = matchStep(row && row.type, steps);
     // An own step that only protects or covers finished work does not use the products (A run 4: the MDF dust and the masonry
     // drilled for anchors went to "Protect finished floors, walls and frames").
