@@ -35,6 +35,11 @@
     : [['workplace', 'Job address'], ['principal', 'Principal contractor'], ['works-manager', 'Works manager'], ['works-manager-phone', 'Works manager phone'], ['compliance-responsible', 'Person who makes sure the SWMS is followed'],
       ['reviewer', 'Person who reviews the controls'], ['first-aider', 'First aider'], ['muster-point', 'Muster point']];
   const SCAFFOLD = ['scaffold-supervisor', 'Scaffold supervisor'];
+  // Boxes that may be left empty, but whose answer, once given, is judged as each SWMS judges it (download-gate.js
+  // OPTIONAL): the reason shows under the box here, not only inside a SWMS (messy round 16, SiteLink stuck point 2:
+  // "priya dalgarno office" as Prepared by showed no message here, and every SWMS then asked for Prepared by).
+  const OPTIONAL_PEOPLE = [['site-manager', 'Site manager'], ['prepared-by', 'Prepared by']];
+  const optionalRule = (field) => { const found = OPTIONAL_PEOPLE.find(([id]) => id === field); return found ? { ask: '', name: found[1], optional: true, kind: 'person' } : null; };
   // How a person's box is judged, as the download gate judges it, so its reason shows at the box.
   const peopleRule = (field) => {
     const rules = gate();
@@ -1021,6 +1026,15 @@
       const left = $(`need-${field}`);
       if (left) left.hidden = true;
     }
+    for (const [field] of OPTIONAL_PEOPLE) {
+      const el = $(field);
+      if (!el) continue;
+      const value = String(el.value || '').trim();
+      const need = value ? rules.answerNeed(optionalRule(field), value) : '';
+      setNote(el, `go-need-${field}`, need ? `Needed before download: ${need}` : '');
+      const left = $(`need-${field}`);
+      if (left) left.hidden = true;
+    }
     if (project.stage !== 'questions' || !rules.SITE_NEED) return;
     const site = sharedSite();
     for (const [id, label] of SITE) {
@@ -1684,6 +1698,7 @@
   function laterMissing() {
     const rules = gate();
     const out = PEOPLE.filter(([id]) => { const el = $(id); const rule = peopleRule(id); return el && (!String(el.value || '').trim() || (rules && rule && rules.answerNeed(rule, el.value))); }).map(([, label]) => label);
+    for (const [id, label] of OPTIONAL_PEOPLE) { const el = $(id); if (el && rules && String(el.value || '').trim() && rules.answerNeed(optionalRule(id), el.value)) out.push(label); }
     const site = sharedSite();
     for (const [id, label] of SITE) if (!String(site[id] || '').trim() && project.items.some((item) => !item.siteOwn)) out.push(`Site question: ${label}`);
     return out;
@@ -1763,7 +1778,26 @@
     }
   }
 
-  async function prepareOne(index, body) {
+  // The products the SWMS's safety data sheet answer lists as used are its products, each under its type, so the SWMS
+  // does not ask for that type's product again (messy round 16, SiteLink: "pipe thread sealant, cutting oil and pvc
+  // solvent cement" given, then a sealant and a PVC cement asked for as if not). Each still takes its safety data
+  // sheet in the SWMS (D256). A type ticked "Not required", or already with a product, is left as it is.
+  function withSdsProducts(index, body) {
+    const rules = window.SiteWriteSubstanceRules;
+    const sds = body && body.facts && typeof body.facts.safetyDataSheet === 'string' ? body.facts.safetyDataSheet : '';
+    if (!rules || !rules.sdsProducts || !sds.trim()) return body;
+    const list = Array.isArray(body.substances) ? body.substances : [];
+    const notUsed = new Set(Array.isArray(body.substancesNotUsed) ? body.substancesNotUsed : []);
+    const add = rules.sdsProducts(sds).filter((row) => !notUsed.has(row.type) && !list.some((one) => (rules.coversType ? rules.coversType(one, row.type) : one && one.type === row.type)))
+      .map((row) => {
+        // Typed in lower case, a product's short name keeps its capitals ("pvc solvent cement" reads "PVC solvent cement").
+        const named = row.product.replace(/\b(?:c?pvc|u-?pvc|lpg|mdf|sbs|abs|hdpe)\b/gi, (word) => word.toUpperCase());
+        return { id: `sds-${index}-${rules.TYPES.indexOf(row.type)}`, type: row.type, product: `${named.charAt(0).toUpperCase()}${named.slice(1)}` };
+      });
+    return add.length ? { ...body, substances: [...list, ...add] } : body;
+  }
+  async function prepareOne(index, given) {
+    const body = withSdsProducts(index, given);
     // A host's error page (a 502) or no signal says so plainly (messy round 3).
     const { response, data: draft } = S.postJson ? await S.postJson('/api/draft', body) : await fetch(api('/api/draft'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (got) => ({ response: got, data: await got.json() }));
     if (!response.ok) throw new Error(draft.message || `SWMS ${index + 1} could not be prepared.`);
@@ -1919,7 +1953,7 @@
   // ---- The review list (D240) ----
 
   // What every SWMS shares is said once, above the list; each SWMS lists only its own.
-  const SHARED_LABELS = new Set([...PEOPLE.map(([, label]) => label), SCAFFOLD[1]]);
+  const SHARED_LABELS = new Set([...PEOPLE.map(([, label]) => label), SCAFFOLD[1], ...OPTIONAL_PEOPLE.map(([, label]) => label)]);
   const SITE_LABEL = /^Site: /;
   // A site answer every SWMS shares (none has its own) is asked for once, on the questions page.
   const sharedSiteNeeds = () => {
@@ -1984,7 +2018,10 @@
     // A person's box left empty, or given an answer a SWMS does not accept ("TBA").
     // The scaffold supervisor too, where a SWMS involves a scaffold: it is given once above, and "Go to"
     // goes to its box, not into a SWMS (messy round 3, run 3).
-    const people = [...PEOPLE, ...(scaffoldNeeded() ? [SCAFFOLD] : [])].filter(([id, label]) => { const el = $(id); return (el && !el.value.trim() && label !== SCAFFOLD[1]) || project.items.some((item) => (item.needs || []).includes(label)); }).map(([id, label]) => ({ id, label }));
+    // A box that may be left empty is listed only where its answer is refused.
+    const people = [...PEOPLE, ...(scaffoldNeeded() ? [SCAFFOLD] : [])].filter(([id, label]) => { const el = $(id); return (el && !el.value.trim() && label !== SCAFFOLD[1]) || project.items.some((item) => (item.needs || []).includes(label)); })
+      .concat(OPTIONAL_PEOPLE.filter(([id, label]) => { const el = $(id); return el && el.value.trim() && project.items.some((item) => (item.needs || []).includes(label)); }))
+      .map(([id, label]) => ({ id, label }));
     const company = companyMissing();
     return company ? [{ id: !String(((S.getProfile && S.getProfile()) || {}).name || '').trim() ? 'profile-company' : 'profile-abn', label: company }, ...people] : people;
   }
@@ -2068,7 +2105,7 @@
 
   // The shared boxes say why an answer is refused as the user types (messy round 3).
   document.addEventListener('input', (event) => {
-    if (project && event.target && PEOPLE.concat([SCAFFOLD]).some(([id]) => event.target.id === id)) sharedNotes();
+    if (project && event.target && PEOPLE.concat([SCAFFOLD], OPTIONAL_PEOPLE).some(([id]) => event.target.id === id)) sharedNotes();
   });
 
   // The project and its hooks from scope.js, for a SWMS open to check after a reload, before this page

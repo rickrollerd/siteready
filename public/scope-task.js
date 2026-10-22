@@ -110,8 +110,12 @@
   const ACCESS_NAMED = /\b(?:gates?|stairs?|stair ?towers?|hoists?|lifts?|ladders?|ramps?|loading (?:zones?|docks?|bays?)|laydown|lanes?|driveways?|entr(?:y|ies|ance|ances)|via|through|off|levels?|floors?|escort\w*|security|induct\w*|swipe|passes|permits?|street|st|road|rd|deliver\w*|hours?|times?)\b/i;
   // An occupied or operating facility has people in it, unless the condition is about its network or services.
   const SERVICE_NAMED = /\b(?:networks?|hv|lv|high voltage|low voltage|power|electric\w*|energis\w*|gas|water mains?|switch ?boards?|cables?|services?|substations?|isolat\w*)\b/i;
+  // A condition is offered for Live services only where it names a service, not only that something is live or
+  // energised (messy round 16, SiteLink: "Energised buildings after energisation." was offered, taken and printed on
+  // every SWMS).
+  const LIVE_NAMED = /\b(?:power|electric\w*|switch ?boards?|switch ?rooms?|substations?|cables?|cabling|wiring|circuits?|mains|supply|supplies|hv|lv|elv|high voltage|low voltage|kv|volts?|power lines?|overhead lines?|gas|water|sewer\w*|storm ?water|drains?|drainage|pipes?|pipework|data|comms?|communications?|nbn|fibre|optic\w*|fire (?:services?|mains?|systems?|pumps?|panels?|alarms?)|hydrants?|sprinklers?|alarms?|panels?|fip|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|networks?|lighting|lights?|plant ?rooms?|pumps?|batter(?:y|ies)|generators?|ups|solar)\b/i;
   const namesSomething = (id, text) => (id === 'otherTrades' ? TRADE_NAMED.test(text) || WHERE_NAMED.test(text)
-    : id === 'liveServices' ? !OTHERS_WORK.test(text)
+    : id === 'liveServices' ? !OTHERS_WORK.test(text) && LIVE_NAMED.test(text)
       : id === 'publicInterface' ? PUBLIC_NAMED.test(text) || (/\b(?:occupied|operating|in use|live)\b/i.test(text) && !SERVICE_NAMED.test(text))
         : id === 'access' ? ACCESS_NAMED.test(text) : true);
   const offerable = (id, text) => { const rules = gate(); return (!rules || !rules.siteNeed || !rules.siteNeed(id, text)) && namesSomething(id, text); };

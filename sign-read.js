@@ -135,10 +135,30 @@ const PLAIN_WORDS = new Set(['are', 'all', 'any', 'each', 'every', 'when', 'wher
 const stem = (word) => word.replace(/(?<=\w{3})(ing|ed)$/, '');
 const terms = (text) => new Set(keyWords(text).filter((word) => !GENERIC_STEP_WORDS.has(word) && !PLAIN_WORDS.has(word)).map(stem));
 const shared = (a, b) => [...a].filter((word) => b.has(word)).length;
-// Two lines are near twins when they share half their words, or one's words are all in the other.
+// Words that name the same thing in a control: an opening and a penetration, a cover and a lid, a barricade and a
+// barrier.
+const SAME_THING = [
+  [/^(?:penetration|open|opening|hole|void|cutout|gap|core)$/, 'opening'],
+  [/^(?:cover|lid|plate|sheet)$/, 'cover'],
+  [/^(?:barricad|barricade|barrier|fence|hoard|hoarding|bunting|guardrail|handrail)$/, 'barrier'],
+  [/^(?:fix|secur|secure|fasten|screw|bolt|tie)$/, 'fixed'],
+];
+// Worked out once for each set of words: the library's lines are compared with every SWMS's lines.
+const thingsKept = new WeakMap();
+function thingsOf(words) {
+  let out = thingsKept.get(words);
+  if (!out) {
+    out = new Set([...words].map((word) => (SAME_THING.find(([test]) => test.test(word)) || [null, word])[1]));
+    thingsKept.set(words, out);
+  }
+  return out;
+}
+// Two lines are near twins when they share half their words, or one's words are all in the other, or two of the
+// things they name (messy round 16, SiteLink: "Penetration covers stay firmly fixed in place." was a wrong answer
+// beside the control "The opening is covered or barricaded as soon as it is cut").
 const twins = (a, b) => {
   const n = shared(a, b);
-  return n > 0 && (2 * n / (a.size + b.size) >= 0.5 || n === Math.min(a.size, b.size));
+  return (n > 0 && (2 * n / (a.size + b.size) >= 0.5 || n === Math.min(a.size, b.size))) || shared(thingsOf(a), thingsOf(b)) >= 2;
 };
 // Doing words say little about the work: "Replace the flashing" is not close to "Replace the pump".
 const ACTION_WORDS = new Set(['replace', 'repair', 'erect', 'build', 'lay', 'fit', 'run', 'place', 'strip', 'dismantle', 'apply', 'form', 'stand', 'break', 'dig', 'drive', 'operate', 'maintain', 'service', 'cut', 'drill', 'clear', 'keep', 'stay', 'wear', 'worn', 'used', 'kept']);

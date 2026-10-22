@@ -559,7 +559,10 @@
         S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
         if (S.projectSaved) S.projectSaved(S.actionInput, data.swms.id, body.input);
         if (S.clearUnsaved) S.clearUnsaved();
-        status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.${data.swms.revision > 1 ? resignLine(data.swms.revision, data.swms.signedEarlier) : ''}`);
+        // Nothing changed since it was saved: it keeps its revision (messy round 16, SiteLink stuck point 1).
+        status('new-status', data.swms.unchanged
+          ? `Saved "${data.swms.title}". Nothing has changed since revision ${data.swms.revision || 1}, so it stays revision ${data.swms.revision || 1}. Find it under My SWMS.`
+          : `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.${data.swms.revision > 1 ? resignLine(data.swms.revision, data.swms.signedEarlier) : ''}`);
         $('new-save').textContent = 'Saved';
         $('new-save').disabled = true;
       }));

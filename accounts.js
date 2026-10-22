@@ -375,6 +375,14 @@ router.get('/swms', requireUser, route(async (req, res) => {
   // A SWMS from a main contractor's list has no saved site: it is named by its project, or by its job
   // address (messy round 9: My SWMS showed "No site" for each SWMS from a builder's list).
   const projects = new Map((await db.query("SELECT s.swms_id, p.name FROM submissions s JOIN projects p ON p.id = s.project_id WHERE s.company_id = $1 AND s.swms_id <> ''", [req.company.id]).catch(() => [])).map((item) => [item.swms_id, item.name]));
+  // One not submitted yet is named by its project too, from the list's work kept on the server, so every SWMS from a
+  // list reads the same way (messy round 16, SiteLink: the SWMS not yet submitted showed the street address, and the
+  // submitted ones the project name).
+  for (const kept of await db.query('SELECT sp.body, p.name FROM sub_progress sp JOIN subcontracts sc ON sc.id = sp.subcontract_id JOIN projects p ON p.id = sc.project_id WHERE sp.company_id = $1', [req.company.id]).catch(() => [])) {
+    const body = typeof kept.body === 'string' ? (() => { try { return JSON.parse(kept.body); } catch { return null; } })() : kept.body;
+    const items = body && body.project && Array.isArray(body.project.items) ? body.project.items : [];
+    for (const item of items) if (item && typeof item.swmsId === 'string' && item.swmsId && !projects.has(item.swmsId)) projects.set(item.swmsId, kept.name);
+  }
   const placeOf = (row) => projects.get(row.id) || String((row.input && row.input.workplace) || '').trim();
   res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, place: row.site_id ? '' : placeOf(row), ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)), changeReview: flags[row.id] || [], review: reviewed[row.id] || null })) });
 }));
@@ -554,6 +562,33 @@ function sameAnswers(before, after, draft) {
   };
   return revisions.stable(trim(before)) === revisions.stable(trim(after));
 }
+// Two saves give the same SWMS when its draft prints the same, whatever the order or form of the answers
+// that made it: everything the draft holds but the revision and its date, which the save sets (messy
+// round 16, SiteLink stuck point 1: Hot work was saved as revision 1, reloaded with nothing changed and
+// downloaded as revision 2 under a new reference, as the reloaded page sent its PPE ticks in another order;
+// the two Word files differed only in their reference and revision).
+function printKey(draft) {
+  const { revision: _revision, revisionDate: _date, ...rest } = JSON.parse(JSON.stringify(draft || {}));
+  return revisions.stable(rest);
+}
+const samePrint = (kept, draft) => Boolean(kept && kept.draft && draft) && printKey(kept.draft) === printKey(draft);
+const unchanged = (kept, input, draft) => Boolean(kept) && (sameAnswers(kept.input, input, draft) || samePrint(kept, draft));
+// A save of an unchanged SWMS keeps its revision. Checked by someone else (or with another role) than the
+// check it printed with, the file would print a different "Checked by" under the same reference and
+// revision, so it is a new revision (messy round 11, run 5: SW-8SBQ-8JFR revision 1 was both "Checked by
+// Me" and "Checked by Dave Rossi"). One reference is one printed content, for the builder's genuine-reference
+// check. Checked by the same person, the same revision prints again as it was, with the check it first
+// printed with; a revision not yet checked part by part takes this check.
+async function keepUnchanged(req, existing, current, confirmation) {
+  if (humanCheck.isPartCheck(confirmation) && checkPrintsDifferently(current.confirmation, confirmation)) {
+    return { ...(await recheckSwms(req, existing, current, confirmation)), saved: true };
+  }
+  if (humanCheck.isPartCheck(confirmation) && !humanCheck.isPartCheck(current.confirmation)) {
+    current.confirmation = await revisions.recordCheck(existing.id, current.revision, confirmation);
+    await db.query('UPDATE swms SET reviewed_by = $1 WHERE id = $2', [confirmation.name, existing.id]);
+  }
+  return { row: await db.one('SELECT * FROM swms WHERE id = $1', [existing.id]), kept: current, saved: false };
+}
 async function saveOnce(req, body, options) {
   const input = cleanInput(body);
   const draft = prepareDraft(withCompany(input, req.company));
@@ -567,22 +602,7 @@ async function saveOnce(req, body, options) {
     ? await db.one('SELECT * FROM swms WHERE id = $1 AND company_id = $2 AND archived = FALSE', [body.swmsId, req.company.id]) : null;
   if (existing) {
     const current = await revisions.revisionOf(existing, req.company, existing.revision || 1, withCompany);
-    if (current && sameAnswers(current.input, input, draft)) {
-      // Unchanged, and checked by someone else (or with another role) than the check it printed with: the
-      // file would print a different "Checked by" under the same reference and revision, so it is a new
-      // revision (messy round 11, run 5: SW-8SBQ-8JFR revision 1 was both "Checked by Me" and "Checked by
-      // Dave Rossi"). One reference is one printed content, for the builder's genuine-reference check.
-      if (humanCheck.isPartCheck(confirmation) && checkPrintsDifferently(current.confirmation, confirmation)) {
-        return { ...(await recheckSwms(req, existing, current, confirmation)), saved: true };
-      }
-      // Unchanged and checked by the same person: the same revision prints again as it was, with the
-      // check it first printed with. A revision not yet checked part by part takes this check.
-      if (humanCheck.isPartCheck(confirmation) && !humanCheck.isPartCheck(current.confirmation)) {
-        current.confirmation = await revisions.recordCheck(existing.id, current.revision, confirmation);
-        await db.query('UPDATE swms SET reviewed_by = $1 WHERE id = $2', [confirmation.name, existing.id]);
-      }
-      return { row: await db.one('SELECT * FROM swms WHERE id = $1', [existing.id]), kept: current, saved: false };
-    }
+    if (unchanged(current, input, draft)) return keepUnchanged(req, existing, current, confirmation);
     return { ...(await reviseSwms(req, existing, { input, draft, confirmation, reason })), saved: true };
   }
   const site = typeof body.siteId === 'string' && body.siteId ? await ownSite(req, body.siteId).catch(() => null) : null;
@@ -703,6 +723,17 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   needsAnswers(withCompany(input, req.company), draft, '', { cover: Boolean(body.input) });
   const confirmation = checkOf(body, draft, input, 'saving');
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
+  // Save SWMS pressed with nothing changed (after a reload, say) keeps the revision, as Download does (messy
+  // round 16, SiteLink stuck point 1). A new title or site is kept with it.
+  const current = body.input ? await revisions.revisionOf(row, req.company, row.revision || 1, withCompany) : null;
+  const title = titleFor({ title: body.title || row.title }, input);
+  if (unchanged(current, input, draft) && title === row.title) {
+    if ((site ? site.id : null) !== (row.site_id || null)) await db.query('UPDATE swms SET site_id = $1 WHERE id = $2', [site ? site.id : null, row.id]);
+    const { row: same, saved } = await keepUnchanged(req, row, current, confirmation);
+    const signedNow = await db.query('SELECT worker_name, signed_at, revision FROM signons WHERE swms_id = $1 ORDER BY signed_at', [same.id]);
+    res.json({ swms: swmsView(same, { ...signonCounts(splitSignons(signedNow, same)), unchanged: !saved }) });
+    return;
+  }
   const { row: next } = await reviseSwms(req, row, { input, draft, confirmation, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
   // The new revision has no sign-ons yet: the page says who must sign it.
   const signed = await db.query('SELECT worker_name, signed_at, revision FROM signons WHERE swms_id = $1 ORDER BY signed_at', [next.id]);

@@ -104,6 +104,15 @@ function overridesFor(list, input, versions) {
     return older ? { ...item, olderRev: Number(older.rev) } : item;
   });
 }
+// The people a project's notes and conditions may name, with their capitals: those the lead set in the site details
+// (the site manager, first aider and scaffold supervisor) and the main contractor's own team (messy round 16, SiteLink
+// wording 4: "hamish te rangi" in a condition, "dmitri" and "saoirse" in notes).
+async function projectPeople(projectId, orgId) {
+  const latest = (await db.query('SELECT details FROM project_site_details WHERE project_id = $1 ORDER BY rev DESC LIMIT 1', [String(projectId || '')]))[0];
+  const details = latest ? (typeof latest.details === 'string' ? JSON.parse(latest.details) : latest.details) || {} : {};
+  const team = orgId ? await db.query('SELECT reviewers.name FROM org_members JOIN reviewers ON reviewers.id = org_members.reviewer_id WHERE org_members.org_id = $1', [String(orgId)]).catch(() => []) : [];
+  return [details.siteManager, details.firstAider, details.scaffoldSupervisor, ...team.map((one) => one.name)].filter((value) => typeof value === 'string' && value.trim());
+}
 const overrideText = (item) => (item.olderRev ? `${lower(item.label)} (as in site details version ${item.olderRev})` : lower(item.label));
 
 function submissionOut(row, state, { forLead = false } = {}) {
@@ -330,7 +339,7 @@ async function conditionForCompany(req) {
 router.post('/from-builders/:id/conditions/:conditionId/done', route(async (req, res) => {
   const { found, row, title } = await conditionForCompany(req);
   if (row.status === 'closed') throw fail(409, `${found.org.name} has already confirmed this condition is done.`);
-  const note = require('./sitelink-answers').tidyNote(oneLine(req.body && req.body.note, NOTE_LIMIT), [found.sub.name, found.sub.claimed_name, found.org.name]);
+  const note = require('./sitelink-answers').tidyNote(oneLine(req.body && req.body.note, NOTE_LIMIT), [found.sub.name, found.sub.claimed_name, found.org.name], await projectPeople(found.project.id, found.org.id));
   // Pressed again with the same note (after a 502): it is marked done once.
   if (row.status === 'done' && (row.done_note || '') === note) { res.json({ message: `Marked done. ${found.org.name} confirms it.`, sent: await forCompany(found) }); return; }
   if (row.status === 'done') throw fail(409, 'This condition is already marked done. Reload the page.');
@@ -675,10 +684,10 @@ function install(hseRouter, deps) {
     if (weak) throw Object.assign(fail(400, `"${weak}" is not a condition. Write each condition in full, one to a line, or take it out.`), { field: 'text' });
     // Typed in a hurry, the conditions and the changes needed read as they print and as the business sees them
     // (messy round 15, SiteLink wording 5: they were shown and printed in lower case).
-    const text = require('./sitelink-answers').tidyLines(typedText);
-    const lines = response === 'conditions' ? conditionLines(text) : [];
     needName(req);
     const found = await submissionFor(req, req.params.id);
+    const text = require('./sitelink-answers').tidyLines(typedText, [found.sub.name, found.sub.claimed_name, found.org.name], await projectPeople(found.project.id, found.org.id));
+    const lines = response === 'conditions' ? conditionLines(text) : [];
     const { row, sub, project, org } = found;
     const later = await laterOf(row);
     if (later) throw fail(409, `${row.company_name || sub.name} has submitted ${later.channel === 'sitewrite' ? `revision ${later.revision}` : 'another SWMS for this'} since, so this one cannot be given a response. Open the latest from the project screen.`);
@@ -756,7 +765,7 @@ function install(hseRouter, deps) {
     needName(req);
     if (row.status !== 'done') throw fail(409, row.status === 'closed' ? 'This condition is already confirmed. Reload the page.' : 'This condition is not marked done, so there is nothing to send back.');
     // As a person would write it (messy round 9, wording 5: "... of the SWMS. add it and submit again").
-    const note = require('./sitelink-answers').tidyNote(oneLine(req.body && req.body.note, NOTE_LIMIT), [ctx.sub.name, ctx.sub.claimed_name, (ctx.org || {}).name]);
+    const note = require('./sitelink-answers').tidyNote(oneLine(req.body && req.body.note, NOTE_LIMIT), [ctx.sub.name, ctx.sub.claimed_name, (ctx.org || {}).name], await projectPeople(ctx.project.id, (ctx.org || {}).id));
     if (!note || reviews.EMPTY_WORDS.test(note.replace(/[.!]+$/, ''))) throw Object.assign(fail(400, 'Say what is still needed, so the subcontractor knows what to do.'), { field: 'note' });
     const who = personName(req.reviewer);
     await db.query("UPDATE review_conditions SET status = 'outstanding', back_note = $1, back_by_name = $2, back_at = $3 WHERE id = $4 AND status = 'done'", [note, who, new Date(), row.id]);
@@ -777,7 +786,7 @@ function install(hseRouter, deps) {
     const header = (name) => { try { return decodeURIComponent(String(req.get(name) || '')); } catch { return ''; } };
     const name = send.uploadName(header('X-File-Name'), type);
     // As typed, with each sentence's capital (messy round 8, wording 13: "emailed by pademelon 16 oct").
-    const note = require('./sitelink-answers').tidyNote(oneLine(header('X-Note'), NOTE_LIMIT), [ctx.sub.name, ctx.sub.claimed_name, (ctx.org || {}).name]);
+    const note = require('./sitelink-answers').tidyNote(oneLine(header('X-Note'), NOTE_LIMIT), [ctx.sub.name, ctx.sub.claimed_name, (ctx.org || {}).name], await projectPeople(ctx.project.id, (ctx.org || {}).id));
     const id = await recordOutside(req, ctx, item, { data, type, name, note });
     res.status(201).json({ id, message: `${name} is recorded as received for ${titleOf(item)}. Review it from the project screen or below.`, page: await deps.subcontractPage(ctx) });
   }));

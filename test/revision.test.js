@@ -75,16 +75,20 @@ test('a new SWMS is revision 1, each saved change adds one, and a copy starts at
   const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   assert.equal(swms.revision, 1);
 
-  const first = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
+  // Saved again with nothing changed, it keeps its revision (messy round 16, SiteLink stuck point 1).
+  const same = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
+  assert.equal(same.swms.revision, 1);
+  const changed = { ...INPUT, preparedBy: 'Sam Lee, supervisor' };
+  const first = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: changed, ...CONFIRM }) })).json();
   assert.equal(first.swms.revision, 2);
-  const second = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Sprinklers', ...CONFIRM }, INPUT) })).json();
+  const second = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Sprinklers', ...CONFIRM }, changed) })).json();
   assert.equal(second.swms.revision, 3);
 
   // Marking it reviewed with no change is not a new revision.
-  const reviewed = await (await call('POST', `/api/swms/${swms.id}/reviewed`, { token, body: checked(CONFIRM, INPUT) })).json();
+  const reviewed = await (await call('POST', `/api/swms/${swms.id}/reviewed`, { token, body: checked(CONFIRM, changed) })).json();
   assert.equal(reviewed.swms.revision, 3);
 
-  const copy = await (await call('POST', `/api/swms/${swms.id}/copy`, { token, body: checked(CONFIRM, INPUT) })).json();
+  const copy = await (await call('POST', `/api/swms/${swms.id}/copy`, { token, body: checked(CONFIRM, changed) })).json();
   assert.equal(copy.swms.revision, 1);
   const list = await (await call('GET', '/api/swms', { token })).json();
   assert.deepEqual(list.swms.map((item) => item.revision).sort(), [1, 3]);

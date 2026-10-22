@@ -309,6 +309,20 @@
     const named = namedIn(type, used);
     return named ? `${SHORT.get(type)}: your safety data sheet answer names "${named}" as a product used, but it is ticked "Not required". Add the product, or take it out of that answer.` : '';
   }
+  // The products a safety data sheet answer lists as used, each with its type, in the answer's own words: "pipe thread
+  // sealant, cutting oil and pvc solvent cement" gives the sealant and the PVC cement (messy round 16, SiteLink: the
+  // answer named them, and the SWMS still asked for a sealant and a PVC cement as if they were not given).
+  function sdsProducts(sds) {
+    const out = [];
+    const sentences = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => !NOT_OURS.test(sentence));
+    const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+and\s+|\s*&\s*/))
+      .map((clause) => clean(clause).replace(/[.:\s]+$/, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
+    for (const clause of clauses) {
+      const type = TYPES.find((one) => namedIn(one, clause));
+      if (type && !out.some((row) => row.type === type)) out.push({ type, product: clause });
+    }
+    return out;
+  }
   // Where "Not required" needs a reason: the word in the user's own task or answers, else in the job steps.
   function reasonAsked(type, words, steps = '') {
     const named = namedIn(type, words);
@@ -712,7 +726,7 @@
     if (type === 'Adhesives' && /\b(?:adhesives?|glues?)\b/i.test(clean(item.product))) return true;
     return type === 'Bitumen and asphalt' && /\b(?:bitumen|bituminous|sbs|app|torch[- ]?on)\b/i.test(clean(item.product));
   }
-  const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
+  const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, sdsProducts, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

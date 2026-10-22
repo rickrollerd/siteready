@@ -894,7 +894,9 @@
     if (bar) {
       const checking = project.stage === 'check' && project.items[project.current];
       const nextToCheck = checking ? project.items.findIndex((other, index) => index > project.current && !other.checked) : -1;
-      bar.innerHTML = checking ? `<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change beside its line (on a phone, press Change this step first). Your changes are kept, and SiteWrite learns from them. When it is right, go back to the list.</p>
+      // A save refused as the list was saved on another device says so here too (messy round 16, SiteLink).
+      const listNote = checking && project.sitelink && project.sitelink.note ? `<p class="warning" role="status" id="list-note-check">${esc(project.sitelink.note)}</p>` : '';
+      bar.innerHTML = checking ? `${listNote}<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change beside its line (on a phone, press Change this step first). Your changes are kept, and SiteWrite learns from them. When it is right, go back to the list.</p>
         <div class="actions"><button type="button" class="secondary" data-project-review>Back to the list of SWMS</button>${nextToCheck >= 0 ? `<button type="button" class="secondary" data-project-open="${nextToCheck}">Check SWMS ${nextToCheck + 1}: ${esc(project.items[nextToCheck].title)}</button>` : ''}</div>` : '';
       bar.classList.toggle('hidden', !checking);
     }
@@ -1630,14 +1632,17 @@
         // as nothing here was lost.
         const nothingNew = Boolean(link.savedWork) && link.savedWork === work;
         // The newer work from the other device is shown; the builder's list is as this page last had it.
+        // The page says so wherever the person is, the SWMS being checked included (messy round 16, SiteLink: a stale
+        // phone page's save was refused and nothing showed). With nothing new here, it says the newest work is shown.
+        const note = nothingNew ? error.message : `${error.message} Changes made on this device since were not kept.`;
         project = reconcile(saved.project, { builder: link.builder, items: link.listItems || [] });
-        project.sitelink = { ...link, version: saved.version, savedOn: saved.updatedOn, savedBy: saved.updatedBy, seen: saved.seen, page: saved.page, dirty: false, offline: false, savedWork: '' };
+        project.sitelink = { ...link, version: saved.version, savedOn: saved.updatedOn, savedBy: saved.updatedBy, seen: saved.seen, page: saved.page, dirty: false, offline: false, savedWork: '', note };
         fillPage(saved.page || {});
         writeProject();
         renderProject();
         if (S.drawSetBy) S.drawSetBy();
-        if (nothingNew) { sayList(''); const el = $('list-saved'); if (el) el.textContent = savedLine(project.sitelink); return; }
-        sayList(`${error.message} Changes made on this device since were not kept.`, 'warning');
+        sayList(note, 'warning');
+        if (nothingNew) { const el = $('list-saved'); if (el) el.textContent = savedLine(project.sitelink); }
         return;
       }
       if (error.status === 404) { sayList(error.message, 'warning'); return; }

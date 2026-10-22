@@ -239,7 +239,7 @@ function install(router, deps) {
     return {
       // The work it is about with its capital, as it reads (messy round 15, SiteLink wording 3: "remove existing
       // submains (clause 1.30 (a))"); the activity matched against the list is kept as read.
-      id: row.id, activity: handover.sentence(row.activity), clause: row.clause, question: handover.sentence(row.question), answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '',
+      id: row.id, activity: handover.sentence(row.activity), clause: row.clause, question: handover.pointSentence(row.question), answer: row.answer, answeredBy: row.answered_by_name, answeredOn: row.answered_at ? dateTime(row.answered_at, state) : '',
       // A point about a SWMS that is not on the list is not asked or sent (messy round 6).
       inPlay: handover.pointInPlay(row, rows), swms: item ? item.title : '',
     };
@@ -474,11 +474,18 @@ function install(router, deps) {
     res.status(started.kept ? 200 : 202).json(await subcontractPage(ctx, { kept: Boolean(started.kept), message }));
   }));
 
+  // The scope's own words for the list's SWMS (their titles as read, work, activities and quoted lines), for the
+  // short names it writes in capitals.
+  const scopeWordsOf = (rows) => (rows || []).flatMap((one) => {
+    const item = one.item || {};
+    return [one.package, one.task, item.scopeTask && item.scopeTask.full, ...(item.activities || []).flatMap((entry) => [entry.activity, ...(entry.quotes || [])])];
+  }).filter((text) => typeof text === 'string').join('\n');
+
   // A SWMS the lead adds to the list.
   router.post('/hse/subcontracts/:subId/items', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     const body = req.body || {};
-    const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'));
+    const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'), scopeWordsOf(await itemsOf(ctx.sub.id)));
     const task = answers.capitalSentences(typed(body.task, 1500, 'the work', 'task'), { stop: true });
     if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
     if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
@@ -526,7 +533,7 @@ function install(router, deps) {
     // A new title (messy round 7: "Plant delivery and lifting: whole project" held the whole installation,
     // and could not be renamed). The same checks as a SWMS the lead adds: a capital first letter, no price.
     if (typeof body.title === 'string') {
-      const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'));
+      const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'), scopeWordsOf(await itemsOf(ctx.sub.id)));
       if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
       const rows = await itemsOf(ctx.sub.id);
       if (rows.some((other) => other.id !== row.id && !other.removed_at && other.title.trim().toLowerCase() === title.toLowerCase())) throw Object.assign(fail(400, 'Another SWMS on this list has that title. Give this one another.'), { field: 'title' });

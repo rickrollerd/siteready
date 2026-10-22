@@ -238,7 +238,9 @@
     if (PERSON_KINDS.has(kind)) { const only = personNameNeed(text); if (only) return only; }
     // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
     const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
-    if (place) return `${quoted} ends in "${place[1]}", which is a place, not a role. Give their name and role, for example "${clean(text.replace(/\s+\S+\.?$/, ''))}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
+    // The example names the person with their capitals ("Priya Dalgarno, office manager", messy round 16, SiteLink).
+    const named = clean(text.replace(/\s+\S+\.?$/, ''));
+    if (place) return `${quoted} ends in "${place[1]}", which is a place, not a role. Give their name and role, for example "${/[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (['trades', 'ground', 'access', 'public', 'services'].includes(kind) && NONE.test(text)) return '';
     if (kind === 'trades' && NOT_A_TRADE.test(text)) return `${quoted} is not a trade working near you. Name the trades and where they work, for example "Electricians on the same level" or "Plumbers below us", or write None.`;
