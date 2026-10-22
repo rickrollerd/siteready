@@ -126,7 +126,7 @@ const BY_NAME = {
   'Install safety mesh': 74, 'Install sarking': 74, 'Lay the sarking': 74, 'Fix new roof battens': 74, 'Fix roof battens to the trusses': 74, 'Fix new roofing': 75, 'Fix the roof': 75,
   'Lay the roof tiles': 75, 'Lay the slates': 75, 'Replace the pergola roof sheets': 75, 'Install the fabric roof membrane': 75, 'Fix the battens': 76, 'Install the external cladding': 77,
   'Replace the cladding boards': 77, 'Fix the stone cladding': 77, 'Fix the fascia': 76, 'Replace the fascia boards': 76, 'Install gutters and downpipes': 76, 'Install downpipes': 76,
-  'Install the eaves linings': 77, 'Fit the new eave lining': 77, 'Replace the box gutter': 76, 'Replace the flashing': 76, 'Replace the valley iron': 76, 'Rebed the tiles': 76.5,
+  'Install the eaves linings': 77, 'Fit the new eave lining': 77, 'Replace the box gutter': 73.9, 'Replace the flashing': 76, 'Replace the valley iron': 76, 'Rebed the tiles': 76.5,
   'Repair the roof membrane': 76, 'Find and repair the roof leak': 76, 'Cut in and install the skylight': 76, 'Remove and replace the damaged skylight': 76, 'Remove and replace the damaged skylights': 76,
   'Cut and flash the roof penetration': 76, 'Fix fittings on the roof': 78, 'Install bird netting at height': 78, 'Install bird spikes at height': 78, 'Wrap columns with fibre reinforced polymer': 76,
   'Fit and grout the pile jacket': 76, 'Seal and inject cracks': 76, 'Take down and replace the awning': 76, 'Cut out and replace the steel handrail': 76, 'Cut out and replace the window sill': 77,
@@ -136,9 +136,11 @@ const BY_NAME = {
   // Fixings are drilled through finished tiles, once they are laid, grouted and sealed (messy round 13, A run 1: "Drill tiled
   // walls for fixings" came at step 2, before any tiling).
   'Drill tiled walls for fixings': 102.5,
+  // A box gutter goes in before the roof sheets that drain into it (messy round 16, A run 2: after "Fix new roofing"), and the facade
+  // joints are sealed once the windows, glass and glazing seals are in (A run 4: before the glass).
   // A shopfront's glass doors are hung once its frames are glazed (messy round 12, run 4: the doors were hung before the
   // glass went in).
-  'Hang the shopfront doors': 86.2, 'Seal glazing': 86.5, 'Seal the facade joints': 79, 'Handle glass in the wind': 'lead',
+  'Hang the shopfront doors': 86.2, 'Seal glazing': 86.5, 'Seal the facade joints': 86.8, 'Handle glass in the wind': 'lead',
   'Install cyclone shutters': 85, 'Erect coolroom panels': 82,
   // Rough-in.
   'Remove the old board and fit the new one': 79, 'Set and fix the substation equipment': 79, 'Core drill through the slab or wall': 78, 'Fix hangers and supports': 79,
@@ -284,6 +286,8 @@ function contextStages(names, flags = {}) {
   // Mounting plates, brackets and seismic restraints a services trade fixes go up with the hangers and supports, before
   // the pipework or cable hung from them (messy round 12, A run 3: "Fix rails, fittings and equipment to walls and
   // floors" came at step 16 of a sprinkler SWMS, after the painting).
+  // Fire signs go up once the hose reels and extinguishers they mark are mounted (messy round 16, A run 3).
+  if (has('Mount the hose reels and extinguishers')) for (const name of ['Install the signs', 'Install signs and screens']) if (has(name)) out[name] = 105.5;
   if (flags.mountingFirst && [...names].some((name) => typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 78 && BY_NAME[name] < 83)) out['Fix rails, fittings and equipment to walls and floors'] = 79;
   return out;
 }
@@ -504,6 +508,14 @@ const FIRM = [
   [['Install suspended grid ceilings'], ['Fix ceiling sheets']],
   [['Excavate', 'Dig the trench'], ['Work in the trench'], ['Lay pipes', 'Lay conduits', 'Install pits', 'Lay the pipe or cable', 'Lay the pipes', 'Lay the cable', 'Install pits and conduits', 'Lift and place tanks, pits or precast units']],
   [['Fix hangers and supports'], ['Fix plant on its supports']],
+  // Messy round 16. The box gutter goes in before the roof sheets that drain into it (A run 2). The facade joints are sealed once
+  // the windows, glass and glazing seals are in (A run 4). The edge is made safe, or the edge step taken, before fixing holes are
+  // drilled at it (A run 4). The road plant mills before the new asphalt is laid (B run 8: laying moved above the traffic set-up
+  // named only the traffic step).
+  [['Replace the box gutter'], ['Fix new roofing', 'Fix the roof']],
+  [['Install windows', 'Replace the window frame', 'Install louvres', 'Handle and install glass panels', 'Seal glazing'], ['Seal the facade joints']],
+  [['Work at edges', 'Work near slab edges', 'Work near balcony edges, voids and penetrations'], ['Drill fixing holes in the slab edge', 'Fix brackets at the slab edge']],
+  [['Run the road plant inside the work zone'], ['Lay and roll asphalt', 'Spray seal the road']],
   // Build before backfill: the wall is built before the ground behind it is backfilled (A run 3: backfill moved above the wall
   // named only the drainage).
   [['Build the retaining wall', 'Excavate and set out the retaining wall', 'Form the retaining wall', 'Pour the retaining wall', 'Lay blocks and bricks', 'Build the stone wall', 'Build and fill gabion baskets', 'Fix the retaining wall reo'],
@@ -532,7 +544,18 @@ function firmBefore(a, b) {
 // library steps it comes after, the library steps it comes before]; draft.js places these steps by the same work (OWN_STAGES).
 const FORMED_SLAB = ['Erect falsework and shores', 'Lay the formwork deck', 'Monitor the formwork during the pour'];
 const OWN_MARK = /\s*\(Our own step\)\s*$/;
+// Messy round 16: an own step that unloads a delivery comes before the lifts (A run 1); paint touched up on steel comes after the
+// steel is erected and braced (A run 1); the old windows out and the new frames in come before the glass and its seals (A run 4);
+// the tack coat and the milling come after the traffic set-up and before the asphalt is laid (B run 8).
+const OWN_UNLOAD = /\b(?:unload\w*|off-?load\w*)\b/i;
+const OWN_TOUCH_UP = /\btouch(?:es|ed|ing)?[- ]?up\b[^.]{0,30}\b(?:paint\w*|coat\w*|prim\w*|steel)\b|\b(?:paint\w*|prim\w*)\b[^.]{0,30}\b(?:installed|erected) steel\b/i;
+const OWN_WINDOWS_OUT = /\b(?:take|takes|taking|took|rip\w*|pull\w*|cut\w*)\s+(?:the\s+)?(?:old\s+)?(?:windows?\s+)?out\b[^.]{0,30}\bwindows?\b|\b(?:take|takes|taking|took)\s+out\s+(?:the\s+)?(?:old\s+)?windows?\b|\bremov\w*\b[^.]{0,20}\b(?:old\s+)?windows?\b|\b(?:put\w*|puts)\s+in\b[^.]{0,20}\b(?:new\s+|window\s+)frames?\b|\b(?:install\w*|fit\w*|fix\w*)\b[^.]{0,20}\b(?:new\s+(?:window\s+)?|window\s+)frames\b/i;
 const OWN_FIRM = [
+  [OWN_UNLOAD, ['Set up the crane'], ['Rig and lift the load', 'Land and release the load', 'Lift and land steel with the crane company', 'Lift and land steel with the crane', 'Erect and connect steel at height', 'Lift the portable building onto its footings', 'Rig, lift and land loads with the tower crane']],
+  [OWN_TOUCH_UP, ['Erect and connect steel at height', 'Install and remove temporary bracing', 'Weld steel'], []],
+  [OWN_WINDOWS_OUT, [], ['Handle and install glass panels', 'Seal glazing', 'Seal the facade joints']],
+  [/\btack ?coat\w*|\bbond coat\w*|\bprime coat\w*/i, ['Set up traffic management'], ['Lay and roll asphalt', 'Spray seal the road']],
+  [/\b(?:mill(?:s|ed|ing)?|profil\w*|cold plan\w*)\b/i, ['Set up traffic management'], ['Lay and roll asphalt', 'Spray seal the road']],
   [/\b(?:form\w*|formwork|shutter\w*)\b[^.]{0,40}\bstairs?\b|\bstairs?\b[^.]{0,20}\b(?:forms?|formwork)\b/i, ['Erect falsework and shores'], ['Inspect before the pour', 'Pump and place concrete', 'Place concrete', 'Strip the formwork', 'Install backprops']],
   [/\bloading (?:bays?|platforms?)\b/i, ['Erect the scaffold'], ['Inspect and hand over', 'Dismantle the scaffold']],
   [/\bacoustic baffles?\b|\bbaffles?\b[^.]{0,30}\bceiling spaces?\b/i, ['Install suspended grid ceilings'], ['Fix ceiling sheets', 'Set the joints', 'Sand the joints']],
@@ -597,4 +620,4 @@ function orderFaults(steps, nameOf = (step) => step.step, flags = {}) {
   return faults;
 }
 
-module.exports = { STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };
+module.exports = { OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };

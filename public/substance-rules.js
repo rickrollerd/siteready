@@ -24,7 +24,8 @@
     // product (messy round 10, run 8: one product asked for twice, and the second "Not required" refused).
     ['Adhesives', /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(adhesives?|glues?)\b|\b(vinyl|carpet)\b/i, 'Adhesive'],
     ['Wood dust (MDF and hardwood)', /\b(mdf|particleboard|wood dust|sawdust|(?:cut|saw|sand|rout|machin)\w* [^.\n]{0,30}\b(?:timber|wood|hardwood|mdf|joinery))\b/i, 'Board or timber product'],
-    ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone)\b/i, 'Sealant'],
+    // A bond breaker and a gap filler are sealants too (messy round 16, B run 6: the bond breaker the task names was not asked).
+    ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone|bond ?breakers?|gap fill(?:er|ers|ing)?)\b/i, 'Sealant'],
     ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i, 'Waterproofing product'],
     ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack|chem-?set|chemical anchors?)\b/i, 'Epoxy or resin'],
     // Fibre cement sheet is not a cement product (messy round 11, run 6: cement asked for CFC cladding).
@@ -92,11 +93,13 @@
   const PREFER = {
     // A formwork crew that finishes the slab uses the concrete in its finishing step (messy round 15, A run 1).
     'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b|Finish concrete$)/i,
-    'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
+    // The road plant too (messy round 16, B run 8: diesel went to "Separate plant and people on site").
+    'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving |road )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
     // The refrigerant is charged in the charging step, not the pipe run that names it (messy round 14, A run 1).
     'Refrigerants': /^(?:Evacuate and charge|Charge|Recover)\b/i,
   };
-  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b(plant|machines?|generators?|trucks?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
+  // Keeping people apart from the plant is not running it.
+  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b((?<!separate )plant|machines?|generators?|trucks?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
   // The job step that uses a product of this type: the first whose name names the type, else the
   // first whose hazards or controls do. Not the general steps at the start and end, nor the user's own
   // steps. '' when none does: the user chooses the step.
@@ -271,7 +274,8 @@
   // round 7: fuel "Not required" with no reason beside "Petrol-driven saws, trowels and generators").
   // Wood dust a line names as made by the crew's tools counts too (messy round 13, B run 6: "Not required" taken with no
   // reason beside "Use power tools", whose line says MDF dust is hazardous).
-  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)', 'Wood dust (MDF and hardwood)'];
+  // Touch-up paint a step's lines say is used asks a reason for "Not required" too (messy round 16, A run 2).
+  const LINE_PRODUCTS = ['Cement, concrete, grout and mortar', 'Sealants, mastics and silicone', 'Adhesives', 'Fuels (diesel, petrol)', 'Wood dust (MDF and hardwood)', 'Paints and coatings'];
   // Earthmoving and other engine-driven plant runs on diesel or petrol too (messy round 11, run 2: fuel "Not required"
   // taken with no reason beside the crew's own excavator, compactor, dewatering pump and directional drill). A reason
   // that says why ("battery and electric plant only") still settles it.
@@ -606,6 +610,13 @@
     [/\b(?:cable )?jointing resins?\b|\bcable joint\w* (?:resins?|compounds?|kits?)\b|\bresins?\b[^.]{0,20}\b(?:cable )?joints?\b/i, [/\bterminat\w*\b/i, /\bjoint\w*\b/i, /^Connect and commission$/i]],
     [/\bconduits?\b[^.]{0,20}\b(?:solvent )?(?:cements?|glues?|primers?)\b|\b(?:pvc|solvent) (?:cements?|glues?)\b[^.]{0,20}\bconduits?\b/i, [/^Lay conduits$/i, /^Rough-in$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i]],
     [/\bcornice (?:adhesives?|glues?)\b/i, [/^Fix skirting and architraves$/i, /^Set the joints$/i]],
+    // Messy round 16: a pipe thread sealant seals the threaded pipe joints, not the caulking (A run 3); a bond breaker goes in at the
+    // junctions with the membrane (B run 6); an acrylic gap filler fills the gaps before painting (B run 5); mineral turps cleans the
+    // brushes (B run 5). Each had "could not tell" or went to the wrong step.
+    [/\bthread (?:sealants?|seal\w*|tape|paste|compounds?)\b|\bpipe (?:joint(?:ing)? )?(?:sealants?|compounds?|dope|paste)\b|\bptfe\b/i, [/^Install (?:sprinkler|hydrant) pipework$/i, /^Roll groove, thread and cut pipe$/i, /\b(?:pipe\w*|plumb\w*|risers?)\b/i]],
+    [/\bbond ?breakers?\b/i, [/^Apply primers and liquid membranes$/i, /\bmembranes?\b/i, /\bseal\w*/i]],
+    [/\bgap fill\w*|\bacrylic (?:gap )?fill\w*|\bfillers?\b/i, [/^Sand and fill surfaces$/i, /\bfill\w*\b/i, /^Prepare to paint$/i, /\bseal\w*|\bcaulk\w*/i]],
+    [/\b(?:mineral )?turps\b|\bturpentine\b|\bbrush cleaners?\b/i, [/^Clean brushes and rollers$/i, /^Wash out tools\b/i, /\bclean\w*\b/i]],
     [/\b(?:sealants?|silicone|caulk\w*|mastics?)\b/i, /\b(?:seal\w*|caulk\w*)\b/i],
     // Petrol runs the small plant (saws, compactors, generators), not the diesel earthmoving plant (messy round 9,
     // run 2: petrol for the concrete saw matched to "Run earthmoving plant").

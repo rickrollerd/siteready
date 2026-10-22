@@ -160,8 +160,10 @@ test('A run 2: a reroof with a box gutter membrane fixes the new roof sheets and
 });
 
 test('B run 8: milling is listed as work with no job steps, and the 11 kV line in Live services brings the power line step', () => {
+  // Messy round 16, B run 8: the road plant step runs the profiler, so milling is listed only where that step is taken off.
   const draft = draftOf(ROAD);
-  assert.ok(draft.notCovered.some((part) => /\bmill\b/i.test(part)), JSON.stringify(draft.notCovered));
+  assert.ok(names(draft).includes('Run the road plant inside the work zone') && !draft.notCovered.some((part) => /\bmill\b/i.test(part)), JSON.stringify(draft.notCovered));
+  assert.ok(draftOf({ ...ROAD, kinds: ['road', 'asphaltLay'] }).notCovered.some((part) => /\bmill\b/i.test(part)));
   assert.ok(names(draft).includes('Plan the work near overhead power lines'), names(draft).join(' | '));
   assert.ok(draft.highRisk.some((item) => /energised electrical/i.test(item)));
   // A mill finish on aluminium is not milling a road.

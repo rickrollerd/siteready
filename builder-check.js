@@ -333,8 +333,12 @@ function withoutAwarenessBeforeAction(line) {
 // assessment ("Assess the exposure to noise and determine the controls required") is not a
 // control left to the worker.
 const NOT_VAGUE = /\bwhere possible\s+(?:\w+\s+){0,3}(?:remain|exist|(?:is|are|may be) present)\w*\b|\b(?:licen[cs]ed|ticketed|trained|competent|voc'?d|voc’d|accredited)\b[^.]{0,30}\bas required\b|\bas required\s*[(,–-]?\s*(?:daily|weekly|fortnightly|monthly|each (?:day|shift|week|month)|every \d+ (?:days?|weeks?|months?))\b\)?/gi;
+// "Where possible" followed by what is done where it is not ("Slings are attached from the ground with a hook pole where possible;
+// where the dogman must go on the tray, the side gates stay up ...") is a stated control both ways, not wording left to the worker
+// (messy round 16, A run 1: the user's own specific lines were called vague).
+const POSSIBLE_WITH_FALLBACK = /\b(?:where|when|if) (?:possible|practical|practicable)\b(?=[^.]*?(?:;|,|\.)\s*(?:where|when|if|otherwise|or else|and where)\b[^.]*?\b(?:must|cannot|can't|can ?not|not possible|is not|are not|has to|have to)\b)/gi;
 const ASSESSMENT = /^\s*(?:assess|conduct|carry out|complete|undertake)\b[^.]*\b(?:assessments?|surveys?|monitoring|exposure)\b/i;
-const isVague = (line) => !ASSESSMENT.test(String(line)) && VAGUE.test(withoutAwarenessBeforeAction(String(line).replace(REASONABLY_PRACTICABLE, ' ').replace(PPE_LISTED, ' ').replace(NOT_VAGUE, ' ')));
+const isVague = (line) => !ASSESSMENT.test(String(line)) && VAGUE.test(withoutAwarenessBeforeAction(String(line).replace(REASONABLY_PRACTICABLE, ' ').replace(PPE_LISTED, ' ').replace(NOT_VAGUE, ' ').replace(POSSIBLE_WITH_FALLBACK, ' ')));
 
 const checkable = (line) => CHECKABLE.test(line) || NAMED_EQUIPMENT.test(line);
 
@@ -543,6 +547,22 @@ const IF_HARNESS = /^\s*(?:where|if|when|wherever|should)\b[^.]*\b(?:harness\w*|
 const TRENCH_FALL_STEP = /^(?:Excavate|Dig the trench|Work in the trench|Backfill the trench|Backfill behind the retaining wall|Lay pipes|Lay conduits|Install pits|Lift and place tanks, pits or precast units|Work inside a deep excavation|Dig footing holes|Excavate pile caps, lift pits and trenches|Bulk excavate and load trucks)$|\b(?:trench\w*|excavat\w*)\b/i;
 const TRENCH_EDGE_CHECK = { name: 'the trench edge barriers or fencing checked before each shift',
   pattern: /\b(barricad\w*|fenc\w*|barriers?|edge protection|guard ?rails?|covers?|trench (?:shields?|box\w*)|shoring|bench\w*|batter\w*)\b[^.]{0,80}\b(inspect\w*|check\w*|tag(?:s|ged)?|tested|certif\w*|each (?:day|shift)|daily)\b|\b(inspect\w*|check\w*)\b[^.]{0,80}\b(barricad\w*|fenc\w*|barriers?|edge protection|trench (?:edges?|sides?|walls?|shields?|box\w*)|excavation|trench(?:es)?)\b/i };
+// The fall protection inspected before use is asked by what the SWMS uses: the scaffold tag where there is a scaffold, the EWP
+// pre-start where there is an EWP, the harness and anchors where a harness is used, and otherwise the edge protection, barriers or
+// covers at the openings, or the balustrade the crew works inside (messy round 16: the scaffold tag, EWP pre-start and harness
+// anchors were asked for window openings, A run 4, and for work inside the builder's podium balustrade, B run 6).
+function fallCheckFor(must, usedText) {
+  const used = [];
+  if (/\bscaffold\w*/i.test(usedText)) used.push('the scaffold tag');
+  if (/\b(?:ewps?|elevating work platforms?|scissor ?lifts?|boom lifts?)\b/i.test(usedText)) used.push('the EWP pre-start');
+  if (/\b(harness\w*|fall arrest|(?<!tool )lanyards?|static lines?)\b/i.test(usedText)) used.push('the harness and anchors');
+  if (used.length === 3) return must;
+  const list = used.length ? used : ['the edge protection, barriers, balustrade or covers at the edges and openings'];
+  const named = list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}` : list[0];
+  // A permanent balustrade or parapet the crew works inside, or one confirmed in place, needs no tag or pre-start.
+  const inside = /\b(?:balustrades?|parapets?)\b[^.]{0,80}\b(?:in place|checked|confirmed|intact|fixed)\b|\b(?:inside|within|behind)\s+(?:the\s+)?(?:builder'?s\s+|existing\s+|permanent\s+)?(?:podium\s+)?(?:balustrades?|parapets?)\b/i;
+  return { ...must, name: `the fall protection inspected before use (${named})`, pattern: new RegExp(`${must.pattern.source}|${inside.source}`, 'i') };
+}
 const MINIMUM = [
   { id: 'fall', label: 'falls over 2 m', musts: [
     // As for H3, a stated reason that edge protection, a scaffold or an EWP is not reasonably practicable answers it.
@@ -1016,6 +1036,14 @@ function designUses(swms) {
     if (row && row.status === 'notNeeded') continue;
     // A step that only keeps loads within a design not issued yet is not held (designs.js limits): it waits for the design.
     for (const entry of item.steps) uses.push({ step: entry.step, what: row && row.what ? row.what : item.label, state: row && row.status === 'notIssued' && !entry.holds && state(byName.get(entry.step)) === 'missing' ? 'waiting' : state(byName.get(entry.step)) });
+    // Every step the design holds is named, not only the one whose own line names it (messy round 16, A run 1: the steel erection
+    // design held "Erect and connect steel at height" and "Install and remove temporary bracing", and the check named only the
+    // bracing step).
+    const holdLine = new RegExp(`^Hold point: the ${String(item.label).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} is not issued yet\\b`, 'i');
+    for (const step of swms.steps) {
+      if (uses.some((use) => use.step === step.step && use.what === (row && row.what ? row.what : item.label))) continue;
+      if (step.controls.some((line) => holdLine.test(withoutCitation(line).trim()))) uses.push({ step: step.step, what: row && row.what ? row.what : item.label, state: 'hold' });
+    }
   }
   if (!swms.designs) {
     const counted = new Set(uses.map((use) => use.step));
@@ -1024,7 +1052,8 @@ function designUses(swms) {
       uses.push({ step: step.step, what: 'the design it is done to', state: state(step) });
     }
   }
-  return uses;
+  const order = swms.steps.map((step) => step.step);
+  return uses.map((use, index) => ({ use, index })).sort((a, b) => (order.indexOf(a.use.step) - order.indexOf(b.use.step)) || (a.index - b.index)).map((item) => item.use);
 }
 
 function weighted(swms, state, context) {
@@ -1395,7 +1424,7 @@ function weighted(swms, state, context) {
       const trenchFallsOnly = set.id === 'fall' && where.length > 0 && where.every((name) => TRENCH_FALL_STEP.test(name));
       const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(usedText))
         && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist) && !(set.id === 'road' && must.plan && !roadWork))
-        .map((must) => (trenchFallsOnly && /^the fall protection inspected before use\b/.test(must.name) ? TRENCH_EDGE_CHECK : must));
+        .map((must) => (trenchFallsOnly && /^the fall protection inspected before use\b/.test(must.name) ? TRENCH_EDGE_CHECK : /^the fall protection inspected before use\b/.test(must.name) ? fallCheckFor(must, usedText) : must));
       const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
       if (missing.length) gaps.push({ set, where, missing });
     }
