@@ -195,7 +195,10 @@
   function bind(prefix, options = {}) {
     const before = panels[prefix];
     const same = before && before.key === options.key;
-    const stored = options.key ? kept()[options.key] : null;
+    // A SWMS saved since it was ticked (a download saves it) is the same SWMS: its ticks kept under the unsaved key come with it,
+    // and a part that prints differently still comes off below (messy round 18, B run 5: after a download and a reload, preparing
+    // again with no change cleared the five ticks).
+    const stored = options.key ? (kept()[options.key] || (options.was && kept()[options.was]) || null) : null;
     const seed = options.seed && options.seed.partHashes ? { ticks: { ...options.seed.partHashes }, ack: options.seed.ack === true } : null;
     const panel = {
       prefix,

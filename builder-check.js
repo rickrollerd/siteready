@@ -370,7 +370,9 @@ const OPERATOR_COMPETENT = /\b(voc'?s?|voc'?d|voc’d|verification of competen\w
 // or by its first words ("skid steer loaders" in "Skid steer or posi-track: VOC").
 // "EWP" and "elevating work platform" name the same plant (messy round 9, run 7: an own "Truck mounted knuckle
 // boom EWP, 20 m: WP high risk work licence" was asked for an elevating work platform licence).
-const plantWords = (text) => String(text || '').replace(/\bewps?\b/gi, 'elevating work platform');
+// Plant known by its site name reads as the plant list names it: "bobcat" is the skid steer and "digger" the excavator
+// (messy round 18, B runs 6 and 8: "Match a licence or ticket to the plant and work: bobcat" beside the skid steer row).
+const plantWords = (text) => String(text || '').replace(/\bewps?\b/gi, 'elevating work platform').replace(/\bbobcats?\b/gi, 'skid steer').replace(/\bdiggers?\b/gi, 'excavator');
 const namesPlant = (name, line) => [plantWords(name), plantWords(name).split(' ').slice(0, -1).join(' ')].filter(Boolean)
   .some((words) => new RegExp(`\\b${words.replace(/s$/i, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(plantWords(line)));
 const ALL_OPERATORS = /\b(?:all |each |every )?(?:plant|machinery|machine|equipment|mobile plant) (?:operators?|is operated|are operated)\b|\boperators? of (?:all |any )?(?:plant|machinery|equipment)\b/i;

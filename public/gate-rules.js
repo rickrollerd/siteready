@@ -208,6 +208,7 @@
   // (messy round 13, A run 2: SiteWrite's own scope chip "Existing services." was taken).
   const SERVICE_KIND = /\b(?:power|electric\w*|energis\w*|live|cables?|wiring|switch ?boards?|switch ?rooms?|boards?|substations?|lights?|lighting|gas|water|sewer\w*|stormwater|drain\w*|pipes?|pipework|mains?|data|comms?|communications?|telstra|nbn|fibre|optic\w*|fire|hydrants?|sprinklers?|alarms?|hv|lv|kv|volts?|overhead|underground|undergr(?:ou)?nd|in-?ground|buried|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|nil|none)\b/i;
   const ACCESS_SAYS = /\b(?:stairs?|stair ?(?:towers?|wells?)|ladders?|lifts?|hoists?|ramps?|scaffold\w*|ewps?|elevating|scissor|boom|walk\w*|driv\w*|trucks?|utes?|vehicles?|forklifts?|cranes?|via|through|from|up|down|along|path\w*|footpath|corridor|lanes?|roads?|streets?|st|rd|level|floor|roof|hatch|door)\b/i;
+  const BARE_AUTHORITY = /^(?:the |a |our |local |city )?(?:local )?(?:councils?|shires?|government|state government|govt|authority|road authority|water authority|water corporation|utility|asset owner|department|dept)\.?$/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
   // A crew or company named by what it does, with no name: "the scaffold mob", "a training mob", "the anchor installer"
   // (messy round 16, A run 2: each was taken, and "The Scaffold Mob" printed as the scaffold supervisor).
@@ -236,6 +237,9 @@
     // A phrase that names whose person it is ("Main contractor's site first aider") is judged by the other rules.
     if (!words.length || words.some((word) => NOT_NAME_WORD.test(word.replace(/[.]/g, '')))) return '';
     const quoted = `"${value}"`;
+    // "na" or "nil" is no name at all, not one name only (messy round 18, A run 1: "na" for the site manager got "gives one name
+    // only").
+    if (words.length === 1 && /^(?:na|n\/a|n\.a\.?|nil|none|no|nobody)\.?$/i.test(value)) return `${quoted} does not name anyone. Give their full name and role, for example "Sam Lee, supervisor".`;
     if (words.length === 1) return `${quoted} gives one name only. Give their full name so the site can find them, for example "Sam Lee, supervisor".`;
     if (words.length === 2 && words[1].replace(/[.]/g, '').length === 1) return `${quoted} gives a first name and an initial only. Give their full name so the site can find them, for example "Sam Lee, supervisor".`;
     return '';
@@ -260,7 +264,13 @@
     let named = clean(text.replace(/\s+\S+\.?$/, ''));
     let said = place ? place[1] : '';
     while (PLACE_WORD.test(named) && named.split(/\s+/).length > 2) { said = `${named.match(PLACE_WORD)[0].trim()} ${said}`; named = named.replace(PLACE_WORD, ''); }
-    if (place) return `${quoted} ends in "${said}", which is a place, not a role. Give their name and role, for example "${/[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
+    // A first name alone gets an example with a full name, not the first name again (messy round 18, A run 1: "tina office" got
+    // the example "Tina, office manager", which is itself one name only).
+    const role = /^office$/i.test(place ? place[1] : '') ? 'office manager' : 'supervisor';
+    if (place && !/\s/.test(named)) return `${quoted} gives one name only, and ends in "${said}", which is a place, not a role. Give their full name and role, for example "Sam Lee, ${role}".`;
+    if (place) return `${quoted} ends in "${said}", which is a place, not a role. Give their name and role, for example "${/[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, ${role}".`;
+    // A council or authority named only by what it is ("council": messy round 18, B run 6) does not say which one.
+    if (kind === 'company' && BARE_AUTHORITY.test(text)) return `${quoted} does not say which one. Give its full name, for example "Glenorchy City Council", or the name of the principal contractor running the site.`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (['trades', 'ground', 'access', 'public', 'services'].includes(kind) && NONE.test(text)) return '';
     if (kind === 'trades' && NOT_A_TRADE.test(text)) return `${quoted} is not a trade working near you. Name the trades and where they work, for example "Electricians on the same level" or "Plumbers below us", or write None.`;
@@ -338,10 +348,19 @@
       if (rule.fall && PLATFORM_ONLY.test(text) && !PERSON_REACHED.test(text)) return `${quoted} says how the platform comes down, not how a person who falls is rescued. Say who reaches the person and how they are brought down, for example with the rescue kit or the EWP kept at the work.`;
       // "pull them out" does not say who does it or with what (messy round 3).
       if (rule.rescue && words(text) < 5) return `${quoted} does not say who rescues the person or how. ${rule.ask}`;
+      // A person named as the rescuer is gone when they are off site: the question asks for the role (messy round 18, B run 6:
+      // "Liam climbs in inside the shield ..." passed as the trench rescue).
+      const doer = rule.role ? NAMED_DOER.exec(text) : null;
+      const named = doer && !NOT_NAME.test(doer[1]) && !RESCUER.test(doer[1]) && !/^(?:someone|somebody|anyone|whoever|everyone|each|either|another|both|nobody|second|this|that|he|she|they)$/i.test(doer[1]) ? doer : null;
+      if (named) return `${quoted} names a person, "${named[1]}": on a big site the person changes. Say the role instead, for example "The spotter and a trained crew member ...". ${rule.ask}`;
+      // An answer that names no one to do the rescue ("pull him out with the ladder": B run 6) does not say by whom.
+      if (rule.rescue && !RESCUER.test(text)) return `${quoted} does not say who does the rescue. Name the role, for example "The spotter and a trained crew member ...". ${rule.ask}`;
       // Rescue gear left in a vehicle is not at the work: "rope in the ute".
       // A second kit in the ute beside one kept at the work is fine (messy round 9, run 7): only an answer
       // whose every kit is in a vehicle is refused.
       if (rule.kit && IN_VEHICLE.test(text) && !AT_WORK.test(text) && !text.split(/[,;.]/).some((part) => RESCUE_KIT.test(part) && !IN_VEHICLE.test(part) && PLACED.test(part))) return `${quoted} keeps the rescue equipment away from the work. Say what is used to get the person out, and that it is kept at the work area.`;
+      // Rescue equipment with no place ("rescue kit": messy round 18, B run 5) cannot be found when it is needed.
+      if (rule.kit && !PLACED.test(text) && !AT_WORK.test(text) && !IN_VEHICLE.test(text)) return `${quoted} does not say where it is kept. Say what it is and where, for example "Rescue kit and stretcher kept at the work area, beside the way in".`;
       // "on the lift" does not say where on the machine the ground controls are (messy round 13, A run 3).
       if (rule.controls && ON_MACHINE_ONLY.test(text)) return `${quoted} does not say where on the machine. Say where the ground or emergency lowering controls and their key are, for example "Ground control panel at the rear of the base, key kept in the machine".`;
       // "turn it off" does not say where the stop is or who uses it.
@@ -354,7 +373,7 @@
     if (NONE.test(text) && !rule.none) return `${rule.name} cannot be ${quoted}: every SWMS names it. ${rule.ask}`;
     if (rule.naRefused && /^(?:na|n\/a|n\.a\.?|not applicable|not relevant|does not apply|doesn'?t apply)\.?$/i.test(text)) return `${quoted} says the question does not apply. ${rule.naRefused}`;
     // Not applicable is refused where the SWMS itself says the thing is there (a scaffold in the plant).
-    if (rule.noneRefused && NONE.test(text) && !(rule.noneWithReason && keptAway(text))) return `${rule.noneRefused} ${rule.ask}`;
+    if (rule.noneRefused && NONE.test(text) && !(rule.noneWithReason && keptAway(text)) && !(rule.noneChecked && checkedNone(text))) return `${rule.noneRefused} ${rule.ask}`;
     if (rule.kind) { const weak = fieldWeak(rule.kind, text); if (weak) return `${weak}`; }
     return '';
   }
@@ -363,6 +382,10 @@
   // B run 6). "None" alone, or with a reason that keeps no one away, is still refused.
   const KEPT_AWAY = /\b(?:fenced|fences?|fencing|hoardings?|closed|barricad\w*|barriers?|no public|not open to the public|kept (?:out|away|clear)|separated|gates? (?:shut|locked|closed)|locked|inside the (?:site|building|fence))\b/i;
   const keptAway = (text) => words(text) >= 5 && KEPT_AWAY.test(text.replace(/^\W*\w+\W*/, ''));
+  // "None" followed by how the ground was checked for buried services passes beside a dig: "None found, Before You Dig plans and
+  // the locator show nothing in the fence line" (messy round 18, B run 6). "None" alone is refused there.
+  const CHECKED_FOR = /\b(?:before you dig|byda|dbyd|dial before|locat\w*|scann\w*|service plans?|plans? show\w*|pot ?hol\w*|asset owners?|detector|ground penetrating radar|gpr)\b/i;
+  const checkedNone = (text) => words(text) >= 5 && CHECKED_FOR.test(text.replace(/^\W*\w+\W*/, ''));
   // A person's name and nothing else: two or three words, none of them a role, a common word or a verb.
   const NOT_NAME = /^(?:the|a|an|our|my|his|her|their|its|it|them|they|he|she|we|us|and|n|or|by|with|from|on|at|in|to|of|for|is|are|who|then|spotter|operator|supervisor|foreman|leading|lead|hand|ground|person|worker|workers|crew|offsider|labourer|rigger|dogman|electrician|observer|attendant|first|aider|trained|team|apprentice|manager|engineer|scaffolder|fitter|driver|safety|site|stand-by|standby|lowers?|lowering|stops?|isolates?|rescues?|calls?|uses?|reaches?|brings?|lifts?|presses?|turns?|keys?|switch\w*|platform|ewp|lift|scissor|boom|plant|machine|controls?)$/i;
   function nameOnly(text) {
@@ -371,6 +394,10 @@
   }
   const PLATFORM_ONLY = /\blower\w*\b[^.;]{0,30}\b(?:scissor\w*|ewps?|e\.w\.p\.?|elevating work platforms?|platforms?|booms?|lifts?|baskets?)\b/i;
   const PERSON_REACHED = /\b(?:person|people|them|him|her|worker|injured|casualty|patient|fallen|whoever)\b|\brescue (?:kit|equipment|harness|line|pole|stretcher)\b|\b(?:stretcher|spinal board|ladder|rope|line)\b/i;
+  // Who does a rescue: a role, the crew or a trained person, not a person's name alone.
+  const RESCUER = /\b(?:spotters?|supervisors?|foreman|forewoman|leading hands?|lead hands?|crew|crew members?|workers?|workmates?|offsiders?|stand-?by(?: person)?|attendants?|rescue (?:team|crew|person|people)|rescuers?|operators?|first aiders?|trained|competent|second person|buddy|team|we|us|our|observers?|safety observers?|electricians?|riggers?|dogm[ae]n|labourers?|everyone|others?|another|two people|two workers|emergency services)\b/i;
+  // A first name before what they do ("Liam climbs in ...", "Dave pulls ..."), not a role, the crew or someone.
+  const NAMED_DOER = /^\s*([A-Z][a-z]{2,})\s+((?:climbs|goes|gets|pulls|lowers|rescues|lifts|reaches|brings|uses|enters|jumps|helps|drags|winches|hauls|carries|grabs|isolates|stops|turns|presses|calls|hits)\b)/;
   const IN_VEHICLE = /\b(?:in|on) (?:the |my |our |a |his |their )?(?:site )?(?:ute|truck|van|car|vehicle|wagon|trailer)\b/i;
   const AT_WORK = /\b(?:at|beside|next to|by|near) (?:the |each )?(?:work|trench|entry|edge|box|shield|pit|platform|lift|level|area|access|ladder|ewp|scaffold)\b|\bkept (?:at|on) (?:the )?(?:work|level|deck|site office)\b/i;
   // A kit said to be at a place that is not a vehicle ("on the slung platform").

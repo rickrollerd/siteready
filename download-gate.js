@@ -114,6 +114,8 @@ const ACCESS_ROUTE = /\b(?:off|from|via)\s+(?:the\s+)?(?:[\w'-]+\s+){0,3}?(?:roa
 // A step that lifts loads with a crane or hiab: the lift area is where the public must be kept clear (messy round 17, A run 4:
 // Public "none" passed beside hiab lifts on a driveway by a public terrace).
 const LIFT_STEP = /\b(?:cranes?|hiabs?|truck loading crane|vehicle loading crane|crane crew)\b/i;
+// Compaction rollers only, not paint rollers ("Clean brushes and rollers").
+const MOBILE_PLANT_STEP = /\b(?:earthmoving plant|excavators?|skid steers?|bobcats?|loaders?|(?:vibrating|smooth drum|padfoot|road|compaction|steel drum|multi-tyred|ride-on) rollers?|graders?|dozers?|tippers?|dump trucks?|mobile plant)\b/i;
 const NOT_PUBLIC = /\b(?:site|haul|internal|access|private|construction|temporary|service)\s+(?:roads?|lanes?|tracks?)\b|\b(?:no|not|without|nil|none)\b[^.;,]{0,20}\b(?:traffic|public|pedestrians?|footpaths?|roads?|streets?)\b|\bopen (?:edges?|lanes? of the floor)\b/gi;
 function publicWay(draft, input) {
   const sources = [
@@ -127,6 +129,10 @@ function publicWay(draft, input) {
   }
   const lift = (draft.jobSteps || []).find((step) => step && !step.own && LIFT_STEP.test(String(step.step || '')) && !/\(Does not apply to this job\)$/.test(String(step.step || '')));
   if (lift) return { where: `The step "${lift.step}"`, words: 'lift', why: `The step "${lift.step}" lifts loads, so the lift area must be kept clear of the public.`, ask: 'Say how the public is kept out of the lift area, for example "Lift area inside the site fence, no public access" or "Footpath closed with barricades during each lift".' };
+  // A step that runs mobile plant: its work area must be kept clear of the public too (messy round 18, B run 8: Public "none"
+  // passed for a fence line dug by the crew's bobcat, with a soft finding only). "None" with how the public is kept away passes.
+  const plant = (draft.jobSteps || []).find((step) => step && !step.own && MOBILE_PLANT_STEP.test(String(step.step || '')) && !/\(Does not apply to this job\)$/.test(String(step.step || '')));
+  if (plant) return { where: `The step "${plant.step}"`, words: 'plant', why: `The step "${plant.step}" runs mobile plant, so its work area must be kept clear of the public.`, ask: 'Say how the public is kept clear of the plant, for example "None. The site is fenced, no public access" or "Footpath closed with barricades while the plant works".' };
   return null;
 }
 // The example in the refusal fits what was found (messy round 17, B runs 6 and 8: the example was about window frames
@@ -142,6 +148,17 @@ function liveSupplyHazard(draft) {
   for (const step of draft.jobSteps || []) {
     const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
     if (hazard) return { step: step.step, hazard };
+  }
+  return null;
+}
+// A step that locates underground services before digging, or connects to a live sewer or main: the task has services at the
+// work (messy round 18, B run 6: "none" passed for a sewer dug along a main road, whose steps locate underground services and
+// connect to the live sewer; A run 1 refused it beside an energised step). A dig on its own ("Dig post holes") is not enough.
+const SERVICES_STEP = /^(?:Locate underground services|Connect to the live sewer|Connect to the water supply|Test and connect to live medical gas services)$/;
+function buriedServices(draft) {
+  for (const step of draft.jobSteps || []) {
+    if (!step || step.own || /\(Does not apply to this job\)$/.test(String(step.step || ''))) continue;
+    if (SERVICES_STEP.test(String(step.step || ''))) return { step: step.step, why: /^Locate/.test(step.step) ? `The step "${step.step}" finds the services in the ground before digging, so there are services at the work.` : `The step "${step.step}" connects to a live service.` };
   }
   return null;
 }
@@ -341,6 +358,12 @@ function gateChecks(input = {}, draft = {}, options = {}) {
       rule.noneRefused = `The step "${live.step}" has the hazard "${live.hazard.replace(/[.]+$/, '')}", so there are live services at the work.`;
       rule.ask = 'Name them and where they are, for example "Live 400 V supply to the lift controller in the machine room".';
     }
+    const buried = field.id === 'liveServices' && !live ? buriedServices(draft) : null;
+    if (buried) {
+      rule.noneRefused = buried.why;
+      rule.noneChecked = true;
+      rule.ask = 'Name them and where they are, for example "Live sewer main at the manhole, gas and power marked out along the nature strip", or say how the dig was checked, for example "None found: the Before You Dig plans and the locator show none in the dig area".';
+    }
     if (field.id === 'ground' && dig) {
       rule.noneRefused = `The step "${dig}" digs into the ground.`;
       rule.ask = 'Say what the ground is like where you dig, for example "Firm clay fill, no groundwater" or "Sandy soil, trench shields below 1.5 m".';
@@ -441,4 +464,4 @@ function gateMessage(gaps) {
   ].filter(Boolean).join(' ');
 }
 
-module.exports = { downloadGaps, gateChecks, gateMessage, FIELDS, isPlaceholder, liveSupplyHazard };
+module.exports = { downloadGaps, gateChecks, gateMessage, FIELDS, isPlaceholder, liveSupplyHazard, buriedServices };

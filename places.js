@@ -54,6 +54,7 @@ const STREET_NUMBER = /\b\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+[A-Za-z]/;
 // Only a city doubled ("East Perth Perth") or a "City" suburb after another suburb ("Carina Brisbane
 // City") is taken off: "North Sydney" stays as it is.
 const CITY_AFTER_SUBURB = /,\s*([A-Z][A-Za-z' -]*?)\s+(Brisbane City|Sydney City|Darwin City|Brisbane|Perth|Sydney|Melbourne|Adelaide|Hobart|Darwin|Canberra)(?=,?\s*(?:QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\b)/;
+const COUNCIL_AFTER_SUBURB = /(,\s*[A-Z][A-Za-z' -]*?)\s+(?:[A-Z][A-Za-z'-]*\s+){1,3}(?:City |Shire |Regional |Municipal |Town )?(?:Council|Shire|Municipality)(?=,?\s*(?:QLD|NSW|VIC|SA|WA|TAS|NT|ACT)\b)/;
 // Symbols the lookup sometimes puts in a suggestion ("60 \u26c9 Bridge Street", messy round 7, run 1) are
 // not part of any address: only letters, numbers, spaces and the marks an address uses are kept.
 const ADDRESS_MARKS = /[^\p{L}\p{N}\s,.'\u2019/&()#-]/gu;
@@ -72,7 +73,9 @@ function toSuggestion(given) {
     || (types.length > 0 && !types.some((type) => ADDRESS_TYPES.has(type)));
   // Google adds the city after the suburb ("Carina Brisbane City", "East Perth Perth", messy round 5,
   // runs 3 and 4): the suburb alone is kept, so the city typed does not make the wrong suburb rank first.
-  const text = String(full).replace(/,\s*Australia$/i, '').replace(CITY_AFTER_SUBURB, (whole, suburb, city) => (/ City$/.test(city) || suburb.trim().toLowerCase().endsWith(` ${city.toLowerCase()}`) ? `, ${suburb.trim()}` : whole));
+  // A council named after the suburb ("120 Main Rd, Moonah Glenorchy City Council, TAS", messy round 18, B run 6) is not part
+  // of the address: it is taken off, and the suburb stays.
+  const text = String(full).replace(/,\s*Australia$/i, '').replace(COUNCIL_AFTER_SUBURB, '$1').replace(CITY_AFTER_SUBURB, (whole, suburb, city) => (/ City$/.test(city) || suburb.trim().toLowerCase().endsWith(` ${city.toLowerCase()}`) ? `, ${suburb.trim()}` : whole));
   // A named building or place with no street ("Gordon Stephenson House, Perth WA", messy round 4, run 4)
   // is a business name too: it is offered only with its street number and street.
   const namedPlace = Boolean(main) && !STREET_NUMBER.test(main) && !STREET.test(main) && types.some((type) => ['premise', 'establishment', 'point_of_interest'].includes(type));

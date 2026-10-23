@@ -102,6 +102,9 @@ function placeNames(values) {
     if (!words.length || words.length > 5 || !words.every((word) => /^[A-Z][A-Za-z'’-]*$|^(?:of|the|and|on|by)$/.test(word)) || !/^[A-Z]/.test(words[words.length - 1])) return;
     if (words.length === 1 && (value.length < 4 || englishWord(value.toLowerCase())) && !CAPITAL_CITIES.includes(value)) return;
     if (!out.includes(value)) out.push(value);
+    // A hospital listed by its emergency department ("Royal Perth Hospital Emergency Department") is also named alone.
+    const hospital = /^(.+\b(?:Hospital|Health Service|Health Centre|Medical Centre))\s+Emergency(?: Department)?$/.exec(value);
+    if (hospital && !out.includes(hospital[1])) out.push(hospital[1]);
     // A street's name typed short takes its capitals too: "temple tce" for "Temple Terrace".
     const short = STREET_SHORT[words[words.length - 1]];
     if (short && words.length > 1 && !out.includes([...words.slice(0, -1), short].join(' '))) out.push([...words.slice(0, -1), short].join(' '));
@@ -114,7 +117,9 @@ function placeNames(values) {
   for (const city of CAPITAL_CITIES) if (!out.includes(city)) out.push(city);
   return out;
 }
-const withPlaceNames = (text, names = []) => withPersonNames(text, names);
+// The longest name first, so "royal perth hospital" takes "Royal Perth Hospital" before "Perth" alone gives it one capital
+// (messy round 18, A run 4: "royal perth hospital ok" printed "royal Perth hospital OK").
+const withPlaceNames = (text, names = []) => withPersonNames(text, [...names].sort((a, b) => b.length - a.length));
 const tidyPerson = (text) => tidyName(text);
 // A street named in a place takes its capitals ("meet at henry st gate" reads "Meet at Henry St gate";
 // SiteLink round 10, wording 11). Words typed with capitals are left as typed.
@@ -123,7 +128,8 @@ const NOT_A_STREET_NAME = new Set(['the', 'a', 'an', 'this', 'that', 'our', 'sid
 // A street's name of two or three words takes its capitals too: "on chung wah tce" reads "on Chung Wah Tce", not
 // "on chung Wah Tce" (messy round 13, B run 8). The words before it that are not part of a name stay as typed.
 const NOT_IN_STREET_NAME = new Set([...NOT_A_STREET_NAME, 'along', 'beside', 'behind', 'outside', 'opposite', 'corner', 'gate', 'gates', 'area', 'point', 'entrance', 'entry', 'exit', 'office', 'shed', 'sheds', 'carpark', 'park', 'end', 'truck', 'ute', 'van', 'car', 'hiab', 'is', 'are', 'meet', 'muster', 'assembly', 'footpath', 'verge', 'kerb', 'fence', 'hoarding', 'compound', 'laydown', 'lot', 'block', 'building', 'level', 'main']);
-const STREET_NAMED = /\b((?:[a-z][a-z'’-]+\s+){0,2}[a-z][a-z'’-]+)\s+(st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close)\b/g;
+// A square, mall or plaza is named the same way: "victoria square" reads "Victoria Square" (messy round 18, B run 5).
+const STREET_NAMED = /\b((?:[a-z][a-z'’-]+\s+){0,2}[a-z][a-z'’-]+)\s+(st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close|square|sq|mall|plaza)\b/g;
 const upFirst = (word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
 // A road or lane named for what it is, not a street's name ("the site haul road", "the open lane", "the Bagot Rd service
 // lane"), stays as typed (messy round 16, A run 1 and B run 8: "Haul Road", "Open Lane" and "Service Lane" printed).

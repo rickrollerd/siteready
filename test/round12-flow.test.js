@@ -333,7 +333,8 @@ test('a misspelt scaffold, platform or EWP is read as the working platform it is
     assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
     const lines = draft.controls.filter((item) => /\bbecause\b|scaf|e\.w\.p|platf/i.test(item.text));
     assert.ok(!lines.some((item) => /not reasonably practicable/.test(item.text)), fallControl);
-    const line = lines.find((item) => item.text.toLowerCase().startsWith(fallControl.slice(0, 12)));
+    // The answer prints with the task line's spelling fixes (messy round 18): "scafold" reads "scaffold".
+    const line = lines.find((item) => item.text.toLowerCase().startsWith(require('../spelling').fixSpelling(fallControl).text.slice(0, 12)));
     assert.equal(line.level, 'Isolate or engineer', fallControl);
     assert.match(line.text, /^[A-Z]/, 'with a capital');
   }
