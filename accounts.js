@@ -860,8 +860,19 @@ function fileName(row, extension) {
 function fileStem(title, keep = ' -') {
   const allowed = new RegExp(`[^A-Za-z0-9.${keep.replace(/-/g, '\\-')}]+`, 'g');
   const words = String(title || '').replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(allowed, '').trim().replace(/\s+/g, ' ');
-  // Cut at a word, not part way through one ("3 lifts aro").
-  const cut = words.length > 60 ? words.slice(0, 61).replace(/\s+\S*$/, '') : words;
+  // Cut at a word, not part way through one ("3 lifts aro"), and not after a word that leads into the part cut off ("... new
+  // colorbond on a 2", "... walls and": messy round 16, A run 2 and B run 5).
+  let cut = words.length > 60 ? words.slice(0, 61).replace(/\s+\S*$/, '') : words;
+  if (words.length > 60) {
+    // A number cut off from what it counts ("on a 2" storey) goes too; the end of a range ("levels 2 to 5") stays.
+    const lead = /\s+(?:and|or|n|&|with|without|of|on|in|at|to|for|from|by|the|a|an|into|onto|over|under|up|plus|per|via|including|incl|then)$/i;
+    const number = /\s+(?:a|an|the|of|on|in|at|for|with|by|from|per|over|under|into|onto)\s+\d+(?:\.\d+)?$/i;
+    for (let left = 8; left > 0; left -= 1) {
+      const next = number.test(cut) ? cut.replace(/\s+\d+(?:\.\d+)?$/, '') : lead.test(cut) ? cut.replace(lead, '') : cut;
+      if (next === cut || !next.trim()) break;
+      cut = next;
+    }
+  }
   return cut.trim() || 'SWMS';
 }
 

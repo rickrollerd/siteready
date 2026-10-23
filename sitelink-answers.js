@@ -97,13 +97,24 @@ const NOT_A_STREET_NAME = new Set(['the', 'a', 'an', 'this', 'that', 'our', 'sid
 const NOT_IN_STREET_NAME = new Set([...NOT_A_STREET_NAME, 'along', 'beside', 'behind', 'outside', 'opposite', 'corner', 'gate', 'gates', 'area', 'point', 'entrance', 'entry', 'exit', 'office', 'shed', 'sheds', 'carpark', 'park', 'end', 'truck', 'ute', 'van', 'car', 'hiab', 'is', 'are', 'meet', 'muster', 'assembly', 'footpath', 'verge', 'kerb', 'fence', 'hoarding', 'compound', 'laydown', 'lot', 'block', 'building', 'level', 'main']);
 const STREET_NAMED = /\b((?:[a-z][a-z'’-]+\s+){0,2}[a-z][a-z'’-]+)\s+(st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close)\b/g;
 const upFirst = (word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
-const tidyPlace = (text) => capitalFirst(clean(text).replace(STREET_NAMED, (whole, names, kind) => {
+// A road or lane named for what it is, not a street's name ("the site haul road", "the open lane", "the Bagot Rd service
+// lane"), stays as typed (messy round 16, A run 1 and B run 8: "Haul Road", "Open Lane" and "Service Lane" printed).
+// A street abbreviated ("Back St") is a name.
+const ROAD_KIND_WORD = /^(?:road|lane|drive|way|track)$/;
+const ROAD_WHAT = new Set(['haul', 'service', 'access', 'open', 'back', 'side', 'rear', 'front', 'slip', 'private', 'bus', 'bike', 'cycle', 'turning', 'loading', 'fire', 'emergency', 'internal', 'temporary', 'construction', 'site', 'delivery', 'perimeter', 'ring', 'existing', 'new', 'sealed', 'unsealed', 'gravel', 'dirt', 'farm', 'haulage', 'truck', 'traffic', 'live', 'closed', 'shared', 'work', 'works']);
+// "st" before a street's name is Saint: "st georges tce" reads "St Georges Tce", not "st Georges Tce" (messy round 16, A
+// run 4). A street's name before "and" another street at a corner takes its capitals too: "corner elizabeth n bathurst
+// st" reads "Corner Elizabeth and Bathurst St", not "Corner elizabeth and Bathurst St" (B run 6).
+const SAINT = /(?<=(?:^|[,(]\s*|\b(?:on|at|of|in|to|by|near|corner|cnr|crn|and|n|from|off|along|via|the|outside|opposite|beside|behind|into|onto|up|down|past)\s+))st\.?(?=\s+[a-z][a-z'’-]+(?:\s+[a-z][a-z'’-]+)?\s+(?:st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close)\b)/g;
+const CORNER_FIRST = /\b((?:corner|cnr|crn)\.?(?:\s+of)?\s+)([a-z][a-z'’-]+)(?=\s+(?:and|&|n)\s+(?:St\s+)?[A-Z][a-z'’-]+(?:\s+[A-Z][a-z'’-]+)?\s+(?:St|Street|Rd|Road|Ave|Avenue|Tce|Terrace|Pde|Parade|Dr|Drive|Ln|Lane|Hwy|Highway|Blvd|Boulevard|Cres|Crescent|Ct|Court|Pl|Place|Cct|Circuit|Esp|Esplanade|Cl|Close)\b)/gi;
+const tidyPlace = (text) => capitalFirst(clean(text).replace(SAINT, 'St').replace(STREET_NAMED, (whole, names, kind) => {
   const words = names.split(/\s+/);
+  if (ROAD_KIND_WORD.test(kind) && ROAD_WHAT.has(words[words.length - 1])) return whole;
   let at = words.length;
   while (at > 0 && !NOT_IN_STREET_NAME.has(words[at - 1])) at -= 1;
   if (at === words.length) return whole;
   return [...words.slice(0, at), ...words.slice(at).map(upFirst), upFirst(kind)].join(' ');
-}));
+}).replace(CORNER_FIRST, (whole, corner, name) => (NOT_IN_STREET_NAME.has(name.toLowerCase()) ? whole : `${corner}${upFirst(name)}`)));
 
 // A place a new worker can find: not "carpark", "gate" or "out the front" (the SWMS app's rule).
 function placeProblem(text) {
@@ -165,7 +176,9 @@ const tidyCompany = (text) => tidyName(text, COMPANY_SMALL);
 // A role typed after the name with no comma ("tara nguyen hse") is split off as the role: "Tara Nguyen, HSE"
 // (messy round 12, run 1: it printed "Tara Nguyen Hse"). Only the last word or two, and only where two words of
 // the name are left.
-const ROLE_TAIL = /\s+((?:(?:hse|whs|ohs|site|project|safety|works|construction|office|operations|ops)\s+)?(?:hse|whs|ohs|qhse|hseq|supervisor|foreman|forewoman|manager|leading hand|lead hand|engineer|director|officer|advisor|adviser|coordinator|admin|administrator|owner|pm|cm))$/;
+// "our" or "the" before the role is part of the role: "tony russo our leading hand" reads "Tony Russo, our leading hand", not
+// "Tony Russo Our, Leading hand" (messy round 16, A run 4).
+const ROLE_TAIL = /\s+((?:(?:our|the|my|his|her|their)\s+)?(?:(?:hse|whs|ohs|site|project|safety|works|construction|office|operations|ops)\s+)?(?:hse|whs|ohs|qhse|hseq|supervisor|foreman|forewoman|manager|leading hand|lead hand|engineer|director|officer|advisor|adviser|coordinator|admin|administrator|owner|pm|cm))$/;
 // An answer that names no one, only whose role it is ("the builders first aider"), reads as a role: "The
 // builder's first aider", not "The Builders First Aider" (messy round 12, run 5).
 const ROLE_PHRASE_WORDS = new Set([...ROLE_WORDS, 'builder\'s', 'contractor\'s', 'dogman', 'rigger', 'operator', 'spotter', 'labourer', 'apprentice']);

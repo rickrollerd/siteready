@@ -838,7 +838,9 @@ function confirmedPlant(plant, choice, stateId) {
     // The name prints with its first capital and a lone "n" as "and" ("gin wheel n rope" reads "Gin wheel and rope": messy
     // round 15, A run 4). The item keeps the name as typed, which the page's plant list goes by.
     const shown = `${name.charAt(0).toUpperCase()}${name.slice(1)}`.replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
-    kept.push({ item: name, ...(shown !== name ? { shown } : {}), inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : licence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) });
+    // The licence typed prints with its first capital: "no" reads "No" (messy round 16, A run 4 and B run 6).
+    const typedLicence = bareNo ? 'No' : licence ? `${licence.charAt(0).toUpperCase()}${licence.slice(1)}` : '';
+    kept.push({ item: name, ...(shown !== name ? { shown } : {}), inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : typedLicence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) });
   }
   return kept;
 }

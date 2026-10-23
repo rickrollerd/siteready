@@ -125,10 +125,10 @@ const printed = (draft) => ((draft && draft.substances && draft.substances.produ
 const TABLE_TITLE = 'Hazardous substances';
 const TABLE_HEAD = ['Product', 'Hazards', 'Controls', 'First aid', 'Storage and spills', 'Safety data sheet'];
 const TABLE_NOTE = 'Each product used, with the controls from its own safety data sheet (SDS). Keep each product\'s current SDS at the work area, and label every container, including anything decanted.';
-const orSection = (lines, section) => (lines.length ? lines.join('\n') : `See its safety data sheet, ${section}.`);
+const orSection = (lines, section) => (lines.length ? lines.map(rules.tableLine).join('\n') : `See its safety data sheet, ${section}.`);
 function tableRows(draft) {
   return printed(draft).map((row) => [
-    [row.product, row.type, row.supplier ? `Supplier: ${row.supplier}` : '', row.quantity ? `Quantity: ${row.quantity}` : ''].filter(Boolean).join('\n'),
+    [rules.tableLine(row.product), row.type, row.supplier ? `Supplier: ${row.supplier}` : '', row.quantity ? `Quantity: ${row.quantity}` : ''].filter(Boolean).join('\n'),
     orSection(row.hazards, 'section 2'),
     orSection(row.controls, 'section 8'),
     orSection(row.firstAid, 'section 4'),

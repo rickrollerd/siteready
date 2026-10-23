@@ -148,6 +148,13 @@
   }
   // A standard answer whose blank was filled with no answer: the refusal for the first such blank, or ''.
   // templates: the standard answers' wordings, each with its blanks (____).
+  // A blank that asks who ("installed and rated by ____", "trained ... by ____") filled with a party named only by what it does
+  // ("the anchor installer", "a training mob") names no one (messy round 16, A run 2).
+  function whoFillNeed(fill) {
+    const text = clean(fill).replace(/[.;,]+$/, '');
+    if (!UNNAMED_PARTY.test(text)) return '';
+    return `"${text}" does not say who. Name the company or person, for example "Height Safety Co" or "Sam Lee, our supervisor".`;
+  }
   function presetFillNeed(templates, value) {
     const text = clean(value);
     if (!text) return '';
@@ -156,6 +163,9 @@
       if (!fills) continue;
       const bad = fills.find((fill) => fill && !/_{3,}/.test(fill) && blankFillNeed(fill));
       if (bad) return blankFillNeed(bad);
+      const parts = String(template || '').replace(/\s+/g, ' ').split(/_{3,}/);
+      const who = fills.find((fill, n) => fill && !/_{3,}/.test(fill) && /\bby\s*$/i.test(parts[n] || '') && whoFillNeed(fill));
+      if (who) return whoFillNeed(who);
     }
     return '';
   }
@@ -198,6 +208,10 @@
   const SERVICE_KIND = /\b(?:power|electric\w*|energis\w*|live|cables?|wiring|switch ?boards?|switch ?rooms?|boards?|substations?|lights?|lighting|gas|water|sewer\w*|stormwater|drain\w*|pipes?|pipework|mains?|data|comms?|communications?|telstra|nbn|fibre|optic\w*|fire|hydrants?|sprinklers?|alarms?|hv|lv|kv|volts?|overhead|underground|in-?ground|buried|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|nil|none)\b/i;
   const ACCESS_SAYS = /\b(?:stairs?|stair ?(?:towers?|wells?)|ladders?|lifts?|hoists?|ramps?|scaffold\w*|ewps?|elevating|scissor|boom|walk\w*|driv\w*|trucks?|utes?|vehicles?|forklifts?|cranes?|via|through|from|up|down|along|path\w*|footpath|corridor|lanes?|roads?|streets?|st|rd|level|floor|roof|hatch|door)\b/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
+  // A crew or company named by what it does, with no name: "the scaffold mob", "a training mob", "the anchor installer"
+  // (messy round 16, A run 2: each was taken, and "The Scaffold Mob" printed as the scaffold supervisor).
+  // A role that names who does it ("the site engineer", "the supplier") still passes.
+  const UNNAMED_PARTY = /^(?:(?:the|a|an|our|some|their|his|her) (?:[\w-]+ ){0,2}(?:mob|mobs|outfit|crowd|lot|blokes?|guys?|fellas?)|(?:a|an|some) (?:[\w-]+ ){0,2}(?:company|companies|firm|business|crew|team|people|installers?|suppliers?|providers?|trainers?|contractors?)|the (?:[\w-]+ ){0,2}installers?)\.?$/i;
   // An Australian phone number a site can ring (messy round 4, run 2: a 9 digit mobile printed): a mobile
   // or landline with its area code (10 digits from 0), a landline without it (8 digits), 13 numbers
   // (6 digits) and 1300 or 1800 numbers (10 digits), with +61 read as 0.
@@ -234,7 +248,7 @@
     if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'place' && VEHICLE_PLACE.test(text)) return `${quoted} is a vehicle, which moves. Name a fixed place a new worker can find, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
-    if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
+    if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text) || UNNAMED_PARTY.test(clean(text)))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
     if (PERSON_KINDS.has(kind)) { const only = personNameNeed(text); if (only) return only; }
     // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
     const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
@@ -307,6 +321,9 @@
       if (!/\s/.test(text)) return `${quoted} is too short to act on. ${rule.ask}`;
       // A question that asks for the role, not the person, answered with a name alone ("Kim Nguyen": messy round 15, A run 3).
       if (rule.role && nameOnly(text)) return `${quoted} is a person's name, not a role: on a big site the person changes. ${rule.ask}`;
+      // "me" says who only to the person writing it (messy round 16, B run 7: "me, e stop on the remote" printed "Stopped by: Me,
+      // e stop on the remote").
+      if (rule.role && /^(?:me|myself|i|i do|i will|i'?ll|us|we)\b(?!['’])/i.test(text)) return `${quoted} says "${(/^\S+/.exec(text) || [''])[0].replace(/[,.;:]+$/, '')}": on a big site the person changes. Say the role instead. ${rule.ask}`;
       // Lowering the platform does not rescue a person who has fallen ("spotter lowers the scissor lift": messy round 15,
       // A run 3): the answer says who reaches the person, and how or with what.
       if (rule.fall && PLATFORM_ONLY.test(text) && !PERSON_REACHED.test(text)) return `${quoted} says how the platform comes down, not how a person who falls is rescued. Say who reaches the person and how they are brought down, for example with the rescue kit or the EWP kept at the work.`;
@@ -323,6 +340,7 @@
       return '';
     }
     if (NONE.test(text) && !rule.none) return `${rule.name} cannot be ${quoted}: every SWMS names it. ${rule.ask}`;
+    if (rule.naRefused && /^(?:na|n\/a|n\.a\.?|not applicable|not relevant|does not apply|doesn'?t apply)\.?$/i.test(text)) return `${quoted} says the question does not apply. ${rule.naRefused}`;
     // Not applicable is refused where the SWMS itself says the thing is there (a scaffold in the plant).
     if (rule.noneRefused && NONE.test(text)) return `${rule.noneRefused} ${rule.ask}`;
     if (rule.kind) { const weak = fieldWeak(rule.kind, text); if (weak) return `${weak}`; }
@@ -635,7 +653,7 @@
     return out;
   }
 
-  const api = { siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, rescueFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
+  const api = { whoFillNeed, siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, rescueFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

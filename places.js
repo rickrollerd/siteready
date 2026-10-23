@@ -265,7 +265,9 @@ const isGeneralClinic = (name) => GENERAL_NAME.test(name) && !NOT_GENERAL.test(n
 
 // A place name Google holds all in lower case takes its capitals, as a name typed so does ("new norfolk public hospital"
 // reads "New Norfolk Public Hospital": messy round 12, run 6). A name with any capital is left as Google gives it.
-const placeName = (name) => require('./sitelink-answers').tidyName(name);
+// A curly apostrophe in Google's name reads as a straight one, so "St Andrew’s Hospital" is known as private and "Women’s"
+// as a women's hospital (messy round 16, B run 5: St Andrew's had no private note).
+const placeName = (name) => require('./sitelink-answers').tidyName(String(name || '').replace(/[\u2018\u2019\u02bc\u0060\u00b4]/g, "'"));
 
 async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw = false } = {}) {
   const address = cleanQuery(rawAddress);

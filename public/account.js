@@ -533,8 +533,9 @@
       const listTitle = S.listSwmsTitle ? S.listSwmsTitle() : '';
       const body = { ...S.actionInput, ...answersNow(kind), ...(kind === 'draft' ? confirmed('new') : {}), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}), ...(listTitle ? { swmsTitle: listTitle } : {}) };
       const { saved } = await download(route, fallbackName, body);
-      // Downloaded: the note that the work is not saved yet goes (messy round 15, A run 1).
-      if (S.unsavedNoteOff) S.unsavedNoteOff();
+      // Downloaded: the note that the work is not saved yet goes, and stays gone after a reload (messy round 15, A run 1;
+      // round 16, A runs 1 and 3).
+      if (S.unsavedDownloaded) S.unsavedDownloaded(); else if (S.unsavedNoteOff) S.unsavedNoteOff();
       if (!saved) return;
       // A new revision was saved when the number moved on from the one being changed.
       const revised = saved.revision > 1 && !(S.editing && S.editing.id === saved.id && S.editing.revision === saved.revision);

@@ -252,6 +252,14 @@ function siteRules(value) {
   return out.length ? out.slice(0, 40) : undefined;
 }
 
+// "Harness and anchors" answered with a word that says no harness is used ("none", "na", "not used") reads as that, so it is
+// not refused as no answer, and the harness, its lines and its training come off (messy round 16, B run 7: "none" was
+// refused, and "we dont use a harness" then printed as a control among the harness lines).
+const NO_HARNESS_WORD = /^(?:none|nil|nope|no|na|n\/a|not used|not needed|not required|not applicable|no harness(?:es)?(?: used)?)\.?$/i;
+function harnessAnswer(value) {
+  return NO_HARNESS_WORD.test(String(value || '').trim()) ? 'No harness is used on this job.' : value;
+}
+
 function draftBody(body) {
   const out = draftFields(body);
   // The job steps the user unticked by hand, sent while the steps follow the task's words (no picks of their own): the
@@ -280,6 +288,28 @@ function draftBody(body) {
       out.kindsKept = kept;
     }
   }
+  // The steps a changed answer brings: the crane and fall answers given when the step list was last drawn (answersSeen)
+  // are read against the answers now. Those steps are Recommended (kindsBrought, for the page) and are ticked with the
+  // user's picks unless unticked by hand, like any other (messy round 16, B run 7: after "No crane" was changed to "Our
+  // company", "Unload with the truck loading crane (hiab)" came into the draft, showed unticked in the step list, and an
+  // unrelated untick then lost it).
+  const brought = new Set(Array.isArray(body.kindsBrought) ? body.kindsBrought.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)).slice(0, 40) : []);
+  const was = body.answersSeen && typeof body.answersSeen === 'object' ? { crane: textField(body.answersSeen.crane, 20), fallRisk: textField(body.answersSeen.fallRisk, 10) } : null;
+  if (was && (was.crane !== (out.crane || '') || was.fallRisk !== (out.fallRisk || ''))) {
+    const draft = require('./draft');
+    const now = draft.foundKinds({ ...out, kinds: undefined });
+    const then = draft.foundKinds({ ...out, kinds: undefined, crane: was.crane, fallRisk: was.fallRisk });
+    if (Array.isArray(now) && Array.isArray(then)) for (const id of now.filter((one) => !then.includes(one) && !off.includes(one))) brought.add(id);
+    if (Array.isArray(out.kinds)) {
+      const add = [...brought].filter((id) => now && now.includes(id) && !out.kinds.includes(id) && !off.includes(id));
+      if (add.length) {
+        out.kinds = [...out.kinds, ...add];
+        out.kindsKept = [...new Set([...(out.kindsKept || []), ...add])];
+      }
+    }
+  }
+  if (brought.size) out.kindsBrought = [...brought].filter((id) => !off.includes(id));
+  if (out.kindsBrought && !out.kindsBrought.length) delete out.kindsBrought;
   // The job steps the scope reading or pick list chose before the user reworded the task: those the new words still name
   // are kept with the steps found in the new words (messy round 13, A runs 2 and 3).
   const prior = Array.isArray(body.priorKinds) ? [...new Set(body.priorKinds.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, 80) : [];
@@ -304,6 +334,8 @@ function draftFields(body) {
     fallRisk: field(body.fallRisk, 10),
     // Falls answered No, kept after the page asked to check it against a step that rates a fall High.
     fallNoKept: body.fallNoKept === true ? true : undefined,
+    // "No crane" kept where the task names a crane (draft.js craneCheck).
+    craneNoKept: body.craneNoKept === true ? true : undefined,
     residential: field(body.residential, 10),
     crane: field(body.crane, 20),
     // D258: with a crane company, who slings the loads and directs the crane ('crane' or 'ours').
@@ -427,7 +459,7 @@ function draftFields(body) {
       formworkDesign: field(facts.formworkDesign, 2000),
       jumpformProcedure: field(facts.jumpformProcedure, 2000),
       stressingProcedure: field(facts.stressingProcedure, 2000),
-      harnessSystem: field(facts.harnessSystem, 2000),
+      harnessSystem: harnessAnswer(field(facts.harnessSystem, 2000)),
       spoilPlan: field(facts.spoilPlan, 2000),
       lifeJacketDetails: field(facts.lifeJacketDetails, 2000),
       scaffoldType: field(facts.scaffoldType, 40),

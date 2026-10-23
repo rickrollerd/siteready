@@ -137,11 +137,12 @@ test('"Not applicable" typed to get past a step\'s question is not an answer, an
   const draft = prepareDraft(draftBody({ ...base, kinds: NO_TRENCH, facts: { ...RISER_FACTS, trenchSupport: typed } }));
   assert.equal(draft.kind, 'draft');
   assert.ok(!JSON.stringify([draft.controls, draft.jobSteps]).includes('Not applicable'));
-  // "Not applicable, no harness is used" stays the harness answer.
+  // "Not applicable, no harness is used" stays the harness answer. Since messy round 16 (flow17) a "no harness" answer
+  // never prints as a control.
   const harness = prepareDraft(draftBody({ ...base, kinds: [...NO_TRENCH, 'carpEdge'], ppe: ['hardHat', 'boots', 'harness'], facts: { ...RISER_FACTS, harnessSystem: 'Not applicable, no harness is used on this job.' } }));
   assert.equal(harness.kind, 'draft', JSON.stringify(harness.missing));
   const said = harness.jobSteps.flatMap((step) => step.controls);
-  assert.ok(said.includes('No harness is used on this job.'), JSON.stringify(said.filter((line) => /harness/i.test(line))));
+  assert.ok(!said.includes('No harness is used on this job.'), JSON.stringify(said.filter((line) => /harness/i.test(line))));
   assert.ok(!said.some((line) => /Not applicable/.test(line)));
 });
 
@@ -194,11 +195,12 @@ test('"Your work is back as you left it (not saved yet ...)" goes once the work 
   assert.equal(gone, 1);
   p.run('window.SiteWrite.unsavedNoteOff()');
   assert.equal(gone, 2);
-  // The account script and the project download both take it off after a download.
+  // The account script and the project download both take it off after a download, and keep it off after a reload (flow17,
+  // messy round 16: test/round16-flow.test.js).
   const account = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'public', 'account.js'), 'utf8');
-  assert.match(account, /await download\(route, fallbackName, body\);\n\s*\/\/ Downloaded: the note that the work is not saved yet goes[^\n]*\n\s*if \(S\.unsavedNoteOff\) S\.unsavedNoteOff\(\);\n\s*if \(!saved\) return;/);
+  assert.match(account, /await download\(route, fallbackName, body\);\n\s*\/\/ Downloaded: the note that the work is not saved yet goes[^\n]*\n[^\n]*\n\s*if \(S\.unsavedDownloaded\) S\.unsavedDownloaded\(\); else if \(S\.unsavedNoteOff\) S\.unsavedNoteOff\(\);\n\s*if \(!saved\) return;/);
   const scope = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'public', 'scope.js'), 'utf8');
-  assert.match(scope, /S\.download\('\/api\/project\.zip'[^\n]*\n[^\n]*\n\s*if \(S\.unsavedNoteOff\) S\.unsavedNoteOff\(\);/);
+  assert.match(scope, /S\.download\('\/api\/project\.zip'[^\n]*\n(?:[^\n]*\n){2}\s*if \(S\.unsavedDownloaded\) S\.unsavedDownloaded\(\); else if \(S\.unsavedNoteOff\) S\.unsavedNoteOff\(\);/);
 });
 
 // ---- 5. A rescue answer fills across only where its way of rescue fits ----
