@@ -273,12 +273,16 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
   const typedText = textField(body.text, TEXT_LIMIT).trim();
   if (RESPONSES[response].needs && !typedText) throw Object.assign(fail(400, RESPONSES[response].needs), { field: 'text' });
   if (RESPONSES[response].needs && EMPTY_WORDS.test(typedText.replace(/[.!]+$/, '').trim())) throw Object.assign(fail(400, SAYS_NOTHING[response]), { field: 'text' });
-  // Typed in a hurry, the conditions and the changes needed read as they print (messy round 15, SiteLink wording 5).
-  const text = require('./sitelink-answers').tidyLines(typedText);
   const name = textField(body.name, 120).replace(/\s+/g, ' ').trim();
   const reviewerCompany = textField(body.company, 200).replace(/\s+/g, ' ').trim();
   if (!name || !reviewerCompany) throw Object.assign(fail(400, !name && !reviewerCompany ? 'Enter your name and your company.' : !name ? 'Enter your name.' : 'Enter your company.'), { field: !name ? 'name' : 'company' });
   const { ref, swms, company, kept, current } = await revisionForRef(req.params.ref);
+  // Typed in a hurry, the conditions and the changes needed read as they print (messy round 15, SiteLink wording 5), with
+  // the people and places the SWMS names in their capitals (messy round 17, A run 4 and B run 7: "craig dunn", "fiona stanley
+  // hospital" and "University of canberra hospital" stayed in lower case).
+  const tidy = require('./sitelink-answers');
+  const printed = (kept && kept.draft) || {};
+  const text = tidy.tidyLines(typedText, [], tidy.personNames([printed.siteManager, printed.worksManager, printed.complianceResponsible, printed.reviewer, printed.firstAider, printed.preparedBy].filter((value) => typeof value === 'string')), tidy.placeNames([printed.workplace, printed.hospital].filter((value) => typeof value === 'string')));
   if (!current) throw fail(409, `This is revision ${kept.revision}. The business has saved revision ${swms.revision} since, so this one cannot be given a response. Ask the business for the current revision and its reference.`);
   // A business cannot approve its own SWMS: someone signed in to it cannot review it.
   const own = await db.one('SELECT id FROM users WHERE email = $1 AND company_id = $2', [req.reviewer.email, swms.company_id]);

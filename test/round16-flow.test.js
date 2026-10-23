@@ -335,7 +335,8 @@ test('typed lines print tidied: products, the plant licence, the approval line, 
   // The draft page's approval line, the plant licence, the task and the file name (A run 2, B run 5).
   const painting = answered({ ...ANSWERED, company: 'geelong roof n gutter', state: 'vic', task: 'Paint the shop front, including but not limited to the following: walls and doors.', fallRisk: 'no', crane: 'none' });
   const draft = prepareDraft(draftBody({ ...painting, plantChoice: { ...painting.plantChoice, added: [{ item: 'gin wheel n rope', licence: 'no' }] } }));
-  assert.equal(draft.status, 'Approval by Geelong Roof n Gutter: not signed yet.');
+  // A company's lone "n" reads "and" since messy round 17 (flow18 decision 1).
+  assert.equal(draft.status, 'Approval by Geelong Roof and Gutter: not signed yet.');
   assert.equal(draft.plant.find((item) => item.item === 'gin wheel n rope').licence, 'No');
   assert.equal(taskLine('Painting works including but not limited to the following items: walls, ceilings'), 'Painting works including the following items: walls, ceilings');
   assert.equal(fileStem('Strip old roof sheets and replace with new colorbond on a 2 storey shop in Geelong'), 'Strip old roof sheets and replace with new colorbond');
@@ -383,9 +384,10 @@ test('answers that name no one, "me" for a role, and "None" or "na" where the wo
   const ewpGaps = downloadGaps(draftBody(ewp), prepareDraft(draftBody(ewp)));
   assert.match((ewpGaps.find((gap) => gap.id === 'site.ground') || {}).need || '', /sets plant up on the ground/);
   assert.ok(!ewpGaps.some((gap) => gap.id === 'site.otherTrades'));
-  // A site's own haul road is not a public way.
+  // A site's own haul road is not a public way. (Since messy round 17, "None" beside a crane lift step is asked about for
+  // the lift area; that refusal does not name the road.)
   const haul = answered({ ...ANSWERED, state: 'nsw', task: 'Erect the steel portal frames from boom lifts.', fallRisk: 'yes', crane: 'none', site: { ...ANSWERED.site, access: 'Main gate, then the site haul road to each building.' } });
-  assert.ok(!downloadGaps(draftBody(haul), prepareDraft(draftBody(haul))).some((gap) => gap.id === 'site.publicInterface'));
+  assert.ok(!downloadGaps(draftBody(haul), prepareDraft(draftBody(haul))).some((gap) => gap.id === 'site.publicInterface' && /haul|road/.test(gap.need)));
 });
 
 // ---- 10. Google's hospital list ----

@@ -125,6 +125,18 @@ const namesPlace = (item, words) => {
 // Newcastle NSW" (messy round 15, A run 1, real Google list).
 const suburbOf = (item) => String(String(item.text || '').split(',').slice(1).join(' ') || '').toLowerCase().replace(/\b(?:nsw|vic|qld|sa|wa|tas|nt|act|australia)\b|\b\d{4}\b/g, ' ').split(/[^a-z0-9'-]+/).filter(Boolean);
 const suburbIs = (item, words) => { const suburb = suburbOf(item); return words.length > 0 && suburb.length === words.length && words.every((word, i) => nearWord(word.replace(/[^a-z0-9'-]/g, ''), suburb[i])); };
+// The street's own name typed before its kind ("cheltenham" in "18 cheltenham pde woodville"), and whether a suggestion's
+// street part has it; and whether the place typed is in its suburb, not only in its street's name (messy round 17, B run 5:
+// "18 Woodville Street, Hurstville NSW" came first for "18 cheltenham pde woodville", before "18 Cheltenham Parade, ... SA").
+const STREET_KIND = /^(?:st|street|rd|road|ave|avenue|tce|terrace|pde|parade|dr|drive|ln|lane|hwy|highway|blvd|boulevard|cres|crescent|ct|court|pl|place|cct|circuit|esp|esplanade|cl|close|way|wy|grove|gr|gve|square|sq|parkway|pkwy)$/;
+function streetWords(query) {
+  const words = String(query || '').toLowerCase().replace(/[,]+/g, ' ').split(/\s+/).filter(Boolean);
+  const at = words.findIndex((word, i) => i > 0 && STREET_KIND.test(word));
+  if (at < 1) return [];
+  return words.slice(0, at).filter((word) => /[a-z]{3,}/.test(word) && !/\d/.test(word) && !/^(?:unit|shop|suite|level|lot)$/.test(word));
+}
+const namesStreet = (item, words) => { const street = String(item.text || '').split(',')[0].toLowerCase().split(/[^a-z0-9'-]+/).filter(Boolean); return words.every((word) => street.some((other) => nearWord(word, other))); };
+const placeInSuburb = (item, words) => { const suburb = suburbOf(item); return words.every((word) => { const typed = word.replace(/[^a-z0-9'-]/g, ''); return suburb.some((other) => nearWord(typed, other)); }); };
 // The street number typed ("14 macquarie st", "2/14 smith st"), and whether a suggestion has it.
 const typedNumber = (query) => { const found = /(?:^|[\s,/-])(\d{1,5}[a-z]?)\s+[a-z]/i.exec(query); return found ? found[1].toLowerCase() : ''; };
 const hasNumber = (item, number) => Boolean(number) && new RegExp(`(?:^|[\\s,/-])${number}(?![\\d])`, 'i').test(String(item.text || '').split(',')[0]);
@@ -171,7 +183,8 @@ async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000, near = '
     // A suggestion with the street number typed, and the suburb typed, comes first (messy round 9: "Macquarie
     // St, Sydney NSW", with no number and the wrong suburb, came before "14 Macquarie St, Parramatta NSW").
     const number = typedNumber(query);
-    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? 0 : 4) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0) + (words.length && namesPlace(item, words) && !suburbIs(item, words) ? 0.5 : 0);
+    const street = streetWords(query);
+    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? (placeInSuburb(item, words) ? 0 : 2) : 4) + (street.length && !namesStreet(item, street) ? 4 : 0) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0) + (words.length && namesPlace(item, words) && !suburbIs(item, words) ? 0.5 : 0);
     const suggestions = list.map((item, at) => ({ item, at })).sort((a, b) => rank(a.item) - rank(b.item) || a.at - b.at).map(({ item }) => item).slice(0, 6);
     toCache(key, suggestions);
     return { enabled: true, suggestions };

@@ -154,7 +154,7 @@
   const typeNeed = (type) => (productsOf(type).length ? '' : notUsed.has(type) ? R.notUsedNeed(type, notUsedWhy[type], words(), R.stepWords ? R.stepWords(shown) : '', sdsWords(), R.cutStep ? R.cutStep(shown) : '', shown) : TYPE_NEED(type));
   // Products given in the project's other SWMS, not yet added here (scope.js, D292).
   const offered = () => (S.projectProducts ? S.projectProducts() : []).filter(({ row }) => !products.some((mine) => String(mine.product || '').trim().toLowerCase() === String(row.product || '').trim().toLowerCase()));
-  const offerButtons = (list) => list.map(({ row, from }) => `<button type="button" class="pick-button" data-sub-offer="${esc(row.product)}">Use ${esc(row.product)} (from ${esc(from)})</button>`).join('');
+  const offerButtons = (list) => list.map(({ row, from }) => `<button type="button" class="pick-button" data-sub-offer="${esc(row.product)}">Use ${esc(R.tableLine ? R.tableLine(row.product) : row.product)} (from ${esc(from)})</button>`).join('');
   // "Not required" for a type the user's own task or answers name needs a short reason (D292 item 3).
   const words = () => R.ownWords((S.payload && S.payload()) || {});
   function typeRow(type) {

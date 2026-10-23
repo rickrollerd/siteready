@@ -27,7 +27,9 @@ function lastLinkToken(email) {
 // Goal 2: a SWMS downloads or saves only once its site questions and key people are answered
 // (download-gate.js). Tests about something else download with these answers.
 const ANSWERED = {
-  workplace: '12 Smith Street, Paddington QLD 4064',
+  // No state in the address: the tests answer many states, and a state ticked that is not the address's own holds the
+  // download (messy round 17, A run 4).
+  workplace: '12 Smith Street, Paddington',
   principalContractor: 'ABC Builders Pty Ltd',
   complianceResponsible: 'Sam Lee, supervisor',
   reviewer: 'Sam Lee, supervisor',

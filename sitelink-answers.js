@@ -87,6 +87,34 @@ function firstAiderProblem(text) {
 // Typed in a hurry, all in lower case, a detail is tidied as it reads, without changing its words
 // (messy round 7: "tom keane 0413 222 908", "front gate" and "hi vis at all times" printed so on the
 // SWMS). A person or a hospital takes a capital on each word; a place or a rule on its first word.
+// The places the SWMS names take their capitals inside typed text too: the job address's street and suburb, the hospital,
+// and the capital cities (messy round 17: "emu bank" in the task and the muster point, "temple tce" in the task, "fiona
+// stanley hospital" and "University of canberra hospital" in a reviewer's conditions). Only where typed in lower case, or
+// with only a sentence's first capital; a single word only where it is not an English word, or is a capital city.
+const CAPITAL_CITIES = ['Canberra', 'Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Hobart', 'Darwin'];
+const STATE_TAIL = /\b(?:NSW|VIC|QLD|SA|WA|TAS|NT|ACT|New South Wales|Victoria|Queensland|South Australia|Western Australia|Tasmania|Northern Territory|Australian Capital Territory|Australia)\b.*$/i;
+const STREET_SHORT = { Street: 'St', Road: 'Rd', Terrace: 'Tce', Parade: 'Pde', Avenue: 'Ave', Drive: 'Dr', Crescent: 'Cres', Place: 'Pl', Highway: 'Hwy', Lane: 'Ln', Court: 'Ct', Circuit: 'Cct', Esplanade: 'Esp', Close: 'Cl', Boulevard: 'Blvd' };
+function placeNames(values) {
+  const out = [];
+  const add = (name) => {
+    const value = clean(name).replace(/^(?:unit|shop|suite|level|lot)\s+\S+\s+/i, '').replace(/^[\d/-]+[a-z]?\s+/i, '').replace(/\s*\([^)]*\)\s*$/, '');
+    const words = value.split(/\s+/).filter(Boolean);
+    if (!words.length || words.length > 5 || !words.every((word) => /^[A-Z][A-Za-z'’-]*$|^(?:of|the|and|on|by)$/.test(word)) || !/^[A-Z]/.test(words[words.length - 1])) return;
+    if (words.length === 1 && (value.length < 4 || englishWord(value.toLowerCase())) && !CAPITAL_CITIES.includes(value)) return;
+    if (!out.includes(value)) out.push(value);
+    // A street's name typed short takes its capitals too: "temple tce" for "Temple Terrace".
+    const short = STREET_SHORT[words[words.length - 1]];
+    if (short && words.length > 1 && !out.includes([...words.slice(0, -1), short].join(' '))) out.push([...words.slice(0, -1), short].join(' '));
+  };
+  for (const text of values || []) {
+    // "40 Emu Bank, Belconnen ACT 2617" gives "Emu Bank" and "Belconnen"; "Fiona Stanley Hospital, Emergency Department"
+    // gives "Fiona Stanley Hospital".
+    for (const part of String(text || '').split(/,|\s[-–]\s/)) add(part.replace(STATE_TAIL, ''));
+  }
+  for (const city of CAPITAL_CITIES) if (!out.includes(city)) out.push(city);
+  return out;
+}
+const withPlaceNames = (text, names = []) => withPersonNames(text, names);
 const tidyPerson = (text) => tidyName(text);
 // A street named in a place takes its capitals ("meet at henry st gate" reads "Meet at Henry St gate";
 // SiteLink round 10, wording 11). Words typed with capitals are left as typed.
@@ -168,8 +196,11 @@ function tidyName(text, small = SMALL_WORDS) {
 // A company's name: a lone "n" typed for "and" stays in lower case too, "tamar joinery n fitout" reads "Tamar
 // Joinery n Fitout", not "Tamar Joinery N Fitout" (messy round 13, B runs 2 and 6). A person's "n" may be an
 // initial, so it is only for companies.
+// A lone lower-case "n" between two words of the name then reads "and": "coogee pools n spas" prints "Coogee Pools and Spas",
+// and so does a name saved before as "Coogee Pools n Spas" (messy round 17, A run 4 and B run 7: the "n" printed in the header,
+// the approval line, every footer and the review email). A name that writes it "N" or "'n'" is kept as typed (decision 1).
 const COMPANY_SMALL = new Set([...SMALL_WORDS, 'n']);
-const tidyCompany = (text) => tidyName(text, COMPANY_SMALL);
+const tidyCompany = (text) => tidyName(text, COMPANY_SMALL).replace(/(?<=[A-Za-z0-9][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
 // A person with their role, "name, role" ("declan furlong, foreman"): the name takes its capitals and the
 // role its first capital, as the checker's do ("Tanya Pirelli, Ops manager"). An answer typed with any
 // capital is left as typed ("Sam Lee, supervisor").
@@ -301,8 +332,8 @@ function withPeople(text, people = []) {
 // people: the full names of the people the lead set in the site details, and the project's own people. Each takes
 // its capitals inside the text, and so does a first name or surname typed alone that is no English word ("dmitri",
 // "saoirse"): messy round 16, SiteLink wording 4, "hamish te rangi" in a condition and "dmitri" in a note.
-function tidyNote(text, names = [], people = []) {
-  let out = capitalSentences(typedWords(text));
+function tidyNote(text, names = [], people = [], places = []) {
+  let out = capitalSentences(withPlaceNames(typedWords(text), places));
   if (!out) return out;
   for (const name of names) {
     // Only the company's own name, its first word, alone: "dunnart" reads "Dunnart", but "fire" stays "fire" though
@@ -316,7 +347,7 @@ function tidyNote(text, names = [], people = []) {
 }
 
 // Words typed one item to a line (a reviewer's conditions or changes needed), each line tidied as a note.
-const tidyLines = (text, names = [], people = []) => String(text || '').split('\n').map((line) => (line.trim() ? tidyNote(line, names, people) : line)).join('\n');
+const tidyLines = (text, names = [], people = [], places = []) => String(text || '').split('\n').map((line) => (line.trim() ? tidyNote(line, names, people, places) : line)).join('\n');
 
 // A role typed all in lower case: its first letter, and a short title such as HSE, in capitals
 // ("hse" reads "HSE", "hse manager" reads "HSE manager"; messy round 8, wording 1).
@@ -352,8 +383,27 @@ function withShortNames(text) {
 // "before", and short names keep their capitals (messy round 15, SiteLink wording 6: "Hi vis n steel caps",
 // "Sign in at the site office b4 starting", "Electrical n comms"). A company's own name keeps its "n".
 const loneN = (text) => String(text || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
+// Words typed short or run together, as they print, with the capital they were typed with (messy round 17, A runs 2 and 4,
+// B run 7: "b4", "thru", "upto", "undergrnd", "sparky" and "pool db" printed as typed in site answers, own steps and the task;
+// "throw line at on the barge" where a place was typed into a blank after "at").
+const HURRIED = [
+  [/\bb4\b/gi, 'before'],
+  [/\bthru\b/gi, 'through'],
+  [/\bupto\b/gi, 'up to'],
+  [/\bundergr(?:ou)?nd\b/gi, 'underground'],
+  [/\bsparkies\b/gi, 'electricians'],
+  [/\bsparky\b/gi, 'electrician'],
+  [/\bdbs\b/g, 'distribution boards'],
+  [/\bdb\b/g, 'distribution board'],
+];
+const AT_PLACE = /\bat (?=(?:on|in|inside|beside|under|near|behind|along|over|outside|off|next to) (?:the|a|an|our|their|each|every)\b)/gi;
+function hurried(text) {
+  let out = String(text || '');
+  for (const [pattern, word] of HURRIED) out = out.replace(pattern, (found) => (/^[A-Z]/.test(found) ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word));
+  return loneN(out.replace(AT_PLACE, ''));
+}
 // "ok" reads "OK" (messy round 16, SiteLink wording 6: "ok to start" printed "Ok to start").
-const typedWords = (text) => withShortNames(loneN(String(text || '').replace(/\bb4\b/gi, (word) => (word === 'B4' ? 'Before' : 'before')).replace(/\bok\b/gi, 'OK')));
+const typedWords = (text) => withShortNames(hurried(String(text || '')).replace(/\bok\b/gi, 'OK'));
 // A short name the scope itself writes in capitals keeps them in a title the lead types in lower case: "gas
 // suppression system - ser room" reads "Gas suppression system - SER room" where the scope writes "SER room" (messy
 // round 16, SiteLink wording 3). Only names of two to five letters, never a common short word the scope may write in
@@ -403,4 +453,4 @@ const tidyTitle = (text, scopeText = '') => capitalFirst(withScopeCapitals(typed
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { withPeople, leadWords, scopeNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { withPeople, leadWords, scopeNames, hurried, placeNames, withPlaceNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

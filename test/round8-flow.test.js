@@ -39,9 +39,10 @@ test('a word of the job address is never changed in the task, and a slip one let
   assert.equal(fixSpelling('kerb works for stuart', { names: ['Stuart Civil Pty Ltd'] }).text, 'kerb works for stuart');
   const input = { state: 'nt', workplace: '400 Stuart Hwy, Winnellie NT 0820', task: ROAD };
   const draft = draftOf(input);
-  assert.match(draft.task, /stuart hwy/);
-  assert.doesNotMatch(draft.task, /start hwy/);
-  assert.match(titleFor({}, draftBody({ ...ANSWERED, ...input })), /^Mill and resheet 300m of the stuart hwy/, 'its first capital only, as it prints (messy round 11)');
+  // The job address's street takes its capitals in the task line and title since messy round 17 (flow18).
+  assert.match(draft.task, /Stuart Hwy/);
+  assert.doesNotMatch(draft.task, /start hwy/i);
+  assert.match(titleFor({}, draftBody({ ...ANSWERED, ...input })), /^Mill and resheet 300m of the Stuart Hwy/, 'its first capital, and the street\'s, as it prints');
   assert.ok(!(draft.spellingFixes || []).some((fix) => fix.from === 'stuart'));
 });
 
@@ -86,7 +87,7 @@ test('Builder check flags a street in the task line one or two letters off the j
   const draft = draftOf({ state: 'nt', workplace: '400 Stuart Hwy, Winnellie NT 0820', task: KERB, facts: SILICA_FACTS });
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
   const clean = checkSwms(fromDraft(draft, { state: 'nt' }), { state: 'nt' });
-  const slipped = checkSwms(fromDraft({ ...draft, task: draft.task.replace('stuart hwy', 'start hwy') }, { state: 'nt' }), { state: 'nt' });
+  const slipped = checkSwms(fromDraft({ ...draft, task: draft.task.replace('Stuart Hwy', 'start hwy') }, { state: 'nt' }), { state: 'nt' });
   const w7 = (result) => result.findings.find((item) => item.rule === 'W7');
   assert.ok(!JSON.stringify(w7(clean)).includes('Check the street name'));
   assert.match(JSON.stringify(w7(slipped)), /The task names \\"start hwy\\", but the job address is on Stuart Hwy\. Check the street name in the task\./);
@@ -157,7 +158,8 @@ test('a Safety data sheet answer already given keeps its question once a product
   assert.ok(!asked({ ...ANSWERED.facts }).includes('safetyDataSheet'));
   const draft = prepareDraft(draftBody({ ...base, facts: { ...ANSWERED.facts, fallControl: 'Scissor lifts with handrails for all pipe work above 2 m.', safetyDataSheet: SDS } }));
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.ok(draft.references.some((row) => row.label === 'Safety data sheet' && row.text === SDS));
+  // With its first capital and "SDSs" as typed, as typed answers print since messy round 17 (flow18).
+  assert.ok(draft.references.some((row) => row.label === 'Safety data sheet' && row.text === 'Blazemaster CPVC cement, rocol thread paste, fire sealant. SDSs in the gang box'), JSON.stringify(draft.references));
   assert.deepEqual(draft.substances.notRequired, [{ type: 'Sealants, mastics and silicone', reason: 'passive fire sub does the sealing' }]);
 });
 
@@ -195,7 +197,7 @@ test('an answer to a question prints whole in its place, not split into the Cont
   const table = draft.controls.map((item) => item.text).join('\n');
   assert.doesNotMatch(table, /P2 masks|parapet anchor holes|40 holes|chemset epoxy/);
   assert.ok(draft.references.some((row) => row.text === silica));
-  assert.ok(draft.references.some((row) => row.label === 'Safety data sheet' && row.text === 'chemset epoxy, SDS in the ute'));
+  assert.ok(draft.references.some((row) => row.label === 'Safety data sheet' && row.text === 'Chemset epoxy, SDS in the ute'));
   // Whole in the step that drills.
   assert.ok(draft.jobSteps.some((step) => step.controls.includes(silica)));
   // The fall control, which has no other place, prints once and whole.

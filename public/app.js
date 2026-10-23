@@ -670,7 +670,9 @@ async function loadStates() {
   // No state is ticked on a fresh page (owner, D292 item 1: Queensland was ticked before any address was
   // typed, and a Canberra job printed Queensland law). It is set by picking the job address from its
   // list, or by ticking it; Continue and the download wait for it.
-  statesEl.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => { showFallExplanation(); stateChosen(); }));
+  // A project's one-go page draws its state questions (the Northern Territory's residential question) again (messy round 17,
+  // A run 4: after another state was ticked, "Answer whether this is residential construction work." showed with no box).
+  statesEl.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => { showFallExplanation(); stateChosen(); if (window.SiteWrite && window.SiteWrite.renderProject && window.SiteWrite.projectListOpen && window.SiteWrite.projectListOpen()) window.SiteWrite.renderProject(); }));
   showFallExplanation();
 }
 
@@ -740,6 +742,8 @@ function applyAddressState() {
     radio.checked = true;
     radio.dispatchEvent(new Event('change'));
   }
+  const clash = document.getElementById('state-clash');
+  if (clash && radio && radio.checked) { clash.textContent = ''; clash.classList.add('hidden'); }
   // "in the Northern Territory", "in the Australian Capital Territory".
   const inName = (id) => `${['nt', 'act'].includes(id) ? 'the ' : ''}${stateName(id)}`;
   const law = `This address is in ${esc(inName(found.state))}, so the SWMS uses ${esc(STATE_LAW[found.state] || `${stateName(found.state)} law`)}.`;
@@ -777,16 +781,30 @@ workplaceState.addEventListener('click', (event) => {
 });
 workplaceEl.addEventListener('input', () => workplaceEl.classList.remove('address-change'));
 
+// The clash is said under the states too, where the tick was made, with a button for the address's state (messy round 17, A
+// run 4: Northern Territory ticked for a Fremantle WA address gave no warning there). The download waits (download-gate.js).
 function checkStateMatchesAddress() {
   const found = window.SiteWriteAddress ? window.SiteWriteAddress.stateFromAddress(workplaceEl.value) : { state: '' };
   const chosen = document.querySelector('input[name="state"]:checked');
+  const clash = document.getElementById('state-clash');
   if (found.state && chosen && chosen.value !== found.state) {
-    workplaceState.textContent = `The job address is in ${stateName(found.state)}, but ${stateName(chosen.value)} is picked. The SWMS must use the law of the state where the work is done.`;
+    const said = `The job address is in ${stateName(found.state)}, but ${stateName(chosen.value)} is picked. The SWMS must use the law of the state where the work is done.`;
+    workplaceState.textContent = said;
     workplaceState.classList.add('state-warning');
-  } else if (found.state) {
-    applyAddressState();
+    if (clash) { clash.innerHTML = `${esc(said)} <button type="button" class="link" data-state-use="${esc(found.state)}">Use ${esc(stateName(found.state))}</button>`; clash.classList.remove('hidden'); }
+    return;
   }
+  if (clash) { clash.textContent = ''; clash.classList.add('hidden'); }
+  if (found.state) applyAddressState();
 }
+document.addEventListener('click', (event) => {
+  const use = event.target.closest && event.target.closest('[data-state-use]');
+  if (!use) return;
+  const radio = statesEl.querySelector(`input[value="${use.dataset.stateUse}"]`);
+  if (!radio) return;
+  radio.checked = true;
+  radio.dispatchEvent(new Event('change', { bubbles: true }));
+});
 
 // Address suggestions under an address box, from the server's address lookup.
 // onPick runs after the box changes, by typing or by picking a suggestion.
@@ -3478,7 +3496,10 @@ document.getElementById('hospital-find').addEventListener('click', async () => {
     // have none or charge for it (messy round 15, A runs 2 to 4).
     // A private hospital with an emergency department listed says both (messy round 16, B run 5: St Andrew's showed only
     // "Emergency department listed").
-    const careNote = (place) => (place.emergencyListed && place.private ? '<br><span class="meta">Private hospital, emergency department listed: it may charge for emergency care</span>' : place.emergencyListed ? '<br><span class="meta">Emergency department listed</span>' : place.private ? '<br><span class="meta">Private hospital: it may have no emergency department, or charge for one</span>' : '');
+    // A hospital with no emergency department listing of its own says so too: Google cannot show that a hospital has none, but
+    // it can show that none is listed (messy round 17, A run 4 and B run 7: Fremantle Hospital and University of Canberra
+    // Hospital, which have none, came first with no note and were chosen). The list's order is Google's, as before.
+    const careNote = (place) => (place.emergencyListed && place.private ? '<br><span class="meta">Private hospital, emergency department listed: it may charge for emergency care</span>' : place.emergencyListed ? '<br><span class="meta">Emergency department listed</span>' : place.private ? '<br><span class="meta">Private hospital: it may have no emergency department, or charge for one</span>' : '<br><span class="meta">No emergency department listed: check it has one before you choose it</span>');
     const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">${place.km ? `About ${esc(place.km)} km` : 'Less than 0.1 km'} away in a straight line</span>${careNote(place)}</button></li>`;
     box.innerHTML = `${data.hospitals.length ? `<p class="meta"><strong>Hospitals.</strong> Check the one you pick has a 24 hour emergency department.</p><ul class="care-list">${data.hospitals.map(option).join('')}</ul>` : '<p class="meta">No hospital found nearby. Type the hospital.</p>'}
       ${data.clinics.length ? `<p class="meta"><strong>Medical centres</strong>, for minor injuries in opening hours. Serious injuries go to an emergency department.</p><ul class="care-list">${data.clinics.map(option).join('')}</ul>` : ''}`;
@@ -4132,9 +4153,12 @@ resultEl.addEventListener('click', async (event) => {
     plantChoice = confirmedPlant(ticks, [...plantOwn().map((item) => ({ ...item, licence: String(item.licence || '').trim() })), ...typed()]);
     plantPending = null;
     const before = new Set(shownSteps || []);
+    // A step already ticked under Job steps was not added by the plant, though the draft drawn before did not show it yet
+    // (messy round 17, A run 2: 'Confirming it added the job step "Set up the concrete pump"' when it was already ticked).
+    const ticked = new Set(tickedSteps().flatMap((id) => { const kind = stepById.get(id); return kind ? [kind.label, ...kind.steps] : []; }));
     await prepareDraft({ scroll: false });
     const now = shownSteps || [];
-    plantAddedSteps = [...new Set([...plantAddedSteps.filter((name) => now.includes(name)), ...now.filter((name) => before.size && !before.has(name) && !/\(Our own step\)$/.test(name))])];
+    plantAddedSteps = [...new Set([...plantAddedSteps.filter((name) => now.includes(name)), ...now.filter((name) => before.size && !before.has(name) && !ticked.has(name) && !/\(Our own step\)$/.test(name))])];
     // A step the plant brought shows under Job steps, ticked, where the note says it can be unticked (messy round 16, A run 4).
     if (plantAddedSteps.length) await loadQuestions({ stay: true, keepDraft: true }).catch(() => false);
     const said = document.getElementById('plant-status');
@@ -4702,7 +4726,9 @@ function ownStepProblem(next, list, was) {
           : thinControl ? ['own-controls', why(thinControl, 'Say what is done and how, for example "Wear cut-resistant gloves when handling the mesh".')]
             : (list || []).some((other) => other.name !== was && sameWords(other.name) === sameWords(next.name)) ? ['own-name', 'You already have a step with this name. Give this one another name.'] : null;
 }
-const stepTitle = (name) => { const text = String(name || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and'); return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : text; };
+// Words typed short read in full, as the SWMS prints them (sitelink-answers.js hurried; messy round 17, A run 2: "... foam b4 pour").
+const TITLE_SHORT = [[/\bb4\b/gi, 'before'], [/\bthru\b/gi, 'through'], [/\bupto\b/gi, 'up to'], [/\bundergr(?:ou)?nd\b/gi, 'underground'], [/\bsparkies\b/gi, 'electricians'], [/\bsparky\b/gi, 'electrician']];
+const stepTitle = (name) => { const text = TITLE_SHORT.reduce((out, [pattern, word]) => out.replace(pattern, (found) => (/^[A-Z]/.test(found) ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word)), String(name || '')).replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and'); return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : text; };
 function saveOwnStep(form, after = afterOwnChange) {
   const error = form.querySelector('[data-own-error]');
   const was = form.dataset.ownWas;
@@ -5281,10 +5307,14 @@ async function restoreUnsaved() {
   } finally {
     restoring = false;
   }
-  // Work downloaded as it is is back with no "not saved yet" note.
-  if (kept.downloaded && kept.downloaded === JSON.stringify(kept.input)) {
+  // Work downloaded or saved as it is comes back with a note that says so, not "not saved yet" (messy round 16, A runs 1 and
+  // 3), and with the SWMS it was saved as, so later changes save as its next revision (messy round 17, B all runs: after a
+  // download, a reload or the home page showed an empty form with no note).
+  const asDownloaded = kept.downloaded && kept.downloaded === JSON.stringify(kept.input);
+  const savedAs = kept.editing && typeof kept.editing === 'object' && kept.editing.id ? kept.editing : null;
+  // A project's list says its own "Your work is back" (project-go.js).
+  if (asDownloaded && listOpen) {
     if (window.SiteWrite && window.SiteWrite.renderProject) window.SiteWrite.renderProject();
-    if (kept.ownForm && !listOpen) reopenOwnForm(kept.ownForm);
     return true;
   }
   const when = new Date(Number(kept.at));
@@ -5293,7 +5323,10 @@ async function restoreUnsaved() {
   note.className = 'note';
   note.id = 'unsaved-note';
   note.setAttribute('role', 'status');
-  note.innerHTML = `Your work is back as you left it (not saved yet, from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`}).${notPrepared ? ` The draft could not be prepared again: ${esc(notPrepared)}` : ''} <button type="button" class="link" id="unsaved-clear">Start again</button>`;
+  const where = savedAs && savedAs.title ? ` It is saved under My SWMS as "${esc(savedAs.title)}", revision ${esc(String(savedAs.revision || 1))}.` : '';
+  note.innerHTML = asDownloaded
+    ? `Your work is back as you left it.${where || ' It was downloaded.'}${notPrepared ? ` The draft could not be prepared again: ${esc(notPrepared)}` : ''} <button type="button" class="link" id="unsaved-clear">Start a new SWMS</button>`
+    : `Your work is back as you left it (${savedAs ? 'changes ' : ''}not saved yet, from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`}).${notPrepared ? ` The draft could not be prepared again: ${esc(notPrepared)}` : ''} <button type="button" class="link" id="unsaved-clear">Start again</button>`;
   // A project being prepared in one go hides the SWMS form: the note goes above the details it brought back.
   const start = document.getElementById('start');
   const stage = kept.stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl : kept.stage !== 'start' && !factsForm.classList.contains('hidden') ? factsForm : start.classList.contains('hidden') ? document.getElementById('job-details') : start;

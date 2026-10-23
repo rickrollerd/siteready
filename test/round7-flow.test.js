@@ -108,7 +108,8 @@ test('plant typed with -er for -or is spelt right, and a street typed one letter
   assert.equal(fixSpelling('along mitchel st').text, 'along mitchel st');
   // The task line prints with the address's spelling.
   const draft = draftOf({ state: 'nt', workplace: '45 Mitchell St, Darwin City NT', task: 'Lay 375 stormwater pipe along the mitchel st verge in a 1.2 m deep trench with a 13t excavater.' });
-  assert.match(draft.task, /Mitchell st verge/);
+  // The job address's street takes its capitals in the task line since messy round 17 (flow18).
+  assert.match(draft.task, /Mitchell St verge/);
   assert.match(draft.task, /13t excavator/);
 });
 

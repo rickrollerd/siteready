@@ -1049,7 +1049,9 @@
       const el = $(`go-site-${id}`);
       if (!el) continue;
       const value = String(site[id] || '').trim();
-      const need = value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id), ...(rules.SITE_KIND && rules.SITE_KIND[id] ? { kind: rules.SITE_KIND[id] } : {}) }, value) : '';
+      const at = project.items.findIndex((item) => !item.siteOwn && item.siteRules && item.siteRules[id]);
+      const strict = at >= 0 ? { ...project.items[at].siteRules[id], noneRefused: `In SWMS ${at + 1} (${project.items[at].title}): ${project.items[at].siteRules[id].noneRefused}` } : {};
+      const need = value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id), ...(rules.SITE_KIND && rules.SITE_KIND[id] ? { kind: rules.SITE_KIND[id] } : {}), ...strict }, value) : '';
       setNote(el, `go-need-go-site-${id}`, need ? `Needed before download: ${need}` : '');
     }
   }
@@ -1825,6 +1827,10 @@
     item.silicaStep = draft.kind === 'draft' && rules && rules.silicaStep ? rules.silicaStep(draft) : '';
     item.substanceUses = draft.kind === 'draft' && rules && rules.stepUses ? rules.stepUses(draft) : {};
     item.stepWords = draft.kind === 'draft' && rules && rules.stepWords ? rules.stepWords(draft) : '';
+    // A shared site answer one SWMS refuses ("none" for live services beside its pump step) is refused at the shared box for
+    // every SWMS that uses it (messy round 17, A run 4: "none" passed in the pool finishes SWMS and was refused in the plant
+    // room SWMS of the same project).
+    item.siteRules = draft.kind === 'draft' ? Object.fromEntries((draft.gate || []).filter((gap) => gap.kind === 'site' && gap.rule && gap.rule.noneRefused).map((gap) => [String(gap.id).replace(/^site\./, ''), { noneRefused: gap.rule.noneRefused, ask: gap.rule.ask, noneWithReason: Boolean(gap.rule.noneWithReason) }])) : {};
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];

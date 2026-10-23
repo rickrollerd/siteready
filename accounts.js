@@ -284,7 +284,9 @@ function titleFor(body, input) {
   // was named "dismantel ... scafold" though the SWMS said "dismantle ... scaffold").
   // Pasted scope lines lose their clause numbers first, and a title is never a bare number (messy round 6,
   // run 2: "1. Installation of vinyl..." named the SWMS and its files "1").
-  const task = require('./draft').andForN(require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text);
+  // The places the SWMS names take their capitals, as the task line prints them (messy round 17, B run 7: "... at emu bank").
+  const names = require('./sitelink-answers');
+  const task = names.withPlaceNames(require('./draft').andForN(require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text), names.placeNames([input.workplace, input.hospital].filter((text) => typeof text === 'string')));
   // A task typed in lower case is titled with a capital, as it prints (messy round 11, run 4).
   const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
