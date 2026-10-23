@@ -300,8 +300,9 @@
   // Earthmoving and other engine-driven plant runs on diesel or petrol too (messy round 11, run 2: fuel "Not required"
   // taken with no reason beside the crew's own excavator, compactor, dewatering pump and directional drill). A reason
   // that says why ("battery and electric plant only") still settles it.
-  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?|excavators?|compactors?|rollers?|(?:dewatering|trash|concrete|line) pumps?|directional (?:drills?|drilling rigs?)|drill(?:ing)? rigs?|skid steers?|bobcats?|posi-?tracks?|(?:wheel |front[- ]end |backhoe )?loaders?|backhoes?|graders?|dozers?|bulldozers?|tippers?|(?:tipper |dump |water |vacuum )?trucks?|water carts?|forklifts?|telehandlers?|(?:mobile |crawler |franna |pick and carry )?cranes?|chainsaws?|mulchers?|(?:concrete|road|cut-?off|quick ?cut) saws?|augers?|compressors?)\b/i;
+  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?|excavators?|diggers?|compactors?|rollers?|(?:dewatering|trash|concrete|line) pumps?|directional (?:drills?|drilling rigs?)|drill(?:ing)? rigs?|skid steers?|bobcats?|posi-?tracks?|(?:wheel |front[- ]end |backhoe )?loaders?|backhoes?|graders?|dozers?|bulldozers?|tippers?|(?:tipper |dump |water |vacuum )?trucks?|water carts?|forklifts?|telehandlers?|(?:mobile |crawler |franna |pick and carry )?cranes?|chainsaws?|mulchers?|(?:concrete|road|cut-?off|quick ?cut) saws?|augers?|compressors?)\b/i;
   const FUEL = 'Fuels (diesel, petrol)';
+  const PLANT_SITE_NAMES = { digger: 'excavator', bobcat: 'skid steer' };
   // Plant said to be another firm's ("the builders", "hired with fuel") and words that say who fuels or fills it.
   const OWNED_BY_OTHERS = /\b(?:builders?(?:'s|’s|s')?|principal contractor(?:'s|’s)?|main contractor(?:'s|’s)?|head contractor(?:'s|’s)?|pc(?:'s|’s)?|client(?:'s|’s)?|others?(?:'s|’s|s')?|hire company(?:'s|’s)?|not ours|not our)\b/i;
   const FUELLED_SAID = /\b(?:fuel\w*|refuel\w*|fill\w*|top(?:s|ped)? up|diesel|petrol|battery|electric)\b/i;
@@ -580,7 +581,9 @@
     if (type === FUEL && draft && /\b(?:we|our|us|ourselves)\b/i.test(clean(reason))) {
       // A machine named by its last word ("our saw", "the pump") counts as the listed machine it names (messy round 17, B run 7:
       // "our saw is filled at the yard" was refused for the concrete saw in the plant list).
-      const said = [...(clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []), ...(clean(reason).match(/\b(?:saws?|pumps?)\b/gi) || [])].map((word) => word.toLowerCase().replace(/s$/, ''));
+      // Plant known by its site name is the listed machine: "digger" the excavator, "bobcat" the skid steer (messy round 18, B
+      // runs 6 and 8: "trucks n digger fuelled at our depot" and "bobcat filled at our yard" were refused, naming them).
+      const said = [...(clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []), ...(clean(reason).match(/\b(?:saws?|pumps?)\b/gi) || [])].map((word) => word.toLowerCase().replace(/s$/, '')).map((word) => PLANT_SITE_NAMES[word] || word);
       // Only plant the SWMS lists as used: not an item SiteWrite is not sure of, nor one the user unticked (messy round 15, B run
       // 8: the query named a water cart the user had left unticked).
       const sure = (list) => list.filter((item) => item && !item.maybe && !/, where one is used\b/.test(String(item.licence || '')));

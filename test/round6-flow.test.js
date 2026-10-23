@@ -150,7 +150,8 @@ test('site answers print whole in the site table, as typed, and never run into a
   // As typed, with the first capital a sentence takes (messy round 15: "liverpool st" printed in lower case).
   const sentence = (text) => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
   assert.equal(printed.liveServices, sentence(site.liveServices));
-  assert.equal(printed.access, sentence(site.access));
+  // With the task line's spelling fixes (messy round 18): "excavater" reads "excavator".
+  assert.equal(printed.access, sentence(site.access.replace('excavater', 'excavator')));
 });
 
 // ---- 9. A box drawn again keeps the whole text ----

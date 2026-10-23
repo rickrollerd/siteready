@@ -157,7 +157,9 @@ function view(record) {
 // confirmation is the check it was saved with (human-check.js: name, role, date, the parts ticked,
 // their fingerprints and SiteWrite's score); without one, the name given and the date.
 async function keepRevision({ row, company, input, draft, userId = '', name = '', reason = '', at = new Date(), confirmation: given = null }) {
-  const printed = { ...draft, revision: String(row.revision || 1), revisionDate: longDate(at) };
+  // A later revision prints what changed and why, as given when it was saved (messy round 18, B run 7).
+  const why = Number(row.revision || 1) > 1 ? String(reason || '').replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+  const printed = { ...draft, revision: String(row.revision || 1), revisionDate: longDate(at), ...(why ? { revisionReason: why } : {}) };
   const fingerprint = contentHash(printed);
   const ref = await issueRef(company, row.title, placeOf(input), { swmsId: row.id, revision: Number(row.revision || 1), contentHash: fingerprint });
   const confirmation = given || (name ? { name, date: longDate(at) } : null);

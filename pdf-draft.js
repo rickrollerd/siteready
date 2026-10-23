@@ -179,6 +179,7 @@ const pair = (label, value) => ({ cells: [[{ text: label, bold: true }], [{ text
 
 function metaRows(draft) {
   const rows = [['State', draft.state], ['SWMS reference number', draft.swmsRef || ' '], ['Revision', revisionText(draft)]];
+  if (draft.revisionReason && Number(draft.revision) > 1) rows.push(['What changed and why', draft.revisionReason]);
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor]);
   rows.push(['Workplace', draft.workplace]);

@@ -94,11 +94,11 @@ test('a Public interface answer that says how the public is kept away makes no i
 
 test('"None" for Public interface is refused on a public bridge path and beside a crane or hiab lift', () => {
   // B run 7: Public "none" passed for a pedestrian bridge. A run 4: "none" passed beside hiab lifts.
-  const bridge = answered({ ...ANSWERED, workplace: '40 Emu Bank, Belconnen ACT 2617', state: 'act', task: BRIDGE, fallRisk: 'yes', crane: 'company', slinging: 'crane' });
+  const bridge = answered({ ...ANSWERED, workplace: '40 Emu Bank, Belconnen ACT 2617', state: 'act', task: BRIDGE, fallRisk: 'yes', crane: 'company', slinging: 'crane', site: { ...ANSWERED.site, publicInterface: 'None' } });
   const gap = downloadGaps(draftBody(bridge), prepareDraft(draftBody(bridge))).find((one) => one.id === 'site.publicInterface');
   assert.ok(gap);
   assert.match(gap.need, /names "pedestrain bridge", so the public or traffic is near the work\. Say how the public and traffic are kept clear of the work, for example "Path closed/);
-  const hiab = answered({ ...ANSWERED, workplace: '9 Marine Terrace, Fremantle WA 6160', state: 'wa', task: 'Install the pool filtration plant and dosing in the plant room. Pumps and filters are lifted into the plant room off the hiab truck.', fallRisk: 'no', crane: 'own', facts: { craneChart: '1.2 t at 5 m from the hiab chart', groundBearing: 'The builder\'s site manager checked the driveway slab can take the outriggers, timber pads under each leg.' } });
+  const hiab = answered({ ...ANSWERED, workplace: '9 Marine Terrace, Fremantle WA 6160', state: 'wa', task: 'Install the pool filtration plant and dosing in the plant room. Pumps and filters are lifted into the plant room off the hiab truck.', fallRisk: 'no', crane: 'own', site: { ...ANSWERED.site, publicInterface: 'None' }, facts: { craneChart: '1.2 t at 5 m from the hiab chart', groundBearing: 'The builder\'s site manager checked the driveway slab can take the outriggers, timber pads under each leg.' } });
   const lift = gateChecks(draftBody(hiab), prepareDraft(draftBody(hiab))).find((one) => one.id === 'site.publicInterface' && one.need);
   assert.ok(lift, 'refused beside the hiab lift');
   assert.match(lift.need, /lifts loads, so the lift area must be kept clear of the public/);

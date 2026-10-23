@@ -1043,17 +1043,25 @@
       const left = $(`need-${field}`);
       if (left) left.hidden = true;
     }
-    if (project.stage !== 'questions' || !rules.SITE_NEED) return;
-    const site = sharedSite();
-    for (const [id, label] of SITE) {
+    // Said at every stage the box shows, not only on the questions: a SWMS's own rule for the answer comes once it is prepared
+    // (messy round 18, A run 1: the list said "Site question: Live services" was still to give, and the box said nothing).
+    if (!rules.SITE_NEED) return;
+    for (const [id] of SITE) {
       const el = $(`go-site-${id}`);
       if (!el) continue;
-      const value = String(site[id] || '').trim();
-      const at = project.items.findIndex((item) => !item.siteOwn && item.siteRules && item.siteRules[id]);
-      const strict = at >= 0 ? { ...project.items[at].siteRules[id], noneRefused: `In SWMS ${at + 1} (${project.items[at].title}): ${project.items[at].siteRules[id].noneRefused}` } : {};
-      const need = value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id), ...(rules.SITE_KIND && rules.SITE_KIND[id] ? { kind: rules.SITE_KIND[id] } : {}), ...strict }, value) : '';
+      const need = siteNeed(id, tried);
       setNote(el, `go-need-go-site-${id}`, need ? `Needed before download: ${need}` : '');
     }
+  }
+  // Why the shared answer to one site question is refused, as the strictest SWMS using it says it, or ''.
+  function siteNeed(id, tried = true) {
+    const rules = gate();
+    if (!rules || !rules.answerNeed || !rules.SITE_NEED || !project) return '';
+    const label = (SITE.find(([one]) => one === id) || [])[1] || id;
+    const value = String(sharedSite()[id] || '').trim();
+    const at = project.items.findIndex((item) => !item.siteOwn && item.siteRules && item.siteRules[id]);
+    const strict = at >= 0 ? { ...project.items[at].siteRules[id], noneRefused: `In SWMS ${at + 1} (${project.items[at].title}): ${project.items[at].siteRules[id].noneRefused}` } : {};
+    return value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id), ...(rules.SITE_KIND && rules.SITE_KIND[id] ? { kind: rules.SITE_KIND[id] } : {}), ...strict }, value) : '';
   }
   function clearNotes() {
     document.querySelectorAll('.go-need').forEach((note) => { note.hidden = true; });
@@ -1833,7 +1841,7 @@
     // A shared site answer one SWMS refuses ("none" for live services beside its pump step) is refused at the shared box for
     // every SWMS that uses it (messy round 17, A run 4: "none" passed in the pool finishes SWMS and was refused in the plant
     // room SWMS of the same project).
-    item.siteRules = draft.kind === 'draft' ? Object.fromEntries((draft.gate || []).filter((gap) => gap.kind === 'site' && gap.rule && gap.rule.noneRefused).map((gap) => [String(gap.id).replace(/^site\./, ''), { noneRefused: gap.rule.noneRefused, ask: gap.rule.ask, noneWithReason: Boolean(gap.rule.noneWithReason) }])) : {};
+    item.siteRules = draft.kind === 'draft' ? Object.fromEntries((draft.gate || []).filter((gap) => gap.kind === 'site' && gap.rule && gap.rule.noneRefused).map((gap) => [String(gap.id).replace(/^site\./, ''), { noneRefused: gap.rule.noneRefused, ask: gap.rule.ask, noneWithReason: Boolean(gap.rule.noneWithReason), noneChecked: Boolean(gap.rule.noneChecked) }])) : {};
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];
@@ -2091,7 +2099,7 @@
       <p class="lede">${lede}</p>`);
     return `${top(`${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Under its draft, SiteWrite checks it, then you tick each part as checked and give your name and role. Only SWMS checked this way download.`)}
       <p class="error" id="project-error"></p>${said()}
-      ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
+      ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button>${siteNeed(need.id) ? `<span class="meta go-site-why"> ${esc(siteNeed(need.id))}</span>` : ''}</li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again and checked.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
       <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}" id="go-row-${index}"><div><strong>${esc(item.title)}</strong>${isOwn(item) ? ` ${OWN_TAG}` : ''}<span class="meta">${esc(states[index].text)}${checkOf(item) || states[index].check || item.checkNote === CHECK_CLEARED ? '' : ' Not checked yet.'}</span>${ownDetailsLine(item)}${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}${sentHtml(item)}</div>${rowButtons(item, index, firstToCheck)}</li>`).join('')}</ol>
       ${can ? submitHtml() : ''}

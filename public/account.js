@@ -87,16 +87,17 @@
   // finds the SWMS the first try saved instead of saving it twice.
   const HOST_ERROR = (error) => error && (error.status === 0 || [502, 503, 504].includes(error.status));
   const DOWNLOAD_DOWN = 'SiteWrite could not reach the server, so the file was not downloaded. Your SWMS and your ticks are kept. Press the button again.';
+  // Asked again twice, after 1.5 and then 5 seconds: a server process that stopped takes a few seconds to come back, so one
+  // retry 1.5 seconds later met the same 502 (messy round 18, A run 3: 502s at 10:46:30 and 10:46:31; the next press worked).
+  const RETRY_WAITS = [1500, 5000];
   async function callOnceMore(method, route, body) {
-    try {
-      return await call(method, route, body);
-    } catch (error) {
-      if (!HOST_ERROR(error)) throw error;
-      await new Promise((resolve) => { setTimeout(resolve, 1500); });
+    for (let attempt = 0; ; attempt += 1) {
       try {
         return await call(method, route, body);
-      } catch (again) {
-        throw HOST_ERROR(again) ? Object.assign(new Error(DOWNLOAD_DOWN), { status: again.status }) : again;
+      } catch (error) {
+        if (!HOST_ERROR(error)) throw error;
+        if (attempt >= RETRY_WAITS.length) throw Object.assign(new Error(DOWNLOAD_DOWN), { status: error.status });
+        await new Promise((resolve) => { setTimeout(resolve, RETRY_WAITS[attempt]); });
       }
     }
   }
@@ -498,6 +499,7 @@
       S.humanCheck.bind('new', {
         // The ticks kept on this device are for this SWMS: a saved one by its id, a new one by its task.
         key: `draft:${editing ? editing.id : ''}:${task}`,
+        was: editing ? `draft::${task}` : '',
         // A SWMS of a project brings back the check it was given (scope.js).
         // Its ticks gone, it still brings back who checked it (messy round 9, stuck point 3).
         seed: (S.projectCheck && S.projectCheck(input)) || (S.projectCheckWho && S.projectCheckWho(input)) || null,
@@ -531,7 +533,9 @@
     // every print has a record. Later changes save as its next revision.
     const saveAndDownload = async (route, fallbackName) => {
       const listTitle = S.listSwmsTitle ? S.listSwmsTitle() : '';
-      const body = { ...S.actionInput, ...answersNow(kind), ...(kind === 'draft' ? confirmed('new') : {}), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}), ...(listTitle ? { swmsTitle: listTitle } : {}) };
+      const body = { ...S.actionInput, ...answersNow(kind), ...(kind === 'draft' ? confirmed('new') : {}), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}), ...(listTitle ? { swmsTitle: listTitle } : {}),
+        // What changed and why goes with a download that saves the next revision too, so it prints on it (messy round 18, B run 7).
+        ...($('new-reason') && $('new-reason').value.trim() ? { reason: $('new-reason').value.trim() } : {}) };
       const { saved } = await download(route, fallbackName, body);
       // Downloaded: the note that the work is not saved yet goes, and stays gone after a reload (messy round 15, A run 1;
       // round 16, A runs 1 and 3).

@@ -288,7 +288,14 @@ function titleFor(body, input) {
   const names = require('./sitelink-answers');
   const task = names.withPlaceNames(require('./draft').andForN(require('./spelling').fixSpelling(require('./draft').taskLine(textField(input.task, 5000)), require('./draft').typedNames(input)).text), names.placeNames([input.workplace, input.hospital].filter((text) => typeof text === 'string')));
   // A task typed in lower case is titled with a capital, as it prints (messy round 11, run 4).
-  const sentence = (task.split(/(?<=[.!?])\s/).find((part) => /[A-Za-z]{3,}/.test(part)) || '').replace(/[.,;:]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
+  const parts = task.split(/(?<=[.!?])\s/);
+  const first = parts.findIndex((part) => /[A-Za-z]{3,}/.test(part));
+  let sentence = (parts[first] || '').replace(/[.,;:]+$/, '').replace(/^[a-z]/, (letter) => letter.toUpperCase());
+  // A heading that leads into a list ("... ready for the opening of the resort: Kitchen areas. Bathrooms/wet areas.") is titled
+  // by its lead, not cut at the first list item (messy round 18, B run 7: "...: Kitchen areas" in My SWMS and the review page).
+  const lead = /^(.{20,}?):\s+\S/.exec(sentence);
+  const next = parts[first + 1] || '';
+  if (lead && lead[1].split(/\s+/).length >= 4 && next && next.split(/\s+/).length <= 5) sentence = lead[1];
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
@@ -485,7 +492,7 @@ async function recheckSwms(req, row, kept, confirmation) {
   await db.query('UPDATE swms SET reviewed_by = $1, updated_at = $2, last_reviewed_at = $2, review_due_at = $3, reminder_sent_at = NULL, revision = revision + 1, revised_at = $2 WHERE id = $4',
     [confirmation.name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
-  const { revision: _revision, revisionDate: _date, ...draft } = kept.draft || {};
+  const { revision: _revision, revisionDate: _date, revisionReason: _why, ...draft } = kept.draft || {};
   const reason = `Checked again by ${[confirmation.name, confirmation.role].filter(Boolean).join(', ')}. No other change from revision ${kept.revision}.`.slice(0, 300);
   const made = await revisions.keepRevision({ row: next, company: req.company, input: kept.input, draft, userId: req.user.id, name: confirmation.name, reason, at: now, confirmation });
   await designFiles.recordUses(req.company.id, next.id, next.revision, kept.input);
@@ -570,7 +577,7 @@ function sameAnswers(before, after, draft) {
 // downloaded as revision 2 under a new reference, as the reloaded page sent its PPE ticks in another order;
 // the two Word files differed only in their reference and revision).
 function printKey(draft) {
-  const { revision: _revision, revisionDate: _date, ...rest } = JSON.parse(JSON.stringify(draft || {}));
+  const { revision: _revision, revisionDate: _date, revisionReason: _why, ...rest } = JSON.parse(JSON.stringify(draft || {}));
   return revisions.stable(rest);
 }
 const samePrint = (kept, draft) => Boolean(kept && kept.draft && draft) && printKey(kept.draft) === printKey(draft);

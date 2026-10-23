@@ -1328,6 +1328,8 @@ async function loadStepLibrary() {
 let stepSearchIds = null;
 let stepSearchSeq = 0;
 
+// A step to add, with the other steps it brings ("Build the fence (includes Dig post holes)").
+const addLabel = (kind) => { const others = (kind.steps || []).filter((name) => name !== kind.label); return others.length ? `${kind.label} (includes ${others.join('; ')})` : kind.label; };
 function fillStepAdd() {
   const search = document.getElementById('step-search').value.trim().toLowerCase();
   const shown = new Set(stepPicks || (questions && questions.steps ? questions.steps.chosen : []));
@@ -1336,14 +1338,14 @@ function fillStepAdd() {
     // Best matches first, as one list.
     const kinds = stepSearchIds.filter((id) => !shown.has(id)).map((id) => stepById.get(id)).filter(Boolean);
     select.innerHTML = kinds.length
-      ? `<option value="">${kinds.length} step${kinds.length === 1 ? '' : 's'} found. Choose one to add</option>${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(kind.label)}</option>`).join('')}`
+      ? `<option value="">${kinds.length} step${kinds.length === 1 ? '' : 's'} found. Choose one to add</option>${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(addLabel(kind))}</option>`).join('')}`
       : '<option value="">No steps found. Try another word</option>';
     return;
   }
   const match = (kind) => !search || `${kind.label} ${kind.steps.join(' ')}`.toLowerCase().includes(search);
   select.innerHTML = '<option value="">Choose a step to add</option>' + stepLibrary.groups.map((group) => {
     const kinds = group.kinds.filter((kind) => !shown.has(kind.id) && match(kind));
-    return kinds.length ? `<optgroup label="${esc(group.trade)}">${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(kind.label)}</option>`).join('')}</optgroup>` : '';
+    return kinds.length ? `<optgroup label="${esc(group.trade)}">${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(addLabel(kind))}</option>`).join('')}</optgroup>` : '';
   }).join('');
 }
 
@@ -1396,7 +1398,9 @@ function renderSteps(steps) {
   document.getElementById('steps-block').innerHTML = ids.length ? ids.map((id) => {
     const kind = stepById.get(id) || { label: id, steps: [] };
     const others = kind.steps.filter((name) => name !== kind.label).map(pickerName);
-    const names = others.length ? `<span class="step-names">${esc(others.join('; '))}</span>` : '';
+    // What else the box brings is said, so a step it brings is not added again (messy round 18, B run 8: "Build the fence" also
+    // brings "Dig post holes", and "Dig footing holes" was added as a duplicate).
+    const names = others.length ? `<span class="step-names">Includes: ${esc(others.join('; '))}</span>` : '';
     const off = locked.has(id) && !chosen.has(id) && !around.has(id);
     const warning = around.has(id)
       ? '<span class="step-note">For where the work is done, not the work itself. It is ticked again when you add a step for the work.</span>'
@@ -3705,6 +3709,9 @@ document.addEventListener('click', (event) => {
   if (keep) {
     craneNoKept = true;
     showCraneWarning();
+    // The step list is asked again, so a crane step ticked for the crane the task names comes off with the draft's crane
+    // lines (messy round 18, B run 5: "Work with the crane crew during lifts" stayed ticked after Keep No crane).
+    if (questions && !factsForm.classList.contains('hidden')) { refreshSteps(); return; }
     if (shownDraft && !resultEl.classList.contains('hidden')) prepareDraft({ scroll: false, keep: '.sheet' });
     return;
   }

@@ -196,10 +196,12 @@ test('an answer to a question prints whole in its place, not split into the Cont
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
   const table = draft.controls.map((item) => item.text).join('\n');
   assert.doesNotMatch(table, /P2 masks|parapet anchor holes|40 holes|chemset epoxy/);
-  assert.ok(draft.references.some((row) => row.text === silica));
+  // With the task line's spelling fixes (messy round 18): "vacum" and "assesment" are put right.
+  const printedSilica = silica.replace('vacum', 'vacuum').replace('assesment', 'assessment');
+  assert.ok(draft.references.some((row) => row.text === printedSilica));
   assert.ok(draft.references.some((row) => row.label === 'Safety data sheet' && row.text === 'Chemset epoxy, SDS in the ute'));
   // Whole in the step that drills.
-  assert.ok(draft.jobSteps.some((step) => step.controls.includes(silica)));
+  assert.ok(draft.jobSteps.some((step) => step.controls.includes(printedSilica)));
   // The fall control, which has no other place, prints once and whole.
   assert.equal(draft.controls.filter((item) => item.text === 'Builders scaffold with handrails as edge protection. New safety mesh is laid under the sheets.').length, 1);
 });

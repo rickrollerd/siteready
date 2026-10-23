@@ -29,7 +29,7 @@ const TRENCH = { ...ANSWERED, state: 'qld', task: 'Excavate a trench 2.5 m deep 
 // The cable tray step rates a fall into an open riser, away from the platform, so the fall rescue is asked
 // too (messy round 11, A fault 4).
 const EWP_ANSWERS = { ewpLower: 'Larry Leadinghand, leading hand, trained on the ground controls', ewpControls: 'Ground control panel at the rear of the base, key in the ignition', plantStop: 'The operator presses the red emergency stop on the platform', fallRescue: 'Two trained crew bring the person up from the riser with the rescue kit kept at the riser door', fallKit: 'Rescue tripod and harness kit at the level 2 riser door' };
-const TRENCH_ANSWERS = { trenchRescue: 'No one enters: lifted out from the top with the harness and line by Dave Digger', trenchKit: 'Tripod, winch, harness and line at the trench box', confinedRescue: 'Sam Spotter at the manhole, retrieval from outside by tripod and winch', confinedKit: 'Tripod and winch, harness and lifeline, gas detector at the entry', plantStop: 'The operator rests the bucket and turns the key off' };
+const TRENCH_ANSWERS = { trenchRescue: 'No one enters: lifted out from the top with the harness and line by the spotter', trenchKit: 'Tripod, winch, harness and line at the trench box', confinedRescue: 'Sam Spotter at the manhole, retrieval from outside by tripod and winch', confinedKit: 'Tripod and winch, harness and lifeline, gas detector at the entry', plantStop: 'The operator rests the bucket and turns the key off' };
 
 const build = (input) => {
   const body = draftBody(input);
@@ -125,7 +125,7 @@ test('each high risk category asks the facts a reviewer looks for, and "Not appl
 test('the answers print in the emergency row of their category, not only the heading', () => {
   const { draft } = build({ ...ready(TRENCH), emergency: TRENCH_ANSWERS });
   const row = (type) => draft.emergency.find((item) => item.type === type);
-  assert.equal(row('Trench').detail, 'Rescue: No one enters: lifted out from the top with the harness and line by Dave Digger\nRescue equipment: Tripod, winch, harness and line at the trench box');
+  assert.equal(row('Trench').detail, 'Rescue: No one enters: lifted out from the top with the harness and line by the spotter\nRescue equipment: Tripod, winch, harness and line at the trench box');
   assert.equal(row('Confined space').detail, 'Stand-by person and rescue: Sam Spotter at the manhole, retrieval from outside by tripod and winch\nRescue equipment at the entry: Tripod and winch, harness and lifeline, gas detector at the entry');
   // Moving plant has a row of its own, citing the plant code in Queensland only.
   assert.match(row('Mobile plant').equipment, /Emergency stops on the plant are clearly marked.*\(Managing risks of plant in the workplace Code of Practice s 1\.4, s 4\.3\)$/);

@@ -474,6 +474,8 @@ function metaRows(draft) {
   const rows = [['State', draft.state]];
   rows.push(['SWMS reference number', draft.swmsRef || ' ']);
   rows.push(['Revision', revisionText(draft)]);
+  // Why a later revision was made, as typed when it was saved (messy round 18, B run 7: it printed on neither file).
+  if (draft.revisionReason && Number(draft.revision) > 1) rows.push(['What changed and why', draft.revisionReason]);
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor || ' ']);
   rows.push(['Workplace', draft.workplace || ' ']);

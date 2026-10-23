@@ -42,7 +42,9 @@ const ANSWERED = {
   worksManager: 'Sam Lee',
   worksManagerPhone: '0412 345 678',
   // Ground is asked where a step digs, so it says what the ground is (messy round 15, SiteLink: "None" is refused there).
-  site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'Firm level ground, no soft spots.', access: 'Through the main site gate.' },
+  // Public interface says how the public is kept away: "None" alone is refused beside a lift or a step that runs mobile plant
+  // (messy rounds 17 and 18).
+  site: { liveServices: 'None', publicInterface: 'None. The site is fenced, no public access.', otherTrades: 'None', ground: 'Firm level ground, no soft spots.', access: 'Through the main site gate.' },
 };
 
 // Live services named for work beside a live supply (messy round 14: "None" is refused there).
@@ -57,7 +59,7 @@ function ready(input) {
   for (let pass = 0; pass < 2; pass += 1) {
     const draft = prepareDraft(draftBody(out));
     if (draft.kind !== 'draft') return out;
-    const emergency = Object.fromEntries((draft.emergencyQuestions || []).map((item) => [item.id, `${item.short} answer for this site`]));
+    const emergency = Object.fromEntries((draft.emergencyQuestions || []).map((item) => [item.id, `${item.short} answer for this site, by the trained crew at the work area`]));
     // Each design the steps rely on is named (designs.js), unless the test gives its own answers.
     const designs = input.designs || ((draft.designs || []).length ? draft.designs.map((row) => ({ id: row.id, what: row.what, status: 'given', by: 'Smith Engineering', number: `SE-${row.id.toUpperCase()}-101`, revision: 'C', date: '2026-10-03' })) : undefined);
     // Each type of hazardous substance SiteWrite suggests is ticked "Not required" (D277), unless
@@ -79,7 +81,9 @@ function ready(input) {
     const why = input.substancesNotUsedWhy || (named.length ? Object.fromEntries(named.map((type) => [type, reasonFor(type)])) : undefined);
     // Live services are named where a step's hazard is a live supply, as "None" is refused there (messy round 14).
     const site = out.site || {};
-    const liveNamed = /^(?:none|nil|n\/a|na|not applicable)?\.?$/i.test(String(site.liveServices || '').trim()) && require('../download-gate').liveSupplyHazard(draft) ? { site: { ...site, liveServices: LIVE_SERVICES } } : {};
+    const gateRules = require('../download-gate');
+    // Or where a step finds buried services or connects to a live one (messy round 18).
+    const liveNamed = /^(?:none|nil|n\/a|na|not applicable)?\.?$/i.test(String(site.liveServices || '').trim()) && (gateRules.liveSupplyHazard(draft) || gateRules.buriedServices(draft)) ? { site: { ...site, liveServices: LIVE_SERVICES } } : {};
     out = { ...out, ...liveNamed, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}), ...(notUsed ? { substancesNotUsed: products.length ? left : notUsed } : {}), ...(products.length ? { substances: products } : {}), ...(why ? { substancesNotUsedWhy: why } : {}) };
   }
   return out;

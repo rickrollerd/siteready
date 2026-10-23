@@ -139,6 +139,34 @@ function headingNumbersOff(text) {
 // from the words as typed, as before.
 // So do words typed short ("b4", "thru", "upto", "undergrnd", "sparky", "db": messy round 17), as sitelink-answers.js reads them.
 const andForN = (text) => nameCase.hurried(text);
+// Typed answers print with the task line's fixes (messy round 18, B runs 5 and 6, A run 2: "shaft platfrom" and "Trench
+// sheild" printed as typed though the task line fixed them, "its a trench, the shield n barriers do the job" in a filled
+// blank, and "sds in the van" as a control): the spelling, "n" for "and", "its a" for "it's a", "dont" for "don't", and
+// the short names in capitals ("SDS", "PPE"). Choice answers (a word or an id) are left as they are.
+const CONTRACTIONS = [
+  [/\b([Ii])ts(?= (?:a|an|the|not|all|only|just|been|too|very|ok|fine|safe|done)\b)/g, "$1t's"],
+  [/\b([Dd])ont\b/g, "$1on't"], [/\b([Dd])oesnt\b/g, "$1oesn't"], [/\b([Ii])snt\b/g, "$1sn't"], [/\b([Dd])idnt\b/g, "$1idn't"],
+  [/\b([Ww])asnt\b/g, "$1asn't"], [/\b([Aa])rent\b/g, "$1ren't"], [/\b([Cc])ouldnt\b/g, "$1ouldn't"], [/\b([Ww])ouldnt\b/g, "$1ouldn't"], [/\b([Ss])houldnt\b/g, "$1houldn't"],
+];
+// Short names a typed answer could hold as a plain word ("set ups", "a qa check" aside) stay as typed.
+const ANSWER_SHORT = (text) => String(text).replace(/\b[a-z]{2,5}\b/g, (word) => (['ups', 'av', 'qa', 'ipa', 'she'].includes(word) ? word : nameCase.withShortNames(word)));
+function typedAnswer(text, names) {
+  if (typeof text !== 'string' || !/\s/.test(text.trim())) return text;
+  let out = fixSpelling(text, names).text;
+  for (const [pattern, to] of CONTRACTIONS) out = out.replace(pattern, to);
+  return ANSWER_SHORT(andForN(out));
+}
+function withTypedAnswers(input) {
+  if (!input || typeof input !== 'object') return input;
+  const names = typedNames(input);
+  const each = (values) => (values && typeof values === 'object' && !Array.isArray(values) ? Object.fromEntries(Object.entries(values).map(([key, value]) => [key, typedAnswer(value, names)])) : values);
+  const fills = input.fills && typeof input.fills === 'object' ? Object.fromEntries(Object.entries(input.fills).map(([key, list]) => [key, Array.isArray(list) ? list.map((value) => andForN(typedAnswer(value, names))) : list])) : input.fills;
+  const out = { ...input };
+  for (const key of ['facts', 'site', 'emergency']) if (input[key] !== undefined) out[key] = each(input[key]);
+  if (input.fills !== undefined) out.fills = fills;
+  for (const key of ['musterPoint', 'firstAidLocation']) if (input[key] !== undefined) out[key] = typedAnswer(input[key], names);
+  return out;
+}
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
   // A word ending in an accent ("Café") ends its line too (messy round 10, run 7: "Café Bars.").
@@ -231,6 +259,14 @@ function withoutPickWords(task) {
 }
 function craneNamed(task) {
   return /\b(cranes?|hiabs?|frannas?|vehicle loading cranes?)\b/i.test(ownWork(othersAndDenials(withoutPickWords(task)).others));
+}
+// No crane used on this job: "No crane" answered and the task names none, or "No crane" kept after the page asked about the
+// crane the task names (craneNoKept). Kept, the person says no crane, crane truck or hiab is used, so the crane steps, the
+// "Crane operated by" row and the crane company's lines go (messy round 18, A run 1 and B run 5: after Keep No crane the
+// draft still printed "Crane operated by: Crane company", the crane company's lift plan line and the hiab or crane crew step).
+const CRANE_KINDS = new Set(['craneInterface', 'crane', 'heavyLift', 'dualLift', 'craneAssembly', 'loaderCrane', 'towerCrane', 'steelLift']);
+function noCraneUsed(state, task) {
+  return Boolean(state && state.noCrane) && (Boolean(state.craneKept) || !craneNamed(task));
 }
 // A gas fire suppression (gas discharge) system is fire protection, not gas piping (messy round 12, A run 3: "Lead fire
 // matrix testing for Gatehouse SER gas discharge system" listed pressurised gas mains as high risk work, with the gas
@@ -2625,7 +2661,7 @@ const ACCESS_SEEN = new Map();
 // tiler's ticks dropped the question, so its answer went, and "Work at edges" went with it).
 function fallAccessNeeded(fullTask, answer, state) {
   if (!state || !state.id || !fallRiskFor(fullTask, answer)) return false;
-  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane, Boolean(state.fallAccessChosen)]);
+  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane, Boolean(state.craneKept), Boolean(state.fallAccessChosen)]);
   if (!ACCESS_SEEN.has(key)) {
     if (ACCESS_SEEN.size > 500) ACCESS_SEEN.clear();
     const found = fallStepsControlled(fullTask, {}, state);
@@ -2888,6 +2924,23 @@ const GROUND_CONFIRMED = /\b(?:engineer\w*|geo ?tech\w*|report|certificate|certi
 // the crew itself ("i checked it", "the operator checked").
 const GROUND_CONFIRMED_BY = /\b(?:(?:centre|center|facility|facilities|property|building|asset|estate|car ?park|shopping centre|school|council)\s+(?:manager|management|owner|officer|engineer)s?|council|landlord|asset owner|owner's representative|road authority|port authority)\b[^.]{0,40}\b(?:confirm\w*|check\w*|approv\w*|advis\w*|assess\w*|sign\w* off|signed)\b|\bconfirmed (?:by|with) (?:the )?(?!(?:me|us|our|the operator|operator|driver|crane op\w*|crew)\b)[a-z]+/i;
 
+// A vehicle loading crane set up on a sealed or hard surface, on outrigger pads or mats, kept back from the dig (messy round
+// 18, B run 6: "hiab sets up on the sealed road, well back from the trench, outriggers on 600mm pads, council road opening
+// permit covers it" was refused twice as too thin). The surface, the pads and the setback or pad size are each said.
+const HARD_SURFACE = /\b(?:sealed|bitumen|asphalt|concrete|paved|hardstand|hard ?stand|kerb ?side|road|roadway|pavement|slab)\b/i;
+const OUTRIGGER_PADS = /\b(?:outrigger (?:pads?|mats?|plates?)|pads?|mats?|spreader (?:plates?|mats?)|cribbing|timber (?:pads?|mats?))\b/i;
+const SET_BACK = /\b(?:(?:well )?(?:back|away|clear) (?:from|of)|set back|outside the (?:zone|influence)|\d+(?:\.\d+)?\s*m (?:back|from|clear))\b|\b\d{3,4}\s*mm\b/i;
+const groundSetUpSaid = (text) => HARD_SURFACE.test(text) && OUTRIGGER_PADS.test(text) && SET_BACK.test(text) && /\boutriggers?\b|\bpads?\b/i.test(text);
+const truckCraneOnly = (task) => CRANE_TRUCK_WORDS.test(String(task || '')) && !/\b(?:mobile|crawler|tower|all[- ]terrain|slewing|pick and carry)\s+cranes?\b|\bfrannas?\b|\b\d+\s*(?:t|tonnes?)\s+cranes?\b/i.test(String(task || ''));
+// An anchor named with where it is fixed ("to the anchor in the machine room").
+const FIXED_ANCHOR = /\b(?:anchors?|anchor points?|anchorages?|static lines?|lifelines?|eye ?bolts?|tie[- ]off points?)\s+(?:in|on|at|above|over|fixed to|bolted to)\s+(?:the |a |each |our )?[a-z]/i;
+const PLANT_ANCHOR = /\b(?:ewps?|elevating work platforms?|baskets?|booms?|boom lifts?|platforms?|towers?|climb systems?|manufacturer\w*|maker'?s?)\b/i;
+const HARNESS_SAYS = [
+  /\b(?:rated|rating|certified|certificat\w*|engineer\w*|installed by|installer|load tested|proof tested|tested|\d+\s*kn|as\/?nzs?\s*(?:5532|1891)|designed)\b/i,
+  /\b(?:inspect\w*|checked|check\w* before|tag\w*|in date|servic\w*|register)\b/i,
+  /\b(?:trained|training|competent|ticket\w*|certificate of (?:training|competency)|voc|verified)\b/i,
+];
+
 // What a stood-down SWMS says of one answer it still needs. A box with "na", "none" or "TBC" typed in it
 // is not "Not answered yet": it says why the words typed are not an answer (messy round 11, run 3: "na"
 // was called "Not answered yet").
@@ -2919,6 +2972,10 @@ function hasSubstance(id, text) {
   if (!value) return false;
   if (id === 'craneChart') return statesChartValues(value);
   if (id === 'groundBearing' && !GROUND_CONFIRMED.test(value) && !GROUND_CONFIRMED_BY.test(value)) return false;
+  // A harness clipped to a fixed anchor says who rated or installed it, or how it is checked (messy round 18, B run 5: "harness n
+  // retractable to the anchor in the machine room" passed with a soft finding). An EWP's, a tower's or a maker's own anchor
+  // point is rated with the plant.
+  if (id === 'harnessSystem' && !harnessDenied({ harnessSystem: value }) && FIXED_ANCHOR.test(value) && !PLANT_ANCHOR.test(value) && !HARNESS_SAYS.slice(0, 2).some((pattern) => pattern.test(value))) return false;
   // "dont know", "me" or "as per eng" says nothing, judged by the same words as the download check
   // (public/gate-rules.js notAnswer). A blank (____) left to fill is the download check's to ask.
   const gate = require('./public/gate-rules');
@@ -2993,6 +3050,8 @@ function factState(item, task, facts, state) {
   if (stepAnswerNotApplicable(item.id, (facts || {})[item.id])) return 'vague';
   const field = keptFact(facts[item.id]);
   if (!field) return 'missing';
+  // A vehicle loading crane only, not a mobile crane: its set-up said in full passes (groundSetUpSaid).
+  if (item.id === 'groundBearing' && truckCraneOnly(task) && groundSetUpSaid(field)) return 'supplied';
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
 }
 
@@ -3123,7 +3182,7 @@ function controlsFor(task, facts, pack) {
     for (const item of scaffoldControls(scaffoldBrief(task, pack && pack.site, pack))) {
       push(item.level, item.text);
     }
-  } else if (isCraneOrLift(source) && !(pack && pack.state && pack.state.noCrane && !craneNamed(task))) {
+  } else if (isCraneOrLift(source) && !(pack && pack.state && noCraneUsed(pack.state, task))) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
     if (!(pack && pack.state && pack.state.ownCrane) && !/\b(?:operat\w*|run\w*)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i.test(source)) {
       // A steel erector's own riggers sling and direct the steel, unless the person answered that the crane company's
@@ -3618,8 +3677,10 @@ function stateFor(input) {
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
   // A way of working at height the user chose keeps its question and its step through a change of steps (messy round
   // 13, A run 1: ticking a step whose lines stop a fall dropped "Working at height" and its "Work at edges" step).
-  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', craneCompany: Boolean(String(input.crane || '').trim()) && craneAnswer(input.crane) === 'company', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
+  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', craneKept: craneAnswer(input.crane) === 'none' && input.craneNoKept === true, craneCompany: Boolean(String(input.crane || '').trim()) && craneAnswer(input.crane) === 'company', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
   if (state.noBrazing && state.kinds) state.kinds = state.kinds.filter((id) => id !== 'hotWork');
+  // No crane kept: a crane step ticked before is not this job's work.
+  if (state.craneKept && state.kinds) state.kinds = state.kinds.filter((id) => !CRANE_KINDS.has(id));
   // A scaffold the user says is by others: its erect and dismantle steps come off (messy round 12, run 6).
   state.scaffoldByOthers = choiceAnswer('scaffoldType', input.facts && input.facts.scaffoldType) === 'byOthers';
   if (state.kinds && state.scaffoldByOthers) state.kinds = state.kinds.filter((id) => id !== 'scaffold');
@@ -3794,7 +3855,9 @@ function askQuestions(input) {
     spellingFixes: spelling.fixes,
     fall: fallCheck(task, answer, state, ownStepsOf(input).map((item) => item.name).join('\n')),
     // "No crane" while the task names a crane, said under the crane question.
-    ...(craneCheck(task, input.crane, input.craneNoKept === true) ? { crane: craneCheck(task, input.crane, input.craneNoKept === true) } : {}),
+    // It names the crane in the person's own words ("hiab"), as the query above the draft does (messy round 18, A run 1: one
+    // copy said "vehicle loading crane", read from the slang, and the other "hiab").
+    ...(craneCheck(spelling.text, input.crane, input.craneNoKept === true) ? { crane: craneCheck(spelling.text, input.crane, input.craneNoKept === true) } : {}),
     required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
@@ -4626,7 +4689,8 @@ function reviewDateAfter(dateText) {
 // The "Safety data sheet" question, said in one line (messy round 3: it had no explanation).
 const SDS_PROMPT = 'Name the hazardous products this work uses, such as sealant, primer, adhesive or fuel, and how they are handled. Each one\'s safety data sheet is kept on site.';
 
-function prepareDraft(input) {
+function prepareDraft(typed) {
+  const input = withTypedAnswers(typed);
   const read = scopeWords(input);
   const out = buildDraft(read, false);
   return withTaskCapitals(withCraneCheck(withFallCheck(withSpellingFixes(movedTask(read === input ? standDownTask(out, input) : printedTask(out, input), input), input), input), input));
@@ -4973,7 +5037,7 @@ function buildDraft(input, screen) {
     firstAidLocation: andForN(keptFact(input.firstAidLocation)) || undefined,
     siteRules: Array.isArray(input.siteRules) && input.siteRules.map(keptFact).filter(Boolean).length ? input.siteRules.map(keptFact).filter(Boolean) : undefined,
     // With No crane ticked, precast lifted in by the excavator names no crane operator (messy round 11, run 8).
-    craneOperator: isCraneOrLift(task) && !(state.noCrane && !craneNamed(task)) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
+    craneOperator: isCraneOrLift(task) && !noCraneUsed(state, task) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
     worksManager: nameCase.tidyPersonRole(keptFact(input.worksManager)),
     worksManagerPhone: keptFact(input.worksManagerPhone),
     complianceResponsible: nameCase.tidyPersonRole(keptFact(input.complianceResponsible)),
@@ -5530,7 +5594,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // The respirator fit testing line goes with steps that use a respirator, or a list the user chose with one.
   // What the lines are kept to besides the setting (tidySteps): the state, a principal contractor named,
   // and no crane on the job.
-  const setting = { ...settingOf(task, facts, input.site, plantChoiceNames(input)), stateId: state.id, pcNamed: Boolean(keptFact(input.principalContractor)), noCrane: Boolean(state.noCrane) && !craneNamed(task), ownCrane: Boolean(state.ownCrane) };
+  const setting = { ...settingOf(task, facts, input.site, plantChoiceNames(input)), stateId: state.id, pcNamed: Boolean(keptFact(input.principalContractor)), noCrane: noCraneUsed(state, task), ownCrane: Boolean(state.ownCrane) };
   // The way up to work at height the user chose, where no job step of the task stops a fall.
   // Plant the user confirmed brings the steps for using it (messy round 4: painting from a confirmed EWP
   // and mobile scaffold, with an airless sprayer added, had no height step and no spray step).
@@ -6898,9 +6962,8 @@ function priorKindsKept(input, prior) {
   if (!/\w/.test(own)) return [];
   const found = new Set(suggestedKinds(own, {}, { ...state, kinds: null, allWords: true }));
   const words = new Set((own.toLowerCase().match(/[a-z][a-z-]{3,}/g) || []).map(stem));
-  const craneKinds = new Set(['craneInterface', 'crane', 'heavyLift', 'dualLift', 'craneAssembly', 'loaderCrane', 'towerCrane', 'steelLift']);
   return [...new Set(prior)].filter((id) => typeof id === 'string' && KIND_SET.has(id)).filter((id) => {
-    if (craneKinds.has(id) && state.noCrane && !craneNamed(raw)) return false;
+    if (CRANE_KINDS.has(id) && noCraneUsed(state, raw)) return false;
     if (found.has(id)) return true;
     const names = KIND_STEP_NAMES.get(id) || [];
     // Every word of one of its steps' names that says what the step does or works on ("Place concrete", "Stand and fix the
@@ -6997,7 +7060,7 @@ function suggestedFlags(task, facts, state) {
   // the words name no installing, fixing, connecting or moving of the plant.
   if (flags.plantLift && state.ownCrane && !/\b(install\w*|fix\w*|connect\w*|commission\w*|bolt\w*|anchor\w*|position\w*|set(?:ting)? (?:the |new |each )?(?:[\w-]+ )?(?:units?|plant)|skates?|pallet jacks?|receiv\w*|unload\w*|forklifts?)\b/i.test(task.replace(/\bset\w* up (?:the )?(?:\w+ )?cranes?\b/gi, ' '))) flags.plantLift = false;
   // No crane on this job: crane steps come only from a crane the task itself names.
-  if (state.noCrane && !craneNamed(task)) {
+  if (noCraneUsed(state, task)) {
     for (const id of ['craneInterface', 'crane', 'heavyLift', 'dualLift', 'craneAssembly', 'loaderCrane']) flags[id] = false;
     // Reo goes onto the deck without a crane: by hand, hoist or forklift.
     flags.reoNoCrane = true;
@@ -10522,7 +10585,10 @@ const HARNESS_USED = /\b(harness\w*|fall arrest|travel restraint|restraint syste
 function harnessInUse(source) {
   // A sentence saying no harness is used is not one in use (messy round 10, run 4).
   const text = withoutHarnessDenials(source);
-  return HARNESS_USED.test(text) || (/\b(elevating work platforms?|ewps?)\b/i.test(text) && !/\bscissor\b/i.test(text));
+  // An EWP the words rule out ("No EWP's on tiled or carpet areas. Mobile scaffolds are to be used.") is not one in use (messy
+  // round 18, B run 7: a cleaning scope with falls No asked "Harness and anchors").
+  const ewps = text.replace(/\b(?:no|not|never|without)\b[^.;\n]{0,20}\b(?:elevating work platforms?|ewps?|ewp['’]s)\b[^.;\n]*|\b(?:elevating work platforms?|ewps?|ewp['’]s)\b[^.;\n]{0,30}\b(?:are|is) not (?:to be )?(?:used|allowed|permitted)\b[^.;\n]*/gi, ' ');
+  return HARNESS_USED.test(text) || (/\b(elevating work platforms?|ewps?)\b/i.test(ewps) && !/\bscissor\b/i.test(ewps));
 }
 
 // Tidies the steps for this task: harness lines go when no harness, restraint or
@@ -10806,7 +10872,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { ELECTRICAL_AS_PLACE, statusOf, andForN, depthFall, FALL_INTO, craneNamed, ewpRuledOut, cleanedSentences, cleanerProducts, withoutOthersWork: (text) => withoutOthersClauses(text), foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
+module.exports = { withTypedAnswers, ELECTRICAL_AS_PLACE, statusOf, andForN, depthFall, FALL_INTO, craneNamed, ewpRuledOut, cleanedSentences, cleanerProducts, withoutOthersWork: (text) => withoutOthersClauses(text), foundKinds, taskLine, typedNames, withFallCheck, withoutClearedAsbestos, withoutServiceCabling, stepCoveringPart, withoutOtherTrades, workInside, sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,

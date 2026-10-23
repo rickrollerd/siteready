@@ -29,7 +29,13 @@ const SITE_WORDS = ['vibro', 'nightshift', 'nightshifts', 'dayshift', 'dayshifts
 // messy test tasks) that the dictionary does not hold, so they are never "corrected" (messy round 7:
 // "propress", the ProPress press-fit copper system, became "progress" in the task, title and sign-on
 // sheet; the scan of our scopes also found "set downs", "camlock", "prepainted" and "offsite" changed).
-const TRADE_WORDS = ['propress', 'megapress', 'pressfit', 'viega', 'rehau', 'unistrut', 'kango', 'kangos', 'sikaflex', 'promat', 'rondo', 'knauf', 'siniat', 'revit', 'autodesk', 'qcover', 'climbtrac', 'skydome', 'skydomes', 'speartop', 'rebox', 'corefill', 'roadsaw', 'roadsaws', 'roadsawing', 'tapware', 'sanitaryware', 'powdercoat', 'powdercoated', 'powdercoating', 'linemarking', 'plantroom', 'plantrooms', 'coldroom', 'coldrooms', 'steelfixer', 'steelfixers', 'steelfixing', 'gasfitter', 'gasfitters', 'blocklayer', 'blocklayers', 'overform', 'insitu', 'siteworks', 'tradewaste', 'groundcovers', 'tubestock', 'submains', 'rangehood', 'rangehoods', 'prefinished', 'prefinishes', 'carpark', 'carparks', 'camlock', 'camlocks', 'setdown', 'setdowns', 'prepainted', 'offsite', 'onsite', 'inline', 'workface', 'workfaces', 'rebriefing', 'coredrill', 'coredrills', 'coredrilling', 'hardscape', 'hardscapes', 'standalone', 'greenstar', 'onboarding'];
+const TRADE_WORDS = ['propress', 'megapress', 'pressfit', 'viega', 'rehau', 'unistrut', 'kango', 'kangos', 'sikaflex', 'promat', 'rondo', 'knauf', 'siniat', 'revit', 'autodesk', 'qcover', 'climbtrac', 'skydome', 'skydomes', 'speartop', 'rebox', 'corefill', 'roadsaw', 'roadsaws', 'roadsawing', 'tapware', 'sanitaryware', 'powdercoat', 'powdercoated', 'powdercoating', 'linemarking', 'plantroom', 'plantrooms', 'coldroom', 'coldrooms', 'steelfixer', 'steelfixers', 'steelfixing', 'gasfitter', 'gasfitters', 'blocklayer', 'blocklayers', 'overform', 'insitu', 'siteworks', 'tradewaste', 'groundcovers', 'tubestock', 'submains', 'rangehood', 'rangehoods', 'prefinished', 'prefinishes', 'carpark', 'carparks', 'camlock', 'camlocks', 'setdown', 'setdowns', 'prepainted', 'offsite', 'onsite', 'inline', 'workface', 'workfaces', 'rebriefing', 'coredrill', 'coredrills', 'coredrilling', 'hardscape', 'hardscapes', 'standalone', 'greenstar', 'onboarding',
+  // Trade words the fixer turned into other words (messy round 18, A run 1: the kitchen's "bratt pan" printed "bratty pan";
+  // a scan of our scopes found "back boxes" written "backboxes" made "backbone", "hardcore" fill made "hardware", and the
+  // network's "vlans" and "fobot" trays made "vans" and "foot").
+  'bratt', 'bratts', 'backbox', 'backboxes', 'hardcore', 'vlan', 'vlans', 'fobot', 'fobots', 'covid', 'tradie', 'tradies', 'loxin',
+  // Places typed in lower case ("australian standards", "queenslander"), which the word list holds only with a capital.
+  'australian', 'queenslander', 'queenslanders', 'victorian', 'tasmanian', 'territorian'];
 const EXTRA = ['plasterboard', 'formwork', 'falsework', 'scaffolding', 'scaffold', 'excavator', 'excavation', 'telehandler', 'balustrade', 'balustrades', 'waterproofing', 'downpipes', 'downpipe', 'blockwork', 'brickwork', 'blockwall', 'jumpform', 'precast', 'shotcrete', 'stormwater', 'switchboard', 'switchboards', 'subcontractor', 'penetrations', 'reinforcement', 'asbestos', 'demolition', 'demolish', 'concrete', 'electrical', 'plumbing', 'carpentry', 'skylight', 'sarking', 'flashing', 'flashings', 'guttering', 'cladding', 'insulation', 'sprinklers', 'hydrant', 'hydrants', 'ductwork', 'refrigerant', 'condenser', 'chiller', 'generator', 'substation', 'transformer', 'conduit', 'containment', 'trench', 'trenching', 'backfill', 'compaction', 'asphalt', 'bitumen', 'pavers', 'retaining', 'footings', 'lintel', 'lintels', 'pergola', 'decking', 'joinery', 'benchtop', 'benchtops', 'membrane', 'membranes', 'sealant', 'silicone', 'grandstand', 'stadium', 'concourse', 'hospital', 'classroom', 'basement', 'dewatering', 'piling', 'stockpile', 'stockpiles', 'spoil', 'kerb', 'kerbs', 'bollards', 'hoarding', 'gantry', 'crane', 'cranes', 'forklift', 'elevating', 'platform', 'scissor', 'electrician', 'plumber', 'carpenter', 'bricklayer', 'scaffolder', 'rigger', 'dogman'];
 
 let vocabulary = null;
@@ -194,6 +200,10 @@ function englishCorrection(lower, word) {
   }
   const pick = close.length === 1 ? close[0] : (close.filter((candidate) => doubled(lower, candidate)).length === 1 ? close.find((candidate) => doubled(lower, candidate)) : null);
   if (!pick || pick === `${lower}s` || `${pick}s` === lower) return null;
+  // A letter added to or cut from the end of the word makes another word, not a fix: the word list lacks many real words
+  // whose longer or shorter form it holds ("bratt" pan to "bratty", "snatch" block to "snatchy", "victorian" to "victoriana",
+  // "australian" to "australia"; messy round 18, A run 1).
+  if (pick.startsWith(lower) || lower.startsWith(pick)) return null;
   return word[0] === word[0].toUpperCase() ? pick[0].toUpperCase() + pick.slice(1) : pick;
 }
 

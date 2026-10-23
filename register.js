@@ -948,7 +948,8 @@ function registersFor(draft, input = {}) {
     .filter((item) => !RAIL_PLANT.has(item.item) || RAIL_WORK.test(`${ownTask}\n${steps.map((step) => step.step).join('\n')}`))
     // A crane denied or given to others in the task ("no crane", "crane by others") is not one the crew uses (messy round
     // 12, B run 8), as the draft reads it (draft.js craneNamed).
-    .filter((item) => !(noCrane && /crane/i.test(item.item) && !require('./draft').craneNamed(ownTask)))
+    // "No crane" kept after the page asked about the crane the task names: none is used (messy round 18, A run 1).
+    .filter((item) => !(noCrane && /crane/i.test(item.item) && (input.craneNoKept === true || !require('./draft').craneNamed(ownTask))))
     // An EWP the task rules out ("No EWP's on tiled or carpet areas. Mobile scaffolds are to be used.") is not the crew's
     // plant, where no step works from one (messy round 14, B run 7).
     .filter((item) => !(/^(?:Elevating work platform|Boom-type elevating work platform|Scissor lift)$/.test(item.item) && require('./draft').ewpRuledOut(ownTask) && !steps.some((step) => /\b(?:EWP|elevating work platform|scissor lift|boom lift)\b/i.test(step.step))))
