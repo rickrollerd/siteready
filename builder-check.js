@@ -136,13 +136,35 @@ const SOURCES = {
 // cited "WHS Regulations s 299" and SafeWork NSW). A state regulator's own findings are cited only for its
 // state. Victoria's SWMS law is its own regulations, and the model WHS Regulations are named as the model.
 const REGULATOR_STATE = [[/\bSafeWork NSW\b/, 'nsw'], [/\bWHSQ\b/, 'qld'], [/\bSafeWork SA\b/, 'sa']];
+// A Victorian SWMS cites Victoria's own regulations, never the model WHS Regulations (messy round 17, SiteLink wording 9:
+// W10 and W13 cited "model WHS Regulations" while H1 cited the Victorian regulations). The regulation numbers are those
+// WorkSafe Victoria's compliance codes give (sources/state-codes/vic): falls r 44 to r 49 (prevention of falls), excavation
+// r 331 (excavation emergency procedures), confined spaces r 63 (entry permits), hazardous substances r 155, r 156 and
+// r 162, asbestos Part 4.4. A model regulation with no Victorian one held is left out, not named.
+const VIC_REGS = {
+  H3: 'r 44 (hierarchy of control for falls)',
+  W2: 'r 44 (hierarchy of control for falls)',
+  W5: '(high risk work licences and plant)',
+  W6: 'r 49 (emergency procedures for a fall)',
+  W10: 'r 44 (hierarchy of control for falls)',
+  W12: 'r 63 (confined space entry permit)',
+  W13: 'r 44 to r 49 (falls), r 331 (excavation), r 63 (confined spaces) and Part 4.4 (asbestos)',
+  W14: 'r 155 and r 156 (safety data sheets obtained and at hand) and r 162 (the hazardous substances register)',
+};
+// The part of a rule's sources that names the model WHS Regulations, up to the next source.
+const MODEL_REGS = /(?:Hierarchy of control \()?\bWHS Regulations\b[^;]*?(?=; |$)/;
 function sourceFor(rule, state) {
   const all = SOURCES[rule];
   if (!all || !state) return all;
   const parts = all.split('; ');
   const kept = parts.filter((part) => !REGULATOR_STATE.some(([pattern, id]) => pattern.test(part) && id !== state.id));
   let out = (kept.length ? kept : ['Tier 1 SWMS review checklists']).join('; ');
-  if (state.id === 'vic') out = out.replace(/\bWHS Regulations s 299(?:\(3\))?(?: and s 300)?/g, `${state.instrument} r ${state.section}`).replace(/\b(?<!model )WHS Regulations\b/g, 'model WHS Regulations');
+  if (state.id === 'vic') {
+    out = out.replace(/\bWHS Regulations s 299(?:\(3\))?(?: and s 300)?/g, `${state.instrument} r ${state.section}`);
+    if (VIC_REGS[rule] && MODEL_REGS.test(out)) out = out.replace(MODEL_REGS, `${state.instrument} ${VIC_REGS[rule]}`);
+    // Any model regulation left with no Victorian one held is taken out.
+    out = out.split('; ').filter((part) => !/\bWHS Regulations\b/.test(part)).join('; ') || 'Tier 1 SWMS review checklists';
+  }
   return out;
 }
 

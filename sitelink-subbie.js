@@ -141,7 +141,7 @@ async function listView(found) {
     subcontractor: { name: sub.name, trade: sub.trade },
     due: { date: due, shown: due ? listMail.longDue(due) : '', past: Boolean(due) && due < todayIn(project.state) },
     contact: await contactOf(sub, org),
-    items: rows.map((one, i) => withSettled(itemOf(one, view.swms[i], all), view.answers)),
+    items: rows.map((one, i) => withSettled(itemOf(one, view.swms[i], all), view.answers, { activities: handover.workOf(one, all) })),
     answers: view.answers.map(({ by: _by, ...answer }) => answer),
     siteDetails: row ? { rev: Number(row.rev), setBy: row.set_by_name, setOn: when(row.set_at, project.state) } : null,
     builderSet: builderSet.builderSetOf({ workplace: project.workplace, pcName: project.pc_name || org.name }, details),

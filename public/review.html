@@ -38,6 +38,8 @@
     .choice strong { display: block; }
     .choice .meta { margin: 2px 0 0; font-weight: 400; }
     .choice:has(input:checked) { border-color: #1f4e3d; background: #e8f3ee; }
+    .choice .suggests { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 10px; background: #fff3cd; color: #5c4400; font-size: 14px; font-weight: 600; }
+    #send-says { margin: 10px 0 6px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; max-width: 760px; }
     @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
     .field-error { color: #a01818; font-weight: 700; margin: 6px 0 0; }
@@ -143,7 +145,7 @@
       </div>
       <div class="panel">
         <h2>2. Builder check</h2>
-        <p class="meta short" id="check-intro">Checks this revision against the builder check rules: must-fix items first, then a score out of 100. Accepted is 90 to 100 with no must-fix item. Accepted with changes is 60 to 89. Below 60, or any must-fix item, is not accepted. The check picks the matching response below. You decide.</p>
+        <p class="meta short" id="check-intro">Checks this revision against the builder check rules: must-fix items first, then a score out of 100. Accepted is 90 to 100 with no must-fix item. Accepted with changes is 60 to 89. Below 60, or any must-fix item, is not accepted. The check marks the matching response below. You choose the response; nothing is sent until you do.</p>
         <button type="button" id="run-check">Run Builder check</button>
         <div id="check" class="hidden" aria-live="polite">
           <div class="score" style="margin-top:12px"><strong id="score"></strong><span>out of 100</span><span id="band" class="band"></span></div>
@@ -173,6 +175,7 @@
             <div><label for="company">Your company</label><input id="company" type="text" autocomplete="organization" maxlength="200"><p class="field-error hidden" id="company-error"></p></div>
           </div>
           <p class="meta" id="sent-note">Recorded against this revision with today's date. The business sees your response in SiteWrite and is emailed that its review is back. A later revision starts unreviewed.</p>
+          <p id="send-says" aria-live="polite">Choose a response above. Nothing is sent until you do.</p>
           <button type="submit" id="send">Send the response</button>
         </div>
         <div id="respond-status" aria-live="polite"></div>

@@ -241,7 +241,9 @@
     if (!log.length) return '';
     return `<details class="go-log"><summary>Log with ${esc(b.builder.name)} (${log.length})</summary><ul class="plain">${log.map((entry) => `<li><span class="meta">${esc(entry.when)}</span> ${esc(entry.text)}</li>`).join('')}</ul></details>`;
   }
-  // The button under the list: every SWMS checked and not yet submitted as it is now.
+  // The button under the list: every SWMS checked and not yet submitted as it is now. With nothing to submit there is
+  // no button, only the line that says why (messy round 17, SiteLink: "Submit to ..." showed, disabled, beside a
+  // submitted SWMS after a reload).
   function submitHtml() {
     const b = builder();
     if (!b) return '';
@@ -257,7 +259,7 @@
       <h3>Submit to ${name}</h3>
       <p class="meta">${sent ? `${sent} of the ${total} SWMS on ${poss(name)} list ${sent === 1 ? 'is' : 'are'} submitted${off ? `, and ${off === 1 ? 'one is' : `${off} are`} taken off your list` : ''}. ` : ''}A SWMS on ${poss(name)} list can be submitted once it is checked part by part. Submitting saves it in My SWMS as its revision, and ${name} reviews that revision. Your own SWMS are not sent.</p>
       ${submitSaid ? `<p class="${submitSaid.ok ? 'note' : 'error'}" role="status" id="go-submit-said">${esc(submitSaid.text)}</p>` : ''}
-      <div class="actions"><button type="button" id="go-submit-all"${can.length ? '' : ' disabled'}>${can.length ? label : `Submit to ${name}`}</button></div>
+      ${can.length ? `<div class="actions"><button type="button" id="go-submit-all">${label}</button></div>` : ''}
       ${can.length ? '' : `<p class="meta">${sent === required.length && required.length ? `Each SWMS here from ${poss(name)} list is submitted. Change one and check it again to submit it again.` : 'Nothing to submit yet: check each SWMS first.'}</p>`}
     </div>`;
   }
@@ -327,6 +329,12 @@
       if (row && row.scrollIntoView) row.scrollIntoView({ block: 'center' });
     } catch (error) {
       button.disabled = false;
+      // The condition changed on the builder's side (confirmed, or sent back): the page shows it as it now is, with
+      // the reason beside it (messy round 17, SiteLink: after the 409 the page still showed the old states).
+      if (error.status === 409) {
+        const fresh = await S.call('GET', `/api/from-builders/${encodeURIComponent(b.id)}`).catch(() => null);
+        if (fresh && fresh.sent) { b.sent = fresh.sent; save(); hooks.render(); }
+      }
       const row = $(`cond-${id}`);
       if (row) row.insertAdjacentHTML('beforeend', `<span class="error" role="alert">${esc(error.message)}</span>`);
     }
@@ -1789,10 +1797,12 @@
     const list = Array.isArray(body.substances) ? body.substances : [];
     const notUsed = new Set(Array.isArray(body.substancesNotUsed) ? body.substancesNotUsed : []);
     const add = rules.sdsProducts(sds).filter((row) => !notUsed.has(row.type) && !list.some((one) => (rules.coversType ? rules.coversType(one, row.type) : one && one.type === row.type)))
-      .map((row) => {
+      .map((row, at, all) => {
         // Typed in lower case, a product's short name keeps its capitals ("pvc solvent cement" reads "PVC solvent cement").
         const named = row.product.replace(/\b(?:c?pvc|u-?pvc|lpg|mdf|sbs|abs|hdpe)\b/gi, (word) => word.toUpperCase());
-        return { id: `sds-${index}-${rules.TYPES.indexOf(row.type)}`, type: row.type, product: `${named.charAt(0).toUpperCase()}${named.slice(1)}` };
+        // Two products of one type each have their own row (messy round 17, SiteLink).
+        const same = all.slice(0, at).filter((one) => one.type === row.type).length;
+        return { id: `sds-${index}-${rules.TYPES.indexOf(row.type)}${same ? `-${same + 1}` : ''}`, type: row.type, product: `${named.charAt(0).toUpperCase()}${named.slice(1)}` };
       });
     return add.length ? { ...body, substances: [...list, ...add] } : body;
   }

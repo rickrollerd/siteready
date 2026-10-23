@@ -180,7 +180,8 @@
   // required" for that type then needs a short reason ("supplied and applied by others"). Only the
   // product's own names count, not the work around it ("pour" or "excavator" name no product).
   const NAMED = {
-    'Paints and coatings': /\b(?:paints?|painting|painted|coatings?|enamels?|undercoats?|top ?coats?)\b/i,
+    // A cold galvanising zinc spray is a coating too (messy round 17, SiteLink: "cold galv zinc spray" in the SDS answer).
+    'Paints and coatings': /\b(?:paints?|painting|painted|coatings?|enamels?|undercoats?|top ?coats?|cold[- ]?galv\w*|zinc (?:spray|rich|paint|primer)s?|galv(?:anis\w*)? (?:spray|paint)s?)\b/i,
     'Solvents and thinners': /\b(?:solvents?(?! cement| weld\w*)|thinners?|turps|acetone|mineral spirits?)\b/i,
     'Adhesives': /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(?:adhesives?|glues?|glued)\b/i,
     // Dust from cutting timber names it too (messy round 9: wood dust "Not required" beside "Dust from cutting
@@ -319,11 +320,13 @@
   function sdsProducts(sds) {
     const out = [];
     const sentences = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => !NOT_OURS.test(sentence));
-    const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+and\s+|\s*&\s*/))
+    const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+(?:and|n)\s+|\s*&\s*/))
       .map((clause) => clean(clause).replace(/[.:\s]+$/, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
     for (const clause of clauses) {
       const type = TYPES.find((one) => namedIn(one, clause));
-      if (type && !out.some((row) => row.type === type)) out.push({ type, product: clause });
+      // Each product named is its own row, two of a type too ("pipe thread sealant, duct sealant mastic": messy round 17,
+      // SiteLink: the second sealant, the adhesive and the zinc spray were asked again).
+      if (type && !out.some((row) => row.product.toLowerCase() === clause.toLowerCase())) out.push({ type, product: clause });
     }
     return out;
   }

@@ -820,4 +820,4 @@ async function removeForSubcontract(subId) {
   await db.query('DELETE FROM submissions WHERE subcontract_id = $1', [subId]);
 }
 
-module.exports = { router, install, summaryFor, forSubcontractPage, forCompany, companySummary, removeForSubcontract, submittedMail, overridesFor, conditionLines };
+module.exports = { projectPeople, router, install, summaryFor, forSubcontractPage, forCompany, companySummary, removeForSubcontract, submittedMail, overridesFor, conditionLines };

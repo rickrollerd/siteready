@@ -370,7 +370,7 @@
     $('check-intro').textContent = outside ? outsideCheckNote(data) : $('check-intro').dataset.revision || $('check-intro').textContent;
     $('run-check').disabled = outside && (data.submission.checkStatus === 'reading' || !(data.readings || {}).on);
     $('run-check').textContent = outside ? (data.submission.builderCheck ? 'Builder check is done' : data.submission.checkStatus === 'reading' ? 'Reading the file...' : 'Run Builder check on the file') : 'Run Builder check';
-    if (outside && data.submission.builderCheck) { $('run-check').disabled = true; showCheck(data.outsideCheck || data.submission.builderCheck); }
+    if (outside && data.submission.builderCheck) { $('run-check').disabled = true; const done = data.outsideCheck || data.submission.builderCheck; showCheck(done); if (done.band) suggest(PICK[done.band] || 'changes'); }
     else if (!keepCheck) show('check', false);
     const closed = !data.current || data.gone;
     $('respond-closed').innerHTML = closed ? (data.gone ? '<strong>This SWMS was deleted by the business, so it cannot be given a response.</strong>' : `<strong>This is not the latest.</strong><p>${esc(business)} has submitted ${data.later && data.later.channel === 'sitewrite' ? `revision ${esc(data.later.revision)}` : 'another SWMS for this'} since, so only the latest can be given a response. <a href="/review.html?submission=${esc(data.later.id)}">Open the latest</a></p>`) : '';
@@ -390,6 +390,14 @@
   // ---- Builder check ----
 
   const PICK = { Accepted: 'approved', 'Accepted with changes': 'conditions' };
+  const LABELS = { approved: 'Approved', conditions: 'Approved with conditions', changes: 'Not approved' };
+  function suggest(value) {
+    document.querySelectorAll('#choices .suggests').forEach((tag) => tag.remove());
+    const input = document.querySelector(`input[name="response"][value="${value}"]`);
+    if (!input) return;
+    input.closest('label').querySelector('span').insertAdjacentHTML('beforeend', '<span class="suggests">Builder check suggests this</span>');
+    $('check-line').textContent = `${$('check-line').textContent} Builder check suggests "${LABELS[value]}". Choose your response under 3. Your response.`.trim();
+  }
   function showCheck(data) {
       $('score').textContent = data.score;
       $('band').textContent = data.band;
@@ -413,9 +421,9 @@
       // A file received outside SiteWrite is read by the AI first: the page asks how it is going.
       if (data.status === 'reading') { status('respond-status', ''); await loadProject({ keepCheck: true }); return; }
       showCheck(data);
-      // The response that matches the check is picked; the reviewer can change it.
-      const pick = document.querySelector(`input[name="response"][value="${PICK[data.band] || 'changes'}"]`);
-      if (pick && !$('respond-open').classList.contains('hidden')) { pick.checked = true; textLabel(); keepDraft(); }
+      // The response that matches the check is marked, never chosen: the reviewer chooses it, so one press of
+      // Send cannot send a response they did not pick (messy round 17, SiteLink blocker 2).
+      suggest(PICK[data.band] || 'changes');
     } catch (error) {
       status('respond-status', esc(error.message), 'bad');
     } finally {
@@ -432,7 +440,21 @@
   const NEEDS = { conditions: 'Write the conditions of the approval.', changes: 'Write the changes needed.' };
   const SAYS_NOTHING = { conditions: 'Write the conditions of the approval. If there are none, choose Approved.', changes: 'Write the changes needed, so the business knows what to fix.' };
   const EMPTY_WORDS = /^(?:none|nil|nothing|no|n\/?a|na|tbc|tba|tbd|ok|okay|yes|see above|as discussed|-+|\.+|x+)$/i;
+  // The Send button and the line above it say what will be sent, and to whom.
+  function sendLabel() {
+    const value = chosen();
+    if (!value) {
+      $('send').textContent = 'Send the response';
+      $('send-says').textContent = 'Choose a response above. Nothing is sent until you do.';
+      return;
+    }
+    const to = business || 'the business';
+    const outside = inProject && page && page.submission && page.submission.channel === 'outside';
+    $('send').textContent = `Send "${LABELS[value]}"`;
+    $('send-says').textContent = `This sends "${LABELS[value]}" to ${to}${outside ? '' : ' and emails them that their review is back'}.`;
+  }
   function textLabel() {
+    sendLabel();
     $('text-label').textContent = { conditions: inProject ? 'Conditions (required), one to a line' : 'Conditions (required)', changes: 'Changes needed (required)' }[chosen()] || 'Comments (optional)';
     // The hint fits the response chosen (messy round 8, wording 4: the conditions hint showed under
     // "Changes needed").
@@ -515,7 +537,7 @@
     } finally {
       sending = false;
       $('send').disabled = false;
-      $('send').textContent = 'Send the response';
+      sendLabel();
     }
   });
 

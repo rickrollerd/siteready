@@ -314,7 +314,8 @@ test('wording: clause headings once, "may not need" said once to the lead, full 
   assert.equal(handover.REMOVED_WHY.noLaw, 'No high risk construction work was found in it. Move it to the list if you want a SWMS for it.');
   assert.match(read('public/hse.js'), /const said = item\.group === 'aside' && !\(item\.highRisk && item\.highRisk\.status === 'none'\);/);
   // 7. A point answer ends with a full stop.
-  assert.match(read('sitelink-scopes.js'), /\{ answer: true \}\), \{ stop: true \}\)/);
+  // (messy round 17: with the project's people and "n" and "b4" read too, sitelink-answers.js leadWords).
+  assert.match(read('sitelink-scopes.js'), /\{ answer: true \}\), \{ \.\.\.\(await leadNames\(ctx\)\), stop: true \}\)/);
   // 8. The "our call" reason on the draft page starts with a capital.
   assert.match(read('public/app.js'), /Reason: \$\{esc\(String\(item\.reason\)\.trim\(\)\.replace\(\/\[\.\\s\]\+\$\/, ''\)\.replace\(\/\^\[a-z\]\/,/);
   // 9. A note sent back ends with a full stop on both sides.

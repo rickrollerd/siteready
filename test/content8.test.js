@@ -65,7 +65,8 @@ test('work found by its words beside SiteWrite\'s own work steps is listed above
 test('"Not required" is refused where the SDS answer lists the product, whatever the reason', () => {
   // Run 1: "touch up only" beside "cold galv touch up paint spray cans, SDS in the ute".
   const steel = { state: 'nsw', fallRisk: 'yes', crane: 'company', slinging: 'crane', task: 'Erect structural steel roof frame. Install dyna-bolts and masonry bolts. Touch up paint on installed steel.', facts: { safetyDataSheet: 'cold galv touch up paint spray cans, SDS in the ute.' }, substancesNotUsed: [PAINT], substancesNotUsedWhy: { [PAINT]: 'touch up only' } };
-  assert.match(needOf(steel, PAINT), /safety data sheet answer names "paint"/);
+  // "cold galv" names the coating too, and comes first (messy round 17, SiteLink).
+  assert.match(needOf(steel, PAINT), /safety data sheet answer names "cold galv"/);
   // Run 3: sealant "by the passive fire sub" beside an SDS answer naming fire sealant.
   const fire = { state: 'qld', fallRisk: 'yes', crane: 'none', task: 'Install sprinkler pipework and seal the penetrations with fire sealant.', facts: { safetyDataSheet: 'blazemaster cpvc cement, rocol thread paste, fire sealant. SDSs in the gang box' }, substancesNotUsed: [SEALANT], substancesNotUsedWhy: { [SEALANT]: 'passive fire sub does the sealing' } };
   assert.match(needOf(fire, SEALANT), /names "sealant"/);

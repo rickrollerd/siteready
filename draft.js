@@ -2770,6 +2770,33 @@ function ownSiteOf(input) {
   if (given === true) return {};
   return Array.isArray(given) ? Object.fromEntries(Object.entries(site).filter(([key]) => !given.includes(key))) : site;
 }
+// A crane or a lift named in a site answer given once for the whole project reaches only SWMS whose own work lifts
+// (messy round 17, SiteLink blocker 3: "plant by crane to the roof", answered once for every SWMS, gave Hot work
+// (brazing) a mobile crane and "The crane company plans and does the lifts ..." in its controls, and unticking the
+// crane left the line). The answer still prints as written; only what SiteWrite reads from it changes.
+const LIFT_KINDS = new Set(['crane', 'craneAssembly', 'craneInterface', 'dualLift', 'facadeCrane', 'heavyLift', 'loaderCrane', 'plantLift', 'steelLift', 'towerCrane', 'towerCraneErect', 'towerLift', 'slabLift', 'landscapeLift', 'plantErect', 'roofPlant']);
+const SHARED_CRANE_WORDS = /\b(?:cranes?|craned|craning|cranage|craneage|hiabs?|frannas?|dogm[ae]n|doggers?|dogging|riggers?|slings?|slinging|banksman|lift plans?|lift studies|lift study)\b/i;
+function workLifts(input) {
+  const task = String((input && (input.task || input.jobDescription)) || '');
+  const kinds = Array.isArray(input && input.kinds) ? input.kinds : [];
+  return isCraneOrLift(task) || craneNamed(task) || kinds.some((id) => LIFT_KINDS.has(id))
+    // Heavy plant lifted, hoisted or landed in the same sentence ("Unload and lift the chillers into place"); a delivery alone
+    // ("Test mechanical services before delivery") is not a lift.
+    || /\b(?:ahus?|air handling units?|chillers?|cooling towers?|condensers?)\b[^.]{0,60}\b(?:lift(?:s|ed|ing)?|hoist\w*|land(?:s|ed|ing)?)\b|\b(?:lift(?:s|ed|ing)?|hoist\w*|land(?:s|ed|ing)?)\b[^.]{0,60}\b(?:ahus?|air handling units?|chillers?|cooling towers?|condensers?)\b/i.test(task.replace(/\b(?:boom|scissor|sciss?ors?) lifts?\b/gi, ''));
+}
+// The site answers as SiteWrite reads them: a shared answer's crane words are left out where this SWMS's work does
+// not lift.
+function readSite(input) {
+  const site = (input && input.site) || {};
+  const given = input && input.siteShared;
+  if (!given || workLifts(input)) return siteConditions(site);
+  const shared = (key) => given === true || (Array.isArray(given) && given.includes(key));
+  // A crane the answer sends to the roof still reaches roof work ("plant by crane to the roof", Roof works).
+  const task = String((input && (input.task || input.jobDescription)) || '');
+  const kept = (part) => !SHARED_CRANE_WORDS.test(part) || (/\b(?:on)?to (?:the )?roofs?\b/i.test(part) && /\broof/i.test(task));
+  const noCrane = (value) => String(value).split(/(?<=[.;\n])\s*/).map((sentence) => sentence.split(/,\s+/).filter(kept).join(', ')).filter((part) => /\w/.test(part)).join(' ');
+  return siteConditions(Object.fromEntries(Object.entries(site).map(([key, value]) => [key, typeof value === 'string' && shared(key) && SHARED_CRANE_WORDS.test(value) ? noCrane(value) : value])));
+}
 function siteConditions(site) {
   const answers = Object.entries(site || {}).map(([key, value]) => (typeof value !== 'string' ? value : key === 'liveServices' ? value.replace(SERVICE_PLACE, '') : key === 'access' ? value.replace(ACCESS_ROUTE, ' ') : value));
   // Each answer is read on its own line, so answers never run together (messy round 6, run 6).
@@ -3558,7 +3585,7 @@ function foundKinds(input) {
   if (!state || !state.loaded) return null;
   const task = withoutDeniedWelding(readSlang(fixSpelling(cleanLine(read.task || read.jobDescription), typedNames(read)).text));
   if (!task) return null;
-  return stepPicks(task, { ...(read.facts || {}), siteConditions: siteConditions(read.site) }, state).chosen;
+  return stepPicks(task, { ...(read.facts || {}), siteConditions: readSite(read) }, state).chosen;
 }
 
 // Traffic control the task gives to others (messy round 13, B run 7: "trafic control by others" still ticked "Set up
@@ -3704,13 +3731,13 @@ function askQuestions(input) {
     fall: fallCheck(task, answer, state, ownStepsOf(input).map((item) => item.name).join('\n')),
     // "No crane" while the task names a crane, said under the crane question.
     ...(craneCheck(task, input.crane, input.craneNoKept === true) ? { crane: craneCheck(task, input.crane, input.craneNoKept === true) } : {}),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: siteConditions(input.site) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
-    ppe: ppeList(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
+    ppe: ppeList(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
-    steps: withPlantSteps(stepPicks(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state), input, task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
+    steps: withPlantSteps(stepPicks(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
   };
 }
 
@@ -4780,7 +4807,7 @@ function buildDraft(input, screen) {
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   // A fall control answer the questions no longer ask (the fall answer changed to No after it was
   // filled across) does not print or bring a harness (messy round 4, run 5).
-  const facts = { ...askedFallFacts(withDesignHolds(input.facts, input.designs), fallAnswer(input.fallRisk)), siteConditions: siteConditions(input.site) };
+  const facts = { ...askedFallFacts(withDesignHolds(input.facts, input.designs), fallAnswer(input.fallRisk)), siteConditions: readSite(input) };
   if (choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined' && !/\bconfined space\b/i.test(task)) delete facts.confinedSpace;
   const site = siteFromPack(task, input.site || {});
   const pack = {
