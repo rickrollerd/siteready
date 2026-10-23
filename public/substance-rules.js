@@ -74,6 +74,8 @@
     // A step whose lines have refrigerant connections made handles refrigerant (messy round 15, A run 3: the refrigerant licence
     // printed and refrigerant was not asked).
     'Refrigerants': /\brefrigerant connections are made\b/i,
+    // The soil step's Legionella line names potting mix and compost (messy round 17, B run 8: the line printed and the type was not asked).
+    'Potting mix, soil conditioners and fertilisers': /\bpotting mix(?:, compost)?\b|\bcompost\b/i,
   };
   // Fuel named in a step's lines, read only for a reason "Not required" needs (stepWords), not to list the type.
   const LINE_ONLY = { 'Fuels (diesel, petrol)': /\b(?:petrol|diesel)(?:[- ](?:driven|powered|engined))?\b/i };
@@ -94,12 +96,20 @@
     // A formwork crew that finishes the slab uses the concrete in its finishing step (messy round 15, A run 1).
     'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b|Finish concrete$)/i,
     // The road plant too (messy round 16, B run 8: diesel went to "Separate plant and people on site").
-    'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving |road )?plant|run earthmoving plant|operate (?:the )?(?:\w+ )?(?:plant|machines?)|generators?)\b/i,
+    'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving |road )?plant|run earthmoving plant|operate (?:the )?(?:\w+ ){0,2}(?:plant|machines?)|generators?)\b/i,
     // The refrigerant is charged in the charging step, not the pipe run that names it (messy round 14, A run 1).
     'Refrigerants': /^(?:Evacuate and charge|Charge|Recover)\b/i,
   };
   // Keeping people apart from the plant is not running it.
-  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b((?<!separate )plant|machines?|generators?|trucks?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|cranes?|chainsaws?|mulchers?)\b/i };
+  // Planting ("Plant") is not plant. A truck or crane step comes last: a delivery truck or a hiab is often not ours to fuel, and the
+  // step whose lines run the fuelled plant comes first (messy round 17, B runs 5 and 8: diesel went to the hiab unload step, not the
+  // sleeper step run with the hi-rail excavator or the bobcat's auger step).
+  const STEP_HINT = { 'Fuels (diesel, petrol)': /\b((?<!separate )plant(?! the\b)|machines?|generators?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|chainsaws?|mulchers?)\b/i };
+  const STEP_HINT_LAST = { 'Fuels (diesel, petrol)': /\b(trucks?|cranes?)\b/i };
+  const LINE_HINT = { 'Fuels (diesel, petrol)': /\b(excavators?|sleeper changers?|road rail vehicles?|hi-?rail|tampers?|track (?:maintenance )?machines?|regulators?|generators?|compressors?|bobcats?|skid steers?|posi-?tracks?|loaders?|dozers?|graders?|rollers?|chainsaws?|mulchers?|concrete saws?|road saws?)\b/i };
+  // Adhesive with no step that names it goes where the joinery, trims or floor coverings it fixes go in (messy round 17, B run 6:
+  // "SiteWrite could not tell which step uses it" for a joiner's adhesive).
+  const ADHESIVE_STEP = /\b(?:joinery|cabinets?|benchtops?|skirting|architraves?|floor coverings?|trims?|panels?|cladding)\b/i;
   // The job step that uses a product of this type: the first whose name names the type, else the
   // first whose hazards or controls do. Not the general steps at the start and end, nor the user's own
   // steps. '' when none does: the user chooses the step.
@@ -128,15 +138,20 @@
     const byName = named.find((step) => !PREPARES.test(step.step || '')) || named[0];
     if (byName) return byName.step;
     // Fuel goes with the step that runs the fuelled plant (messy round 4: diesel matched to "Paint line marking").
-    const hinted = STEP_HINT[type] && usable.find((step) => STEP_HINT[type].test(step.step || ''));
-    if (hinted) return hinted.step;
     const lines = (step) => (step.controls || []).filter((line) => !(step.substanceLines || []).includes(line));
+    const hinted = STEP_HINT[type] && usable.find((step) => STEP_HINT[type].test(step.step || '') && !/^Plant\b/.test(step.step || ''));
+    if (hinted) return hinted.step;
+    const lineHinted = LINE_HINT[type] && usable.find((step) => LINE_HINT[type].test([...(step.hazards || []), ...lines(step).map(withoutSource)].join('\n')) && !/^(?:Separate|Unload|Plant\b)/.test(step.step || ''));
+    if (lineHinted) return lineHinted.step;
+    const lastHinted = STEP_HINT_LAST[type] && usable.find((step) => STEP_HINT_LAST[type].test(step.step || ''));
+    if (lastHinted) return lastHinted.step;
     // A line that offers the product in place of something else ("Glue instead of nailing") is not its use
     // (messy round 10, run 4: the door adhesive went to "Use power tools").
     const used = (step) => lines(step).filter((line) => !/\binstead of\b/i.test(line));
     const byLines = usable.find((step) => pattern.test([...(step.hazards || []), ...used(step).map(withoutSource)].join('\n'))
       || (CONTROL_PRODUCTS[type] && CONTROL_PRODUCTS[type].test(used(step).join('\n'))));
     if (byLines) return byLines.step;
+    if (type === 'Adhesives') { const fixing = usable.find((step) => ADHESIVE_STEP.test(step.step || '')); if (fixing) return fixing.step; }
     // With no step that works with it, the step done during the pour is where it is (content11: a formwork SWMS with no pour).
     const atPour = usable.find((step) => pattern.test(String(step.step || '')) && /\b(?:during|after) the pour\b/i.test(step.step || ''));
     if (atPour) return atPour.step;
@@ -326,7 +341,9 @@
     const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+(?:and|n)\s+|\s*&\s*/))
       .map((clause) => clean(clause).replace(/[.:\s]+$/, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
     for (const clause of clauses) {
-      const type = TYPES.find((one) => namedIn(one, clause));
+      // Concrete named on its own is the cement product (messy round 17, A run 2: "concrete, form oil n curing compound" made no
+      // concrete product, and cement was asked again).
+      const type = TYPES.find((one) => namedIn(one, clause)) || (/^(?:(?:pre-?mix(?:ed)?|ready[- ]?mix(?:ed)?|wet|bagged|premixed|n\d+|\d+ ?mpa)\s+)*concrete(?:\s+(?:mix|bags?))?$/i.test(clause) ? 'Cement, concrete, grout and mortar' : '');
       // Each product named is its own row, two of a type too ("pipe thread sealant, duct sealant mastic": messy round 17,
       // SiteLink: the second sealant, the adhesive and the zinc spray were asked again).
       if (type && !out.some((row) => row.product.toLowerCase() === clause.toLowerCase())) out.push({ type, product: clause });
@@ -601,7 +618,9 @@
   const PRODUCT_STEPS = [
     // Messy round 14. Old concrete or footings dug out are worked in the removal step (B run 8: "old concrete footings" went to
     // "Dig post holes" by "post"); a fire rated sealant seals the frames and penetrations, not the drilling (A run 4).
-    [/\b(?:old|existing|removed|demolished)\b[^.]{0,30}\b(?:concrete|footings?|slabs?|pavers?|masonry|brick\w*|blocks?)\b/i, [/^(?:Take down|Remove|Break out|Demolish|Strip|Cut out)\b/i]],
+    // Not a step that removes timber, decking or roofing (messy round 17, B run 7: the old capping's silica went to "Remove and
+    // replace damaged timbers").
+    [/\b(?:old|existing|removed|demolished)\b[^.]{0,30}\b(?:concrete|footings?|slabs?|pavers?|masonry|brick\w*|blocks?|capping)\b/i, [/^(?:Take down|Remove|Break out|Demolish|Strip|Cut out)\b(?!.*\b(?:timbers?|deck(?:ing| boards?)?|roof\w*|sheets?|linings?|wallpaper)\b)/i, /^(?:Drill or cut concrete, masonry or stone|Saw cut concrete|Grind concrete)$/i]],
     [/\bfire[- ]?(?:rated|resistant|stop\w*)\b[^.]{0,20}\b(?:sealants?|mastics?|silicone|caulk\w*|foam)\b|\bintumescent\b/i, [/\bfire ?stop\w*|\bpenetrations?\b/i, /^(?:Stand the door frames|Install doors|Hang the doors|Install windows|Install the shopfront frames)$/i, /\bseal\w*/i]],
     [/\bbearings?\b|\bnon[- ]?shrink\b|\bbedding grout\b/i, [/\bbearings?\b/i, /^Grout the base$/i, /\bgrout\w*\b/i]],
     [/\bgrout\b/i, [/\bgrout\w*\b/i, /^Lay tiles$/i, /^Fix the wall tiles$/i, /^Lay tiles near open edges$/i]],
@@ -633,6 +652,10 @@
     // release agent to no step, and conduit glue to the labelling step.
     [/\b(?:jointing|setting|base ?coat|top ?coat|topping|stopping|finishing) (?:compounds?|cements?|plasters?)\b|\bcornice (?:cement|adhesive)\b/i, [/^Set the joints$/i, /\bjoints?\b/i]],
     [/\b(?:batts|glass ?wool|rock ?wool|insulation)\b/i, [/^Install insulation$/i, /\binsulat\w*/i, /^Strip out\b/i, /^Strip\b/i]],
+    // Messy round 17: curing compound cures the slab, not the kerb step (A run 2); pool chlorine and dosing chemicals go in the
+    // dosing or pool plant step, not the acid wash (A run 4).
+    [/\bcur(?:e|es|ing) (?:compounds?|agents?|membranes?)\b|\bcuring\b/i, [/^Cure the concrete$/i, /\bcur(?:e|ing)\b/i]],
+    [/\bpool chemicals?\b|\bchlorine\b|\bhypochlorite\b|\bdosing\b/i, [/\bdosing\b/i, /^Install the pool plant$/i]],
     [/\b(?:release agents?|form ?oil|form release)\b/i, [/^Lay the formwork deck$/i, /^Stand and brace wall and column forms$/i, /^Form the\b/i, /\bform(?:work)?\b/i]],
     [/\bconduits?\b/i, [/^Lay conduits$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i, /^Rough-in$/i]],
   ];

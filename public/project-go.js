@@ -796,11 +796,11 @@
     const box = (key, text, hint, type = 'text') => `<div class="field"><label for="${name}-${key}">${text}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="${name}-${key}" type="${type}" data-go-design="${esc(designId)}" data-field="${key}" maxlength="200" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
     const usedElsewhere = project.items.some((_item, other) => other !== index && designIds(other).includes(designId));
     return `<fieldset class="field design-card go-design" data-status="${esc(row.status || '')}" data-design-id="${esc(designId)}"${questionId ? ` data-for-q="${esc(questionId)}"` : ''}><legend>${esc(row.what || label)}</legend>
-      ${steps && steps.length ? `<p class="meta">Used in: ${esc(steps.join('; '))}.</p>` : ''}
+      ${steps && steps.length ? `<p class="meta">${Array.isArray(held) && !held.length ? `Worked to in: ${esc(steps.join('; '))}. No step is held.` : `Used in: ${esc(steps.join('; '))}.`}</p>` : ''}
       ${usedElsewhere ? '<p class="meta">Given once, used in every SWMS of this project that relies on it.</p>' : ''}
       <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
       <div class="design-given">${box('by', 'Who prepared it', 'The engineer or firm.')}<div class="design-pair">${box('number', 'Document or drawing number', 'From the title block.')}${box('revision', 'Revision', 'Leave it empty if it has none.')}</div>${box('date', 'Date on the design', '', 'date')}</div>
-      <p class="note design-hold">${Array.isArray(held) && !held.length ? 'No step of this SWMS builds to this design, so no step is held. The SWMS says: "Not issued yet. Update this SWMS when it is issued."' : questionId ? 'The answer above prints as a hold point: the steps that rely on the design do not start until it is issued and the SWMS is updated. You can leave the answer empty.' : 'The steps that build to it print a hold point until the design is issued and the SWMS is updated.'}</p>
+      <p class="note design-hold">${Array.isArray(held) && !held.length ? 'No step of this SWMS builds to this design, so no step is held. The SWMS says: "Not issued yet. Update this SWMS when it is issued."' : questionId ? 'The steps of this SWMS that build to the design print a hold point: they do not start until it is issued and the SWMS is updated. Steps that only work to it, such as the pour, say to update the SWMS when it is issued. You can leave the answer empty.' : 'The steps that build to it print a hold point until the design is issued and the SWMS is updated.'}</p>
     </fieldset>`;
   }
 
@@ -1796,6 +1796,9 @@
     const rules = window.SiteWriteSubstanceRules;
     const sds = body && body.facts && typeof body.facts.safetyDataSheet === 'string' ? body.facts.safetyDataSheet : '';
     if (!rules || !rules.sdsProducts || !sds.trim()) return body;
+    // An answer refused as too thin makes no product (messy round 17, A run 4: "pool chemicals", refused, became a product).
+    const got = asked.get(index) || {};
+    if ((got.weak || []).some((entry) => entry && entry.id === 'safetyDataSheet')) return body;
     const list = Array.isArray(body.substances) ? body.substances : [];
     const notUsed = new Set(Array.isArray(body.substancesNotUsed) ? body.substancesNotUsed : []);
     const add = rules.sdsProducts(sds).filter((row) => !notUsed.has(row.type) && !list.some((one) => (rules.coversType ? rules.coversType(one, row.type) : one && one.type === row.type)))

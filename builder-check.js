@@ -473,7 +473,9 @@ function responsibleNamed(value) {
 const PLANT_WORDS = /\b(cranes?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|excavators?|skid ?steers?|bobcats?|loaders?|rollers?|dozers?|graders?|telehandlers?|trucks?|concrete pumps?|scaffold\w*|power tools?|saws?|grinders?|generators?|compressors?)\b/i;
 
 // Library step names that mention a road without saying the work is beside one (H1).
-const GENERAL_ROAD_STEP = /\b(?:haul\w*|deliver\w*|driv\w*|transport\w*|cart\w*)\b[^.]{0,40}\bpublic roads?\b|\broad or (?:the )?ground\b|^reinstate (?:the )?asphalt$/i;
+// Kerbs are poured inside sites and car parks too: the kerb step's name does not say a road is there (messy round 17, A run 2: kerbs
+// inside the site car park were checked as work beside a roadway).
+const GENERAL_ROAD_STEP = /\b(?:haul\w*|deliver\w*|driv\w*|transport\w*|cart\w*)\b[^.]{0,40}\bpublic roads?\b|\broad or (?:the )?ground\b|^reinstate (?:the )?asphalt$|^form and pour the kerb and channel$/i;
 
 const SHALLOW_TRENCH = /\b(?:trench\w*|excavations?)\b[^.]{0,40}\b(?:kept|stays?|remains?)\s+(?:shallower|less)\s+than\s+1\.5\s?m\b/i;
 
@@ -573,10 +575,15 @@ const TRENCH_EDGE_CHECK = { name: 'the trench edge barriers or fencing checked b
 // pre-start where there is an EWP, the harness and anchors where a harness is used, and otherwise the edge protection, barriers or
 // covers at the openings, or the balustrade the crew works inside (messy round 16: the scaffold tag, EWP pre-start and harness
 // anchors were asked for window openings, A run 4, and for work inside the builder's podium balustrade, B run 6).
-function fallCheckFor(must, usedText) {
+// A scaffold or EWP named only as one way among others ("reached from mobile scaffolds, purpose-built access platforms or EWPs"), or
+// as what is not used ("Cranes, hoist towers, scaffolding or formwork are not used to secure the line"), is not one the SWMS uses:
+// where the plant list and the step names are given, they say (messy round 17, B run 7: the scaffold tag asked for falls over water).
+function fallCheckFor(must, usedText, kit = null) {
   const used = [];
-  if (/\bscaffold\w*/i.test(usedText)) used.push('the scaffold tag');
-  if (/\b(?:ewps?|elevating work platforms?|scissor ?lifts?|boom lifts?)\b/i.test(usedText)) used.push('the EWP pre-start');
+  const usesScaffold = kit ? /\bscaffold\w*/i.test(kit) : /\bscaffold\w*/i.test(usedText);
+  const usesEwp = kit ? /\b(?:ewps?|elevating work platforms?|scissor ?lifts?|boom lifts?|boom-type)\b/i.test(kit) : /\b(?:ewps?|elevating work platforms?|scissor ?lifts?|boom lifts?)\b/i.test(usedText);
+  if (usesScaffold) used.push('the scaffold tag');
+  if (usesEwp) used.push('the EWP pre-start');
   if (/\b(harness\w*|fall arrest|(?<!tool )lanyards?|static lines?)\b/i.test(usedText)) used.push('the harness and anchors');
   if (used.length === 3) return must;
   const list = used.length ? used : ['the edge protection, barriers, balustrade or covers at the edges and openings'];
@@ -1446,7 +1453,7 @@ function weighted(swms, state, context) {
       const trenchFallsOnly = set.id === 'fall' && where.length > 0 && where.every((name) => TRENCH_FALL_STEP.test(name));
       const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(usedText))
         && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist) && !(set.id === 'road' && must.plan && !roadWork))
-        .map((must) => (trenchFallsOnly && /^the fall protection inspected before use\b/.test(must.name) ? TRENCH_EDGE_CHECK : /^the fall protection inspected before use\b/.test(must.name) ? fallCheckFor(must, usedText) : must));
+        .map((must) => (trenchFallsOnly && /^the fall protection inspected before use\b/.test(must.name) ? TRENCH_EDGE_CHECK : /^the fall protection inspected before use\b/.test(must.name) ? fallCheckFor(must, usedText, swms.plant.length ? [...swms.plant, ...steps.map((step) => step.step)].join('\n') : null) : must));
       const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
       if (missing.length) gaps.push({ set, where, missing });
     }

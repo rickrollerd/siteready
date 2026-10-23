@@ -1326,8 +1326,8 @@ const ACTIVITIES = [
           src('When opening a coupling, stand to one side, never straddle the line, and never try to restrain the hose. Blockages are not cleared with compressed air. Lines are cleaned with water rather than air, and the pump operator stays at the controls while the line is under pressure.', QCODE('Concrete pumping', 's 4.3.5, s 4.3.6')),
           { unless: 'noDeck', text: 'Stay inside the edge protection.' },
           { unless: 'noDeck', ...src('Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.', NSWC('NSW Formwork', 's 5.8, s 7.15')) },
-          { unless: 'noDeck', ...src('Workers reach the deck by a stair tower, scaffold stair or secured ladder, and hoses, screeds and tools are lifted up, not carried up ladders.', QCODE('Managing the risk of falls', 's 9.1')) },
-          { unless: 'noDeck', text: 'The deck is not reached any other way, such as by climbing formwork or props.' },
+          { unless: ['noDeck', 'noSlabFinish'], ...src('Workers reach the deck by a stair tower, scaffold stair or secured ladder, and hoses, screeds and tools are lifted up, not carried up ladders.', QCODE('Managing the risk of falls', 's 9.1')) },
+          { unless: ['noDeck', 'noSlabFinish'], text: 'The deck is not reached any other way, such as by climbing formwork or props.' },
           { unless: 'noDeck', text: 'Hose runs and walkways over the reo are kept clear and boarded.' },
           { only: 'noDeck', ...src('Concrete is placed from work platforms with edge protection, and no one stands at an unprotected edge.', NSWC('NSW Formwork', 's 6.1')) },
           { only: 'noDeck', text: 'Where concrete is placed from outside the excavation, it is done from behind barriers.' },
@@ -1361,23 +1361,25 @@ const ACTIVITIES = [
       {
         unless: 'noDeck',
         step: 'Finish concrete',
-        hazards: ['Cement burns to the skin and eyes.', 'Power trowel injuries.', 'Back strain.', 'Chemicals in curing compounds.', 'Silica dust from grinding and patching concrete.', 'Noise from vibrators, trowels, pumps and generators.', 'Silica dust and noise from saw cutting joints.'],
+        // A beam, wall or capping poured with no slab is not power trowelled or saw cut, and has no penetrations to cover (messy round
+        // 17, B run 7: a bridge capping beam got a power trowel, a concrete saw and the penetration cover lines).
+        hazards: ['Cement burns to the skin and eyes.', { unless: 'noSlabFinish', text: 'Power trowel injuries.' }, 'Back strain.', 'Chemicals in curing compounds.', 'Silica dust from grinding and patching concrete.', 'Noise from vibrators, trowels, pumps and generators.', 'Silica dust and noise from saw cutting joints.'],
         controls: [
           src('Wear gloves and eye protection.', QCODE('Concrete pumping', 's 6.1')),
           'Wash wet concrete off the skin straight away.',
-          'Use power trowels with guards and a working stop switch.',
+          { unless: 'noSlabFinish', text: 'Use power trowels with guards and a working stop switch.' },
           src('Rotate finishing tasks and take breaks.', QCODE('Hazardous manual tasks', 's 4.7')),
           src('Curing compounds are used as their safety data sheet says, with gloves and eye protection.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
           src('Where concrete is ground or patched, it is done with on-tool extraction or wet methods, and a fit tested P2 respirator is worn where dust remains.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`),
-          src('Where control joints are saw cut, or concrete is cut or drilled, it is done wet or with on-tool extraction. This is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 5.1, s 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`),
-          src('Concrete saws have their blade guards in place, and electric saws used wet are protected by an RCD, with leads kept out of water.', NSWC('NSW Cutting drilling and grinding concrete', 's 4.3, s 6.1')),
+          { unless: 'noSlabFinish', ...src('Where control joints are saw cut, or concrete is cut or drilled, it is done wet or with on-tool extraction. This is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 5.1, s 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`) },
+          { unless: 'noSlabFinish', ...src('Concrete saws have their blade guards in place, and electric saws used wet are protected by an RCD, with leads kept out of water.', NSWC('NSW Cutting drilling and grinding concrete', 's 4.3, s 6.1')) },
           ...SILICA_FOLLOW_UP,
           src('Where it is uncertain whether dust is below the exposure standard, monitor the air.', WHS('s 50')),
           src('Health monitoring is provided for workers at significant risk from crystalline silica.', `${WHS('s 368, schedule 14')}; ${QCODE('Silica', 's 10, s 10.1')}`),
           src('Wear hearing protection near concrete saws, vibrators, power trowels, pumps and generators. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
           src('Where soffits and walls are patched after stripping, it is done from a mobile scaffold with its castors locked, or a platform ladder, not from a stepladder.', QCODE('Managing the risk of falls', 's 5.1, s 9.1')),
-          src('Penetration covers stay firmly fixed in place.', NSWC('NSW Formwork', 's 6.5')),
-          'Hoses and screeds are not dragged over them in a way that could dislodge them.',
+          { unless: 'noSlabFinish', ...src('Penetration covers stay firmly fixed in place.', NSWC('NSW Formwork', 's 6.5')) },
+          { unless: 'noSlabFinish', text: 'Hoses and screeds are not dragged over them in a way that could dislodge them.' },
         ],
       },
     ],
@@ -2341,8 +2343,9 @@ const ACTIVITIES = [
       step: 'Install security devices',
       hazards: ['A fall from a ladder or platform.', { unless: 'poleMount', text: 'Silica dust from drilling.' }, { unless: 'poleMount', text: 'Contact with energised cables in walls and ceilings.' }, { only: 'doorStrikes', text: 'Cuts and flying swarf when cutting door frames for strikes.' }, { only: 'doorStrikes', text: 'An exit door is left locked while its strike is fitted.' }],
       controls: [
-        { only: 'newPole', ...src('Pole footings are dug only after the current underground services information is obtained and services are located.', WHS('s 304')) },
-        { only: 'newPole', text: 'Poles are lifted with a crane truck, or by two people for light poles, and braced until the footing has cured.' },
+        // Not where "Stand and fix the poles" is in the SWMS (messy round 17, A run 3: the device step repeated the pole lift and footing).
+        { only: 'newPole', unless: 'poleErect', ...src('Pole footings are dug only after the current underground services information is obtained and services are located.', WHS('s 304')) },
+        { only: 'newPole', unless: 'poleErect', text: 'Poles are lifted with a crane truck, or by two people for light poles, and braced until the footing has cured.' },
         { only: 'poleMount', ...src('Use an EWP to fit cameras and devices at the top of the pole, with the harness clipped to its anchor.', NSWC('NSW Elevating work platforms', 's 3.3')) },
         { only: 'turnstiles', ...src('Turnstiles, gates and barriers are moved with trolleys or lifting equipment, not carried.', QCODE('Hazardous manual tasks', 's 4.4')) },
         { only: 'turnstiles', text: 'Turnstiles, gates and barriers are anchored to the slab to the manufacturer\'s details.' },
@@ -2690,7 +2693,7 @@ const ACTIVITIES = [
         src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
         { unless: ['unitsOnly', 'doorsOnly', 'rollsOnly'], ...src('Handle large sheets in low wind, especially on balconies and at hoist landings.', MODEL('Hazardous manual tasks', 's 4.8')) },
         { only: 'rollsOnly', ...src('Move rolls with trolleys or hand trucks, pushing rather than pulling, and order smaller loads or move large rolls mechanically.', `${QCODE('Hazardous manual tasks', 's 4.4')}; ${NSWC('NSW Manual tasks', 's 4.4')}`) },
-        'Where a hoist is used, unload only inside the hoist landing gates. Gates stay closed except while the hoist is at the landing.',
+        { unless: 'unitsOnly', text: 'Where a hoist is used, unload only inside the hoist landing gates. Gates stay closed except while the hoist is at the landing.' },
         'In a shopping centre or other occupied building, deliveries use the centre\'s loading dock and delivery times, and goods are unloaded in a set area closed off from the public.',
       ],
     }],
@@ -7446,12 +7449,14 @@ const ACTIVITIES = [
     when: 'kerbInstall',
     steps: [{
       step: 'Form and pour the kerb and channel',
-      hazards: ['Struck by traffic or plant.', 'Cement burns and dust.', 'Strain and knee injury finishing kerbs.', 'Caught in a kerb extruding machine.'],
+      // Kerbs inside a site or car park, away from traffic, and kerbs formed by hand (messy round 17, A run 2: kerbs inside the car
+      // park printed the traffic lines and a kerb extruding machine, and the check then asked for the roadway category).
+      hazards: [{ only: 'kerbRoad', text: 'Struck by traffic or plant.' }, { unless: 'kerbRoad', text: 'Plant strikes a person.' }, 'Cement burns and dust.', 'Strain and knee injury finishing kerbs.', { only: 'kerbMachine', text: 'Caught in a kerb extruding machine.' }],
       controls: [
-        src('All work is inside the traffic management set out for the job.', TRAFFIC('s 4.4')),
+        { only: 'kerbRoad', ...src('All work is inside the traffic management set out for the job.', TRAFFIC('s 4.4')) },
         'Plant has a spotter where people are near.',
-        src('The kerb machine has its guards in place, and no one is near the auger or mould while it runs.', QCODE('Managing the risks of plant in the workplace', 's 4.1')),
-        'The kerb machine is operated by a trained operator.',
+        { only: 'kerbMachine', ...src('The kerb machine has its guards in place, and no one is near the auger or mould while it runs.', QCODE('Managing the risks of plant in the workplace', 's 4.1')) },
+        { only: 'kerbMachine', text: 'The kerb machine is operated by a trained operator.' },
         'Gloves, boots and long sleeves are worn, and wet concrete is washed off skin straight away.',
         src('Finishing is rotated, with kneeling pads used.', QCODE('Hazardous manual tasks', 's 2.2, s 4.7')),
       ],
@@ -7766,15 +7771,17 @@ const ACTIVITIES = [
     when: 'vegClearing',
     steps: [{
       step: 'Clear vegetation with the mulcher and excavator',
-      hazards: ['Struck by debris thrown from the mulcher.', 'Plant rolls over on slopes or soft ground.', 'Trees fall on plant or people.', 'Fire from hot exhausts in dry vegetation.', 'Snakes and wildlife.'],
+      hazards: ['Struck by debris thrown from the mulcher.', 'Plant rolls over on slopes or soft ground.', { only: 'treesNamed', text: 'Trees fall on plant or people.' }, 'Fire from hot exhausts in dry vegetation.', 'Snakes and wildlife.'],
       controls: [
         src('An exclusion zone is set around the mulcher, and no one enters it while it runs.', NSWC('NSW Moving plant on construction sites', 's 5.3')),
         'The exclusion zone for thrown debris is sized as the mulcher\'s manufacturer specifies.',
         src('Plant has rollover and falling object protection and keeps to slopes within its limits.', NSWC('NSW Moving plant on construction sites', 's 6.1, s 6.7')),
-        'Large trees are felled away from plant and people by competent operators.',
+        // Trees felled or pushed over only where the work names trees or stumps (messy round 17, A run 2: "Clear boulders, vegetation
+        // and obstructions" printed the tree felling lines).
+        { only: 'treesNamed', text: 'Large trees are felled away from plant and people by competent operators.' },
         'In dry conditions a fire extinguisher is carried, exhausts and spark arrestors are checked, and the fire danger rating is checked each day.',
         'The area is checked for wildlife and nests as the environmental approvals require.',
-        'Where a tree or stump is pushed over or pulled out with plant, or with a chain or sling, everyone stays outside the fall zone of the tree and out of the line of the chain, which could snap back.',
+        { only: 'treesNamed', text: 'Where a tree or stump is pushed over or pulled out with plant, or with a chain or sling, everyone stays outside the fall zone of the tree and out of the line of the chain, which could snap back.' },
         'An animal in the work area is left to move off. If it is trapped or injured, or an active nest is found, work stops nearby, the spot is fenced off and a licensed wildlife handler is called. Workers do not handle wildlife.',
         'Before plant starts, the approved clearing limits and any no-go areas (protected trees, heritage or habitat) are marked on the ground with tape, flagging or fencing, and nothing outside them is cleared or trimmed.',
       ],
@@ -8066,11 +8073,12 @@ const ACTIVITIES = [
     when: 'poleErect',
     steps: [{
       step: 'Stand and fix the poles',
-      hazards: ['The pole falls or swings while it is lifted and stood.', 'Contact with overhead power lines or overhead wiring.', 'Struck by traffic or plant.', 'A fall into an open footing hole.'],
+      hazards: ['The pole falls or swings while it is lifted and stood.', 'Contact with overhead power lines or overhead wiring.', 'Struck by traffic or plant.', { unless: 'footingsExist', text: 'A fall into an open footing hole.' }],
       controls: [
         src('Poles are lifted and stood with a crane or pole truck rated for the load, slung by licensed doggers, with no one under or within reach of the pole.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-        src('Services are located before footings are bored or excavated, and open holes are covered.', QCODE('Excavation work', 's 3.6, s 4.4')),
-        'Footings are bored or excavated by machine to the engineer\'s details.',
+        // Poles stood on footings already in place dig nothing (messy round 17, A run 3: "stand 4 camera poles on their footings").
+        { unless: 'footingsExist', ...src('Services are located before footings are bored or excavated, and open holes are covered.', QCODE('Excavation work', 's 3.6, s 4.4')) },
+        { unless: 'footingsExist', text: 'Footings are bored or excavated by machine to the engineer\'s details.' },
         'Each pole is held by the crane until its base bolts are fixed or its footing can hold it, as the engineer\'s details set out.',
         'Overhead lines are identified before work starts, and the crane and pole stay outside the network operator\'s approach distances.',
         src('A safety observer watches the crane or EWP where any part of it or the load could come within the exclusion zone of a line that stays live.', LINES('s 4.3.1, s 4.3.2')),
@@ -13380,6 +13388,10 @@ addAfter('forklift', {
     ],
   }],
 });
+
+// The pool plant and dosing are wired to pumps and controls beside water: the plant code's isolation line, reused word for word with
+// its source (messy round 17, A run 4: both steps stayed High after their own controls, the shock answered by no isolation).
+for (const name of ['Install the pool plant', 'Install the chemical dosing']) addTo('poolPlant', name, [reuse('Isolate every energy source, control stored energy, then test by trying to start the plant.')]);
 
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };

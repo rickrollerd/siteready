@@ -38,7 +38,9 @@ const BY_NAME = {
   'Plan the tower crane lifts': 10, 'Set up the crane': 'lead', 'Install loading platforms': 12, 'Locate underground services': 10,
   'Install construction power': 10, 'Install temporary lighting': 10, 'Inspect, test and maintain construction power': 10, 'Stand the temporary power pole': 10,
   'Confirm the isolation by others before work': 11, 'Confirm the network operator has isolated and earthed the line': 11,
-  'Set up rescue equipment': 10, 'Work over the water': 10, 'Work in the rail corridor': 10, 'Enter a private property': 10, 'Work next to the live hospital': 10,
+  'Set up rescue equipment': 10, 'Work over the water': 10,
+  // The barge is set up and moored before the work over the water done from it (messy round 17, B run 7: the barge step at 10 of 11).
+  'Work from the barge or marine plant': 10, 'Work in the rail corridor': 10, 'Enter a private property': 10, 'Work next to the live hospital': 10,
   'Work above traffic or a rail line': 10, 'Work in the car park': 10, 'Separate plant and people on site': 10, 'Set up traffic barriers and temporary fencing': 10,
   'Erect temporary fencing': 10, 'Erect the hoardings': 10, 'Erect the gantry': 12, 'Set up site sheds': 10, 'Install and maintain erosion and sediment controls': 10,
   'Protect neighbouring buildings and the street': 10, 'Protect the footpath': 10, 'Check for asbestos before starting': 10, 'Take samples of suspect materials': 10,
@@ -89,7 +91,9 @@ const BY_NAME = {
   'Lay pipes': 40, 'Install pits': 40, 'Lay conduits': 40, 'Lay the pipe or cable': 40, 'Lay the cable': 40, 'Lay the pipes': 40, 'Install pits and conduits': 40,
   'Lay drainage under the slab or floor': 40, 'Set floor wastes, slot drains and floor gutters': 40, 'Install the pump-out line': 40, 'Install the cattle grid': 42,
   'Butt fuse polyethylene pipe': 41, 'Join polyethylene pipe by electrofusion': 90, 'Stand the poles': 41, 'Stand and fix the poles': 41, 'Stand the shade sail posts': 41, 'Stand and fix the solar light poles': 41,
-  'Set and fix the letterbox bank': 41, 'Trim and compact the base by hand': 41, 'Place the blinding concrete': 42, 'Form, fix reo and pour concrete in the excavation': 45,
+  'Set and fix the letterbox bank': 41,
+  // The bed is trimmed by hand before the pipes and pits are laid on it (messy round 17, A run 2: after "Lay pipes" and "Install pits").
+  'Trim and compact the base by hand': 39.5, 'Place the blinding concrete': 42, 'Form, fix reo and pour concrete in the excavation': 45,
   'Dig and pour footings': 41, 'Dig and pour the footings': 41, 'Drill and inject under the slab': 40, 'Dig and pour': 41,
   // Formwork and reo (precast floor units and metal decking are the deck a topping is poured on).
   'Land and fix the precast floor units': 48, 'Lay metal decking': 48, 'Weld shear studs': 48.5, 'Prepare to climb the jumpform': 49, 'Climb the jumpform': 49,
@@ -229,7 +233,7 @@ const BY_NAME = {
   'Work inside lift cars': 'lead', 'Work in pump rooms': 'lead', 'Work on live fire systems': 'lead', 'Work inside a deep excavation': 'lead', 'Work in the trench': 'lead',
   'Prepare to enter the confined space': 'lead', 'Enter and work': 'trail', 'Leave and close up': 'trail', 'Cut blocks and bricks': 'lead', 'Cut tiles and stone': 'lead',
   'Cut timber flooring to size': 'lead', 'Roll groove, thread and cut pipe': 'lead', 'Handle gas cylinders and manifolds': 'lead',
-  'Run the road plant inside the work zone': 'lead', 'Work from the barge or marine plant': 'lead', 'Lift loads into and out of the shaft': 'trail', 'Work in the precast yard': 'lead',
+  'Run the road plant inside the work zone': 'lead', 'Lift loads into and out of the shaft': 'trail', 'Work in the precast yard': 'lead',
   'Use power tools': 'trail', 'Drill or cut concrete, masonry or stone': 'trail', 'Fix with a powder-actuated tool': 'trail', 'Cut steel with oxy-acetylene (hot work)': 'trail',
   'Work on or near energised parts': 'trail', 'Isolate plant before work on it': 'lead', 'Protect open bores': 'trail', 'Mix and pump the grout': 'trail',
   'Handle contaminated or unknown material in the spoil': 'trail', 'Treat the ground with chemicals': 'trail', 'Repair the pipe in the pit': 'trail', 'Clean out the wet well': 'trail',
@@ -245,7 +249,7 @@ const BY_NAME = {
   'Cut and machine timber and board in the workshop': 'trail', 'Assemble, sand and finish joinery': 'trail', 'Move and store finished joinery': 'trail', 'Build the switchboard enclosure': 'trail',
   'Fit out and interwire the switchboard': 'trail', 'Test the switchboard in the workshop': 'trail', 'Move and load finished switchboards': 'trail', 'Pre-treat items for powder coating': 'trail',
   'Powder coat in the booth': 'trail', 'Clean the booth and handle powder': 'trail', 'Cut metal in the workshop': 'trail', 'Drill, punch and rivet metal parts': 'trail', 'Grind and finish metal': 'trail',
-  'Weld in the workshop': 'trail', 'Move and store fabricated items': 'trail', 'Replace the sleepers and ballast': 'trail', 'Tamp and regulate the ballast': 'trail', 'Lay the new track': 'trail',
+  'Weld in the workshop': 'trail', 'Move and store fabricated items': 'trail', 'Replace the sleepers and ballast': 70, 'Tamp and regulate the ballast': 'trail', 'Lay the new track': 'trail',
   'Launch the girders': 15, 'Install fuel dispensers': 85, 'Place the underpinning and remove the shoring': 45, 'Drill the tiers and fix seats': 85,
 };
 
@@ -288,6 +292,19 @@ function contextStages(names, flags = {}) {
   // floors" came at step 16 of a sprinkler SWMS, after the painting).
   // Fire signs go up once the hose reels and extinguishers they mark are mounted (messy round 16, A run 3).
   if (has('Mount the hose reels and extinguishers')) for (const name of ['Install the signs', 'Install signs and screens']) if (has(name)) out[name] = 105.5;
+  // Messy round 17. Poles a crane lifts and stands: the crew works with the crane crew from the pole lift (A run 3: the crane
+  // crew step after "Stand and fix the poles").
+  if (has('Stand and fix the poles') && has('Work with the crane crew during lifts')) out['Work with the crane crew during lifts'] = 40.9;
+  // Tiles are cut as they are laid, after the screed (A runs 1 and 4: "Cut tiles and stone" before "Lay the screed").
+  if (has('Cut tiles and stone') && has('Lay the screed')) out['Cut tiles and stone'] = 98.5;
+  // Curing starts once the pours are finished, before the joints are sawn in them (A run 2: curing came after the saw cutting). The
+  // kerbs and core fill poured with the slab are cured with it (round 9).
+  if (has('Cure the concrete') && (has('Finish the concrete') || has('Finish concrete'))) out['Cure the concrete'] = 62.7;
+  // Old timbers come out before the old concrete is broken out and the new concrete poured (B run 7: the pour before the timber
+  // removal), and the old concrete is broken out, by the drilling and cutting step, before the pour (its jackhammer step after it).
+  const pour = ['Pump and place concrete', 'Place concrete'].some(has);
+  for (const name of ['Remove and replace damaged timbers', 'Remove and replace the decking', 'Remove and replace the deck boards']) if (pour && has(name)) out[name] = 21;
+  if (pour && flags.breakOldFirst && has('Drill or cut concrete, masonry or stone')) out['Drill or cut concrete, masonry or stone'] = 21.5;
   if (flags.mountingFirst && [...names].some((name) => typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 78 && BY_NAME[name] < 83)) out['Fix rails, fittings and equipment to walls and floors'] = 79;
   return out;
 }
@@ -447,7 +464,7 @@ const FIRM = [
   [['Erect the scaffold'], ['Inspect and hand over'], ['Dismantle the scaffold']],
   [['Erect the safety screens'], ['Dismantle the safety screens']],
   [['Erect the temporary stair'], ['Inspect and hand over the temporary stair'], ['Dismantle the temporary stair']],
-  [['Haul and deliver the loads on public roads'], ['Unload with the truck loading crane (hiab)'], ['Move materials into place', 'Erect the scaffold']],
+  [['Haul and deliver the loads on public roads'], ['Unload with the truck loading crane (hiab)'], ['Move materials into place', 'Erect the scaffold', 'Replace the sleepers and ballast', 'Lay the new track', 'Plant']],
   // Demolition: asbestos and services dealt with, the strip out, the structure, then new work.
   [['Check for asbestos before starting', 'Take samples of suspect materials'], ['Prepare the asbestos work area'], ['Remove the asbestos'], ['Bag, label and dispose of asbestos waste']],
   [['Isolate and make safe the old services', 'Disconnect the plant being removed'], ['Remove the old services', 'Strip out the room', 'Strip out ceilings, partitions and floor coverings', 'Demolish', 'Demolish the structure', 'Lift and move out the plant being removed']],
@@ -469,7 +486,8 @@ const FIRM = [
   [['Plan the dual lift'], ['Carry out the dual lift']],
   [['Set up the concrete pump and placing boom', 'Set up the concrete pump'], ['Pump and place concrete', 'Place concrete', 'Pour the core walls', 'Pour the retaining wall', 'Pour the tank walls']],
   [['Set up traffic management', 'Set up the traffic switch and message signs'], ['Lay and roll asphalt', 'Reinstate asphalt', 'Spray seal the road', 'Run the road plant inside the work zone', 'Saw cut asphalt',
-    'Remove old line marking', 'Paint line marking', 'Heat and lay thermoplastic markings with a gas torch', 'Install raised pavement markers', 'Install road safety barrier', 'Form and pour the kerb and channel']],
+    'Remove old line marking', 'Paint line marking', 'Heat and lay thermoplastic markings with a gas torch', 'Install raised pavement markers', 'Install road safety barrier', 'Form and pour the kerb and channel',
+    'Plant', 'Backfill the tree pits']],
   // The roof: the way onto it and its fall protection before anything is lifted to it or worked on it (A run 2: materials
   // landed on the roof before anyone had fall protection there).
   [['Get onto the roof', 'Set up roof access', 'Set up roof fall protection', 'Install roof edge protection'],
@@ -481,9 +499,9 @@ const FIRM = [
   [['Core drill through the slab or wall'], ['Seal penetrations and fire stop', 'Fix fire collars to the slab', 'Fit the fire dampers']],
   // Messy round 13 (W17 silent on clearly wrong moves), by their kind. Protect before work in a corridor: the rail corridor's
   // protection before the track work (B run 5: sleepers moved above it).
-  [['Work in the rail corridor'], ['Replace the sleepers and ballast', 'Tamp and regulate the ballast', 'Lay the new track', 'Install the overhead wiring']],
+  [['Work in the rail corridor', 'Set up traffic management'], ['Replace the sleepers and ballast', 'Tamp and regulate the ballast', 'Lay the new track', 'Install the overhead wiring']],
   // Dig before what goes in the hole: the backfill and the planting (B run 8: both moved above the dig).
-  [['Excavate', 'Dig the trench', 'Dig post holes', 'Dig footing holes'], ['Backfill the tree pits', 'Plant']],
+  [['Excavate', 'Dig the trench', 'Dig post holes', 'Dig footing holes', 'Operate small earthmoving plant'], ['Backfill the tree pits', 'Plant']],
   // The base before what sits on it: the cabinets before their benchtops (B run 6).
   [['Install joinery and cabinets'], ['Move and set heavy benchtops']],
   // The screed and matting before the tiles laid on them (A runs 1 and 4).
@@ -508,6 +526,13 @@ const FIRM = [
   [['Install suspended grid ceilings'], ['Fix ceiling sheets']],
   [['Excavate', 'Dig the trench'], ['Work in the trench'], ['Lay pipes', 'Lay conduits', 'Install pits', 'Lay the pipe or cable', 'Lay the pipes', 'Lay the cable', 'Install pits and conduits', 'Lift and place tanks, pits or precast units']],
   [['Fix hangers and supports'], ['Fix plant on its supports']],
+  // Messy round 17. The bed is trimmed before the pipes and pits laid on it (A run 2). The crane crew is worked with from the pole
+  // lift (A run 3). Tiles are cut after the screed they are laid on (A runs 1 and 4). Old timbers out before the pour is a context
+  // order only (B run 7): a timber repair beside a pour elsewhere can be done either way.
+  [['Trim and compact the base by hand'], ['Lay pipes', 'Install pits', 'Lay the pipes']],
+  [['Work with the crane crew during lifts'], ['Stand and fix the poles']],
+  [['Lay the screed'], ['Cut tiles and stone']],
+
   // Messy round 16. The box gutter goes in before the roof sheets that drain into it (A run 2). The facade joints are sealed once
   // the windows, glass and glazing seals are in (A run 4). The edge is made safe, or the edge step taken, before fixing holes are
   // drilled at it (A run 4). The road plant mills before the new asphalt is laid (B run 8: laying moved above the traffic set-up
@@ -550,6 +575,10 @@ const OWN_MARK = /\s*\(Our own step\)\s*$/;
 const OWN_UNLOAD = /\b(?:unload\w*|off-?load\w*)\b/i;
 const OWN_TOUCH_UP = /\btouch(?:es|ed|ing)?[- ]?up\b[^.]{0,30}\b(?:paint\w*|coat\w*|prim\w*|steel)\b|\b(?:paint\w*|prim\w*)\b[^.]{0,30}\b(?:installed|erected) steel\b/i;
 const OWN_WINDOWS_OUT = /\b(?:take|takes|taking|took|rip\w*|pull\w*|cut\w*)\s+(?:the\s+)?(?:old\s+)?(?:windows?\s+)?out\b[^.]{0,30}\bwindows?\b|\b(?:take|takes|taking|took)\s+out\s+(?:the\s+)?(?:old\s+)?windows?\b|\bremov\w*\b[^.]{0,20}\b(?:old\s+)?windows?\b|\b(?:put\w*|puts)\s+in\b[^.]{0,20}\b(?:new\s+|window\s+)frames?\b|\b(?:install\w*|fit\w*|fix\w*)\b[^.]{0,20}\b(?:new\s+(?:window\s+)?|window\s+)frames\b/i;
+const POURED = ['Pump and place concrete', 'Place concrete', 'Finish concrete', 'Finish the concrete'];
+const OWN_BEFORE_POUR = /\b(?:before|b4|prior to|ahead of)\s+(?:the\s+|each\s+)?(?:concrete\s+|slab\s+)?pour(?:s|ing)?\b/i;
+const OWN_FORMING = /^(?!.*\b(?:strip\w*|remov\w*|dismantl\w*)\b).*(?:\bform(?:s|ed|ing)?\b(?:\s+up)?[^.]{0,40}\b(?:beams?|capping|walls?|kerbs?|edges?|abutments?|footings?|columns?|piers?|plinths?|upstands?|stairs?)\b|\bformwork\b|\bshutter\w*)/i;
+const OWN_BREAK_OLD = /\b(?:jackhammer\w*|break\w* (?:out|up)|scabbl\w*|demolish\w*)\b[^.]{0,40}\b(?:old|existing|damaged)\b/i;
 const OWN_FIRM = [
   [OWN_UNLOAD, ['Set up the crane'], ['Rig and lift the load', 'Land and release the load', 'Lift and land steel with the crane company', 'Lift and land steel with the crane', 'Erect and connect steel at height', 'Lift the portable building onto its footings', 'Rig, lift and land loads with the tower crane']],
   [OWN_TOUCH_UP, ['Erect and connect steel at height', 'Install and remove temporary bracing', 'Weld steel'], []],
@@ -560,10 +589,17 @@ const OWN_FIRM = [
   [/\bloading (?:bays?|platforms?)\b/i, ['Erect the scaffold'], ['Inspect and hand over', 'Dismantle the scaffold']],
   [/\bacoustic baffles?\b|\bbaffles?\b[^.]{0,30}\bceiling spaces?\b/i, ['Install suspended grid ceilings'], ['Fix ceiling sheets', 'Set the joints', 'Sand the joints']],
   [/\b(?:set(?:s|ting)?|sand(?:s|ed|ing)?|finish(?:es|ed|ing)?)\b[^.]{0,40}\bjoints?\b|\bshadow ?lines?\b/i, ['Fix ceiling sheets', 'Move and fix plasterboard sheets', 'Fix new wall sheets', 'Cut and fix plasterboard'], []],
+  // Messy round 17: work the user says is done before the pour ("fit expansion joint foam b4 pour", A run 2); forms the user builds,
+  // and old concrete broken out, before the new concrete is poured (B run 7: both own steps went after the pour); rail welds made
+  // once the corridor is protected and the rail is laid (B run 5: an own weld step moved above both).
+  [OWN_BEFORE_POUR, [], POURED],
+  [OWN_FORMING, [], POURED],
+  [OWN_BREAK_OLD, [], POURED],
+  [/\b(?:thermite?|alumino[- ]?thermic|flash[- ]butt)\b|\brail (?:joints?|welds?)\b|\bweld\w*\b[^.]{0,20}\brails?\b/i, ['Work in the rail corridor', 'Replace the sleepers and ballast', 'Lay the new track'], []],
 ];
 function ownFirm(name) {
   if (!OWN_MARK.test(name)) return null;
-  const words = name.replace(OWN_MARK, '');
+  const words = name.replace(OWN_MARK, '').replace(/\bb4\b/gi, 'before');
   return OWN_FIRM.find(([said]) => said.test(words)) || null;
 }
 function firmFaults(steps, nameOf = (step) => step.step) {
@@ -620,4 +656,4 @@ function orderFaults(steps, nameOf = (step) => step.step, flags = {}) {
   return faults;
 }
 
-module.exports = { OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };
+module.exports = { OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_BEFORE_POUR, OWN_FORMING, OWN_BREAK_OLD, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };
