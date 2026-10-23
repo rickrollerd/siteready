@@ -221,7 +221,8 @@ test('only points about who does or supplies what are asked of the lead; other n
     row('Install ductwork in the ceiling spaces', 'Ductwork', 'Install ductwork in the ceiling spaces.', { unknowns: 'Working heights; who supplies the fan coil units' }),
     row('Install the condensers on the roof', 'Ductwork', 'Install the condensers on the roof.', { unknowns: 'Roof height, pitch, edge protection' }),
   ] };
-  assert.deepEqual(handover.listPoints(reading).map((point) => point.question), ['Who supplies the fan coil units']);
+  // Each point ends with a full stop (messy round 16, SiteLink wording 1).
+  assert.deepEqual(handover.listPoints(reading).map((point) => point.question), ['Who supplies the fan coil units.']);
   // A bare note says its work and that it is open (messy round 9, wording 8).
   // Each note ends with a full stop (messy round 11, wording 2).
   assert.deepEqual(handover.listItems(reading)[0].draftNotes, ['Install ductwork in the ceiling spaces: working heights to be confirmed.', 'Roof height, pitch, edge protection.']);

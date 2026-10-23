@@ -216,7 +216,8 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   assert.match(by.Maintenance.removedWhy, /maintenance in the defects period/);
   // Controls: no high risk construction work, so set aside in its own group, titled by its one activity
   // (messy round 10, blocker 7), and said once (wording 4).
-  const controlsItem = by['Install the central controller for the VRF systems'];
+  // Titled by what is installed, not as a sentence (messy round 16, SiteLink wording 2).
+  const controlsItem = by['Central controller for the VRF systems'];
   assert.equal(controlsItem.group, 'aside');
   assert.equal(controlsItem.removedWhy, 'No high risk construction work was found in it. Move it to the list if you want a SWMS for it.');
   // Acoustic separation is not "moving powered mobile plant" from its own words.
@@ -244,7 +245,7 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   assert.deepEqual(next.preview.answers.map((one) => one.answer), ['We supply the units. You install them.']);
   // Moving Controls to the list brings its point back; removing the main SWMS takes its point away.
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${controlsItem.id}`, { reviewer: lead, body: { removed: false } })).data;
-  assert.equal(next.message, 'Install the central controller for the VRF systems is moved to the list.');
+  assert.equal(next.message, 'Central controller for the VRF systems is moved to the list.');
   assert.equal(next.points.find((one) => one.question.startsWith('Who supplies the controller')).inPlay, true);
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${main.id}`, { reviewer: lead, body: { removed: true } })).data;
   assert.equal(next.points.find((one) => one.question.startsWith('Confirm who supplies')).inPlay, false);
@@ -255,7 +256,7 @@ test('the list holds only what is needed: support work folds into the main SWMS,
 test('the high risk work follows the lead\'s own words when a SWMS is reworded or added', async () => {
   const { lead, projectId } = await setUp('lead-r6e@siteready.test', 'Words Builders Pty Ltd');
   const { subId, page } = await readScope(lead, projectId);
-  const controls = page.items.find((item) => item.title === 'Install the central controller for the VRF systems');
+  const controls = page.items.find((item) => item.title === 'Central controller for the VRF systems');
   assert.equal(controls.highRisk.status, 'none');
   let next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${controls.id}`, { reviewer: lead, body: { task: 'Install leak detection and VRF controllers in the ceiling spaces on levels 1 and 2, working from mobile scaffolds.' } })).data;
   const reworded = next.items.find((item) => item.id === controls.id);
@@ -292,7 +293,7 @@ test('the list rules on a made-up reading: folding, defects and set aside, with 
   assert.deepEqual(why, {
     'Ductwork and mechanical units': '',
     'Trade installation: plant': 'folded',
-    'Install the central controller for the VRF systems': 'noLaw',
+    'Central controller for the VRF systems': 'noLaw',
     'Materials handling': 'folded',
     'Housekeeping and waste': 'folded',
     'Access equipment': 'folded',
@@ -397,7 +398,7 @@ test('the project log records subcontracts, scopes, list changes and invitations
   const mate = await signIn('mate-r6j@siteready.test', 'Sam Okafor');
   await call('GET', '/api/hse/me', { reviewer: mate });
   const { subId, page } = await readScope(lead, projectId);
-  const controls = page.items.find((item) => item.title === 'Install the central controller for the VRF systems');
+  const controls = page.items.find((item) => item.title === 'Central controller for the VRF systems');
   await call('PUT', `/api/hse/subcontracts/${subId}/items/${controls.id}`, { reviewer: lead, body: { removed: false } });
   await call('POST', `/api/hse/subcontracts/${subId}/items`, { reviewer: lead, body: { title: 'Crane lift', task: 'Lift the condensers with a 60 t mobile crane.' } });
   // The lead sets the muster point; Sam's later version changes it.
@@ -405,7 +406,7 @@ test('the project log records subcontracts, scopes, list changes and invitations
   await call('PUT', `/api/hse/projects/${projectId}/site-details`, { reviewer: mate, body: { baseRev: 1, details: { musterPoint: 'Assembly area B by the site office' } } });
   const project = (await call('GET', `/api/hse/projects/${projectId}`, { reviewer: lead })).data;
   const log = project.log.map((entry) => entry.text);
-  for (const text of ['Dana Whitfield invited mate-r6j@siteready.test to the team.', 'Dana Whitfield added the subcontract Coolwater Air Pty Ltd (Mechanical).', 'Dana Whitfield uploaded Mechanical scope.txt as the scope for Coolwater Air Pty Ltd. SiteLink is reading it.', 'SiteLink read Mechanical scope.txt, the scope for Coolwater Air Pty Ltd, and listed 1 SWMS.', 'Dana Whitfield put Install the central controller for the VRF systems on the SWMS list for Coolwater Air Pty Ltd.', 'Dana Whitfield added Crane lift to the SWMS list for Coolwater Air Pty Ltd.']) {
+  for (const text of ['Dana Whitfield invited mate-r6j@siteready.test to the team.', 'Dana Whitfield added the subcontract Coolwater Air Pty Ltd (Mechanical).', 'Dana Whitfield uploaded Mechanical scope.txt as the scope for Coolwater Air Pty Ltd. SiteLink is reading it.', 'SiteLink read Mechanical scope.txt, the scope for Coolwater Air Pty Ltd, and listed 1 SWMS.', 'Dana Whitfield put Central controller for the VRF systems on the SWMS list for Coolwater Air Pty Ltd.', 'Dana Whitfield added Crane lift to the SWMS list for Coolwater Air Pty Ltd.']) {
     assert.ok(log.includes(text), `${text} in ${JSON.stringify(log)}`);
   }
   assert.deepEqual(project.replaced, { by: 'Sam Okafor', rev: 2, details: ['muster point'] });

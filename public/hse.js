@@ -1090,10 +1090,23 @@
         <div class="actions"><button type="button" class="light" data-answer="${esc(point.id)}" aria-label="${esc(`Save the answer about ${point.activity}`)}">Save answer</button></div>
       </div>`;
     };
+    // A box being typed in while another answer saves keeps its words, its cursor and the typing (messy round 16,
+    // SiteLink: an answer typed while the one before it saved, 3 to 5 seconds, kept only "you seal ").
+    const active = document.activeElement;
+    const focus = active && active.dataset && active.dataset.point && active.closest && active.closest('#s-points-card') ? { id: active.id, start: active.selectionStart, end: active.selectionEnd } : null;
+    for (const open of document.querySelectorAll('#s-points-card [data-point]')) {
+      const kept = readTyped(typedKey('answer', sub.subcontract.id, open.dataset.point));
+      if (typedHere.has(open.dataset.point) && (!kept || kept.answer !== open.value)) keepTyped(typedKey('answer', sub.subcontract.id, open.dataset.point), { answer: open.value });
+    }
     $('s-points-card').innerHTML = `<h2>Points to confirm (${live.length})</h2>
       <p class="meta">The scope leaves these open. Answer the ones you can. Only answered points go to the subcontractor, with your answer. ${live.length ? (open ? `${open} not answered yet.` : 'All are answered.') : ''}</p>
       ${live.map(card).join('')}
       ${out.length ? `<details${openGroups.points ? ' open' : ''} id="s-points-out"><summary>Points about SWMS not on the list (${out.length})</summary><p class="meta">These are not asked or sent while their SWMS is not on the list.</p>${out.map(card).join('')}</details>` : ''}`;
+    if (focus && $(focus.id)) {
+      const again = $(focus.id);
+      again.focus({ preventScroll: true });
+      try { again.setSelectionRange(focus.start, focus.end); } catch { /* not a text box */ }
+    }
   }
 
   function renderSub(data, message = '') {

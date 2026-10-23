@@ -133,7 +133,8 @@ test('the scope\'s site conditions are offered under the box, not filled in, and
   const panel = p.element('project-panel');
   p.go.render(panel, project, p.hooks);
   assert.equal(JSON.stringify(project.shared.site), '{}');
-  assert.match(panel.innerHTML, /From the scope\. Press one to use it, then check it for this site:<\/span><button type="button" class="pick-button" data-go-suggest="liveServices" data-n="0" aria-pressed="false">Energised buildings\.<\/button><button type="button" class="pick-button" data-go-suggest="liveServices" data-n="1" aria-pressed="false">Energised HV\.<\/button><\/div>/);
+  // "Energised buildings." names no service, so it is not offered (messy round 16, SiteLink); "Energised HV." is.
+  assert.match(panel.innerHTML, /From the scope\. Press one to use it, then check it for this site:<\/span><button type="button" class="pick-button" data-go-suggest="liveServices" data-n="0" aria-pressed="false">Energised HV\.<\/button><\/div>/);
   // "Security guards." names no service, so it is not offered for Live services (messy round 13: SiteWrite never
   // offers an answer its own site check would call too thin).
   assert.doesNotMatch(panel.innerHTML, /data-go-suggest="liveServices"[^>]*>Security guards/);

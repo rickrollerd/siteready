@@ -274,4 +274,7 @@ function unreadWords(text, { places = '', names = [] } = {}) {
   return out;
 }
 
-module.exports = { fixSpelling, distance, unreadWords };
+// Whether a word (in lower case) is an English word, for names typed alone in lower case (sitelink-answers.js).
+const isWord = (word) => englishWords().has(String(word || '').toLowerCase());
+
+module.exports = { fixSpelling, distance, unreadWords, isWord };

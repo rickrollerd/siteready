@@ -117,7 +117,8 @@ test('the round 7 scope: 17 SWMS on the list become 10, each naming a job, with 
     // Messy round 8: a bare or area title on the list gets a work title from the reading's own words.
     'Medical gas systems': 'list',
     Controls: 'folded:Electrical',
-    'Work in an existing or live facility': 'list',
+    // A place is titled by the trade's work there (messy round 16, SiteLink wording 2).
+    'Mechanical work in the existing or live facility': 'list',
     'Electrical installation': 'list',
     'Ductwork and mechanical units': 'list',
     'Testing and commissioning': 'list',
@@ -196,10 +197,11 @@ test('"needs a SWMS by law" only when certain; what may also apply says what it 
 test('points to confirm: statements go to the draft notes; only who does or supplies what is asked', () => {
   const asked = handover.listPoints(round7Reading()).map((point) => point.question);
   assert.deepEqual(asked, [
-    'Who supplies the AHUs',
+    // Each point ends with a full stop (messy round 16, SiteLink wording 1).
+    'Who supplies the AHUs.',
     'It is not stated who dismantles the mechanical plant marked for demolition (the builder removes items from site under C-1.109).',
     'The document does not say who controls, inspects and checks operator competency when other trades use the lifts.',
-    'Who gives access to the plant in the defects period',
+    'Who gives access to the plant in the defects period.',
   ]);
   const notes = handover.listItems(round7Reading()).find((item) => item.title === MAIN_TITLE).draftNotes;
   assert.ok(notes.includes('Shop drawings need builder approval before fabrication.'));
