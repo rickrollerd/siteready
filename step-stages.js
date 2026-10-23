@@ -263,7 +263,10 @@ const PAINT_STEPS = ['Prepare to paint', 'Sand and fill surfaces', 'Paint', 'App
 //   3: "Isolate and prove de-energised" and "Work on or near energised parts" came before any installation). Where the
 //   task works on existing plant (strip out, removal, replacement, repair or maintenance), they lead into that work.
 const EXISTING_WORK = /^(?:Remove|Replace|Disconnect|Repair|Maintain|Service|Rectify|Isolate the|Isolate and lift|Lift down|Strip|Demolish|Take down|Break out|Cut out)\b/;
-const existingWork = (names) => [...names].some((name) => EXISTING_WORK.test(name) || (typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 19 && BY_NAME[name] < 24));
+// Saw cutting a floor or a pavement for new work is not work on existing plant (messy round 18, A run 1: the slot drain cuts in a kitchen
+// fit-out put the isolation and energised work at steps 5 and 6, before any equipment was installed).
+const NOT_EXISTING = new Set(['Saw cut concrete', 'Saw cut asphalt']);
+const existingWork = (names) => [...names].some((name) => EXISTING_WORK.test(name) || (typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 19 && BY_NAME[name] < 24 && !NOT_EXISTING.has(name)));
 function contextStages(names, flags = {}) {
   const has = (name) => names.has(name);
   const out = {};
@@ -305,6 +308,9 @@ function contextStages(names, flags = {}) {
   const pour = ['Pump and place concrete', 'Place concrete'].some(has);
   for (const name of ['Remove and replace damaged timbers', 'Remove and replace the decking', 'Remove and replace the deck boards']) if (pour && has(name)) out[name] = 21;
   if (pour && flags.breakOldFirst && has('Drill or cut concrete, masonry or stone')) out['Drill or cut concrete, masonry or stone'] = 21.5;
+  // A pump named only for the core fill pumps once the blocks are laid (messy round 18, A run 3: the pump set-up and the pumping came
+  // before "Lay blocks and bricks", though the footing was poured from the truck's chute).
+  if (flags.pumpForCoreFill && has('Lay blocks and bricks') && has('Core fill blockwork')) Object.assign(out, { 'Set up the concrete pump and placing boom': 71, 'Set up the concrete pump': 71, 'Pump and place concrete': 71.5 });
   if (flags.mountingFirst && [...names].some((name) => typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 78 && BY_NAME[name] < 83)) out['Fix rails, fittings and equipment to walls and floors'] = 79;
   return out;
 }
@@ -333,6 +339,13 @@ const EARTHMOVING = (stage) => (stage >= 22 && stage < 48) || (stage >= 93 && st
 // round 12, B run 8: "Run the road plant inside the work zone" printed after "Lay and roll asphalt").
 const ROAD_WORK = (stage) => stage === 21 || (stage >= 93 && stage <= 101);
 const HOME = { 'Run earthmoving plant': EARTHMOVING, 'Operate small earthmoving plant': EARTHMOVING, 'Run the road plant inside the work zone': ROAD_WORK };
+// Steps that lead into one piece of work go before it wherever they were written (messy round 18, A run 3: "Cut blocks and bricks"
+// went at step 3, before the excavation, because the next step in the library was the dig).
+const LEAD_INTO = { 'Cut blocks and bricks': ['Lay blocks and bricks'] };
+// The crane crew's lifts and the hiab's unloading bring the work in: they lead into the deliveries and the installing, not into
+// the fit-off, the isolation and testing at the end (messy round 18, A run 1: the crane crew step went before the final isolation).
+const LIFTS_IN = new Set(['Work with the crane crew during lifts']);
+const LIFTED_WORK = (stage) => stage >= 11.5 && stage < 105;
 
 // The steps in stage order. Steps with no stage go with the staged step they are written before
 // ('lead') or after ('trail', and any step not named in the library); a run of them goes as one, by
@@ -365,9 +378,15 @@ function inStageOrder(steps, nameOf = (step) => step.step, flags = {}) {
     // Earthmoving plant goes before the first demolition, dig or backfill, wherever it was written (messy round 11, run 8).
     const homes = lead && own(HOME, first) ? blocks.filter((block) => HOME[first](block.stage)) : [];
     if (homes.length) { homes.reduce((best, block) => (block.stage < best.stage ? block : best), homes[0]).before.push(...run); continue; }
+    const into = lead && own(LEAD_INTO, first) ? blocks.filter((block) => block.steps.some((step) => LEAD_INTO[first].includes(nameOf(step)))) : [];
+    if (into.length) { into[0].before.push(...run); continue; }
     if (lead && next.length) {
       ahead = true;
       anchor = byIndex.get(next[0]);
+      if (LIFTS_IN.has(first) && !LIFTED_WORK(anchor.stage)) {
+        const work = blocks.filter((block) => LIFTED_WORK(block.stage));
+        if (work.length) anchor = work.reduce((best, block) => (block.stage < best.stage ? block : best), work[0]);
+      }
       if (ACCESS.has(first) || first === 'Work in the roof space') {
         const work = next.filter((at) => byIndex.get(at).stage >= WORK_FROM && byIndex.get(at).stage < 120);
         if (work.length) anchor = byIndex.get(work.reduce((best, at) => (byIndex.get(at).stage < byIndex.get(best).stage ? at : best), work[0]));
@@ -545,6 +564,11 @@ const FIRM = [
   // named only the drainage).
   [['Build the retaining wall', 'Excavate and set out the retaining wall', 'Form the retaining wall', 'Pour the retaining wall', 'Lay blocks and bricks', 'Build the stone wall', 'Build and fill gabion baskets', 'Fix the retaining wall reo'],
     ['Install drainage behind the retaining wall', 'Waterproof walls below ground'], ['Backfill behind the retaining wall']],
+  // Messy round 18. Blocks are cut as they are laid, once the footing is dug (A run 3: "Cut blocks and bricks" came before the
+  // excavation); the lift machine and rails are hoisted up the shaft once the landings are protected and the crane has delivered them
+  // (B run 5: the hoisting step moved above both, and W17 said nothing).
+  [['Excavate and set out the retaining wall', 'Dig and pour footings', 'Dig and pour the footings'], ['Cut blocks and bricks', 'Lay blocks and bricks']],
+  [['Work at open lift shafts and landing doors', 'Work with the crane crew during lifts'], ['Lift machines, rails and equipment into the shaft']],
 ];
 // For each step, the group it is in in each chain.
 const FIRM_AT = new Map();
@@ -579,6 +603,8 @@ const POURED = ['Pump and place concrete', 'Place concrete', 'Finish concrete', 
 const OWN_BEFORE_POUR = /\b(?:before|b4|prior to|ahead of)\s+(?:the\s+|each\s+)?(?:concrete\s+|slab\s+)?pour(?:s|ing)?\b/i;
 const OWN_FORMING = /^(?!.*\b(?:strip\w*|remov\w*|dismantl\w*)\b).*(?:\bform(?:s|ed|ing)?\b(?:\s+up)?[^.]{0,40}\b(?:beams?|capping|walls?|kerbs?|edges?|abutments?|footings?|columns?|piers?|plinths?|upstands?|stairs?)\b|\bformwork\b|\bshutter\w*)/i;
 const OWN_BREAK_OLD = /\b(?:jackhammer\w*|break\w* (?:out|up)|scabbl\w*|demolish\w*)\b[^.]{0,40}\b(?:old|existing|damaged)\b/i;
+const OWN_SET_OUT = /\b(?:set(?:s|ting)?|mark(?:s|ed|ing)?|peg(?:s|ged|ging)?|string(?:s|ing)?)\s+out\b|\bset-?out\b|\bmark\w*\b[^.]{0,30}\b(?:post |footing |pier )?holes?\b/i;
+const SET_OUT_BEFORE = ['Dig post holes', 'Dig footing holes', 'Excavate', 'Dig the trench', 'Bulk excavate and load trucks', 'Excavate and set out the retaining wall', 'Dig and pour footings', 'Dig and pour the footings'];
 const OWN_FIRM = [
   [OWN_UNLOAD, ['Set up the crane'], ['Rig and lift the load', 'Land and release the load', 'Lift and land steel with the crane company', 'Lift and land steel with the crane', 'Erect and connect steel at height', 'Lift the portable building onto its footings', 'Rig, lift and land loads with the tower crane']],
   [OWN_TOUCH_UP, ['Erect and connect steel at height', 'Install and remove temporary bracing', 'Weld steel'], []],
@@ -596,6 +622,9 @@ const OWN_FIRM = [
   [OWN_FORMING, [], POURED],
   [OWN_BREAK_OLD, [], POURED],
   [/\b(?:thermite?|alumino[- ]?thermic|flash[- ]butt)\b|\brail (?:joints?|welds?)\b|\bweld\w*\b[^.]{0,20}\brails?\b/i, ['Work in the rail corridor', 'Replace the sleepers and ballast', 'Lay the new track'], []],
+  // Messy round 18 (B run 8): the line is set out and the holes marked before they are dug (an own set-out step went after "Dig post
+  // holes", and W17 said nothing).
+  [OWN_SET_OUT, [], SET_OUT_BEFORE],
 ];
 function ownFirm(name) {
   if (!OWN_MARK.test(name)) return null;
@@ -656,4 +685,4 @@ function orderFaults(steps, nameOf = (step) => step.step, flags = {}) {
   return faults;
 }
 
-module.exports = { OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_BEFORE_POUR, OWN_FORMING, OWN_BREAK_OLD, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };
+module.exports = { OWN_SET_OUT, OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_BEFORE_POUR, OWN_FORMING, OWN_BREAK_OLD, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };

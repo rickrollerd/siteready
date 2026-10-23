@@ -3985,6 +3985,11 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     // Questions an answer just brought in are on the page before the draft is asked for.
     if (askTimer) await askAgain();
     else if (asking) await asking;
+    // The products the safety data sheet answer names become products, as on the project page (messy round 18, A run 2 and B run 7).
+    if (window.SiteWriteSubstances && window.SiteWriteSubstances.fromAnswer) {
+      const answer = document.querySelector('[data-fact="safetyDataSheet"]');
+      if (answer && answer.value.trim()) window.SiteWriteSubstances.fromAnswer(answer.value);
+    }
     const body = JSON.stringify(payload());
     const { response, data } = await postJson('/api/draft', body, { onRetry: () => draftNote(origin, 'The server did not answer straight away. Trying again.') });
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');

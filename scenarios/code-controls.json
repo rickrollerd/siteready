@@ -8549,7 +8549,7 @@
   "text": "No cutting above shoulder height with hand-held saws. Anything higher is cut from a work platform or scaffold.",
   "code": "NSW Cutting drilling and grinding concrete",
   "section": "s 6.1, s 7.6",
-  "unless": "groundCut"
+  "unless": ["groundCut", "floorCut"]
  },
  {
   "op": "add",
@@ -8566,7 +8566,7 @@
   "text": "Inverted cutting of the underside of a slab or overhang is never done with a hand-held saw or an electric saw. Where it cannot be cut from above, a competent person uses a track-mounted wall saw on guide tracks bolted to the slab.",
   "code": "NSW Cutting drilling and grinding concrete",
   "section": "s 5.1, s 6.1",
-  "unless": "groundCut"
+  "unless": ["groundCut", "floorCut"]
  },
  {
   "op": "add",
@@ -8575,7 +8575,7 @@
   "text": "When cutting through a wall, the area at the back of the wall where the blade comes out is cordoned off.",
   "code": "NSW Cutting drilling and grinding concrete",
   "section": "s 6.1",
-  "unless": "groundCut"
+  "unless": ["groundCut", "floorCut"]
  },
  {
   "op": "add",

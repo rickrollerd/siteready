@@ -237,7 +237,9 @@ const KINDS = [
   // holdSteps: the steps that do the work the design covers, which carry its hold point while it is not
   // issued even where no line in them names it (messy round 3: the geotechnical design was tied to no
   // step, and the core hole approval held "Plan core holes" but not the coring itself).
-  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [], holdSteps: /^(Excavate|Dig the trench|Work in the trench|Work inside a deep excavation|Bulk excavate and load trucks|Excavate pile caps, lift pits and trenches|Excavate in front of the retention wall)$/ },
+  // A retaining wall's cut, footing and backfill are dug and placed to it too (messy round 18, A run 3: the design was linked only to
+  // "Run earthmoving plant", where its answer printed).
+  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [], holdSteps: /^(Excavate|Dig the trench|Work in the trench|Work inside a deep excavation|Bulk excavate and load trucks|Excavate pile caps, lift pits and trenches|Excavate in front of the retention wall|Excavate and set out the retaining wall|Dig and pour footings|Backfill behind the retaining wall)$/ },
   {
     id: 'cutApproval', label: 'Engineer\'s approval for the cuts and core holes',
     lines: [/^Each core hole has the structural engineer's written approval\b/, /^Every opening has the structural engineer's written approval before cutting\b/],
