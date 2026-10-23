@@ -508,7 +508,7 @@ function install(router, deps) {
       [auth.newId(), ctx.sub.id, rows.length, '', title, task, JSON.stringify({ title, task, scopeTask: { plain: task, full: task, notes: '' }, kinds: null, leaveOut: null, unmatched: null, activities: [], highRisk, noSteps: handover.noJobSteps({ task, kinds: null }, ctx.project.state) }), 'added', rev, now]);
     await recordListEdit(ctx, { kind: 'added', pack: title, wording: task });
     await log(ctx, req, `added ${title} to the SWMS list for ${ctx.sub.name}.`);
-    res.status(201).json(await subcontractPage(ctx, { message: `${title} is added to the list.` }));
+    res.status(201).json(await subcontractPage(ctx, { message: `${title} is added to the list.${answers.ourWordsNote(task, ctx.sub.name)}` }));
   }));
 
   async function bumpList(ctx) {
@@ -598,7 +598,7 @@ function install(router, deps) {
         }
         await recordListEdit(ctx, { kind: 'taskChanged', pack: row.package || row.title, wording: task, original: row.task });
         await log(ctx, req, `changed the work for ${row.title} on the SWMS list for ${ctx.sub.name}.`);
-        message = `${message ? `${message} The work for ${row.title} is saved too.` : `The work for ${row.title} is saved.`}${unfolded}`;
+        message = `${message ? `${message} The work for ${row.title} is saved too.` : `The work for ${row.title} is saved.`}${unfolded}${answers.ourWordsNote(task, ctx.sub.name)}`;
       }
     }
     res.json(await subcontractPage(ctx, { message }));

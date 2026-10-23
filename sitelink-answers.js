@@ -338,6 +338,19 @@ function withPeople(text, people = []) {
 // people: the full names of the people the lead set in the site details, and the project's own people. Each takes
 // its capitals inside the text, and so does a first name or surname typed alone that is no English word ("dmitri",
 // "saoirse"): messy round 16, SiteLink wording 4, "hamish te rangi" in a condition and "dmitri" in a note.
+// The person a note says sent or brought something, typed in lower case, takes the capitals of a name: "Emailed by milos
+// hartigan to Marlee" reads "Emailed by Milos Hartigan to Marlee" (messy round 18, SiteLink wording 4). Only two or three
+// words straight after "by" or "from", ending where the note goes on ("to", "on", a comma): at least one not an English
+// word, and none a word of a role or a company ("the builder", "our office", "site manager").
+const NOT_SENDER = new Set('the a an our their his her its your my this that builder builders office site manager foreman supervisor lead team crew admin subcontractor subbie contractor client email post courier hand them him us me'.split(' '));
+const SENT_BY = /\b((?:emailed|e-mailed|sent|posted|delivered|brought|handed(?: over| in)?|dropped(?: off| in)?|given|forwarded|uploaded)(?: in| over| through| across)? (?:by|from) )((?!(?:on|to|at|via|for|in|and|with|from|by|the)\b)[a-z][a-z'’-]+(?: (?!(?:on|to|at|via|for|in|and|with|from|by|the)\b)[a-z][a-z'’-]+){1,2})(?= (?:to|on|at|via|for|in|and|with)\b|[.,;]|$)/gi;
+function withSenderName(text) {
+  return String(text || '').replace(SENT_BY, (whole, lead, name) => {
+    const words = name.split(' ');
+    if (words.some((word) => NOT_SENDER.has(word.toLowerCase())) || words.every((word) => englishWord(word))) return whole;
+    return `${lead}${words.map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`).join(' ')}`;
+  });
+}
 function tidyNote(text, names = [], people = [], places = []) {
   let out = capitalSentences(withPlaceNames(typedWords(text), places));
   if (!out) return out;
@@ -348,7 +361,7 @@ function tidyNote(text, names = [], people = [], places = []) {
     if (word.length < 3 || !/^[A-Z][a-z'’-]+$/.test(word) || /^(?:Pty|Ltd|The|And|Group|Services|Constructions?)$/.test(word)) continue;
     out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), word);
   }
-  out = withPeople(withCompanyNames(out, names), people);
+  out = withPeople(withCompanyNames(withSenderName(out), names), people);
   return out.replace(MONTHS, (whole, day, month, rest) => `${day}${month.charAt(0).toUpperCase()}${month.slice(1).toLowerCase()}${rest || ''}`);
 }
 
@@ -401,12 +414,20 @@ const HURRIED = [
   [/\bsparky\b/gi, 'electrician'],
   [/\bdbs\b/g, 'distribution boards'],
   [/\bdb\b/g, 'distribution board'],
+  // Points of the compass typed short (messy round 18, SiteLink wording 4: the muster point "Car park nth east corner").
+  [/\bnth\b/gi, 'north'],
+  [/\bsth\b/gi, 'south'],
 ];
+// "r" typed for "are" between two words (messy round 18, SiteLink wording 4: "Yes covers r Quokka's work").
+const loneR = (text) => String(text || '').replace(/(?<=[A-Za-z][ \t]+)r(?=[ \t]+[A-Za-z])/g, 'are');
+// A day of the week typed in lower case takes its capital (messy round 18, SiteLink wording 4: "get it signed before friday").
+const DAYS = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/g;
+const withDays = (text) => String(text || '').replace(DAYS, (day) => `${day.charAt(0).toUpperCase()}${day.slice(1)}`);
 const AT_PLACE = /\bat (?=(?:on|in|inside|beside|under|near|behind|along|over|outside|off|next to) (?:the|a|an|our|their|each|every)\b)/gi;
 function hurried(text) {
   let out = String(text || '');
   for (const [pattern, word] of HURRIED) out = out.replace(pattern, (found) => (/^[A-Z]/.test(found) ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word));
-  return loneN(out.replace(AT_PLACE, ''));
+  return withDays(loneR(loneN(out.replace(AT_PLACE, ''))));
 }
 // "ok" reads "OK" (messy round 16, SiteLink wording 6: "ok to start" printed "Ok to start").
 const typedWords = (text) => withShortNames(hurried(String(text || '')).replace(/\bok\b/gi, 'OK'));
@@ -456,7 +477,18 @@ function leadWords(text, { names = [], people = [], scopeText = '', stop = false
 // names the scope writes in capitals (scopeText, messy round 16).
 const tidyTitle = (text, scopeText = '') => capitalFirst(withScopeCapitals(typedWords(text), scopeText));
 
+// The lead writing "our crew" or "we" in a SWMS's work: the subcontractor reads it as its own crew, because the SWMS is
+// its own (messy round 18, SiteLink wording 6: "A crane company lifts the units up, our crew lands them on the plinths").
+// The words are kept as the lead wrote them, which may mean the subcontractor's crew; the lead is told how they read.
+const OUR_WORDS = /\b(?:our(?:\s+(?:own\s+)?(?:crew|team|people|workers?|guys|boys|fitters?|riggers?|doggers?|labourers?|electricians?|plumbers?))?|ours|we|us)\b/i;
+function ourWordsNote(task, subName) {
+  const found = OUR_WORDS.exec(String(task || ''));
+  if (!found) return '';
+  const who = String(subName || '').trim() || 'The subcontractor';
+  return ` Your words say "${found[0].toLowerCase()}": ${who} reads it as its own crew, as the SWMS is its own. If you mean your own people, name them, for example "the builder's crew".`;
+}
+
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { withPeople, leadWords, scopeNames, hurried, placeNames, withPlaceNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { ourWordsNote, withPeople, leadWords, scopeNames, hurried, placeNames, withPlaceNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

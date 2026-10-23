@@ -220,7 +220,8 @@ test('"na" in a person\'s box names no one, and a first name alone gets an examp
   const tina = gate.fieldWeak('person', 'tina office');
   assert.match(tina, /gives one name only/);
   assert.doesNotMatch(tina, /"Tina, office manager"/);
-  assert.match(tina, /"Sam Lee, office manager"/);
+  // The example asks for the surname (stacked with sl15's round 18 SiteLink wording 5).
+  assert.match(tina, /"Tina \(surname\), office manager"/);
   assert.match(gate.fieldWeak('person', 'kerry hocking office'), /"Kerry Hocking, office manager"/);
 });
 

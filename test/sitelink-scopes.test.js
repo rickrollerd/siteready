@@ -293,7 +293,7 @@ test('no price, rate or amount from a scope is kept, or shown to the lead or the
   // The work stays: the edge protection activity lost only its rate; the point lost only its priced part.
   assert.match(page.data.items[1].task, /^Erect and dismantle edge protection to slab edges\.$/);
   // Each point ends with a full stop (messy round 16, SiteLink wording 1).
-  assert.deepEqual(page.data.points.map((point) => point.question), ['Who provides the hoist for stripping; whether the', 'Whether the builder\'s tower crane is available for formwork lifts.']
+  assert.deepEqual(page.data.points.map((point) => point.question), ['Who provides the hoist for stripping; whether the', 'Is the builder\'s tower crane available for formwork lifts?']
     .map((text, i) => (i === 0 ? page.data.points[0].question : text)));
   assert.doesNotMatch(page.data.points[0].question, /lump sum|1,234,567/);
   // The lead's own words are checked too.
@@ -346,7 +346,7 @@ test('the points to confirm: the lead may answer them, and only the answered one
   const answered = await call('PUT', `/api/hse/subcontracts/${subId}/points/${second.id}`, { reviewer: lead, body: { answer: 'Yes, from 7 am to 3 pm. Book it with the site manager the day before.' } });
   assert.equal(answered.status, 200);
   assert.equal(answered.data.message, 'Your answer is saved. The subcontractor will see it with the list.');
-  assert.deepEqual(answered.data.preview.answers.map((item) => [item.question, item.answer, item.by]), [['Whether the builder\'s tower crane is available for formwork lifts.', 'Yes, from 7 am to 3 pm. Book it with the site manager the day before.', 'Riley Morgan']]);
+  assert.deepEqual(answered.data.preview.answers.map((item) => [item.question, item.answer, item.by]), [['Is the builder\'s tower crane available for formwork lifts?', 'Yes, from 7 am to 3 pm. Book it with the site manager the day before.', 'Riley Morgan']]);
   // Taking the answer off takes the point out of what the subcontractor sees.
   const cleared = await call('PUT', `/api/hse/subcontracts/${subId}/points/${second.id}`, { reviewer: lead, body: { answer: '' } });
   assert.equal(cleared.data.message, 'The answer is taken off. The subcontractor will not see this point.');

@@ -263,12 +263,15 @@
     const PLACE_WORD = /\s+(?:front|back|head|main|home|branch|field|site|our|the)$/i;
     let named = clean(text.replace(/\s+\S+\.?$/, ''));
     let said = place ? place[1] : '';
-    while (PLACE_WORD.test(named) && named.split(/\s+/).length > 2) { said = `${named.match(PLACE_WORD)[0].trim()} ${said}`; named = named.replace(PLACE_WORD, ''); }
-    // A first name alone gets an example with a full name, not the first name again (messy round 18, A run 1: "tina office" got
-    // the example "Tina, office manager", which is itself one name only).
+    // With one name left ("kayla front office"), the place word is still a place, not her surname: the example asks for the
+    // surname rather than printing "Kayla Front, office manager" (messy round 18, SiteLink wording 5).
+    while (PLACE_WORD.test(named) && named.split(/\s+/).length > 1) { said = `${named.match(PLACE_WORD)[0].trim()} ${said}`; named = named.replace(PLACE_WORD, ''); }
+    const capitals = /[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`);
     const role = /^office$/i.test(place ? place[1] : '') ? 'office manager' : 'supervisor';
-    if (place && !/\s/.test(named)) return `${quoted} gives one name only, and ends in "${said}", which is a place, not a role. Give their full name and role, for example "Sam Lee, ${role}".`;
-    if (place) return `${quoted} ends in "${said}", which is a place, not a role. Give their name and role, for example "${/[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, ${role}".`;
+    // A first name alone gets an example that asks for the surname, not the first name again (messy round 18, A run 1: "tina office"
+    // got the example "Tina, office manager", which is itself one name only).
+    if (place && !/\s/.test(named.trim())) return `${quoted} gives one name only, and ends in "${said}", which is a place, not a role. Give their full name and role, for example "${capitals} (surname), ${role}".`;
+    if (place) return `${quoted} ends in "${said}", which is a place, not a role. Give their name and role, for example "${capitals}, ${role}".`;
     // A council or authority named only by what it is ("council": messy round 18, B run 6) does not say which one.
     if (kind === 'company' && BARE_AUTHORITY.test(text)) return `${quoted} does not say which one. Give its full name, for example "Glenorchy City Council", or the name of the principal contractor running the site.`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;

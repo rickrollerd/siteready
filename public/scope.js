@@ -1643,7 +1643,9 @@
         renderProject();
         if (S.drawSetBy) S.drawSetBy();
         sayList(note, 'warning');
-        if (nothingNew) { const el = $('list-saved'); if (el) el.textContent = savedLine(project.sitelink); }
+        // The saved line names the newest save, the other device's, as the note above it does: left as this page's own last
+        // save, the two times differed (messy round 18, SiteLink smaller fault: 9:57 pm in the note, 9:56 pm on the line).
+        { const el = $('list-saved'); if (el) el.textContent = savedLine(project.sitelink); }
         return;
       }
       if (error.status === 404) { sayList(error.message, 'warning'); return; }

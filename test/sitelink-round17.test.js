@@ -345,8 +345,8 @@ test('products named in the safety data sheet answer are each its own product, "
     { type: 'Adhesives', product: 'contact adhesive for the insulation' },
     { type: 'Paints and coatings', product: 'cold galv zinc spray' },
   ]);
-  // The project page gives each its own row.
-  assert.match(read('public/project-go.js'), /same \? `-\$\{same \+ 1\}` : ''/);
+  // The project page gives each its own row, with an id the server keeps (sl15: each its own "sub-" id).
+  assert.match(read('public/project-go.js'), /taken\.add\(`sub-\$\{next\}`\)/);
 });
 
 test('a wrong check answer naming the grinder and what it sets alight is not offered beside the grinder control (smaller 2)', () => {

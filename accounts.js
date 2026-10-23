@@ -693,8 +693,12 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   // prints, each part's fingerprint, and the check it was last given.
   const selfCheck = kept ? humanCheck.selfCheck(kept.draft, kept.input && kept.input.state) : null;
   const lastCheck = kept && humanCheck.isPartCheck(kept.confirmation) ? (({ name, role, date }) => ({ name, role, date }))(kept.confirmation) : null;
+  // The current revision submitted on a main contractor's SiteLink list: to whom and when, so the page says it is waiting
+  // for that review, not that it still has to be sent (messy round 18, SiteLink: just after submitting, My SWMS read
+  // "Revision 1 has not been reviewed yet. To have the principal contractor review revision 1 in SiteWrite, send them ...").
+  const sent = await db.one("SELECT s.submitted_at, p.name AS project, o.name AS org FROM submissions s JOIN projects p ON p.id = s.project_id JOIN orgs o ON o.id = p.org_id WHERE s.swms_id = $1 AND s.revision = $2 AND s.channel = 'sitewrite' ORDER BY s.submitted_at DESC LIMIT 1", [row.id, row.revision || 1]).catch(() => null);
   res.json({
-    swms: swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons, reviewLink: reviews.reviewLink(auth.appUrl(req), kept && kept.ref) }),
+    swms: { ...swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons, reviewLink: reviews.reviewLink(auth.appUrl(req), kept && kept.ref) }), ...(sent ? { submitted: { to: sent.org, project: sent.project, on: longDate(sent.submitted_at) } } : {}) },
     input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons }, reviews: pcReviews, selfCheck, lastCheck,
   });
 }));

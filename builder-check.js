@@ -876,6 +876,11 @@ function hardFails(swms, state, stage = 'review') {
   if (impliedIds.has('road') && !isRoad(swms.task) && !workNames.some((name) => !GENERAL_ROAD_STEP.test(name) && isRoad(name))) impliedIds.delete('road');
   for (const item of highRiskMatches(asSentences(swms.steps.filter((step) => checkOnly(step.step)).map((step) => step.step)), swms.fallRisk, state)) if (item.id === 'fall') impliedIds.add('fall');
   if (swms.steps.some((step) => step.hazards.some((line) => LIVE_PARTS.test(line)))) impliedIds.add('electrical');
+  // A SWMS that says no electrical work is done on or near energised parts (the answer "None: everything is isolated and
+  // proved de-energised first") is not energised work from a step's name alone ("Work on or near energised parts"), as
+  // SiteWrite's draft reads it (messy round 18, SiteLink blocker 1). The task's own words still bring it.
+  if (impliedIds.has('electrical') && allControls.some((line) => NOT_LIVE.test(line)) && !LIVE_WORK.test(swms.task)
+    && !highRiskMatches(asSentences([withoutBannedPlant(swms.task)]), swms.fallRisk, state).some((item) => item.id === 'electrical')) impliedIds.delete('electrical');
   const plantNames = swms.plant.map((line) => line.split(':')[0]);
   if (swms.fallRisk !== 'no' && plantNames.some((line) => PLANT_AT_HEIGHT.test(line))) impliedIds.add('fall');
   if (plantNames.some((line) => MOBILE_PLANT.test(line))) impliedIds.add('plant');

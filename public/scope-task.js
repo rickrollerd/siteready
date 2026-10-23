@@ -58,7 +58,23 @@
     // One word alone is not a sentence of work (messy round 9, wording 2: "Roadsaw." stood alone).
     if (/^road ?saw(?:s|ing)?$/i.test(text)) text = 'Saw cut existing roads and pavements';
     else if (/^[a-z-]+$/i.test(text)) text = `${text} work`;
+    // Work named as a thing, with no verb, reads as work done (messy round 18, SiteLink wording 1: "Hazardous zone compliance
+    // installation where nominated." and "Final connection of mechanical services to installed CCRMF", the second its title too).
+    text = withVerb(text);
     return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}.` : '';
+  }
+
+  // "Final connection(s) of ..." is made; "... installation" named by what it is, with a word before it that is not a verb
+  // ("Hazardous zone compliance installation"), is carried out. Work that starts with a verb, or with its own -ing word
+  // ("Testing and commissioning"), is left as it is.
+  const NOT_FIRST = /^(?:install\w*|supply|provide|carry|make|complete|undertake|perform|connect\w*|test\w*|commission\w*|\w+ing)$/i;
+  function withVerb(text) {
+    const line = String(text || '');
+    const lower = (words) => (/^[A-Z][a-z]/.test(words) ? `${words.charAt(0).toLowerCase()}${words.slice(1)}` : words);
+    if (/^final connections?\s+(?:of|to|for)\b/i.test(line)) return `Make the ${lower(line)}`;
+    const first = line.split(/\s+/)[0] || '';
+    if (/^(?:[A-Za-z-]+\s+){1,4}installation\b/i.test(line) && !NOT_FIRST.test(first)) return `Carry out ${lower(line)}`;
+    return line;
   }
 
   // The work, one short sentence each, in the order the scope gives it.
@@ -119,8 +135,12 @@
   const LIVE_NAMED = /\b(?:power|electric\w*|switch ?boards?|switch ?rooms?|substations?|cables?|cabling|wiring|circuits?|mains|supply|supplies|hv|lv|elv|high voltage|low voltage|kv|volts?|power lines?|overhead lines?|gas|water|sewer\w*|storm ?water|drains?|drainage|pipes?|pipework|data|comms?|communications?|nbn|fibre|optic\w*|fire (?:services?|mains?|systems?|pumps?|panels?|alarms?)|hydrants?|sprinklers?|alarms?|panels?|fip|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|networks?|lighting|lights?|plant ?rooms?|pumps?|batter(?:y|ies)|generators?|ups|solar)\b/i;
   const namesSomething = (id, text) => (id === 'otherTrades' ? TRADE_NAMED.test(text) || WHERE_NAMED.test(text)
     : id === 'liveServices' ? !OTHERS_WORK.test(text) && LIVE_NAMED.test(text)
-      : id === 'publicInterface' ? PUBLIC_NAMED.test(text) || (/\b(?:occupied|operating|in use|live)\b/i.test(text) && !SERVICE_NAMED.test(text))
-        : id === 'access' ? ACCESS_NAMED.test(text) : true);
+      // A facility said only to be operating or live ("Operating existing facility.", "Live adjacent facility BMS and Security
+      // Management System.") names no people near the work, and a builder's rule about what goes in the slab ("Builder safety
+      // requirement: no in-slab conduits unless no alternative.") is not ground: neither is offered (messy round 18, SiteLink).
+      : id === 'publicInterface' ? PUBLIC_NAMED.test(text) || (/\b(?:occupied|in use)\b/i.test(text) && !SERVICE_NAMED.test(text))
+        : id === 'ground' ? !/\b(?:in-slab|conduits?|cast[- ]in|requirements?)\b/i.test(text)
+          : id === 'access' ? ACCESS_NAMED.test(text) : true);
   const offerable = (id, text) => { const rules = gate(); return (!rules || !rules.siteNeed || !rules.siteNeed(id, text)) && namesSomething(id, text); };
   function scopeSite(rows) {
     const out = {};
