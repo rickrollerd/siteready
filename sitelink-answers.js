@@ -285,6 +285,19 @@ const MONTHS = /\b(\d{1,2}(?:st|nd|rd|th)?\s+)(jan|feb|mar|apr|may|jun|jul|aug|s
 // A word that is also an English word ("Fire" in "Spinebill Fire Protection", "Rangi") is not given its capital
 // alone: only a whole name typed in a row is (withCompanyNames, withPersonNames).
 const englishWord = (word) => { try { return require('./spelling').isWord(word); } catch { return false; } };
+// The project's people with their capitals inside a text: each full name, and a first name or surname alone that is no
+// English word.
+function withPeople(text, people = []) {
+  const full = personNames(people);
+  let out = withPersonNames(text, full);
+  for (const name of full) {
+    for (const word of name.split(/\s+/)) {
+      if (word.length < 4 || !/^[A-Z][a-z'’-]+$/.test(word) || englishWord(word.toLowerCase())) continue;
+      out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), word);
+    }
+  }
+  return out;
+}
 // people: the full names of the people the lead set in the site details, and the project's own people. Each takes
 // its capitals inside the text, and so does a first name or surname typed alone that is no English word ("dmitri",
 // "saoirse"): messy round 16, SiteLink wording 4, "hamish te rangi" in a condition and "dmitri" in a note.
@@ -298,15 +311,7 @@ function tidyNote(text, names = [], people = []) {
     if (word.length < 3 || !/^[A-Z][a-z'’-]+$/.test(word) || /^(?:Pty|Ltd|The|And|Group|Services|Constructions?)$/.test(word)) continue;
     out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), word);
   }
-  out = withCompanyNames(out, names);
-  const full = personNames(people);
-  out = withPersonNames(out, full);
-  for (const name of full) {
-    for (const word of name.split(/\s+/)) {
-      if (word.length < 4 || !/^[A-Z][a-z'’-]+$/.test(word) || englishWord(word.toLowerCase())) continue;
-      out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), word);
-    }
-  }
+  out = withPeople(withCompanyNames(out, names), people);
   return out.replace(MONTHS, (whole, day, month, rest) => `${day}${month.charAt(0).toUpperCase()}${month.slice(1).toLowerCase()}${rest || ''}`);
 }
 
@@ -329,7 +334,8 @@ function tidyRole(text) {
 // Short names typed in lower case keep their capitals: "hv and lv cabling" reads "HV and LV cabling", "ewps" reads
 // "EWPs" (messy round 15, SiteLink wording 1: the lead's title was saved as "Hv and lv cabling, terminations and
 // earthing"). Only names that are never a plain word; a word typed with any capital is left as typed.
-const SHORT_NAMES = new Set('hv lv elv ac dc cctv pvc upvc cpvc hdpe hvac ewp ict msb mdb db mcc plc bms fip ewis nbn rcd gpo ppe lpg frp ups swms hrcw rmu acb mep av ipa itp itps sds ohs whs hse qa rfi'.split(' '));
+// "vrf", "ahu", "fcu" and "mssb" too (messy round 17, SiteLink wording 3: the lead's added SWMS printed "vrf").
+const SHORT_NAMES = new Set('hv lv elv ac dc cctv pvc upvc cpvc hdpe hvac ewp ict msb mdb db mcc plc bms fip ewis nbn rcd gpo ppe lpg frp ups swms hrcw rmu acb mep av ipa itp itps sds ohs whs hse qa rfi vrf vrv ahu fcu vav mssb ddc'.split(' '));
 // One typed with only its first capital ("Hv cabling", as a title's first word was saved before) is put right too,
 // except where it could be a word ("Ups").
 const NOT_ONLY_A_NAME = new Set(['ups', 'av', 'ipa', 'qa']);
@@ -358,13 +364,37 @@ function scopeCapitals(scopeText) {
   for (const word of String(scopeText || '').match(/\b[A-Z]{2,5}\b/g) || []) if (!NOT_SCOPE_NAMES.has(word.toLowerCase())) out.set(word.toLowerCase(), word);
   return out;
 }
+// A place's own name the scope writes with its capital before a short name, as part of the name of a place or a system
+// ("in the Gatehouse SER room", "Trade installation: Gatehouse AVRS"), keeps its capital in the lead's words too:
+// "avrs rising step n control cabling - gatehouse" reads "AVRS rising step and control cabling - Gatehouse" (messy round
+// 17, SiteLink wording 4). Only inside a sentence, at least twice, and never a word of the contract's own parties or
+// headings.
+const NOT_PLACE_NAMES = new Set('subcontractor subcontractors contractor contractors principal builder builders client clients works project projects site clause clauses section sections scope schedule appendix part parts item items drawing drawings specification specifications practical completion superintendent consultant consultants authority authorities manager managers install installation supply provide refer include including excluding note notes general requirements interim measures lead coordinator roles interface additional design precast elements excavation trade specific drilling coring cutting concrete exclusions inclusions sequencing table volume figure level stage zone building block test pressure terminate connect'.split(' '));
+function scopeNames(scopeText) {
+  const text = String(scopeText || '');
+  const seen = new Map();
+  for (const found of text.matchAll(/(?<=[a-z0-9,;:)][ \t]+)([A-Z][a-z]{3,})(?=[ \t]+[A-Z]{2,5}s?\b)/g)) {
+    const key = found[1].toLowerCase();
+    if (!NOT_PLACE_NAMES.has(key)) seen.set(key, { word: found[1], times: ((seen.get(key) || {}).times || 0) + 1 });
+  }
+  return new Map([...seen].filter(([, one]) => one.times >= 2).map(([key, one]) => [key, one.word]));
+}
 function withScopeCapitals(text, scopeText) {
   const names = scopeCapitals(scopeText);
-  if (!names.size) return String(text || '');
+  const places = scopeNames(scopeText);
+  if (!names.size && !places.size) return String(text || '');
   return String(text || '').replace(/\b([A-Za-z][a-z]{1,4})(s?)\b/g, (whole, word, plural) => {
     const found = names.get(word.toLowerCase());
     return found ? `${found}${plural}` : names.get(whole.toLowerCase()) || whole;
-  });
+  }).replace(/\b[a-z]{4,}\b/g, (word) => places.get(word) || word);
+}
+// Words the lead types that the subcontractor reads or that print (point answers, changed or added work, site
+// rules): "n" reads "and", "b4" reads "before", short names in capitals, the project's people and companies with their
+// capitals, and the names the scope writes with capitals (messy round 17, SiteLink wording 3: "Callum fitzwilliam will
+// give you the date", "n walkways", "b4 use", "Clean inside AHUs n replace filters b4 practical completion").
+function leadWords(text, { names = [], people = [], scopeText = '', stop = false } = {}) {
+  const out = withScopeCapitals(tidyNote(text, names, people), scopeText);
+  return capitalSentences(out, { stop });
 }
 // A title the lead types: its first capital and its short names (messy round 15, SiteLink wording 1), and the short
 // names the scope writes in capitals (scopeText, messy round 16).
@@ -373,4 +403,4 @@ const tidyTitle = (text, scopeText = '') => capitalFirst(withScopeCapitals(typed
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { withPeople, leadWords, scopeNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

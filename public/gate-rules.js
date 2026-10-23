@@ -253,8 +253,13 @@
     // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
     const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
     // The example names the person with their capitals ("Priya Dalgarno, office manager", messy round 16, SiteLink).
-    const named = clean(text.replace(/\s+\S+\.?$/, ''));
-    if (place) return `${quoted} ends in "${place[1]}", which is a place, not a role. Give their name and role, for example "${/[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
+    // A word that only says which place ("front office", "head office", "site office") is not part of the name: "bethany ngata
+    // front office" gives "Bethany Ngata, office manager", not "Bethany Ngata Front, office manager" (messy round 17, SiteLink).
+    const PLACE_WORD = /\s+(?:front|back|head|main|home|branch|field|site|our|the)$/i;
+    let named = clean(text.replace(/\s+\S+\.?$/, ''));
+    let said = place ? place[1] : '';
+    while (PLACE_WORD.test(named) && named.split(/\s+/).length > 2) { said = `${named.match(PLACE_WORD)[0].trim()} ${said}`; named = named.replace(PLACE_WORD, ''); }
+    if (place) return `${quoted} ends in "${said}", which is a place, not a role. Give their name and role, for example "${/[A-Z]/.test(named) ? named : named.replace(/(^|[\s-])([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, ${/^office$/i.test(place[1]) ? 'office manager' : 'supervisor'}".`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
     if (['trades', 'ground', 'access', 'public', 'services'].includes(kind) && NONE.test(text)) return '';
     if (kind === 'trades' && NOT_A_TRADE.test(text)) return `${quoted} is not a trade working near you. Name the trades and where they work, for example "Electricians on the same level" or "Plumbers below us", or write None.`;
@@ -618,8 +623,15 @@
     if (questionId && ACROSS_CHOICES[questionId]) return !rule || rule.test(String(itemWords || ''));
     const text = clean(answer).replace(/\b(?:no|not|never|without|nobody)\b[^.;,]{0,40}/gi, ' ');
     const words = String(itemWords || '');
+    // Steel erection's answer ("Connections are made from boom lifts ... No one climbs the steel.") fits only a SWMS whose
+    // work erects steel, as its standard answer is offered (presets.js) (messy round 17, SiteLink wording 8: it went into
+    // Ductwork and mechanical units and printed as its fall control and in "Erect the scaffold"). Read as typed: the
+    // steel it names is in the part that says no one climbs it.
+    if (STEEL_ANSWER.test(clean(answer)) && !STEEL_WORK.test(words)) return false;
     return ACROSS_WORK.every(([said, has]) => !said.test(text) || has.test(words));
   }
+  const STEEL_ANSWER = /\b(?:climbs? (?:the |any )?steel(?:work)?|steel connections?|connect(?:s|ed|ing)? the steel)\b/i;
+  const STEEL_WORK = /\b(?:steel (?:columns?|beams?|frames?|erect\w*|portals?|trusses?|connections?)|structural steel|portal frames?|steel erect\w*|erect\w* (?:the )?(?:structural )?steel)\b/i;
 
   // A rescue answer fits another SWMS only where its way of rescue fits that SWMS's work, as a fall control answer does
   // (messy round 15, A run 2: the penetrations rescue "reach them from the floor below" was filled into the electrical

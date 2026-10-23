@@ -789,7 +789,16 @@ function splitOutside(text, separator) {
 }
 // What a part asks about, without its bracketed asides: "Lifting method (cranage excluded)" asks about the
 // lifting method, not about who supplies the crane.
-const asksWho = (part) => WHO_SUPPLIES.test(String(part).replace(/\([^()]*\)/g, ' '));
+// A point that says who decides ("The Principal decides whether the fault-free period is acceptable") or that the
+// reading has already settled ("..., so it is not listed as this Subcontractor's activity") leaves nothing for the
+// lead to answer (messy round 17, SiteLink wording 7): it is not asked.
+const PARTY_DECIDES = /\b(?:principal|builder|client|superintendent|engineer|(?:head |main |principal )?contractor|consultant|authority|authorities)(?:['’]s)?(?:\s+[\w-]+){0,2}\s+(?:decides|determines|confirms|approves|directs|nominates|chooses|will decide|will determine|will confirm|is to decide|to decide)\s+(?:whether|if|when|which|what)\b/gi;
+const READING_DECIDED = /\b(?:so|and so|therefore|which is why)\s+(?:it|this|they|that work|the work)\s+(?:is|are)\s+not\s+(?:listed|included|shown|treated|counted|taken)\b/i;
+const asksWho = (part) => {
+  const text = String(part).replace(/\([^()]*\)/g, ' ');
+  if (READING_DECIDED.test(text)) return false;
+  return WHO_SUPPLIES.test(text.replace(PARTY_DECIDES, ' '));
+};
 // A part that only follows on from the one before ("If it does, the welding procedure applies",
 // "This depends on whether an exemption is granted") goes with it, so a note never reaches the
 // subcontractor without the question it answers (messy round 7).
@@ -817,7 +826,10 @@ function splitPoint(text) {
     if (!asksWho(part)) { notes.push(part); continue; }
     // A piece that only goes on from the one before ("..., which gives precast conduits to the Electrical
     // subcontractor") stays with it, never a point of its own (messy round 11, SiteLink wording 1).
-    const pieces = splitOutside(part, ', ').map((one) => one.replace(/^and\s+/i, '')).reduce((list, one) => (list.length && (/^(?:which|who|whose|whom|that|where)\b/i.test(one) || (/^so\b/i.test(one) && FOLLOWS_ON.test(one))) ? [...list.slice(0, -1), `${list[list.length - 1]}, ${one}`] : [...list, one]), []);
+    // Numbers in a list ("pits 3, 4 and 5 will be ...") stay in one piece (messy round 17, SiteLink wording 1:
+    // "Pits 3." became a note and "4 and 5 will be temporarily finished ..." the point).
+    const pieces = splitOutside(part, ', ').reduce((list, one) => (list.length && /\d$/.test(list[list.length - 1]) && /^(?:and\s+)?\d/i.test(one) ? [...list.slice(0, -1), `${list[list.length - 1]}, ${one}`] : [...list, one]), [])
+      .map((one) => one.replace(/^and\s+/i, '')).reduce((list, one) => (list.length && (/^(?:which|who|whose|whom|that|where)\b/i.test(one) || (/^so\b/i.test(one) && FOLLOWS_ON.test(one))) ? [...list.slice(0, -1), `${list[list.length - 1]}, ${one}`] : [...list, one]), []);
     if (pieces.length < 2 || asksWho(pieces[0])) { asks.push(part); continue; }
     for (const piece of pieces) (asksWho(piece) ? asks : notes).push(piece);
   }
@@ -866,10 +878,14 @@ function draftNotes(rows) {
 // (the brief's "Unknowns"), one for each activity that has one. The lead may answer them; only the
 // answered ones go to the subcontractor (D302, K12). Only the parts about who does or supplies what are
 // asked (D307): the rest are notes for the subcontractor's draft (draftNotes).
+// A duty that is only being there or checking the paperwork ("Attend concrete pours", "Attend the Appendix D audit")
+// needs no SWMS, so a point on it is not asked (messy round 17, SiteLink wording 7).
+const ATTENDANCE = /^(?:attend\w*|witness\w*|participat\w*|take part|be present|join|chair|minute)\b|\b(?:audits?|meetings?|inspections? by)\b/i;
 function listPoints(reading) {
   const safe = scrubReading(reading);
   const out = [];
   for (const row of safe.activities || []) {
+    if (row.type === 'Duty' && ATTENDANCE.test(String(row.activity || '').trim())) continue;
     const question = pointSentence(splitPoint(row.unknowns).asks.join('; '));
     if (!question) continue;
     if (out.some((point) => point.question === question && point.activity === row.activity)) continue;
@@ -917,6 +933,11 @@ function sentHighRisk(flag) {
 
 // ---- Notes from the scope, and the lead's answers that settle them ----
 
+// The work a SWMS on the list holds, with any work folded into it: what its notes can be settled by.
+function workOf(row, rows) {
+  return withFolded(row, rows).activities.map((entry) => (entry && typeof entry === 'object' ? entry.activity : entry)).filter(Boolean);
+}
+
 // A note from the scope that one of the lead's answers settles is marked so, with the answer (messy
 // round 8, blocker 3: "CCTV and Duress are listed as exclusions" beside the lead's answer that they are in
 // the scope, and the subcontractor could not tell which stood). A note settles only on its own subject:
@@ -934,15 +955,20 @@ const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'the
   // Words that say only that something is open, never what (messy round 11, SiteLink blocker 2: the manholes
   // answer settled "Whether they will be instructed is open." on the storage tanks and the gas meter).
   'instruct', 'instruction', 'open', 'decid', 'decision', 'determin', 'pend', 'pending', 'option', 'variation', 'price', 'pric', 'yet', 'still', 'now', 'later', 'need', 'requir', 'whom', 'whose']);
+// A word is left out when it is a stop word before or after its ending is taken off ("provided" is "provid").
 const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').split(/[^a-z0-9]+/)
+  .filter((word) => !NOTE_STOP.has(word))
   .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
 // The note's own subject: the words after "{the work}: ", when the note starts with the work it is about.
 function noteSubject(entry) {
   const text = String((entry && entry.text) || '');
   const activity = String((entry && entry.activity) || '').replace(/[.\s]+$/, '').trim();
   if (activity && text.toLowerCase().startsWith(`${activity.toLowerCase()}:`)) return text.slice(activity.length + 1);
+  // A long name of the work counts too ("Terminate BMS interface wiring in hydraulic control panels and kitchen/laundry
+  // interface points: panel energised state to be confirmed.": messy round 17, SiteLink, its "controls" and "energised"
+  // were read as its subject).
   const at = text.indexOf(': ');
-  return at > 0 && at <= 80 && !/[.;]/.test(text.slice(0, at)) ? text.slice(at + 2) : text;
+  return at > 0 && at <= 200 && !/[.;]/.test(text.slice(0, at)) ? text.slice(at + 2) : text;
 }
 // The work a note names before its subject ("{the work}: ..."), or the work it is kept with.
 function noteWork(entry) {
@@ -953,9 +979,27 @@ function noteWork(entry) {
 const sameWords = (a, b) => String(a || '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase() === String(b || '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
 // A note on who does the work: it names a party doing it.
 const NOTE_WHO = /\b(?:(?:last|first|final|other|each|another|following|preceding|services?|builder['’]?s?)\s+(?:trades?|subcontractors?|contractors?)|by (?:the )?(?:others|builder|main contractor|head contractor|principal contractor|subcontractor|contractor)|whoever|responsib\w*|(?:the|a|an|which|other) part(?:y|ies))\b/i;
-function withSettled(item, answers) {
+// Words in a note on who does the work that say only which party, never what the work is ("the last trade").
+const WHO_ONLY = new Set(['last', 'first', 'final', 'shar', 'common', 'each', 'another', 'following', 'preceding', 'whoever', 'responsib', 'responsible', 'party', 'parti']);
+// A piece of a sentence left as a note when the reading split it ("Pits 3." from "pits 3, 4 and 5 will be ..."):
+// three words or fewer and no verb.
+const fragment = (text) => { const words = String(text || '').replace(/[.\s]+$/, '').split(/\s+/).filter(Boolean); return words.length > 0 && words.length <= 3 && !NO_VERB.test(String(text || '')); };
+// An answer settles only notes about the same thing in the same SWMS's work (messy round 17, SiteLink blocker 1:
+// seven answers settled five notes across SWMS, none on the answer's subject, and left the notes on it open).
+// activities: the work of the SWMS the notes are in (with any work folded into it); an answer to a point on other
+// work, or on a duty no SWMS holds, settles none of its notes. Without it (an older caller), every answer is tried.
+function withSettled(item, answers, { activities } = {}) {
   if (!item || !(item.draftNotes || []).length || !(answers || []).length) return item;
+  const mine = Array.isArray(activities) ? answers.filter((answer) => activities.some((one) => sameWords(one, answer.activity))) : answers;
+  if (!mine.length) return item;
   const draftNotes = item.draftNotes.map((entry) => {
+    // A piece of a split sentence ("Pits 3.") is settled by the answer that names all of it.
+    if (fragment(noteSubject(entry))) {
+      const short = (text) => new Set(String(text || '').toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/(?:es|s)$/, '')).filter((word) => word.length >= 3 && !NOTE_STOP.has(word)));
+      const words = [...short(noteSubject(entry))].filter((word) => !/^\d+$/.test(word));
+      const whole = words.length > 0 && mine.find((answer) => { const said = short(answer.answer); return words.every((word) => said.has(word)); });
+      return whole ? { ...entry, settled: whole.answer } : entry;
+    }
     const own = stems(noteSubject(entry));
     // A note that says only that something is open ("Whether they will be instructed is open.") has no
     // subject of its own: no answer settles it, unless the work it names is what the point was asked about,
@@ -964,27 +1008,34 @@ function withSettled(item, answers) {
     if (!own.size) {
       const work = noteWork(entry);
       const named = stems(work);
-      const same = named.size && answers.find((answer) => sameWords(answer.activity, work) || ([...stems(`${answer.question} ${answer.activity}`)].filter((word) => named.has(word)).length >= 2 && [...stems(answer.question)].some((word) => named.has(word))));
+      const same = named.size && mine.find((answer) => sameWords(answer.activity, work) || ([...stems(`${answer.question} ${answer.activity}`)].filter((word) => named.has(word)).length >= 2 && [...stems(answer.question)].some((word) => named.has(word))));
       return same ? { ...entry, settled: same.answer } : entry;
     }
     // A note that says who does the work ("At shared penetrations the last trade to install seals the
     // penetration.") is settled by the lead's answer on who does that work, though its subject is the work the
-    // point is about (messy round 16, SiteLink blocker 4: "You seal all fire services penetrations incl collars
-    // and dampers as you go." left that note standing in Penetrations and core drilling, and the SWMS said both).
+    // point is about (messy round 16, SiteLink blocker 4). Every word of what it is about must be in the point's
+    // work, what it asked or the answer, so a note on another thing beside it ("Columns under the cooling towers
+    // are by the builder.") is not settled by the answer on the cooling tower platforms (messy round 17).
     const saysWho = NOTE_WHO.test(noteSubject(entry));
-    const found = answers.find((answer) => {
+    const things = [...stems(noteSubject(entry).replace(new RegExp(NOTE_WHO.source, 'gi'), ' '))].filter((word) => !WHO_ONLY.has(word));
+    // Each answer that settles it, scored by how many of the note's words its work and its words share; the
+    // closest wins (the sealing answer, not the safety mesh answer that also says "sealed").
+    const fits = (answer) => {
       const work = stems(answer.activity);
       const subject = (text) => [...stems(text)].filter((word) => own.has(word) && !work.has(word));
       const asked = subject(answer.question).length;
       const said = subject(`${answer.question} ${answer.answer}`).length;
-      // Two words of the note in the answer itself, one of them in what the point asked.
       const askedWords = stems(answer.question);
-      const inAnswer = [...stems(answer.answer)].filter((word) => own.has(word));
+      const answerWords = stems(answer.answer);
+      const pointWords = stems(`${answer.activity} ${answer.question} ${answer.answer}`);
       // Two words of the subject in the point, one of them in what it asked, or one in what it asked
       // about the same work.
       return (said >= 2 && asked >= 1) || (asked >= 1 && Boolean(entry.activity) && answer.activity === entry.activity)
-        || (saysWho && inAnswer.length >= 2 && inAnswer.some((word) => askedWords.has(word)));
-    });
+        || (saysWho && things.length > 0 && things.some((word) => answerWords.has(word)) && things.every((word) => pointWords.has(word))
+          && things.some((word) => work.has(word) || askedWords.has(word)));
+    };
+    const score = (answer) => { const words = stems(`${answer.question} ${answer.answer}`); const work = stems(answer.activity); return [...own].filter((word) => words.has(word)).length + [...own].filter((word) => work.has(word)).length; };
+    const found = mine.filter(fits).sort((a, b) => score(b) - score(a))[0];
     return found ? { ...entry, settled: found.answer } : entry;
   });
   return { ...item, draftNotes };
@@ -999,7 +1050,7 @@ function notesOf(list) {
     const text = sentence(withoutConflictRefs(quoteWithoutPrices(String(raw || '')))).replace(/([^.!?])$/, '$1.');
     // Notes kept before messy round 16 are read by the same rules: a note about the scope's own lines is left out.
     const own = text.replace(/^[^:]{3,120}:\s+/, '');
-    if (!text || out.some((one) => one.text === text) || ABOUT_THE_DOCUMENT.test(text) || ABOUT_THE_DOCUMENT.test(own)) continue;
+    if (!text || out.some((one) => one.text === text) || ABOUT_THE_DOCUMENT.test(text) || ABOUT_THE_DOCUMENT.test(own) || READING_DECIDED.test(text)) continue;
     out.push({ text, clause: entry && typeof entry === 'object' ? wordsWithoutPrices(entry.clause || '') : '', ...(entry && typeof entry === 'object' && entry.activity ? { activity: wordsWithoutPrices(entry.activity) } : {}) });
   }
   return out.slice(0, 20);
@@ -1015,7 +1066,7 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   const all = items || [];
   const kept = all.filter((item) => !item.removed_at && !item.removedAt);
   const answered = (points || []).filter((point) => String(point.answer || '').trim() && pointInPlay(point, all));
-  const answers = answered.map((point) => ({ activity: sentence(point.activity), clause: point.clause, question: pointSentence(point.question), answer: require('./sitelink-answers').capitalSentences(String(point.answer).trim(), { stop: true }), by: point.answered_by_name || '' }));
+  const answers = answered.map((point) => ({ activity: sentence(point.activity), clause: point.clause, question: pointSentence(point.question), answer: require('./sitelink-answers').capitalSentences(require('./sitelink-answers').typedWords(String(point.answer).trim()), { stop: true }), by: point.answered_by_name || '' }));
   return {
     from: org.name,
     // An account whose ABN does not match the ABN register shows Unverified beside its name.
@@ -1033,7 +1084,7 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
       added: item.source === 'added',
       // The notes from the scope its draft opens with, each marked settled where an answer settles it, so
       // the lead sees in the preview what the subcontractor will (messy round 10, blocker 2).
-      ...(withNotes ? { notes: withSettled({ draftNotes: notesOf(withFolded(item, all).draftNotes) }, answers).draftNotes.map(({ text, clause, settled }) => ({ text, clause, ...(settled ? { settled } : {}) })) } : {}),
+      ...(withNotes ? { notes: withSettled({ draftNotes: notesOf(withFolded(item, all).draftNotes) }, answers, { activities: workOf(item, all) }).draftNotes.map(({ text, clause, settled }) => ({ text, clause, ...(settled ? { settled } : {}) })) } : {}),
     })),
     answers,
     siteDetails: siteDetails && siteDetails.rev ? {
@@ -1043,4 +1094,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { handsOnTesting, withSettled, notesOf, pointSentence, withoutConflictRefs, packageTitles, clausesOf, activityNamed, foldedNamed, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };
+module.exports = { handsOnTesting, withSettled, workOf, notesOf, pointSentence, withoutConflictRefs, packageTitles, clausesOf, activityNamed, foldedNamed, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };

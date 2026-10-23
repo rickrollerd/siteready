@@ -42,6 +42,9 @@
     text = text.replace(/^([A-Za-z]+)\s*\(([a-z]+)\)\s+/, (whole, verb, other) => `${verb} or ${other} `);
     text = text.replace(/\s*\(([^)]*)\)/g, (whole, inside) => {
       const words = inside.trim();
+      // A short name for the words before it ("Combined Services Trench (CST)") stays in its brackets (messy round 17,
+      // SiteLink wording 2: "Combined Services Trench: CST pipework").
+      if (/^[A-Z][A-Z0-9&]{1,7}s?$/.test(words)) return ` (${words})`;
       if (!words || PLACE.test(words) || CONDITION.test(words) || PLANT.test(words)) return '';
       // A bracket that carries on the sentence ("(and CCTV and duress)", "(including the risers)") reads
       // on from it, not after a colon (messy round 8: "for access control: and CCTV and duress").

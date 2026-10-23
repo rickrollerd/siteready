@@ -142,6 +142,12 @@ const SAME_THING = [
   [/^(?:cover|lid|plate|sheet)$/, 'cover'],
   [/^(?:barricad|barricade|barrier|fence|hoard|hoarding|bunting|guardrail|handrail)$/, 'barrier'],
   [/^(?:fix|secur|secure|fasten|screw|bolt|tie)$/, 'fixed'],
+  // A grinder and grinding, sparks and swarf, and what they set alight (messy round 17, SiteLink: "Grinding throws sparks
+  // that can ignite fuel: flammable and combustible materials are kept clear of the grinding area." was a wrong answer
+  // beside "Where a grinder is used on sheets, swarf is cleaned off the roof and nearby combustibles are protected.").
+  [/^(?:grind|grinder|grinding|angle-?grinder)$/, 'grind'],
+  [/^(?:spark|swarf|slag|spatter|ember)$/, 'spark'],
+  [/^(?:combustible|flammable|ignit|ignite|ignition|fuel)$/, 'combustible'],
 ];
 // Worked out once for each set of words: the library's lines are compared with every SWMS's lines.
 const thingsKept = new WeakMap();

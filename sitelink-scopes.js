@@ -476,6 +476,12 @@ function install(router, deps) {
 
   // The scope's own words for the list's SWMS (their titles as read, work, activities and quoted lines), for the
   // short names it writes in capitals.
+  // The companies and people the lead's words may name: the builder, the subcontractor, and the people in the site
+  // details and the builder's team.
+  const leadNames = async (ctx) => ({
+    names: [ctx.org && ctx.org.name, ctx.project && ctx.project.pc_name, ctx.sub.name, ctx.sub.claimed_name].filter(Boolean),
+    people: await require('./sitelink-submit').projectPeople(ctx.project.id, ctx.org && ctx.org.id),
+  });
   const scopeWordsOf = (rows) => (rows || []).flatMap((one) => {
     const item = one.item || {};
     return [one.package, one.task, item.scopeTask && item.scopeTask.full, ...(item.activities || []).flatMap((entry) => [entry.activity, ...(entry.quotes || [])])];
@@ -485,8 +491,10 @@ function install(router, deps) {
   router.post('/hse/subcontracts/:subId/items', route(async (req, res) => {
     const ctx = await subcontractFor(req, req.params.subId);
     const body = req.body || {};
-    const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'), scopeWordsOf(await itemsOf(ctx.sub.id)));
-    const task = answers.capitalSentences(typed(body.task, 1500, 'the work', 'task'), { stop: true });
+    const scopeText = scopeWordsOf(await itemsOf(ctx.sub.id));
+    const title = answers.tidyTitle(typed(body.title, 160, 'the title', 'title'), scopeText);
+    // "n", "b4", short names and the project's people as they print (messy round 17, SiteLink wording 3).
+    const task = answers.leadWords(typed(body.task, 1500, 'the work', 'task'), { ...(await leadNames(ctx)), scopeText, stop: true });
     if (!title) throw Object.assign(fail(400, 'Enter a title for the SWMS, for example Formwork to suspended slabs.'), { field: 'title' });
     if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
     // The high risk work the lead's own words name, by the scope reading's rules (messy round 6: a
@@ -556,7 +564,9 @@ function install(router, deps) {
     if (typeof body.task === 'string') {
       // Typed case is tidied (messy round 7: "install AHUs, ..." reached the subcontractor).
       // Each sentence with its capital and the last with its full stop (messy round 8, wording 14).
-      const task = answers.capitalSentences(typed(body.task, 1500, 'the work', 'task'), { stop: true });
+      // "n", "b4", short names and the project's people as they print (messy round 17, SiteLink wording 3: "Clean inside AHUs
+      // n replace filters b4 practical completion").
+      const task = answers.leadWords(typed(body.task, 1500, 'the work', 'task'), { ...(await leadNames(ctx)), scopeText: scopeWordsOf(await itemsOf(ctx.sub.id)), stop: true });
       if (!task) throw Object.assign(fail(400, 'Say what work this SWMS covers, in a sentence or two.'), { field: 'task' });
       if (task !== row.task) {
         const rev = await bumpList(ctx);
@@ -603,7 +613,9 @@ function install(router, deps) {
     // Each sentence with its capital (messy round 8, wording 2: "... boards. wallaroo installs them").
     // The companies' own names take their capitals, and a full stop at the end (messy round 10, wording 7:
     // "Potoroo bend builds", "Approval is a hold point before install").
-    const answer = answers.withCompanyNames(answers.capitalSentences(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }), { stop: true }), [ctx.org && ctx.org.name, ctx.project && ctx.project.pc_name, ctx.sub.name, ctx.sub.claimed_name]);
+    // "n", "b4" and the project's people with their capitals too (messy round 17, SiteLink wording 3: "Callum fitzwilliam
+    // will give you the date", "n walkways", "b4 use").
+    const answer = answers.leadWords(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }), { ...(await leadNames(ctx)), stop: true });
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));

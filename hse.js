@@ -99,13 +99,22 @@ function cleanDetails(body) {
       // Typed case is tidied as it reads, without changing a word (messy round 7).
       // The problem is said in the words as typed.
       const typedValue = oneLine(raw, FIELD_LIMIT);
-      out[field.key] = PEOPLE[field.key] || field.key === 'hospital' ? answers.tidyPerson(typedValue) : PLACES.includes(field.key) ? answers.tidyPlace(typedValue) : typedValue;
+      // A place reads "and" for "n" and "before" for "b4" too (messy round 17, SiteLink wording 3: "Site office ground
+      // floor n first aid room").
+      out[field.key] = PEOPLE[field.key] || field.key === 'hospital' ? answers.tidyPerson(typedValue) : PLACES.includes(field.key) ? answers.tidyPlace(answers.typedWords(typedValue)) : typedValue;
       if (PLACEHOLDER.test(typedValue)) found[field.key] = `Leave ${field.label.toLowerCase()} empty until you know it. Contractors would see "${typedValue}" on their SWMS.`;
       else {
         const weak = detailProblem(field, typedValue);
         if (weak) found[field.key] = weak;
       }
     }
+  }
+  // The people named in these details take their capitals in the site rules and places ("Hot work permit from callum"
+  // reads "... from Callum" where Callum Fitzwilliam is the site manager: messy round 17, SiteLink wording 3).
+  const people = Object.keys(PEOPLE).map((key) => out[key]).filter(Boolean);
+  for (const field of FIELDS) {
+    if (field.list) out[field.key] = out[field.key].map((line) => answers.withPeople(line, people));
+    else if (PLACES.includes(field.key)) out[field.key] = answers.withPeople(out[field.key], people);
   }
   problems(found, FIELDS);
   return out;
