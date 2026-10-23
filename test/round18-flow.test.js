@@ -208,7 +208,8 @@ test('the project page says why a shared site answer is refused at every stage, 
   const source = page('project-go.js');
   assert.doesNotMatch(source, /if \(project\.stage !== 'questions' \|\| !rules\.SITE_NEED\) return;/);
   assert.match(source, /function siteNeed\(id, tried = true\)/);
-  assert.match(source, /Site question: \$\{esc\(need\.label\)\}<\/button>\$\{siteNeed\(need\.id\) \? `<span class="meta go-site-why"> \$\{esc\(siteNeed\(need\.id\)\)\}<\/span>` : ''\}/);
+  // The reason a SWMS gave is used where the shared rule gives none (messy round 19): siteWhy.
+  assert.match(source, /Site question: \$\{esc\(need\.label\)\}<\/button>\$\{siteWhy\(need\.id\) \? `<span class="meta go-site-why"> \$\{esc\(siteWhy\(need\.id\)\)\}<\/span>` : ''\}/);
   assert.match(source, /noneChecked: Boolean\(gap\.rule\.noneChecked\)/);
 });
 

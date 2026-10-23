@@ -379,7 +379,8 @@ test('Builder check marks the matching response but chooses none, and Send says 
   const html = read('public/review.html');
   // The check no longer ticks a response.
   assert.doesNotMatch(page, /pick\.checked = true/);
-  assert.match(page, /suggest\(PICK\[data\.band\] \|\| 'changes'\)/);
+  // An open hold point suggests "Approved with conditions" instead (messy round 19, B run 7): suggestFor.
+  assert.match(page, /suggest\(suggestFor\(data\), data\.suggestsWhy \|\| ''\)/);
   assert.match(page, /<span class="suggests">Builder check suggests this<\/span>/);
   // Send names the response and who gets it; with none chosen it is refused at the choices.
   assert.match(page, /\$\('send'\)\.textContent = `Send "\$\{LABELS\[value\]\}"`/);

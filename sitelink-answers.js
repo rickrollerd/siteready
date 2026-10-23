@@ -385,7 +385,8 @@ function tidyRole(text) {
 // "EWPs" (messy round 15, SiteLink wording 1: the lead's title was saved as "Hv and lv cabling, terminations and
 // earthing"). Only names that are never a plain word; a word typed with any capital is left as typed.
 // "vrf", "ahu", "fcu" and "mssb" too (messy round 17, SiteLink wording 3: the lead's added SWMS printed "vrf").
-const SHORT_NAMES = new Set('hv lv elv ac dc cctv pvc upvc cpvc hdpe hvac ewp ict msb mdb db mcc plc bms fip ewis nbn rcd gpo ppe lpg frp ups swms hrcw rmu acb mep av ipa itp itps sds ohs whs hse qa rfi vrf vrv ahu fcu vav mssb ddc'.split(' '));
+const SHORT_NAMES = new Set('hv lv elv ac dc cctv pvc upvc cpvc hdpe hvac ewp ict msb mdb db mcc plc bms fip ewis nbn rcd gpo ppe lpg frp ups swms hrcw rmu acb mep av ipa itp itps sds ohs whs hse qa rfi vrf vrv ahu fcu vav mssb ddc rcp frc byda dbyd'.split(' '));
+// "rcp" (reinforced concrete pipe) and "byda" (Before You Dig Australia) too (messy round 19, B run 8: "375 rcp" and "Byda plans").
 // One typed with only its first capital ("Hv cabling", as a title's first word was saved before) is put right too,
 // except where it could be a word ("Ups").
 const NOT_ONLY_A_NAME = new Set(['ups', 'av', 'ipa', 'qa']);
@@ -417,6 +418,30 @@ const HURRIED = [
   // Points of the compass typed short (messy round 18, SiteLink wording 4: the muster point "Car park nth east corner").
   [/\bnth\b/gi, 'north'],
   [/\bsth\b/gi, 'south'],
+  // "bout" before a number is "about" (messy round 19, B run 8: "trench bout 1.8m deep" printed as typed).
+  [/\bbout(?=\s+\d)/gi, 'about'],
+  // The service owners typed in lower case take their capitals (B run 8: "telstra pit").
+  [/\btelstra\b/g, 'Telstra'],
+  [/\boptus\b/g, 'Optus'],
+  [/\bausgrid\b/g, 'Ausgrid'],
+  [/\benergex\b/g, 'Energex'],
+  [/\bjemena\b/g, 'Jemena'],
+  // Apostrophes left out (messy round 19, B run 7: a reviewer's "theres no crane" and "the engineers demolition plan").
+  [/\btheres\b/gi, "there's"],
+  [/\bthats\b/gi, "that's"],
+  [/\bdont\b/gi, "don't"],
+  [/\bdoesnt\b/gi, "doesn't"],
+  [/\bisnt\b/gi, "isn't"],
+  [/\bdidnt\b/gi, "didn't"],
+  [/\bwasnt\b/gi, "wasn't"],
+  [/\barent\b/gi, "aren't"],
+  [/\bcouldnt\b/gi, "couldn't"],
+  [/\bshouldnt\b/gi, "shouldn't"],
+  // Round 19 SiteLink: "hes" in a rescue answer and "there own" in a point answer printed as typed.
+  [/\bhes\b/gi, "he's"],
+  [/\bshes\b/gi, "she's"],
+  [/\bthere own\b/gi, 'their own'],
+  [/\bengineers (?=(?:demolition|design|drawings?|plans?|reports?|certificates?|certification|sign[- ]?off|approval|letter|inspection|details?|specification)\b)/gi, "engineer's "],
 ];
 // "r" typed for "are" between two words (messy round 18, SiteLink wording 4: "Yes covers r Quokka's work").
 const loneR = (text) => String(text || '').replace(/(?<=[A-Za-z][ \t]+)r(?=[ \t]+[A-Za-z])/g, 'are');

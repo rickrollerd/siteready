@@ -370,7 +370,7 @@
     $('check-intro').textContent = outside ? outsideCheckNote(data) : $('check-intro').dataset.revision || $('check-intro').textContent;
     $('run-check').disabled = outside && (data.submission.checkStatus === 'reading' || !(data.readings || {}).on);
     $('run-check').textContent = outside ? (data.submission.builderCheck ? 'Builder check is done' : data.submission.checkStatus === 'reading' ? 'Reading the file...' : 'Run Builder check on the file') : 'Run Builder check';
-    if (outside && data.submission.builderCheck) { $('run-check').disabled = true; const done = data.outsideCheck || data.submission.builderCheck; showCheck(done); if (done.band) suggest(PICK[done.band] || 'changes'); }
+    if (outside && data.submission.builderCheck) { $('run-check').disabled = true; const done = data.outsideCheck || data.submission.builderCheck; showCheck(done); if (done.band) suggest(suggestFor(done), done.suggestsWhy || ''); }
     else if (!keepCheck) show('check', false);
     const closed = !data.current || data.gone;
     $('respond-closed').innerHTML = closed ? (data.gone ? '<strong>This SWMS was deleted by the business, so it cannot be given a response.</strong>' : `<strong>This is not the latest.</strong><p>${esc(business)} has submitted ${data.later && data.later.channel === 'sitewrite' ? `revision ${esc(data.later.revision)}` : 'another SWMS for this'} since, so only the latest can be given a response. <a href="/review.html?submission=${esc(data.later.id)}">Open the latest</a></p>`) : '';
@@ -391,12 +391,14 @@
 
   const PICK = { Accepted: 'approved', 'Accepted with changes': 'conditions' };
   const LABELS = { approved: 'Approved', conditions: 'Approved with conditions', changes: 'Not approved' };
-  function suggest(value) {
+  // A hold point still open (builder-check.js suggests) is never suggested as a plain "Approved" (messy round 19, B run 7).
+  const suggestFor = (data) => (data && data.suggests && LABELS[data.suggests] ? data.suggests : PICK[data && data.band] || 'changes');
+  function suggest(value, why = '') {
     document.querySelectorAll('#choices .suggests').forEach((tag) => tag.remove());
     const input = document.querySelector(`input[name="response"][value="${value}"]`);
     if (!input) return;
     input.closest('label').querySelector('span').insertAdjacentHTML('beforeend', '<span class="suggests">Builder check suggests this</span>');
-    $('check-line').textContent = `${$('check-line').textContent} Builder check suggests "${LABELS[value]}". Choose your response under 3. Your response.`.trim();
+    $('check-line').textContent = `${$('check-line').textContent} Builder check suggests "${LABELS[value]}".${why ? ` ${why}` : ''} Choose your response under 3. Your response.`.trim();
   }
   function showCheck(data) {
       $('score').textContent = data.score;
@@ -423,7 +425,7 @@
       showCheck(data);
       // The response that matches the check is marked, never chosen: the reviewer chooses it, so one press of
       // Send cannot send a response they did not pick (messy round 17, SiteLink blocker 2).
-      suggest(PICK[data.band] || 'changes');
+      suggest(suggestFor(data), data.suggestsWhy || '');
     } catch (error) {
       status('respond-status', esc(error.message), 'bad');
     } finally {

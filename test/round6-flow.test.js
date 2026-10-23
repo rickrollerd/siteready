@@ -149,7 +149,8 @@ test('site answers print whole in the site table, as typed, and never run into a
   const printed = Object.fromEntries(draft.site.map((field) => [field.id, field.text]));
   // As typed, with the first capital a sentence takes (messy round 15: "liverpool st" printed in lower case).
   const sentence = (text) => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
-  assert.equal(printed.liveServices, sentence(site.liveServices));
+  // "telstra" takes its capital (messy round 19, B run 8).
+  assert.equal(printed.liveServices, sentence(site.liveServices.replace('telstra', 'Telstra')));
   // With the task line's spelling fixes (messy round 18): "excavater" reads "excavator".
   assert.equal(printed.access, sentence(site.access.replace('excavater', 'excavator')));
 });

@@ -175,6 +175,9 @@
     const { work } = packagesOf(reading);
     const steps = new Map(((reading && reading.packages) || []).map((item) => [item.package, item]));
     const flags = new Map(((reading && reading.highRisk) || []).map((item) => [item.package, item]));
+    // The scope's own words giving this subcontractor the cranage go with each SWMS, so No crane is queried there even where
+    // the task line names no crane (messy round 19, A run 1).
+    const cranage = craneClause(reading);
     return work.filter((pack) => chosen.includes(pack.name)).map((pack) => {
       const mapped = steps.get(pack.name);
       const kinds = mapped ? [...(mapped.groups || [])] : null;
@@ -192,7 +195,7 @@
         // still reach the high risk check; the conditions go to the matching site questions and the
         // plant to the plant list, for the user to check (D252).
         task: scopeTask.plainTask(pack.rows),
-        scopeTask: scopeTask.scopeWords(pack.rows),
+        scopeTask: { ...scopeTask.scopeWords(pack.rows), ...(cranage ? { crane: cranage.quote } : {}) },
         site: scopeTask.scopeSite(pack.rows),
         plant: scopeTask.scopePlant(pack.rows),
         trade: '',

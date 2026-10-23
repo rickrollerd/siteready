@@ -302,9 +302,10 @@
   // Earthmoving and other engine-driven plant runs on diesel or petrol too (messy round 11, run 2: fuel "Not required"
   // taken with no reason beside the crew's own excavator, compactor, dewatering pump and directional drill). A reason
   // that says why ("battery and electric plant only") still settles it.
-  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?|excavators?|diggers?|compactors?|rollers?|(?:dewatering|trash|concrete|line) pumps?|directional (?:drills?|drilling rigs?)|drill(?:ing)? rigs?|skid steers?|bobcats?|posi-?tracks?|(?:wheel |front[- ]end |backhoe )?loaders?|backhoes?|graders?|dozers?|bulldozers?|tippers?|(?:tipper |dump |water |vacuum )?trucks?|water carts?|forklifts?|telehandlers?|(?:mobile |crawler |franna |pick and carry )?cranes?|chainsaws?|mulchers?|(?:concrete|road|cut-?off|quick ?cut) saws?|augers?|compressors?)\b/i;
+  const FUELLED_PLANT = /\b(generators?|petrol|diesel|light(?:ing)? towers?|excavators?|diggers?|wacker ?plates?|wackers?|jumping jacks?|compactors?|rollers?|(?:dewatering|trash|concrete|line) pumps?|directional (?:drills?|drilling rigs?)|drill(?:ing)? rigs?|skid steers?|bobcats?|posi-?tracks?|(?:wheel |front[- ]end |backhoe )?loaders?|backhoes?|graders?|dozers?|bulldozers?|tippers?|(?:tipper |dump |water |vacuum )?trucks?|water carts?|forklifts?|telehandlers?|(?:mobile |crawler |franna |pick and carry )?cranes?|chainsaws?|mulchers?|(?:concrete|road|cut-?off|quick ?cut) saws?|augers?|compressors?)\b/i;
   const FUEL = 'Fuels (diesel, petrol)';
-  const PLANT_SITE_NAMES = { digger: 'excavator', bobcat: 'skid steer' };
+  // "wacker plate" is the plate compactor (messy round 19, B run 8: "digger n wacker plate all fuelled at our yard" was not read).
+  const PLANT_SITE_NAMES = { digger: 'excavator', bobcat: 'skid steer', 'wacker plate': 'compactor', wackerplate: 'compactor', wacker: 'compactor', 'jumping jack': 'compactor' };
   // Plant said to be another firm's ("the builders", "hired with fuel") and words that say who fuels or fills it.
   const OWNED_BY_OTHERS = /\b(?:builders?(?:'s|’s|s')?|principal contractor(?:'s|’s)?|main contractor(?:'s|’s)?|head contractor(?:'s|’s)?|pc(?:'s|’s)?|client(?:'s|’s)?|others?(?:'s|’s|s')?|hire company(?:'s|’s)?|not ours|not our)\b/i;
   const FUELLED_SAID = /\b(?:fuel\w*|refuel\w*|fill\w*|top(?:s|ped)? up|diesel|petrol|battery|electric)\b/i;

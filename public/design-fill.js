@@ -90,6 +90,12 @@
     ['(revision ____)', 'its revision', 'revision'],
     ['design ____', 'the design number', 'design number'],
     ['drawing ____', 'the drawing number', 'drawing number'],
+    // The crane chart's four blanks (messy round 19, A run 4: the note read "crane chart (tonnes); t (metres) (2 blanks); gear
+    // rigging (tonnes)").
+    ['crane chart: ____ t at', 'the rated capacity in tonnes', 'rated capacity (tonnes)'],
+    ['t at ____ m radius. Heaviest', 'the working radius in metres', 'working radius (metres)'],
+    ['rigging) is ____ t at', 'the heaviest gross load in tonnes', 'heaviest load (tonnes)'],
+    ['t at ____ m radius.', 'the radius of the heaviest load in metres', 'radius of the heaviest load (metres)'],
   ].map(([words, what, label]) => { const [before, after] = words.split('____'); return { before, after, what, label }; })
     .sort((a, b) => (b.before.length + b.after.length) - (a.before.length + a.after.length));
 

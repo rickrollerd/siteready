@@ -12,7 +12,9 @@ const VARIANT_LABELS = { carpJoinery: 'Joinery, doors and trim (as the task name
   // Messy round 15, B run 6: "Set the joints" and "Sand the joints" could not be found by their own names.
   plasterSanding: 'Cut, set and sand plasterboard (as the task names them)',
   // Messy round 16, A run 2: "downpipe" found only the gutter cleaning, fascia and box gutter steps.
-  gutters: 'Fascia, gutters and downpipes (as the task names them)' };
+  gutters: 'Fascia, gutters and downpipes (as the task names them)',
+  // Messy round 19, A run 4: "Erect temporary fencing" showed ticked for a footpath gantry, and only "Erect the gantry" printed.
+  siteEstablish: 'Site fencing, hoardings and gantries (as the task names them)' };
 
 function stepLibrary() {
   const kinds = new Map();

@@ -372,7 +372,7 @@ const OPERATOR_COMPETENT = /\b(voc'?s?|voc'?d|voc’d|verification of competen\w
 // boom EWP, 20 m: WP high risk work licence" was asked for an elevating work platform licence).
 // Plant known by its site name reads as the plant list names it: "bobcat" is the skid steer and "digger" the excavator
 // (messy round 18, B runs 6 and 8: "Match a licence or ticket to the plant and work: bobcat" beside the skid steer row).
-const plantWords = (text) => String(text || '').replace(/\bewps?\b/gi, 'elevating work platform').replace(/\bbobcats?\b/gi, 'skid steer').replace(/\bdiggers?\b/gi, 'excavator');
+const plantWords = (text) => String(text || '').replace(/\bewps?\b/gi, 'elevating work platform').replace(/\bbobcats?\b/gi, 'skid steer').replace(/\bdiggers?\b/gi, 'excavator').replace(/\bwacker ?plates?\b|\bwackers?\b/gi, 'plate compactor');
 const namesPlant = (name, line) => [plantWords(name), plantWords(name).split(' ').slice(0, -1).join(' ')].filter(Boolean)
   .some((words) => new RegExp(`\\b${words.replace(/s$/i, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(plantWords(line)));
 const ALL_OPERATORS = /\b(?:all |each |every )?(?:plant|machinery|machine|equipment|mobile plant) (?:operators?|is operated|are operated)\b|\boperators? of (?:all |any )?(?:plant|machinery|equipment)\b/i;
@@ -1638,17 +1638,23 @@ function checkSwms(input, options = {}) {
   const items = weighted(swms, state, { implied, named, today });
   const score = items.reduce((sum, item) => sum + item.points, 0);
   const failed = hard.filter((item) => !item.pass);
+  const band = bandFor(score, failed.length > 0);
+  // A step on hold, or waiting, until its design is issued is an open hold point: the suggestion is never a plain "Approved",
+  // which tells the subcontractor work can start (messy round 19, B run 7: 91, Accepted, 'Builder check suggests "Approved".
+  // Work can start under this SWMS', while W16 said "Demolish the structure" was on hold until the demolition plan is issued).
+  const holds = designUses(swms).filter((use) => use.state === 'hold' || use.state === 'waiting').map((use) => ({ step: use.step, what: use.what }));
   return {
     kind: 'check',
     state: state ? state.id : 'unknown',
     stage,
     task: swms.task,
     score,
-    band: bandFor(score, failed.length > 0),
+    band,
     hardFails: failed.map((item) => item.rule),
     // Conditions before work starts: at review stage, the workers' sign-on.
     preStart,
     findings: [...hard, ...items],
+    ...(holds.length ? { holdPoints: holds, ...(band === 'Accepted' ? { suggests: 'conditions', suggestsWhy: `${holds.slice(0, 3).map((use) => `"${use.step}" waits for the ${String(use.what).charAt(0).toLowerCase()}${String(use.what).slice(1)}`).join('; ')}${holds.length > 3 ? `; and ${holds.length - 3} more` : ''}. Approve with the condition that these steps do not start until the design is issued and the SWMS is updated.` } : {}) } : {}),
   };
 }
 

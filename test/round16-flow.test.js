@@ -82,12 +82,13 @@ test('"Go back to the suggested steps" asks with the words now and the picked st
   const last = sent[sent.length - 1];
   assert.equal(last.kinds, undefined);
   assert.deepEqual(last.priorKinds, ['windowInstall', 'glassHandle', 'carpEdge']);
-  assert.equal(last.kindsOff, undefined);
-  // The task still as picked starts from the pick list's own steps.
+  // The step unticked by hand stays unticked (messy round 19, A run 4: "Go back" ticked "Apply render to walls" again).
+  assert.deepEqual(last.kindsOff, ['carpEdge']);
+  // The task still as picked starts from the pick list's own steps, less the one unticked by hand.
   p.document.getElementById('task').value = PICKED_WINDOWS;
   p.document.getElementById('steps-reset').click();
   await settle();
-  assert.deepEqual(sent[sent.length - 1].kinds, ['windowInstall', 'glassHandle', 'carpEdge']);
+  assert.deepEqual(sent[sent.length - 1].kinds, ['windowInstall', 'glassHandle']);
 });
 
 // ---- 2. Steps a changed answer brings are Recommended and kept like any other ----

@@ -14,9 +14,14 @@ const nameCase = new Proxy({}, { get: (_target, key) => require('./sitelink-answ
 // What the spelling fixer leaves as the user typed it: the job address (whose place names a slip in the
 // task takes), and every other name typed (messy round 8, run 8: "stuart hwy" became "start hwy").
 const NAME_FIELDS = ['principalContractor', 'company', 'subcontractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'worksManager', 'complianceResponsible', 'reviewer', 'preparedBy'];
+// The muster point describes a place in the user's own words: a slip in it ("front of the bilding") does not keep the same
+// slip unfixed in the task, as a name's words are kept (messy round 19, A run 4: after the retype, "bilding" printed in the
+// task, the muster point, the title and the review page). Its words are kept as they read once fixed.
+const PLACE_TEXT_FIELDS = new Set(['musterPoint']);
 function typedNames(input) {
   const given = input && typeof input === 'object' ? input : {};
-  return { places: given.workplace || given.siteAddress || '', names: NAME_FIELDS.map((key) => (typeof given[key] === 'string' ? given[key] : '')) };
+  const places = given.workplace || given.siteAddress || '';
+  return { places, names: NAME_FIELDS.map((key) => (typeof given[key] !== 'string' ? '' : PLACE_TEXT_FIELDS.has(key) ? fixSpelling(given[key], { places }).text : given[key])) };
 }
 const { registersFor, withoutServicedPlant, withoutOtherTrades, commsOrUps, MAINS_SAID } = require('./register');
 const { inHierarchyOrder, controlLevel, HIGHER } = require('./control-level');
@@ -148,7 +153,8 @@ const CONTRACTIONS = [
   [/\b([Dd])ont\b/g, "$1on't"], [/\b([Dd])oesnt\b/g, "$1oesn't"], [/\b([Ii])snt\b/g, "$1sn't"], [/\b([Dd])idnt\b/g, "$1idn't"],
   [/\b([Ww])asnt\b/g, "$1asn't"], [/\b([Aa])rent\b/g, "$1ren't"], [/\b([Cc])ouldnt\b/g, "$1ouldn't"], [/\b([Ww])ouldnt\b/g, "$1ouldn't"], [/\b([Ss])houldnt\b/g, "$1houldn't"],
 ];
-// Short names a typed answer could hold as a plain word ("set ups", "a qa check" aside) stay as typed.
+// Short names a typed answer could hold as a plain word ("set ups", "a qa check" aside) stay as typed. The task line prints them
+// with their capitals too (messy round 19, B run 8: "375 rcp").
 const ANSWER_SHORT = (text) => String(text).replace(/\b[a-z]{2,5}\b/g, (word) => (['ups', 'av', 'qa', 'ipa', 'she'].includes(word) ? word : nameCase.withShortNames(word)));
 function typedAnswer(text, names) {
   if (typeof text !== 'string' || !/\s/.test(text.trim())) return text;
@@ -258,7 +264,7 @@ function withoutPickWords(task) {
   return text;
 }
 function craneNamed(task) {
-  return /\b(cranes?|hiabs?|frannas?|vehicle loading cranes?)\b/i.test(ownWork(othersAndDenials(withoutPickWords(task)).others));
+  return /\b(cranes?|hiabs?|frannas?|vehicle loading cranes?)\b/i.test(ownWork(othersAndDenials(withoutPickWords(String(task || '').replace(CRANE_PLACE, ' '))).others));
 }
 // No crane used on this job: "No crane" answered and the task names none, or "No crane" kept after the page asked about the
 // crane the task names (craneNoKept). Kept, the person says no crane, crane truck or hiab is used, so the crane steps, the
@@ -846,10 +852,25 @@ function abnSpaced(value) {
   const digits = text.replace(/\D/g, '');
   return digits.length === 11 && /^[\d\s-]+$/.test(text) ? `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}` : text;
 }
+// The company's address typed all in lower case prints with its capitals, as the company name does: "3/18 sorbonne cres canning
+// vale" reads "3/18 Sorbonne Cres Canning Vale" (messy round 19, A run 4: lower case in every page header). The state takes
+// capitals ("wa" reads "WA"). An address typed with any capital is left as typed.
+const ADDRESS_STATES = /^(?:nsw|vic|qld|wa|sa|tas|nt|act)$/i;
+const ADDRESS_SMALL = /^(?:of|and|the|via|cnr|po)$/i;
+function tidyAddress(value) {
+  const text = blankName(value);
+  if (!text || /[A-Z]/.test(text)) return text;
+  return text.replace(/[a-z][a-z'’-]*/g, (word, at) => {
+    if (ADDRESS_STATES.test(word)) return word.toUpperCase();
+    if (/^po$/i.test(word)) return 'PO';
+    if (at > 0 && ADDRESS_SMALL.test(word)) return word;
+    return `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
+  });
+}
 function companyDetails(input) {
   return [
     input.companyAbn && `ABN ${abnSpaced(input.companyAbn)}`,
-    blankName(input.companyAddress),
+    tidyAddress(input.companyAddress),
     blankName(input.companyPhone),
     blankName(input.companyEmail),
   ].filter((item) => item && item !== 'ABN ').join(' · ');
@@ -3440,6 +3461,14 @@ function involvesScaffold(draft) {
 
 // The scaffold supervisor row: the user's answer, or "To be completed" until it is given, only where
 // the SWMS involves a scaffold. "Not applicable" leaves the row off.
+// "Crane operated by" also where the task names no crane but a job step works with one: a crane step the crane answer or the
+// user's own site answers brought, or one added by hand (messy round 19, A run 3: "A crane company" and her own "Work with the
+// crane crew during lifts", and no "Crane operated by" row).
+function craneOperatorRow(draft, state, task) {
+  if (draft.craneOperator || !state || noCraneUsed(state, task)) return draft.craneOperator || '';
+  if (!(draft.jobSteps || []).some((step) => /\b(?:cranes?|hiab)\b/i.test(String(step.step || '')))) return '';
+  return state.ownCrane ? 'Our company' : state.craneCompany ? 'Crane company' : '';
+}
 function scaffoldRow(draft, input) {
   if (!involvesScaffold(draft) || noneAnswer(input.scaffoldSupervisor)) return '';
   // Typed in lower case, it prints with its capitals as the other people do (messy round 12, run 2: "dave,
@@ -3585,23 +3614,38 @@ function fallCheck(task, answer, state, more = '') {
 const CRANE_WORDS = /\b(?:vehicle loading cranes?|truck loading cranes?|loader cranes?|crane trucks?|cranes?|hiabs?|frannas?|pick and carry cranes?)\b/i;
 // Another's crane named only as where the work is for ("the crane pad for the builder's tower crane") is not one this crew uses.
 const OTHERS_CRANE = /\b(?:the )?(?:builder|builders|principal contractor|main contractor|head contractor|client|others)(?:'s|\u2019s|s')?\s+(?:[\w-]+\s+){0,2}cranes?\b/gi;
+// A crane named only as a place or a fixing of the building ("around the crane tie", "infill the crane void") is not a crane
+// this crew uses (messy round 19, B run 6: the No crane query fired on "crane tie" in a ceilings task).
+const CRANE_PLACE = /\b(?:tower )?crane (?:ties?|tie-?ins?|ties? backs?|bases?|voids?|penetrations?|openings?|holes?|footings?|slabs?)\b/gi;
 function craneWordsNamed(task) {
-  const own = ownWork(othersAndDenials(String(task || '').replace(CRANE_PAD, ' ').replace(OTHERS_CRANE, ' ')).others);
+  const own = ownWork(othersAndDenials(String(task || '').replace(CRANE_PAD, ' ').replace(CRANE_PLACE, ' ').replace(OTHERS_CRANE, ' ')).others);
   const found = CRANE_WORDS.exec(own);
   return found ? found[0].toLowerCase() : '';
 }
 function craneWarning(words) {
   return `You answered No crane, but the task names "${words}". If a crane, crane truck or hiab is used, say who operates it: Our company or A crane company. Keep No crane only if none is used.`;
 }
-function craneCheck(task, crane, kept) {
+// The scope gives this subcontractor the cranage (scope-choice.js craneClause), though the task line names no crane: the
+// query asks about it too (messy round 19, A run 1: the scope said the subcontractor allows for all cranage, No crane was
+// answered, and no query came).
+function scopeCraneWarning(quote) {
+  return `You answered No crane, but the scope says you supply the cranage: "${quote}" If a crane is used for this work, say who operates it: Our company or A crane company. Keep No crane only if none is used.`;
+}
+function craneCheck(task, crane, kept, scopeCrane = '') {
   if (craneAnswer(crane) !== 'none' || !String(crane || '').trim()) return null;
   const words = craneWordsNamed(task);
-  return words ? { words, kept: Boolean(kept), warning: kept ? '' : craneWarning(words) } : null;
+  if (words) return { words, kept: Boolean(kept), warning: kept ? '' : craneWarning(words) };
+  const said = cleanLine(scopeCrane);
+  if (!said) return null;
+  const quote = /[.!?]$/.test(said) ? said : `${said}.`;
+  const found = /\b(?:cranage|craneage|crane hire|mobile cranes?|cranes?)\b/i.exec(quote);
+  return { words: found ? found[0].toLowerCase() : 'cranage', kept: Boolean(kept), scope: quote, warning: kept ? '' : scopeCraneWarning(quote) };
 }
+const scopeCraneOf = (input) => (input && input.scopeTask && typeof input.scopeTask.crane === 'string' ? input.scopeTask.crane : '');
 function withCraneCheck(out, input) {
   if (!out || out.kind !== 'draft') return out;
-  const check = craneCheck(taskLine((input && (input.task || input.jobDescription)) || ''), input && input.crane, input && input.craneNoKept === true);
-  return check ? { ...out, craneConflict: { words: check.words, kept: check.kept } } : out;
+  const check = craneCheck(taskLine((input && (input.task || input.jobDescription)) || ''), input && input.crane, input && input.craneNoKept === true, scopeCraneOf(input));
+  return check ? { ...out, craneConflict: { words: check.words, kept: check.kept, ...(check.scope ? { scope: check.scope } : {}) } } : out;
 }
 
 // Live or energised work the task names in its own words: "live HV", "energised
@@ -3729,6 +3773,8 @@ function foundKinds(input) {
 // corridor's high risk work and the lines for working beside traffic stay.
 const TRAFFIC_BY_OTHERS = /\b(?:traffic (?:control(?:lers?)?|management)|tc|tm)\b(?: (?:is|are|will be))?(?: (?:all|done|provided|supplied|run|set up|managed))? by (?:others|the (?:builder|principal(?: contractor)?|head contractor|main contractor|client|council|road authority)|another (?:contractor|company|crew))\b|\b(?:builder|principal contractor|head contractor|main contractor|others)\b[^.]{0,20}\b(?:provides?|runs?|sets? up|does|supplies)\b[^.]{0,15}\btraffic (?:control|management)\b/i;
 // A crane lifting loads to the roof, named in the site answers (suggestedFlags).
+// A crane named lifting, landing or setting up in the user's own answers (suggestedFlags).
+const CRANE_LIFTS_SAID = /\bcranes?\b[^.\n]{0,60}\b(?:lift\w*|land\w*|sets? up|unload\w*|plac\w*)\b|\b(?:lift\w*|land\w*|unload\w*|plac\w*)\b[^.\n]{0,40}\b(?:by|with) (?:the |a |its )?(?:mobile )?crane(?: company)?\b/i;
 const CRANE_TO_ROOF = /\blift\w*\b[^.\n]{0,30}\b(?:up )?(?:on)?to (?:the )?roofs?\b[^.\n]{0,40}\bcranes?\b|\bcranes?\b[^.\n]{0,40}\blift\w*\b[^.\n]{0,30}\b(?:on)?to (?:the )?roofs?\b/i;
 function stepPicks(task, facts, state) {
   const suggested = suggestedKinds(task, facts, state);
@@ -3868,7 +3914,7 @@ function askQuestions(input) {
     // "No crane" while the task names a crane, said under the crane question.
     // It names the crane in the person's own words ("hiab"), as the query above the draft does (messy round 18, A run 1: one
     // copy said "vehicle loading crane", read from the slang, and the other "hiab").
-    ...(craneCheck(spelling.text, input.crane, input.craneNoKept === true) ? { crane: craneCheck(spelling.text, input.crane, input.craneNoKept === true) } : {}),
+    ...(craneCheck(spelling.text, input.crane, input.craneNoKept === true, scopeCraneOf(input)) ? { crane: craneCheck(spelling.text, input.crane, input.craneNoKept === true, scopeCraneOf(input)) } : {}),
     required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
@@ -4665,7 +4711,7 @@ function printedTask(out, input) {
   if (!out || typeof out !== 'object' || typeof out.task !== 'string') return out;
   const spelling = fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input));
   // The questions read the task with its shorthand read out; a draft prints it as typed (buildDraft).
-  return { ...out, task: out.kind === 'questions' ? readSlang(spelling.text) : andForN(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
+  return { ...out, task: out.kind === 'questions' ? readSlang(spelling.text) : ANSWER_SHORT(andForN(spelling.text)), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
 
 // The work with no job steps a SWMS for this input would name, worked out before its questions are
@@ -5408,7 +5454,7 @@ function buildDraft(input, screen) {
   // The steps the user wrote for work SiteWrite does not cover go in once the registers and ratings
   // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
-  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: nameCase.withPlaceNames(andForN(typed), swmsPlaces(input)), warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
+  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: nameCase.withPlaceNames(ANSWER_SHORT(andForN(typed)), swmsPlaces(input)), warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
@@ -5432,7 +5478,7 @@ function buildDraft(input, screen) {
   // Each hazardous product the user listed, in the substances table and in the step that uses it
   // (substances.js, owner D256, D257). A SWMS with no product listed is unchanged.
   // The PPE table agrees with every printed line, the products' lines and the user's own steps included.
-  return withoutUntickedPlant(withoutNotApplying(withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency, swmsNames(input)), input), input))), input), input);
+  return withoutUntickedPlant(withoutNotApplying(withHarnessTraining(require('./step-ppe').agreePpe(require('./substances').withSubstances(require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...withStepRatings(finished, input), scaffoldSupervisor: scaffoldRow(finished, input), craneOperator: craneOperatorRow(finished, state, task), review: reviewFor(finished, facts) }), input.fills), input.emergency, swmsNames(input)), input), input))), input), input);
 }
 
 // Wherever a harness is listed, harness training is listed too, also where falls is No (a boom EWP)
@@ -6934,6 +6980,9 @@ function tradeFlags(task, facts, state) {
     const own = named ? (named.step.toLowerCase().match(/[a-z][a-z-]{3,}/g) || []).filter((word) => !PRIOR_GENERIC.test(word)) : [];
     if (named && own.length && own.every((word) => taskWords.has(word))) out[named.only] = true;
   }
+  // "Site fencing, hoardings and gantries" ticked by hand where the words name none of them prints the fencing, as the kind
+  // does when the task names neither hoardings nor gantries (messy round 19, A run 4: a ticked box that printed nothing).
+  if (picked.has('siteEstablish') && !['siteFencing', 'hoardingNamed', 'gantry'].some((id) => out[id])) out.siteFencing = true;
   // So does the user's own site answer that a crane lifts gear to the roof (messy round 15, SiteLink: Roof works printed no lift).
   if (flags.roofAccess && CRANE_TO_ROOF.test(String((state.siteShared && facts && facts.siteConditions ? state.ownSite : (facts || {}).siteConditions) || ''))) {
     out.roofAccess = true;
@@ -7083,6 +7132,10 @@ function suggestedFlags(task, facts, state) {
       flags.roofAccess = true;
       if (state.ownCrane) flags.crane = true; else flags.craneInterface = true;
     }
+    // A crane company's crane the user's own answers say lifts the work ("Plant comes by truck to the hardstand and is lifted by
+    // the crane company") brings the step for working with its crew (messy round 19, A run 3: "A crane company" brought no
+    // crane step, and the lifts were covered only by the crane company's lift plan line).
+    if (state.craneCompany && CRANE_LIFTS_SAID.test(withoutDenials(site)) && !['crane', 'towerCrane', 'loaderCrane', 'craneInterface', 'steelLift', 'heavyLift', 'dualLift'].some((id) => flags[id])) flags.craneInterface = true;
     // A ladder into a trench, pit or excavation is the way in and out of it, not work from a ladder (messy round
     // 10, run 6: "Trench ladder at each open section" brought "Work from ladders", rated High).
     if (/\bladders?\b/i.test(site.replace(/\b(?:trench|excavation|pit|shaft|manhole)\s+ladders?\b|\bladders?\b[^.\n]{0,30}\b(?:into|in|down into|out of) (?:the |each |every )?(?:trench\w*|excavations?|pits?|shafts?|manholes?)\b/gi, ' '))) flags.ladderUse = true;
@@ -10824,6 +10877,9 @@ const WORK_LINES = [
   // "Stand and fix the poles" printed "lifted and stood with a crane or pole truck ... slung by licensed doggers" and "held
   // by the crane"). The line that lets light poles be stood by two people stays.
   { pattern: /\bwith a crane or pole truck\b|\bheld by the crane\b|\bslung by licensed doggers\b/i, keep: (setting, task, step) => !setting.noCrane || /\bcranes?\b/i.test(step) },
+  // With no crane, the lines that land crane loads or have crane crews land them go too (messy round 19, A run 1: No crane, and
+  // "Load ply onto the deck" printed "Crane loads land only in an agreed landing zone" and "Crane crews land loads on the deck").
+  { pattern: /^(?:Crane (?:loads|crews)\b|Where a crane\b)/, keep: (setting, task, step) => !setting.noCrane || /\bcranes?\b/i.test(step) },
   // Where our company runs the crane, lines that say a crane company runs, plans or does the lifts are not
   // true of this job (messy round 8, runs 1 and 7: "Crane lifts are done by the crane company under its lift
   // plan" in the own crane's set-up step). A line that names the crane company as one choice ("by the crane
@@ -10857,6 +10913,16 @@ function fitsSetting(line, setting = {}) {
 // untrained person's distances beside it read as a conflict (messy round 4).
 const SCAFFOLD_CLEARANCE = /\bnot erected, used or dismantled within 4 m of overhead lines\b/;
 const PERSON_CLEARANCE = /^(?:Exclusion zone for an untrained person: 3 m\b|Near a low voltage service line to a building, the exclusion zone for an untrained person is 3 m\b)/;
+// With no crane, the crane part of a line that also says how the work is done another way comes off, and the rest of the line
+// stays (messy round 19, A run 1: "crane loads are slung by a licensed dogger" and "crane-lifted bundles" with No crane).
+const NO_CRANE_PARTS = [
+  [/, and crane loads are slung by a licensed dogger(?=\.)/, ''],
+  [/\bin crane-lifted bundles, on trolleys or by hoist\b/, 'on trolleys or by hoist'],
+];
+function noCraneWords(line, setting = {}, step = '') {
+  if (typeof line !== 'string' || !setting.noCrane || /\bcranes?\b/i.test(step)) return line;
+  return NO_CRANE_PARTS.reduce((text, [pattern, words]) => text.replace(pattern, words), line);
+}
 function tidySteps(rawSteps, source, answers = '', setting = {}) {
   const scaffoldClearance = rawSteps.some((step) => step.controls.some((line) => SCAFFOLD_CLEARANCE.test(line)));
   const steps = scaffoldClearance ? rawSteps.map((step) => ({ ...step, controls: step.controls.filter((line) => !PERSON_CLEARANCE.test(line)) })) : rawSteps;
@@ -10866,7 +10932,7 @@ function tidySteps(rawSteps, source, answers = '', setting = {}) {
   const key = (line) => line.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   return steps.map((step) => {
     const shared = [];
-    const controls = step.controls.map((line) => SAID_BY_FACT.reduce((text, [pattern, said, instead]) => (said.test(answers) ? text.replace(pattern, instead) : text), line)).filter((line) => {
+    const controls = step.controls.map((line) => SAID_BY_FACT.reduce((text, [pattern, said, instead]) => (said.test(answers) ? text.replace(pattern, instead) : text), line)).map((line) => noCraneWords(line, setting, step.step)).filter((line) => {
       if (!line) return false;
       if (!harness && HARNESS_ONLY.test(line)) return false;
       if (TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))) return false;

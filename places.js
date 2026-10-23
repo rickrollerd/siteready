@@ -187,7 +187,10 @@ async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000, near = '
     // St, Sydney NSW", with no number and the wrong suburb, came before "14 Macquarie St, Parramatta NSW").
     const number = typedNumber(query);
     const street = streetWords(query);
-    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? (placeInSuburb(item, words) ? 0 : 2) : 4) + (street.length && !namesStreet(item, street) ? 4 : 0) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0) + (words.length && namesPlace(item, words) && !suburbIs(item, words) ? 0.5 : 0);
+    // A suggestion that names some of the place words typed ("stuart park" of "stuart park darwn") comes before one that names
+    // none (messy round 19, B run 8: "12 Bishop Street, Woolner NT" came first for "12 bishop st stuart park darwn").
+    const someWords = (item) => words.length > 1 && words.some((word) => namesPlace(item, [word]) && placeInSuburb(item, [word]));
+    const rank = (item) => (typed.state && item.state !== typed.state ? 16 : 0) + (namesPlace(item, words) ? (placeInSuburb(item, words) ? 0 : 2) : someWords(item) ? 3 : 4) + (street.length && !namesStreet(item, street) ? 4 : 0) + (number && !hasNumber(item, number) ? 4 : 0) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0) + (words.length && namesPlace(item, words) && !suburbIs(item, words) ? 0.5 : 0);
     const suggestions = list.map((item, at) => ({ item, at })).sort((a, b) => rank(a.item) - rank(b.item) || a.at - b.at).map(({ item }) => item).slice(0, 6);
     toCache(key, suggestions);
     return { enabled: true, suggestions };
@@ -310,9 +313,20 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
     }
   };
   try {
+    // The place found for the job address is the one in the suburb the address names, where the search gives one: a street that
+    // runs through two suburbs has the same number in each (messy round 19, A run 2: "210 Lygon St, Carlton VIC" seemed to be
+    // placed in Brunswick East, 0.2 km from a Brunswick East clinic).
+    // Asked again for a few places only where the one found names another suburb.
     const found = await post(SEARCH_TEXT, { textQuery: address, regionCode: 'au', languageCode: 'en-AU', pageSize: 1 }, 'places.location,places.formattedAddress');
-    const centre = found.places && found.places[0] && found.places[0].location;
-    const jobState = stateIn((found.places && found.places[0] && found.places[0].formattedAddress) || '') || stateIn(address);
+    const suburb = placeWords(address);
+    const inSuburb = (one) => { const said = String((one && one.formattedAddress) || '').toLowerCase(); return suburb.every((word) => new RegExp(`\\b${word.replace(/[^a-z0-9'-]/g, '')}\\b`).test(said)); };
+    let place = found.places && found.places[0];
+    if (place && place.formattedAddress && suburb.length && !inSuburb(place) && underCap()) {
+      const more = await post(SEARCH_TEXT, { textQuery: address, regionCode: 'au', languageCode: 'en-AU', pageSize: 3 }, 'places.location,places.formattedAddress').catch(() => ({}));
+      place = ((more && more.places) || []).find((one) => one && one.location && inSuburb(one)) || place;
+    }
+    const centre = place && place.location;
+    const jobState = stateIn((place && place.formattedAddress) || '') || stateIn(address);
     if (!centre) return { enabled: true, hospitals: [], clinics: [], error: 'The job address could not be found on the map. Type the hospital.' };
     const fields = 'places.id,places.displayName,places.formattedAddress,places.location,places.primaryType';
     const near = (types, count) => post(SEARCH_NEARBY, {
