@@ -827,7 +827,7 @@
       ? `<p>${esc(fixText)}</p>
         <div class="actions"><button type="button" id="pc-fix">Fix this in SiteWrite</button></div>` : '';
     return `<div class="pc-review${latest && latest.response !== 'approved' ? ' pc-back' : ''}" id="pc-review"><h2>Principal contractor review</h2>
-      ${current.length ? `<ul class="pc-list">${current.map(line).join('')}</ul>${fix}` : `<p>Revision ${esc(swms.revision)} has not been reviewed yet.</p>${send}`}
+      ${current.length ? `<ul class="pc-list">${current.map(line).join('')}</ul>${fix}` : swms.submitted ? `<p>Revision ${esc(swms.revision)} was submitted to ${esc(swms.submitted.to)} for ${esc(swms.submitted.project)} on ${esc(swms.submitted.on)}. Its review shows here when ${esc(swms.submitted.to)} sends it.</p>` : `<p>Revision ${esc(swms.revision)} has not been reviewed yet.</p>${send}`}
       ${earlier.length ? `<details><summary>Earlier revisions (${earlier.length})</summary><ul class="pc-list">${earlier.map(line).join('')}</ul></details>` : ''}</div>`;
   }
 

@@ -128,10 +128,17 @@ const ENERGISED = /energised electrical installations/i;
 const FIT_OFF = { task: 'Electrical fit-off in a new office: fit off light fittings, power points and switches, then test the new work.', facts: { energisedWork: 'none', isolationProcedure: 'The circuit is isolated at the board, locked and tagged, and proved dead with a tested voltage tester.' } };
 
 test('a "Work on or near energised parts" step brings the energised electrical category; work with no such step does not get it', () => {
-  const fitOff = drafted('qld', FIT_OFF);
+  // "None: everything is isolated and proved de-energised first" is respected: the step stays, saying no work is done on or
+  // near energised parts, and the category is not listed (messy round 18, SiteLink blocker 1). Builder check agrees.
+  const isolated = drafted('qld', FIT_OFF);
+  assert.ok(isolated.jobSteps.some((step) => step.step === 'Work on or near energised parts'));
+  assert.ok(!isolated.highRisk.some((item) => ENERGISED.test(item)));
+  assert.deepEqual(checked('qld', isolated).hardFails, []);
+  // Testing near energised parts brings it (its authorisation blanks are the user's to fill).
+  const fitOff = drafted('qld', { ...FIT_OFF, facts: { ...FIT_OFF.facts, energisedWork: 'testing' } });
   assert.ok(fitOff.jobSteps.some((step) => step.step === 'Work on or near energised parts'));
   assert.ok(fitOff.highRisk.some((item) => ENERGISED.test(item)));
-  assert.deepEqual(checked('qld', fitOff).hardFails, []);
+  assert.equal(checked('qld', fitOff).findings.find((item) => item.rule === 'H1').pass, true);
   // The register follows the list: low voltage rescue and an electric shock emergency row.
   assert.ok(fitOff.qualifications.some((item) => /low voltage rescue/i.test(item.name || item)));
   for (const item of [TYPED[1], TYPED[6], TYPED[4]]) {

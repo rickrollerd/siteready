@@ -252,7 +252,8 @@ test('the task printed is a plain list of the work: no places, conditions, plant
   assert.equal(task, 'Erect, strip and remove formwork and propping to suspended slabs. Install cast in items: cast in plates, ferrules, conduits. Place concrete to suspended slabs. Install formwork.');
   assert.doesNotMatch(task, /[()]|conditions:|plant:|Levels 1, 2|Correctional|Working hours/);
   // The conditions go to the matching site questions; one that matches none (working hours) is left out.
-  assert.deepEqual(scopeSite(ROWS), { publicInterface: 'Live or operating facility. Near roads.', liveServices: 'Energised switchboards nearby.' });
+  // A facility said only to be live or operating names no people near the work (sl15, messy round 18), so only the roads go.
+  assert.deepEqual(scopeSite(ROWS), { publicInterface: 'Near roads.', liveServices: 'Energised switchboards nearby.' });
   assert.deepEqual(scopePlant(ROWS), ['Concrete pump', 'boom pump or line pump', 'Mobile crane']);
   const [item] = projectItems({ activities: ROWS.map((row) => ({ ...row, package: 'Formwork', type: 'Site work', quotes: [] })), packages: [{ package: 'Formwork', groups: ['formwork'], byOthers: [], unmatched: [] }] }, ['Formwork']);
   assert.equal(item.task, task);

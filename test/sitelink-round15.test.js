@@ -184,6 +184,10 @@ test('Submit with no change sends the revision downloaded: an emergency answer t
   assert.equal(done.data.submitted[0].ref, ref, 'under the reference printed on the download');
   const mine = (await call('GET', '/api/swms', { session: c.office })).data.swms;
   assert.deepEqual(mine.map((one) => `${one.title} r${one.revision}`), [`${item.title} r1`]);
+  // My SWMS says to whom and when it was submitted, while no review is back (sl15, messy round 18 smaller fault).
+  const opened = (await call('GET', `/api/swms/${swmsId}`, { session: c.office })).data;
+  assert.equal(opened.reviews.length, 0);
+  assert.ok(opened.swms.submitted && opened.swms.submitted.to && opened.swms.submitted.project && /\d{4}$/.test(opened.swms.submitted.on), JSON.stringify(opened.swms.submitted));
   // A real change is still a new revision.
   const changed = await call('POST', `/api/from-builders/${c.subId}/submit`, { session: c.office, body: { items: [{ requiredId: item.requiredId, swms: { ...swmsFor(item, { task: `${TASK} Label the new circuits at each board.` }), swmsId } }] } });
   assert.equal(changed.data.submitted[0].revision, 2);

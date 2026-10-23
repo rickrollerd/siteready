@@ -315,7 +315,28 @@ function listItems(reading) {
   // goes out under the reading's package name (messy round 10, SiteLink blocker 7: "Trade installation:
   // discharge and intake points", moved onto the list, went out in the list email).
   retitle(out, work, { all: true, folded: true });
-  return out.map(({ kind, ownHighRisk: own, ...item }) => item);
+  const named = readingNames(safe);
+  return out.map(({ kind, ownHighRisk: own, ...item }) => readingWords(item, named));
+}
+
+// A scope's own code in a title's brackets ("Chiller plant (X21)", "(C-1.72)") is not part of the work's name: the title
+// reads "Chiller plant" (messy round 18, SiteLink wording 1). A short name in brackets ("(CST)") stays.
+const SCOPE_CODE = /\s*\((?:[A-Z]{1,4}[- ]?\d+(?:\.\d+)*[A-Za-z]?|\d+(?:\.\d+)+[a-z]?)\)/g;
+const withoutScopeCode = (title) => String(title || '').replace(SCOPE_CODE, '').replace(/\s{2,}/g, ' ').trim();
+// The names the reading writes with a capital before a short name ("Gatehouse SER", "Trade installation: Gatehouse AVRS"),
+// at least twice: the reading's own titles and work keep the capital where it wrote the word in lower case ("to gatehouse
+// main control room": messy round 18, SiteLink wording 3).
+function readingNames(reading) {
+  const text = [...(reading.activities || []).flatMap((row) => [row.package, row.activity, row.where]), ...(reading.packages || []).map((item) => item.package)].filter((one) => typeof one === 'string').join('\n');
+  try { return require('./sitelink-answers').scopeNames(text); } catch { return new Map(); }
+}
+function readingWords(item, names) {
+  const words = (text) => (names && names.size ? String(text).replace(/\b[a-z]{4,}\b/g, (word) => names.get(word) || word) : String(text));
+  const out = { ...item, title: words(withoutScopeCode(item.title)) };
+  if (item.listTitle) out.listTitle = words(withoutScopeCode(item.listTitle));
+  if (typeof item.task === 'string') out.task = words(item.task);
+  if (item.scopeTask && typeof item.scopeTask.plain === 'string') out.scopeTask = { ...item.scopeTask, plain: words(item.scopeTask.plain) };
+  return out;
 }
 
 const WHOLE_AREA = /^(?:whole (?:project|site|building)|area not (?:stated|given)|various(?: areas)?|all areas)$/i;
@@ -400,7 +421,9 @@ function packageTitles(reading) {
   const { work } = scopeChoice.packagesOf(safe);
   const out = work.map((pack) => ({ package: pack.name, title: pack.name }));
   retitle(out, work, { all: true });
-  return Object.fromEntries(out.filter((item) => item.title !== item.package).map((item) => [item.package, item.title]));
+  const named = readingNames(safe);
+  const titled = out.map((item) => ({ ...item, title: readingWords({ title: item.title }, named).title }));
+  return Object.fromEntries(titled.filter((item) => item.title !== item.package).map((item) => [item.package, item.title]));
 }
 
 // The trade, from the crew the reading names for the work ("Electricians", "Mechanical fitters"), and
@@ -759,7 +782,20 @@ function withoutConflictRefs(text) {
 }
 // A point as it reads: a sentence with its capital and its full stop (messy round 16, SiteLink wording 1: "The
 // document does not say who isolates the existing fire services before pipe is cut" had none).
-const pointSentence = (text) => sentence(withoutConflictRefs(text)).replace(/([^.!?])$/, '$1.');
+// A point that is only the question's words ("Who operates and controls the scissor lifts when used by other trades.",
+// "Whether covers are this subcontractor's work.") is asked as a question (messy round 18, SiteLink wording 2). A point
+// that says what is open ("Who dismantles the plant is not stated.") stays a statement, and so does one of two sentences.
+const OPEN_SAID = /\b(?:(?:is|are|was|were|remains?) (?:not (?:stated|said|clear|specified|defined|confirmed|given|known|shown|nominated)|unclear|open|unknown|to be (?:confirmed|determined|advised|agreed))|not stated|unclear|to be confirmed)\b/i;
+function asQuestion(text) {
+  const line = String(text || '').trim();
+  const body = line.replace(/[.\s]+$/, '');
+  if (!body || /[?]$/.test(body) || /[.!?;]\s/.test(body) || OPEN_SAID.test(body)) return line;
+  const whether = /^whether\s+(?!or not\b)(.+?)\s+(is|are|was|were|will|would|can|could|should|must|has|have|does|do)\s+(.+)$/i.exec(body);
+  if (whether) return `${whether[2].charAt(0).toUpperCase()}${whether[2].slice(1).toLowerCase()} ${whether[1]} ${whether[3]}?`;
+  if (/^(?:who|what|which|when|where|how)\b/i.test(body)) return `${body}?`;
+  return line;
+}
+const pointSentence = (text) => asQuestion(sentence(withoutConflictRefs(text)).replace(/([^.!?])$/, '$1.'));
 
 // An open point is asked of the lead only when it asks who does the work or who supplies what (messy
 // round 6 decision 6, D307). Messy round 7: a statement that only names the builder ("Shop drawings
@@ -862,17 +898,27 @@ function draftNotes(rows) {
     const activity = wordsWithoutPrices(row.activity).replace(/[.\s]+$/, '');
     for (let note of splitPoint(wordsWithoutPrices(withoutConflictRefs(row.unknowns))).notes.map(sentence)) {
       if (ABOUT_THE_DOCUMENT.test(note)) continue;
-      if (note && activity && ((LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) || PRONOUN_NOTE.test(note) || VERB_FIRST_NOTE.test(note) || THEIR_NOTE.test(note))) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
+      if (note && activity && ((LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) || PRONOUN_NOTE.test(note) || VERB_FIRST_NOTE.test(note) || THEIR_NOTE.test(note) || CONDITION_NOTE.test(note))) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
       // A bare word or two ("Dewatering.") says neither the work nor what is open (messy round 9, wording 8), nor
       // do a few words with no verb ("Sequencing with builder trades.").
       else if (note && activity && (BARE_NOTE.test(note) || verbless(note))) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
       // Every note ends with a full stop (messy round 11, SiteLink wording 2).
-      if (note) note = note.replace(/([^.!?])$/, '$1.');
+      if (note) note = withTradeArticle(note).replace(/([^.!?])$/, '$1.');
       if (note && !out.includes(note)) out.push(note);
     }
   }
-  return out.slice(0, 20);
+  // A note said again in a longer one ("... survey in-ground works before backfilling." beside "... before backfilling or
+  // closing of pits.") is kept once, in the longer one (messy round 18, SiteLink wording 1).
+  const flat = (text) => ` ${String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  return out.filter((note, index) => !out.some((other, at) => at !== index && flat(other).length > flat(note).length && flat(other).startsWith(flat(note).replace(/ $/, '')))).slice(0, 20);
 }
+// A note that is only a condition ("Only if hazardous areas are nominated on the Drawings.") is said with the work it is
+// about (messy round 18, SiteLink wording 1).
+const CONDITION_NOTE = /^(?:only\s+)?(?:if|where|when|unless|provided|subject to)\b/i;
+// Another trade's subcontractor named with no "the" ("Smoke detectors are Fire subcontractor's equipment.") takes it
+// (messy round 18, SiteLink wording 1).
+const TRADE_SUB = /(?<!\b(?:the|a|an|each|every|this|that|its|their|our|your|any|no)\s)(?<!\b[A-Z][\w'’-]*\s)\b((?:Fire|Electrical|Hydraulic|Hydraulics|Mechanical|Plumbing|Security|Communications|Comms|Civil|Structural|Steel|Roofing|Glazing|Facade|Lift|Lifts|Controls|BMS|Landscaping|Painting|Ceiling|Ceilings|Flooring|Joinery|Concrete|Formwork|Demolition|Scaffold|Scaffolding)(?:\s+(?:services|protection))?\s+[Ss]ubcontractor(?:'s|’s|s)?)\b/g;
+const withTradeArticle = (note) => String(note || '').replace(TRADE_SUB, (whole, name, at, all) => (/(?:^|[.!?]\s+)$/.test(all.slice(0, at)) ? `The ${name}` : `the ${name}`));
 
 // The points the scope leaves open about who does the work or what the main contractor provides
 // (the brief's "Unknowns"), one for each activity that has one. The lead may answer them; only the

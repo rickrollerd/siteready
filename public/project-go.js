@@ -1809,14 +1809,23 @@
     if ((got.weak || []).some((entry) => entry && entry.id === 'safetyDataSheet')) return body;
     const list = Array.isArray(body.substances) ? body.substances : [];
     const notUsed = new Set(Array.isArray(body.substancesNotUsed) ? body.substancesNotUsed : []);
+    // Each row takes the next free product id ("sub-1" to "sub-99"), the only ids the server keeps (input.js SUBSTANCE_ID):
+    // the "sds-..." ids these rows had were dropped from the draft, so the SWMS asked for each type again and the rows
+    // were offered to other SWMS instead (messy round 18, SiteLink blocker 3). Two products of one type each have their
+    // own row (messy round 17, SiteLink).
+    const taken = new Set(list.map((one) => String((one && one.id) || '')));
+    let next = 1;
+    const freeId = () => {
+      while (taken.has(`sub-${next}`) && next < 99) next += 1;
+      taken.add(`sub-${next}`);
+      return `sub-${next}`;
+    };
     const add = rules.sdsProducts(sds).filter((row) => !notUsed.has(row.type) && !list.some((one) => (rules.coversType ? rules.coversType(one, row.type) : one && one.type === row.type)))
-      .map((row, at, all) => {
+      .map((row) => {
         // Typed in lower case, a product's short name keeps its capitals ("pvc solvent cement" reads "PVC solvent cement").
         const named = row.product.replace(/\b(?:c?pvc|u-?pvc|lpg|mdf|sbs|abs|hdpe)\b/gi, (word) => word.toUpperCase());
-        // Two products of one type each have their own row (messy round 17, SiteLink).
-        const same = all.slice(0, at).filter((one) => one.type === row.type).length;
-        return { id: `sds-${index}-${rules.TYPES.indexOf(row.type)}${same ? `-${same + 1}` : ''}`, type: row.type, product: `${named.charAt(0).toUpperCase()}${named.slice(1)}` };
-      });
+        return { id: freeId(), type: row.type, product: `${named.charAt(0).toUpperCase()}${named.slice(1)}` };
+      }).slice(0, Math.max(0, 20 - list.length));
     return add.length ? { ...body, substances: [...list, ...add] } : body;
   }
   async function prepareOne(index, given) {

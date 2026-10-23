@@ -225,7 +225,9 @@
     // A torch-on membrane is a bitumen sheet (messy round 12, A run 2: "no hot bitumen, membrane only" was taken beside
     // the crew's own SBS bitumen torch-on membrane).
     'Bitumen and asphalt': /\b(?:bitumen|asphalt|hot mix|tack coat|prime coat|emulsion|torch[- ]?on (?:membranes?|sheets?))\b/i,
-    'Pool and water treatment chemicals': /\b(?:pool chemicals?|pool chlorine|chlorine|hypochlorite|hydrochloric|pool acid)\b/i,
+    // Chilled water dosing chemicals are water treatment chemicals (messy round 18, SiteLink: "Corrosion inhibitor and biocide for
+    // the chilled water dosing" was given, and the type was asked again).
+    'Pool and water treatment chemicals': /\b(?:pool chemicals?|pool chlorine|chlorine|hypochlorite|hydrochloric|pool acid|corrosion inhibitors?|biocides?|(?:chemical )?dosing chemicals?|water treatment chemicals?)\b/i,
     'Potting mix, soil conditioners and fertilisers': /\b(?:potting mix|fertili[sz]ers?|soil conditioners?)\b/i,
   };
   // The word that names the type in the user's words, or ''.
@@ -342,7 +344,9 @@
     const out = [];
     const sentences = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => !NOT_OURS.test(sentence));
     const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+(?:and|n)\s+|\s*&\s*/))
-      .map((clause) => clean(clause).replace(/[.:\s]+$/, '').replace(/^(?:a|an|the|some|our)\s+/i, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
+      // A clause after a comma keeps no joining word ("..., and pipe thread sealant" is "pipe thread sealant": messy round 18,
+      // SiteLink: "Use And pipe thread sealant" was offered).
+      .map((clause) => clean(clause).replace(/^(?:(?:and|n|&|plus|also)\s+)+/i, '').replace(/[.:\s]+$/, '').replace(/^(?:a|an|the|some|our)\s+/i, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
     for (const clause of clauses) {
       // Concrete named on its own is the cement product (messy round 17, A run 2: "concrete, form oil n curing compound" made no
       // concrete product, and cement was asked again).

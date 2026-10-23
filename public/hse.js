@@ -1446,6 +1446,9 @@
     await busy(button, 'Saving...', async () => {
       try {
         const data = await call('PUT', `/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/points/${encodeURIComponent(id)}`, { answer: $(`answer-${id}`).value });
+        // Saved: the typed words are no longer "from before". Left in typedHere, the redraw kept them again, and after a
+        // reload the saved answer showed "Your answer from before is back. It is not saved yet." (messy round 18, SiteLink).
+        typedHere.delete(id);
         keepTyped(typedKey('answer', sub.subcontract.id, id), null);
         box('s-flash', '');
         renderSub(data);

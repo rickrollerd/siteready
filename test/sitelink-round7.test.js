@@ -198,10 +198,10 @@ test('points to confirm: statements go to the draft notes; only who does or supp
   const asked = handover.listPoints(round7Reading()).map((point) => point.question);
   assert.deepEqual(asked, [
     // Each point ends with a full stop (messy round 16, SiteLink wording 1).
-    'Who supplies the AHUs.',
+    'Who supplies the AHUs?',
     'It is not stated who dismantles the mechanical plant marked for demolition (the builder removes items from site under C-1.109).',
     'The document does not say who controls, inspects and checks operator competency when other trades use the lifts.',
-    'Who gives access to the plant in the defects period.',
+    'Who gives access to the plant in the defects period?',
   ]);
   const notes = handover.listItems(round7Reading()).find((item) => item.title === MAIN_TITLE).draftNotes;
   assert.ok(notes.includes('Shop drawings need builder approval before fabrication.'));

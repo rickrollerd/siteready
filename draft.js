@@ -1326,10 +1326,14 @@ function withoutMarkedForDemolition(text) {
     && !DEMOLITION.test(sentence.replace(/\bto be (?:\w+ (?:or|and) )?demolished\b/gi, ' ')) ? ' ' : sentence));
 }
 
+// Words that only name a device or a fan by the gas it senses or clears ("smoke detectors, gas detectors and
+// sprinklers", "Install gas purge fan in Gatehouse SER") are not work on gas piping (messy rounds 17 and 18,
+// SiteLink: Ductwork and mechanical units listed pressurised gas mains "(from the task)" from them).
+const GAS_DEVICES = /\bgas (?:leak )?(?:detect\w*|sensors?|sensing|monitor\w*|alarms?|analys\w*|warning (?:systems?|devices?))\b|\bgas (?:purge|exhaust|extract\w*)(?: (?:fans?|systems?))?\b|\bgas fans?\b/gi;
 function valveWiringOnly(text) {
   // Cabling or metering run to the gas meters is electrical work at the meters, not work on the gas piping
   // (messy round 7: "cabling to hydraulic water and gas meters" found gas mains work).
-  text = String(text || '').replace(/\b(?:cabl\w*|wir\w*|terminat\w*|metering|monitoring|data|controls?)\b[^.;]{0,40}?\b(?:to|into|for|at)\b[^.;]{0,40}?\bgas meters?\b/gi, ' ');
+  text = String(text || '').replace(GAS_DEVICES, ' ').replace(/\b(?:cabl\w*|wir\w*|terminat\w*|metering|monitoring|data|controls?)\b[^.;]{0,40}?\b(?:to|into|for|at)\b[^.;]{0,40}?\bgas meters?\b/gi, ' ');
   // UPS power or a power supply to the gas shut-off valves is electrical work on their controls too (messy round 15, SiteLink:
   // "Install additional UPS power supplies to MSSBs and gas shut-off valves" with the meters' cabling found gas piping work), with
   // or without the word "valve" (messy round 16, SiteLink: "Wire and connect the FIP to the gas shut-off valve").
@@ -1678,7 +1682,9 @@ const BUILDING_ENERGISATION = /\b(?:prior to|before|after|until) (?:the )?energi
 const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text || '').replace(BUILDING_ENERGISATION, '')) && ELECTRICAL_CORE.test(String(text || '')) };
 // A plumber's work.
 // A mechanical (HVAC) contractor's work. Its pipework is not plumbing unless plumbing words are used too.
-const MECHANICAL_WORK = /\b(mechanical services|heat recovery ventilat\w*|hrv|erv|ventilation systems?|evaporative coolers?|hvac|ducted (?:gas )?heating|ducted (?:air|systems?)|air[- ]?condition\w*|ductwork|duct(?:ing| runs?| sections?)|refrigerant|refrigeration|split systems?|fan coil units?|fcus?|ahus?|air handling units?|chillers?|cooling towers?|condensers?|condensing units?|jet fans?|exhaust fans?|chilled water|vrf|vrv)\b/i;
+// Pool hall and desiccant dehumidifier units are air handling plant (messy round 18, SiteLink stuck point 1: "crane lift the 2
+// pool hall dehumidifier units onto the plant deck ..." found no job steps until it said "install ... n their ductwork").
+const MECHANICAL_WORK = /\b(mechanical services|heat recovery ventilat\w*|hrv|erv|ventilation systems?|evaporative coolers?|hvac|ducted (?:gas )?heating|ducted (?:air|systems?)|air[- ]?condition\w*|ductwork|duct(?:ing| runs?| sections?)|refrigerant|refrigeration|split systems?|fan coil units?|fcus?|ahus?|air handling units?|chillers?|cooling towers?|condensers?|condensing units?|jet fans?|exhaust fans?|chilled water|vrf|vrv|dehumidifi(?:er|cation) units?|(?:pool (?:hall )?|desiccant |packaged )dehumidifiers?)\b/i;
 // The trade's systems named as a whole ("the mechanical systems", "the a/c systems", "the mechanical controls"):
 // mechanical work where they are commissioned (messy round 10, SiteLink: the reading's "Test, balance and
 // commission the mechanical systems" had no steps and read as needing no SWMS, while the lead's "balance
@@ -1826,7 +1832,10 @@ const CATEGORY_FACTS = [
       { value: 'unsure', label: 'Not sure: treated as Yes until your electrical licence holder confirms' },
     ],
     level: 'Administrative',
-    applies: (text) => ICT_WORK.test(String(text || '')) && /\b(risers?|ceilings?|comms rooms?|ups|card readers?|intercoms?|power supplies)\b/i.test(String(text || '')),
+    // Asked too where only the scope's conditions say the buildings or boards are energised ("conditions: energised buildings"):
+    // whether the work itself is near live parts is the user's call, and No settles it (messy round 18, SiteLink blocker 1:
+    // Penetrations and core drilling listed energised work as certain, "(from the task)").
+    applies: (text) => (ICT_WORK.test(String(text || '')) && /\b(risers?|ceilings?|comms rooms?|ups|card readers?|intercoms?|power supplies)\b/i.test(String(text || ''))) || energisedOnlyAsCondition(text),
   },
   {
     // Comms room and UPS work: whether our crew connects any of it to mains power is the user's call
@@ -2838,7 +2847,9 @@ const SHARED_CRANE_WORDS = /\b(?:cranes?|craned|craning|cranage|craneage|hiabs?|
 function workLifts(input) {
   const task = String((input && (input.task || input.jobDescription)) || '');
   const kinds = Array.isArray(input && input.kinds) ? input.kinds : [];
-  return isCraneOrLift(task) || craneNamed(task) || kinds.some((id) => LIFT_KINDS.has(id))
+  // A crane pad or platform the work is near or builds is not a lift ("near temporary haul roads and crane pads": messy round
+  // 18, SiteLink smaller fault: the shared crane answer reached In-ground mechanical services).
+  return isCraneOrLift(task) || craneNamed(task.replace(CRANE_PAD, ' ')) || kinds.some((id) => LIFT_KINDS.has(id))
     // Heavy plant lifted, hoisted or landed in the same sentence ("Unload and lift the chillers into place"); a delivery alone
     // ("Test mechanical services before delivery") is not a lift.
     || /\b(?:ahus?|air handling units?|chillers?|cooling towers?|condensers?)\b[^.]{0,60}\b(?:lift(?:s|ed|ing)?|hoist\w*|land(?:s|ed|ing)?)\b|\b(?:lift(?:s|ed|ing)?|hoist\w*|land(?:s|ed|ing)?)\b[^.]{0,60}\b(?:ahus?|air handling units?|chillers?|cooling towers?|condensers?)\b/i.test(task.replace(/\b(?:boom|scissor|sciss?ors?) lifts?\b/gi, ''));
@@ -4911,10 +4922,21 @@ function screenHighRisk(input, said = '') {
   // A fall the words do not bring is likely where they name a place at height (a slab edge, a void).
   const fallLabel = state.residential && state.residentialFallLabel ? state.residentialFallLabel : (highRiskList(state).find((item) => item.id === 'fall') || {}).label;
   const placed = fallLabel && !draft.highRisk.includes(fallLabel) && FALL_PLACE.test(withoutServicedPlant(draft.task)) ? [fallLabel] : [];
+  // Energised work the energised parts question settles: "None: everything is isolated and proved de-energised first" takes
+  // it off (isolatedAnswer), so before that answer it is likely, not certain (messy round 18, SiteLink blocker 1: the list and
+  // the email page said Testing and commissioning "is" energised work from "commission" and "energised buildings").
+  const electricalItem = highRiskList(state).find((item) => item.check === 'electrical');
+  const settledByAnswer = () => {
+    const asked = new Set(draft.missing || []);
+    if (!electricalItem || !draft.highRisk.includes(electricalItem.label) || !(asked.has('energisedWork') || asked.has('liveElectrical'))) return false;
+    const facts = { ...((input && input.facts) || {}), ...(asked.has('energisedWork') ? { energisedWork: 'none' } : {}), ...(asked.has('liveElectrical') ? { liveElectrical: 'no' } : {}) };
+    const isolated = buildDraft({ ...input, facts }, true);
+    return isolated.kind === 'draft' && !(isolated.highRisk || []).includes(electricalItem.label);
+  };
   for (const item of highRiskList(state)) {
     const label = item.id === 'fall' ? fallLabel : item.label;
     if (![...draft.highRisk, ...placed].includes(label)) continue;
-    const on = restsOn[item.id] ? restsOn[item.id]() : '';
+    const on = restsOn[item.id] ? restsOn[item.id]() : item.check === 'electrical' && settledByAnswer() ? ((draft.missing || []).includes('energisedWork') ? 'whether any testing or commissioning is done near energised parts' : 'whether any of the work is near live electrical parts') : '';
     out.categories.push({ id: item.id, label, short: shortName(item.id), likely: Boolean(on), dependsOn: on });
   }
   // A space the package's own words call confined is likely a confined space; the SWMS question decides.
@@ -5130,7 +5152,7 @@ function buildDraft(input, screen) {
     // energised category, as its own choice says, however the task reads (messy round 16, SiteLink: "Energised electrical
     // installations" stayed "(from the task)" for a sprinkler crew after No and None). The task's own live words get the warning.
     highRisk: highRiskMatches(riskText, pack.fallAnswer, state)
-      .filter((item) => !(item.check === 'electrical' && choiceAnswer('liveElectrical', facts.liveElectrical) === 'no'))
+      .filter((item) => !(item.check === 'electrical' && (choiceAnswer('liveElectrical', facts.liveElectrical) === 'no' || isolatedAnswer(facts, riskTask, riskText, state))))
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards,
     controls: finalControls,
@@ -5205,7 +5227,9 @@ function buildDraft(input, screen) {
     // "Work on or near energised parts" is work near energised electrical installations, and
     // "Prepare to enter the confined space" is confined space work. A trench step's depth, and
     // so its category, comes from the task, not the step's name.
-    for (const item of highRiskMatches(draft.jobSteps.map((step) => step.step).join('\n'), pack.fallAnswer, state).filter((match) => STEP_CATEGORIES.has(match.check))) {
+    // "None: everything is isolated and proved de-energised first" settles it for the energised parts step too: the step
+    // then says no work is done on or near energised parts (messy round 18, SiteLink blocker 1).
+    for (const item of highRiskMatches(draft.jobSteps.map((step) => step.step).join('\n'), pack.fallAnswer, state).filter((match) => STEP_CATEGORIES.has(match.check) && !(match.check === 'electrical' && (choiceAnswer('liveElectrical', facts.liveElectrical) === 'no' || isolatedAnswer(facts, riskTask, riskText, state))))) {
       const label = item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label;
       if (!draft.highRisk.includes(label)) draft.highRisk = [...draft.highRisk, label];
     }
@@ -5682,6 +5706,32 @@ const DIG_WORK = /\b(excavat(?!ors?\b)\w*|trench\w*|(?<!\bbefore you )dig(?:s|gi
 // Pipes, drains, pits and mains laid in the ground. A swale is a shallow open drain, not a trench.
 const IN_GROUND_WORK = /\b(underground|in-?ground|buried|below[- ]ground|under(?:[- ]| the | a )?(?:building )?slabs?|sewer\w*|sewar|stormwater|storm water|drain(?:s|age)?(?! swales?\b)|culverts?|manholes?|gully pits?|pits?|water ?mains?|mains|pipes?|pipelines?|pipework|conduits?)\b/i;
 // Overhead and underground electric lines named anywhere, for telling work near lines from work near live parts.
+// "None: everything is isolated and proved de-energised first" to the energised parts question is the user's word that no
+// work is done on or near energised parts, as "No" to live electrical work is (messy round 18, SiteLink blocker 1: Testing and
+// commissioning, Electrical installation and Penetrations and core drilling kept "Energised electrical installations or
+// services (from the task)" after None, from "energised buildings" and "commission"). The category stays where something
+// the answer does not cover brings it: live electrical work said Yes or Not sure, power lines named, or construction power the
+// crew installs, moves or takes out, or a generator load test, which are live by their nature (the work it implies, riskText
+// past the task and answers). Task lighting and leads the crew only uses bring none (tempPowerWork).
+// The scope's conditions (in the brackets of its full words) name energised buildings or boards, and the work outside them
+// names nothing energised or live, nor electrical work of its own.
+function energisedOnlyAsCondition(text) {
+  const words = String(text || '');
+  if (!/\([^()]*\bconditions?:[^()]*\benergi[sz]\w*[^()]*\)/i.test(words)) return false;
+  const own = words.replace(/\([^()]*\)/g, ' ');
+  return !/\b(?:energi[sz]\w*|live|switchboards?|submains?|circuits?|cabling|wiring|power points?|electrical)\b/i.test(own);
+}
+function isolatedAnswer(facts, riskTask, riskText, state) {
+  if (choiceAnswer('energisedWork', facts && facts.energisedWork) !== 'none') return false;
+  if (['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts && facts.liveElectrical))) return false;
+  // Live work the task's own words name, outside its brackets of places and conditions ("Fault find energised circuits").
+  if (/\b(?:live|energi[sz]ed) (?:electrical |lv |low voltage )?(?:work|testing|switchboards?|boards?|circuits?|parts?|conductors?)\b|\bfault[- ]?find\w*|\bwork\w* (?:on|near) (?:exposed )?(?:energi[sz]ed|live)\b/i.test(String(riskTask || '').replace(/\([^()]*\)/g, ' '))) return false;
+  const lines = sentences(combinedFacts(riskTask, facts || {})).filter((line) => new RegExp(LINES_WORDS.source, 'i').test(line));
+  if (lines.length && highRiskMatches(lines.join('\n'), 'no', state).some((item) => item.check === 'electrical')) return false;
+  const base = combinedFacts(riskTask, facts || {});
+  const implied = String(riskText || '').startsWith(base) ? String(riskText).slice(base.length) : '';
+  return !/\b(?:construction power is live|live switching)\b/i.test(implied);
+}
 const LINES_WORDS = /\b(?:overhead |underground |aerial )?(?:(?:hv|lv|high voltage|low voltage|\d+(?:\.\d+)? ?kv) )?(?:power ?lines?|powerlines?|electric(?:al|ity)? lines?|(?:power|electric\w*|service|supply) (?:lines?|cables?|wires?|mains|conductors?))\b|\boverhead (?:lines?|cables?|wires?|conductors?)\b/gi;
 const LINES_WORK = /\b(overhead (?:power|electric\w*|service)? ?(?:lines?|cables?|wires?|mains)|power ?lines?|electric lines?|underground (?:power|electric\w*) (?:cables?|lines?|mains))\b/i;
 // High risk categories a job step's name brings on its own (energised parts, confined space entry,
@@ -10069,9 +10119,9 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     mechanicalWork: MECHANICAL_WORK.test(task),
     refrigerantWork: REFRIGERANT.test(task) || AC_PLANT_REMOVAL.test(task),
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
-    plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && (/\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|receiv\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*|set(?:ting)? (?:the |new |each )?(?:[\w-]+ )?(?:units?|condensers?|chillers?|ahus?|plant))\b/i.test(task) || (/\binstall\w*/i.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:rooftop|package\w*) units?|plant)\b/i.test(task) && !/\b(range ?hoods?|exhaust fans?)\b/i.test(task))),
+    plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|dehumidifi(?:er|cation) units?|(?:pool (?:hall )?|desiccant |packaged )dehumidifiers?|fans?(?!\s+coil)|plant)\b/i.test(task) && (/\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|receiv\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*|set(?:ting)? (?:the |new |each )?(?:[\w-]+ )?(?:units?|condensers?|chillers?|ahus?|plant))\b/i.test(task) || (/\binstall\w*/i.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:rooftop|package\w*) units?|plant)\b/i.test(task) && !/\b(range ?hoods?|exhaust fans?)\b/i.test(task))),
     // A sentence that only marks or labels services names them; it does not install them.
-    ductwork: /\bducted\b/i.test(task) && /\b(install\w*|replac\w*)\b/i.test(task) || /\b(?:hang\w*|install\w*|run\w*|fix\w*)\b[^.]{0,40}\bair ducts?\b/i.test(task) || MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit(?:s|ted|ting)?|run(?:s|ning)? (?:the |all |new )?(?:[\w-]+ )?(?:ductwork|ducts?))\b/i.test(task.replace(/\b(?:supply and )?install\w* (?:all )?(?:the )?(?:insulation|lagging)\b[^.]*/gi, '').replace(/[^.]+\.?/g, (sentence) => (/\b(mark\w*|label\w*|colour bands?|pipe markers?|flow arrows?)\b/i.test(sentence) && !/\b(?:install|supply|fit|run|replace)(?:s|ed|ing)?\b/i.test(sentence) ? ' ' : sentence))) && (!/\bon the roof\b/i.test(task) || /\b(?:install\w*|run\w*|connect\w*|fix\w*) (?:the |new )?(?:ductwork|ducting|ducts?)\b/i.test(task)) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
+    ductwork: /\bducted\b/i.test(task) && /\b(install\w*|replac\w*)\b/i.test(task) || /\b(?:hang\w*|install\w*|run\w*|fix\w*)\b[^.]{0,40}\bair ducts?\b/i.test(task) || MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit(?:s|ted|ting)?|run(?:s|ning)? (?:the |all |new )?(?:[\w-]+ )?(?:ductwork|ducts?)|connect(?:s|ed|ing)? (?:up )?(?:the |their |its |new )?(?:[\w-]+ )?(?:ductwork|ducting|ducts?))\b/i.test(task.replace(/\b(?:supply and )?install\w* (?:all )?(?:the )?(?:insulation|lagging)\b[^.]*/gi, '').replace(/[^.]+\.?/g, (sentence) => (/\b(mark\w*|label\w*|colour bands?|pipe markers?|flow arrows?)\b/i.test(sentence) && !/\b(?:install|supply|fit|run|replace)(?:s|ed|ing)?\b/i.test(sentence) ? ' ' : sentence))) && (!/\bon the roof\b/i.test(task) || /\b(?:install\w*|run\w*|connect\w*|fix\w*) (?:the |new )?(?:ductwork|ducting|ducts?)\b/i.test(task)) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
     refrigerantPipework: pipedRefrigeration(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task) || /\b(?:run|install|lay|fix)\w*\b[^.]{0,20}\brefrigerant (?:lines?|pipe\w*|piping)\b/i.test(task),
     // Installing a split system includes pressure testing, evacuating and releasing or adding the charge.
     refrigerantTest: pipedRefrigeration(task) && (PRESSURE_TEST.test(task) || SPLIT_INSTALL.test(task)),

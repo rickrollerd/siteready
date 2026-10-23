@@ -18,7 +18,6 @@
       "expect": {
         "highRisk": [
           "fall",
-          "electrical",
           "plant"
         ],
         "steps": [
