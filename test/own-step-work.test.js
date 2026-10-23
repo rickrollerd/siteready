@@ -25,7 +25,8 @@ function answered(input) {
     const asked = questionsFor(draftBody({ ...input, facts }));
     const open = (asked.required || []).filter((item) => !facts[item.id]);
     if (asked.standDown || !open.length) break;
-    for (const item of open) facts[item.id] = item.choices ? item.choices[0].value : `As set out in the site plan for ${item.label.toLowerCase()}.`;
+    // A life jacket answer says which (messy round 17: "life jackets on" is too thin).
+    for (const item of open) facts[item.id] = item.choices ? item.choices[0].value : item.id === 'lifeJacketDetails' ? 'Level 150 inflatable life jackets worn on the barge and near the water.' : `As set out in the site plan for ${item.label.toLowerCase()}.`;
   }
   return facts;
 }

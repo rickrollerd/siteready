@@ -227,7 +227,8 @@ test('an answer with its own row prints there whole, a "not needed" answer says 
   const rows = Object.fromEntries(draft.references.map((item) => [item.label, item.text]));
   assert.equal(rows['Load limits'], 'Not needed for this work: slabs on ground only, no suspended deck');
   assert.equal(rows['System and supplier instructions'], 'Not needed for this work: timber edge forms, no proprietary system');
-  assert.equal(rows['Formwork design'], 'timber edge forms on ground slabs and kerbs, checked by our leading hand before each pour');
+  // With its first capital, as typed answers print since messy round 17 (flow18).
+  assert.equal(rows['Formwork design'], 'Timber edge forms on ground slabs and kerbs, checked by our leading hand before each pour');
   const cctv = prepareDraft(draftBody(ready({ ...ANSWERED, state: 'qld', residential: 'no', fallRisk: 'yes', crane: 'own', task: CCTV, facts: { ...CCTV_FACTS, fallControl: 'Work at the roof edge is done from the boom EWP.' } })));
   assert.equal(cctv.kind, 'draft', (cctv.missing || []).join('; '));
   assert.ok(!cctv.controls.some((item) => /harness in the ewp basket/i.test(item.text)));

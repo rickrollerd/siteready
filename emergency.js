@@ -195,7 +195,8 @@ const NEW_ROW = {
 
 const clean = (value) => String(typeof value === 'string' ? value : '').replace(/\s+/g, ' ').trim();
 // A lone "n" typed for "and" prints "and", as in the task line (draft.js andForN; messy round 14, A run 1).
-const andForN = (text) => String(text || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
+// So do words typed short ("b4", "thru": messy round 17).
+const andForN = (text) => require('./sitelink-answers').hurried(text);
 
 // The draft with the emergency questions for the page, and each answer given printed in its row
 // as "Short label: answer". A row that already has a detail keeps it, with the answers after.

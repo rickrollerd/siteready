@@ -91,7 +91,7 @@ test('what is typed is kept, without the business details kept in the company pr
   for (const key of ['companyAbn', 'companyAddress', 'companyPhone', 'companyEmail', 'logo']) assert.equal(key in record.input, false, key);
 });
 
-test('saving the SWMS clears the copy kept on the phone', async () => {
+test('saving the SWMS keeps the copy on the phone as that saved SWMS (messy round 17: the page reloaded empty)', async () => {
   const p = page();
   await settle();
   p.document.getElementById('task').value = 'Dig a trench.';
@@ -102,7 +102,10 @@ test('saving the SWMS clears the copy kept on the phone', async () => {
   p.document.getElementById('new-save').click();
   await settle();
   assert.ok(p.calls.some((call) => call.route === '/api/swms' && call.method === 'POST'));
-  assert.equal(stored(p), null);
+  const kept = stored(p);
+  assert.equal(kept.input.task, 'Dig a trench.');
+  assert.equal(kept.editing.id, 'new-one');
+  assert.equal(kept.downloaded, JSON.stringify(kept.input));
 });
 
 test('signing out clears it; a session that has run out keeps it', async () => {

@@ -120,7 +120,8 @@
   // blank takes it: no answer yet ("TBC", "dont know", "-"), and also "na", "n/a", "none", "nil", "no", "yes"
   // or "nothing", which say nothing in a blank (messy round 13, A run 2: "rated for na m", "report na" and
   // "kept only at n/a" printed while "TBC" and "-" were refused). '' when it says something.
-  const BLANK_EMPTY = /^(?:n\.?\s?a\.?|n\/a|nah|nope|nothing|nothing yet|yes|yep|ok|okay|same|ditto|as above|x)$/i;
+  // A promise of an answer is not one either: "to follow" as the report number (messy round 17, A run 2).
+  const BLANK_EMPTY = /^(?:n\.?\s?a\.?|n\/a|nah|nope|nothing|nothing yet|yes|yep|ok|okay|same|ditto|as above|x|to follow|(?:will )?follow(?:s|ing)?(?: later| soon)?|later|pending|coming|to come|to be (?:sent|issued|provided|supplied)|not (?:issued|received|back) yet|waiting(?: on (?:it|the report))?)$/i;
   function blankFillNeed(value) {
     const text = clean(value).replace(/[.;,]+$/, '').trim();
     if (!text) return '';
@@ -191,7 +192,7 @@
   // Site answers that name no trade, say nothing of the ground, or give only a gate (messy round 12, run 1:
   // "Coordination with preceding and following trades.", "slab" and "site gate" printed as answers).
   // Nor does "Work alongside other trades." or "Other trades working in the buildings." (messy round 14, A runs 1 and 4).
-  const TRADE_FILLER = new Set('coordination coordinate coordinated coordinating with preceding following other others trade trades tradies contractors subcontractors subbies various all the and of on site sites nearby around working work works in area areas same as required per program programme sequence multiple many different some several follow liaise liaison interface interfacing alongside beside near next to also may be will at times building buildings project job jobs throughout existing concurrent concurrently present'.split(' '));
+  const TRADE_FILLER = new Set('coordination coordinate coordinated coordinating with preceding following other others trade trades tradies contractors subcontractors subbies various all the and of on site sites nearby around working work works in area areas same as required per program programme sequence multiple many different some several follow liaise liaison interface interfacing alongside beside near next to also may be will at times building buildings project job jobs throughout existing concurrent concurrently present services service adjacent subsequent'.split(' '));
   const GENERIC_TRADES = (text) => { const list = clean(text).toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean); return list.length > 0 && list.every((word) => TRADE_FILLER.has(word)) && list.some((word) => /^(?:trades?|tradies|contractors|subcontractors|subbies|others)$/.test(word)); };
   const GROUND_SAYS = /\b(?:soft|sloping|slopes?|steep|level|flat|firm|compacted|uneven|rough|wet|boggy|muddy|sand\w*|clay|rock\w*|gravel|grass\w*|dirt|fill|asphalt|bitumen|sealed|paved|pavers|concrete|timber|steel|kpa|loads?|rated|excavations?|trench\w*|holes?|pits?|batters?|suspended|podium|decks? (?:loads?|rated|props?)|propped|none|nil)\b/i;
   // A short access answer passes only where it names a set way in or up (messy round 13: "truck" and "drive in" passed).
@@ -205,7 +206,7 @@
   const VEHICLE_PLACE = /^(?:at |by |near |beside |next to |behind |in front of )?(?:the |our |my |his |a |site |work )?(?:[\w'-]+ ){0,2}(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?|hiabs?|tippers?|semis?|buses?)(?=$|[.,;]|\s+(?:on|at|in|near|beside|by|outside|parked|out|along|off|next)\b)/i;
   // Services named by their kind: an answer that names none ("Existing services.") says nothing a crew can act on
   // (messy round 13, A run 2: SiteWrite's own scope chip "Existing services." was taken).
-  const SERVICE_KIND = /\b(?:power|electric\w*|energis\w*|live|cables?|wiring|switch ?boards?|switch ?rooms?|boards?|substations?|lights?|lighting|gas|water|sewer\w*|stormwater|drain\w*|pipes?|pipework|mains?|data|comms?|communications?|telstra|nbn|fibre|optic\w*|fire|hydrants?|sprinklers?|alarms?|hv|lv|kv|volts?|overhead|underground|in-?ground|buried|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|nil|none)\b/i;
+  const SERVICE_KIND = /\b(?:power|electric\w*|energis\w*|live|cables?|wiring|switch ?boards?|switch ?rooms?|boards?|substations?|lights?|lighting|gas|water|sewer\w*|stormwater|drain\w*|pipes?|pipework|mains?|data|comms?|communications?|telstra|nbn|fibre|optic\w*|fire|hydrants?|sprinklers?|alarms?|hv|lv|kv|volts?|overhead|underground|undergr(?:ou)?nd|in-?ground|buried|conduits?|ducts?|plumbing|hydraulic\w*|mechanical|air ?con\w*|hvac|chilled|steam|medical gas\w*|oxygen|fuel|refrigerant\w*|nil|none)\b/i;
   const ACCESS_SAYS = /\b(?:stairs?|stair ?(?:towers?|wells?)|ladders?|lifts?|hoists?|ramps?|scaffold\w*|ewps?|elevating|scissor|boom|walk\w*|driv\w*|trucks?|utes?|vehicles?|forklifts?|cranes?|via|through|from|up|down|along|path\w*|footpath|corridor|lanes?|roads?|streets?|st|rd|level|floor|roof|hatch|door)\b/i;
   const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
   // A crew or company named by what it does, with no name: "the scaffold mob", "a training mob", "the anchor installer"
@@ -321,6 +322,9 @@
     if (rule.emergency) {
       if (NO_ANSWER.test(text)) return `${quoted} is not an answer here: this SWMS involves ${rule.involves}. ${rule.ask}`;
       if (rule.rescue && onlyCalls(text)) return `${quoted} only calls for help. Say who rescues the person and how, before emergency services arrive.`;
+      // The equipment has the gear the rescue answer uses (messy round 17, A run 2: "ladder at the trench" beside a rescue with
+      // "harness and line from the top").
+      if (rule.kit && rule.gear && !new RegExp(rule.gear.pattern, 'i').test(text)) return `${quoted} does not have the ${rule.gear.word} your rescue answer uses. Say what rescue equipment is kept at the work, including the ${rule.gear.word}, and where.`;
       if (rule.kit && /\bfirst aid\b/i.test(text) && !RESCUE_KIT.test(text) && onlyFirstAid(text)) return `${quoted} is first aid, not rescue equipment. Say what is used to get the person out, and where it is kept.`;
       // One word ("builder", "gate", "spotter") does not tell the crew what to do.
       if (!/\s/.test(text)) return `${quoted} is too short to act on. ${rule.ask}`;
@@ -342,16 +346,23 @@
       if (rule.controls && ON_MACHINE_ONLY.test(text)) return `${quoted} does not say where on the machine. Say where the ground or emergency lowering controls and their key are, for example "Ground control panel at the rear of the base, key kept in the machine".`;
       // "turn it off" does not say where the stop is or who uses it.
       if (rule.stop && (words(text) < 4 || BARE_COMMAND.test(text))) return `${quoted} does not say where the stop is or who uses it. ${rule.ask}`;
+      // The operator alone, with no stop named, is not an answer: the operator may be the one hurt and no one else knows where
+      // the stop is (messy round 17, A run 2: "operator turns it off"). The operator at a named stop passes, as before (decision 5).
+      if (rule.stop && OPERATOR_ONLY.test(text) && !STOP_NAMED.test(text) && !OTHER_STOPPER.test(text.replace(/\b(?:hiab|crane|plant|machine|pump|excavator|forklift|ewp|truck|loader|roller|bobcat)\s+operators?\b/gi, 'operator'))) return `${quoted} names only the operator, who may be the one hurt. Say who else stops it and where the stop is, for example "The operator, or the spotter with the emergency stop on the remote".`;
       return '';
     }
     if (NONE.test(text) && !rule.none) return `${rule.name} cannot be ${quoted}: every SWMS names it. ${rule.ask}`;
     if (rule.naRefused && /^(?:na|n\/a|n\.a\.?|not applicable|not relevant|does not apply|doesn'?t apply)\.?$/i.test(text)) return `${quoted} says the question does not apply. ${rule.naRefused}`;
     // Not applicable is refused where the SWMS itself says the thing is there (a scaffold in the plant).
-    if (rule.noneRefused && NONE.test(text)) return `${rule.noneRefused} ${rule.ask}`;
+    if (rule.noneRefused && NONE.test(text) && !(rule.noneWithReason && keptAway(text))) return `${rule.noneRefused} ${rule.ask}`;
     if (rule.kind) { const weak = fieldWeak(rule.kind, text); if (weak) return `${weak}`; }
     return '';
   }
   const words = (text) => clean(text).split(/\s+/).filter(Boolean).length;
+  // "None" followed by how the public is kept away from the work: fenced off, closed, behind a hoarding (messy round 17,
+  // B run 6). "None" alone, or with a reason that keeps no one away, is still refused.
+  const KEPT_AWAY = /\b(?:fenced|fences?|fencing|hoardings?|closed|barricad\w*|barriers?|no public|not open to the public|kept (?:out|away|clear)|separated|gates? (?:shut|locked|closed)|locked|inside the (?:site|building|fence))\b/i;
+  const keptAway = (text) => words(text) >= 5 && KEPT_AWAY.test(text.replace(/^\W*\w+\W*/, ''));
   // A person's name and nothing else: two or three words, none of them a role, a common word or a verb.
   const NOT_NAME = /^(?:the|a|an|our|my|his|her|their|its|it|them|they|he|she|we|us|and|n|or|by|with|from|on|at|in|to|of|for|is|are|who|then|spotter|operator|supervisor|foreman|leading|lead|hand|ground|person|worker|workers|crew|offsider|labourer|rigger|dogman|electrician|observer|attendant|first|aider|trained|team|apprentice|manager|engineer|scaffolder|fitter|driver|safety|site|stand-by|standby|lowers?|lowering|stops?|isolates?|rescues?|calls?|uses?|reaches?|brings?|lifts?|presses?|turns?|keys?|switch\w*|platform|ewp|lift|scissor|boom|plant|machine|controls?)$/i;
   function nameOnly(text) {
@@ -365,6 +376,9 @@
   // A kit said to be at a place that is not a vehicle ("on the slung platform").
   const PLACED = /\b(?:on|at|in|inside|beside|next to|by|near)\s+(?:the |each |every |a |our )?(?!(?:site |work |company )?(?:utes?|trucks?|vans?|cars?|vehicles?|wagons?|trailers?)\b)[a-z]/i;
   const ON_MACHINE_ONLY = /^(?:it'?s |they'?re |(?:they )?are |is )?(?:on|at|in) (?:the |its |our )?(?:lift|machine|ewp|e\.w\.p\.?|scissor(?: ?lift)?|boom(?: ?lift)?|unit|platform|basket|cage|plant|gear)(?: itself)?\.?$/i;
+  const OPERATOR_ONLY = /\boperators?\b/i;
+  const STOP_NAMED = /\b(?:e-?stops?|emergency stops?|stop (?:button|switch)|keys?|isolat\w*|kill switch\w*|remotes?|pendants?|control panels?)\b/i;
+  const OTHER_STOPPER = /\b(?:spotters?|offsiders?|dogm[ae]n|doggers?|riggers?|supervisors?|foreman|leading hands?|any(?:one| worker| person)|every(?:one| worker)|nearest (?:worker|person)|other workers?|crew|observers?|attendants?|second person|labourers?|ground (?:person|crew|man))\b/i;
   const BARE_COMMAND = /^(?:just )?(?:turn|switch|shut|press|hit|kill|stop|cut|push|pull)\b[\w\s'-]{0,16}\.?$/i;
 
   // What a design the SWMS relies on still needs (designs.js), or '' once answered: issued, with who

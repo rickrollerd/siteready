@@ -137,8 +137,8 @@ function headingNumbersOff(text) {
 // "n" typed for "and" between two words prints "and" in the task line and the title ("bearings n expansion joints",
 // messy round 13, B run 7). Only a lone lower-case "n" between two words, and only as printed: the work is read
 // from the words as typed, as before.
-const LONE_N = /(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g;
-const andForN = (text) => String(text || '').replace(LONE_N, 'and');
+// So do words typed short ("b4", "thru", "upto", "undergrnd", "sparky", "db": messy round 17), as sitelink-answers.js reads them.
+const andForN = (text) => nameCase.hurried(text);
 function taskLine(value) {
   // A numbered or bulleted line ends its own sentence, so the lines do not run together once the numbers go.
   // A word ending in an accent ("Café") ends its line too (messy round 10, run 7: "Café Bars.").
@@ -2797,8 +2797,15 @@ function readSite(input) {
   const noCrane = (value) => String(value).split(/(?<=[.;\n])\s*/).map((sentence) => sentence.split(/,\s+/).filter(kept).join(', ')).filter((part) => /\w/.test(part)).join(' ');
   return siteConditions(Object.fromEntries(Object.entries(site).map(([key, value]) => [key, typeof value === 'string' && shared(key) && SHARED_CRANE_WORDS.test(value) ? noCrane(value) : value])));
 }
+// The Public interface answer says how the public is kept away from the work. A part of it that says so ("fenced off from Davey
+// Street", "deliveries are unloaded inside the fenced loading dock", "the dock gate shut while the truck is unloaded") is the
+// separation, not work on a road or plant moving at the work: it brings no high risk work (messy round 17, B run 6: an indoor
+// hotel fit-out was listed as road and mobile plant work "(from your Public interface answer)"). Parts that put traffic or the
+// public at the work ("traffic both ways in the open lane") are read as before.
+const KEPT_APART = /\b(?:fenced|fences?|fencing|hoardings?|closed|barricad\w*|no public|not open to the public|kept (?:out|away|clear)|separated|gates? (?:shut|locked|closed)|locked)\b/i;
+const publicApart = (value) => String(value).split(/(?<=[.;,])\s+|\n+/).filter((part) => !KEPT_APART.test(part) || /\b(?:traffic|cars|vehicles|buses|cyclists|motorists)\b/i.test(part)).join(' ');
 function siteConditions(site) {
-  const answers = Object.entries(site || {}).map(([key, value]) => (typeof value !== 'string' ? value : key === 'liveServices' ? value.replace(SERVICE_PLACE, '') : key === 'access' ? value.replace(ACCESS_ROUTE, ' ') : value));
+  const answers = Object.entries(site || {}).map(([key, value]) => (typeof value !== 'string' ? value : key === 'liveServices' ? value.replace(SERVICE_PLACE, '') : key === 'access' ? value.replace(ACCESS_ROUTE, ' ') : key === 'publicInterface' ? publicApart(value) : value));
   // Each answer is read on its own line, so answers never run together (messy round 6, run 6).
   return answers.map(supplied).filter(Boolean).map(withoutDenials).filter((answer) => /\w/.test(answer)).map(readSlang).join('\n');
 }
@@ -2853,6 +2860,11 @@ const chartLine = (text) => `Crane chart rated capacity at the working radius: $
 // operator looking at it is not enough (messy round 4, run 7: "crane op checks the ground" was accepted).
 const GROUND_CONFIRMED = /\b(?:engineer\w*|geo ?tech\w*|report|certificate|certified|certification|assessment|assessed|competent person|bearing capacity|\d+(?:\.\d+)?\s*kpa|compaction tests?|plate (?:load|bearing) tests?|principal contractor|pc's|builder's (?:engineer|assessment)|design(?:ed)?|survey\w*|(?:the )?(?:builder|builders|main contractor|head contractor|principal contractor|pc)(?:'s|\u2019s|s'|s)? (?:site manager|site supervisor|supervisor|engineer|foreman|project manager|construction manager|hse\w*)|site manager)\b/i;
 
+// Or the person who has charge of the place, named and saying they confirmed it: "the centre manager confirmed the carpark
+// pavement takes delivery trucks" (messy round 17, B run 8: refused as too thin until it said "principal contractor"). Not
+// the crew itself ("i checked it", "the operator checked").
+const GROUND_CONFIRMED_BY = /\b(?:(?:centre|center|facility|facilities|property|building|asset|estate|car ?park|shopping centre|school|council)\s+(?:manager|management|owner|officer|engineer)s?|council|landlord|asset owner|owner's representative|road authority|port authority)\b[^.]{0,40}\b(?:confirm\w*|check\w*|approv\w*|advis\w*|assess\w*|sign\w* off|signed)\b|\bconfirmed (?:by|with) (?:the )?(?!(?:me|us|our|the operator|operator|driver|crane op\w*|crew)\b)[a-z]+/i;
+
 // What a stood-down SWMS says of one answer it still needs. A box with "na", "none" or "TBC" typed in it
 // is not "Not answered yet": it says why the words typed are not an answer (messy round 11, run 3: "na"
 // was called "Not answered yet").
@@ -2883,7 +2895,7 @@ function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
   if (id === 'craneChart') return statesChartValues(value);
-  if (id === 'groundBearing' && !GROUND_CONFIRMED.test(value)) return false;
+  if (id === 'groundBearing' && !GROUND_CONFIRMED.test(value) && !GROUND_CONFIRMED_BY.test(value)) return false;
   // "dont know", "me" or "as per eng" says nothing, judged by the same words as the download check
   // (public/gate-rules.js notAnswer). A blank (____) left to fill is the download check's to ask.
   const gate = require('./public/gate-rules');
@@ -2894,8 +2906,17 @@ function hasSubstance(id, text) {
   // Product names alone ("glue n primer") do not say how they are handled or where their safety data
   // sheets are (messy round 10, run 2: taken with no note).
   if (id === 'safetyDataSheet' && sdsNamesOnly(value)) return false;
+  // "life jackets on" says they are worn, not which, when, who checks them or how anyone in the water is got out (messy
+  // round 17, B run 7: it printed "Life jackets on." as the control). The answer says at least one of those.
+  if (id === 'lifeJacketDetails' && !LIFE_JACKET_SAYS.some((pattern) => pattern.test(value))) return false;
   return meaningfulWords(value).length >= 2;
 }
+const LIFE_JACKET_SAYS = [
+  /\b(?:level\s*\d+|inflatable|foam|auto-?inflat\w*|as\s*4758|pfd|type\s*[12])\b/i,
+  /\b(?:within|metres?|m of|near|on the (?:barge|water|boat|pontoon)|over the water|at the edge|edge)\b/i,
+  /\b(?:check\w*|inspect\w*|servic\w*|tag\w*|cylinders?)\b/i,
+  /\b(?:rescue\w*|throw|life ?rings?|boat hooks?|boats?|lines?|ropes?|pull\w* out|got out)\b/i,
+];
 const SDS_HANDLING = /\b(?:sds|safety data|data sheets?|sheets?|kept|keep|stored|store|storage|folder|register|binder|ute|office|gloves?|ventilat\w*|air ?flow|airflow|masks?|respirators?|goggles|glasses|handl\w*|mix\w*|wear\w*|worn|decant\w*|label\w*|bunded|spill|cure|curing|dry|apply|applied|brush\w*|roll\w*|spray\w*|water[- ]based|solvent[- ]free|low voc|not used|none|no )\b/i;
 // Up to ten words with nothing of handling or where the sheets are (messy round 11, run 2: "pvc conduit
 // glue n cable pulling lube" passed at seven words).
@@ -3072,7 +3093,7 @@ function controlsFor(task, facts, pack) {
     if (!line || isDenialLine(line)) return;
     // The user's own answers start with a capital, as the library's lines do (messy round 12, run 5), and so does
     // each sentence of them (messy round 15, B run 8: "... trench shields. barrier mesh fence").
-    items.push(control(level, nameCase.capitalSentences(line)));
+    items.push(control(level, nameCase.capitalSentences(andForN(line))));
   };
 
   if (isScaffoldErection(task)) {
@@ -3082,10 +3103,13 @@ function controlsFor(task, facts, pack) {
   } else if (isCraneOrLift(source) && !(pack && pack.state && pack.state.noCrane && !craneNamed(task))) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
     if (!(pack && pack.state && pack.state.ownCrane) && !/\b(?:operat\w*|run\w*)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i.test(source)) {
-      // A steel erector's own riggers sling and direct the steel.
-      push('Administrative', (STEEL_WORK.test(source) || /\bbridge spans?\b/i.test(source)) && /\b(erect\w*|spans?|girders?|portal frames?|columns?|beams?|rafters?|steel frames?|structural steel)\b/i.test(source)
+      // A steel erector's own riggers sling and direct the steel, unless the person answered that the crane company's
+      // dogman does: the answer always drives the line (messy round 17, B run 7: "Our licensed riggers sling and direct
+      // the steel." printed after "Crane company's dogman", in both revisions).
+      const slinging = pack && pack.state && pack.state.slinging;
+      push('Administrative', slinging !== 'crane' && (STEEL_WORK.test(source) || /\bbridge spans?\b/i.test(source)) && /\b(erect\w*|spans?|girders?|portal frames?|columns?|beams?|rafters?|steel frames?|structural steel)\b/i.test(source)
         ? 'The crane company operates the crane under its own lift plan. Our licensed riggers sling and direct the steel.'
-        : pack && pack.state && pack.state.slinging === 'ours'
+        : slinging === 'ours'
           ? 'The crane company operates the crane under its own lift plan. Our licensed doggers or riggers sling the loads and direct the crane.'
           : 'The crane company plans and does the lifts under its own lift plan. Our workers follow the crane crew\'s directions.');
     }
@@ -3301,9 +3325,12 @@ function printedSite(site, names = []) {
   return siteLines(site).map((field) => ({ ...field, text: (field.text && nameCase.capitalSentences(nameCase.withPersonNames(nameCase.tidyPlace(field.text), names))) || noneAnswer(site[field.id]) }));
 }
 // The people the SWMS names, with their capitals, for the answers that name them (sitelink-answers.js personNames).
+// The places it names too, the job address's street and suburb and the hospital (messy round 17: "emu bank" and "temple tce"
+// printed in lower case).
 function swmsNames(input) {
-  return nameCase.personNames(['scaffoldSupervisor', 'firstAider', 'siteManager', 'worksManager', 'complianceResponsible', 'reviewer', 'preparedBy'].map((key) => keptFact((input || {})[key])).filter(Boolean));
+  return [...nameCase.personNames(['scaffoldSupervisor', 'firstAider', 'siteManager', 'worksManager', 'complianceResponsible', 'reviewer', 'preparedBy'].map((key) => keptFact((input || {})[key])).filter(Boolean)), ...swmsPlaces(input)];
 }
+const swmsPlaces = (input) => nameCase.placeNames([keptFact((input || {}).workplace), keptFact((input || {}).hospital)].filter(Boolean));
 
 // A scaffold put up for the work (by a scaffolding company, with a handover), not a mobile tower
 // the crew sets up itself. The scaffold supervisor is asked for and printed only then.
@@ -3535,12 +3562,18 @@ const CRANE_CREW_SLINGS = [
   [/\bbefore the crane crew slings them\b/, 'before they are slung'],
   [/\bPrepare loads as the crane crew directs\b/, 'Prepare loads as our dogger directs'],
 ];
+// The other way round: the steel step's line that has our riggers sling the steel, said of the crane company's
+// crew where the user answered that its dogman slings (messy round 17, B run 7). Same control, its source kept.
+const OUR_RIGGERS_SLING = [
+  [/\bOur licensed riggers sling, direct, land and release the steel\./, 'Its licensed crew slings, directs, lands and releases the steel.'],
+];
 function withOurSlinging(jobSteps, state) {
-  if (!state || state.slinging !== 'ours' || state.ownCrane || state.noCrane) return jobSteps;
+  if (!state || state.ownCrane || state.noCrane || !['ours', 'crane'].includes(state.slinging)) return jobSteps;
+  const swaps = state.slinging === 'ours' ? CRANE_CREW_SLINGS : OUR_RIGGERS_SLING;
   return jobSteps.map((step) => ({ ...step, controls: step.controls.map((line) => {
     if (typeof line !== 'string') return line;
     let out = line;
-    for (const [pattern, words] of CRANE_CREW_SLINGS) out = out.replace(pattern, words);
+    for (const [pattern, words] of swaps) out = out.replace(pattern, words);
     return out;
   }) }));
 }
@@ -4533,7 +4566,7 @@ function withTaskCapitals(out) {
 // shorthand as written (messy round 8, run 6: "lvl" read "level" in one prepare and "lvl" in the next).
 function standDownTask(out, input) {
   if (!out || out.kind !== 'stand-down' || typeof out.task !== 'string') return out;
-  return { ...out, task: andForN(fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input)).text) };
+  return { ...out, task: nameCase.withPlaceNames(andForN(fixSpelling(taskLine(input.task || input.jobDescription), typedNames(input)).text), swmsPlaces(input)) };
 }
 
 // Falls answered No while a job step of this SWMS rates a fall from height High before its controls (messy
@@ -4854,7 +4887,7 @@ function buildDraft(input, screen) {
     // Typed or picked all in lower case, the hospital prints with its capitals (messy round 12, run 6).
     hospital: nameCase.tidyName(keptFact(input.hospital)),
     firstAider: nameCase.tidyPersonRole(keptFact(input.firstAider)),
-    musterPoint: (keptFact(input.musterPoint) && nameCase.tidyPlace(andForN(keptFact(input.musterPoint)))) || TO_COMPLETE,
+    musterPoint: (keptFact(input.musterPoint) && nameCase.withPlaceNames(nameCase.tidyPlace(andForN(keptFact(input.musterPoint))), swmsPlaces(input))) || TO_COMPLETE,
     // Set by the main contractor for its project (Goal 12 stage 6), printed when given.
     firstAidLocation: andForN(keptFact(input.firstAidLocation)) || undefined,
     siteRules: Array.isArray(input.siteRules) && input.siteRules.map(keptFact).filter(Boolean).length ? input.siteRules.map(keptFact).filter(Boolean) : undefined,
@@ -5194,7 +5227,7 @@ function buildDraft(input, screen) {
   // The steps the user wrote for work SiteWrite does not cover go in once the registers and ratings
   // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
-  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: andForN(typed), warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
+  const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: nameCase.withPlaceNames(andForN(typed), swmsPlaces(input)), warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
@@ -6635,7 +6668,9 @@ const NOT_NEEDED_ANSWER = /\b(?:not (?:needed|required|applicable|used)|n\/a|no 
 const notNeededText = (text) => (NOT_NEEDED_ANSWER.test(text) && !/^not needed\b/i.test(text) ? `Not needed for this work: ${text}` : text);
 function referencesFor(facts, stateId) {
   return REFERENCE_FACTS
-    .map(([id, label]) => ({ label: (STATE_REFERENCE_LABELS[stateId] || {})[id] || label, text: ['safetyDataSheet', 'silicaControls'].includes(id) ? keptFact(facts[id]) : notNeededText(keptFact(facts[id])) }))
+    // As typed answers print elsewhere: a first capital, "n" as "and" and words typed short in full (messy round 17, A runs 2
+    // and 4: "chlorine n acid, gloves n goggles, sds in the ute", "trenches over 1.5m ..." in lower case).
+    .map(([id, label]) => ({ label: (STATE_REFERENCE_LABELS[stateId] || {})[id] || label, text: nameCase.capitalSentences(nameCase.withShortNames(andForN(['safetyDataSheet', 'silicaControls'].includes(id) ? keptFact(facts[id]) : notNeededText(keptFact(facts[id]))))) }))
     .filter((item) => item.text);
 }
 

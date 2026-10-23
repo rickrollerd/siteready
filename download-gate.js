@@ -61,6 +61,9 @@ const OPTIONAL = [
 ];
 
 const SITE_NONE = new Set(SITE_NONE_LIST);
+// The gear a rescue answer names, which the rescue equipment answer must have too.
+const RESCUE_GEAR = /\b(?:harness(?:es)?|lifelines?|(?:rescue )?lines?|ropes?|tripods?|winch(?:es)?|davits?|stretchers?|spinal boards?|rescue kits?|pole)\b/i;
+const NO_GEAR_NEEDED = /\b(?:rescue kit|kit)\b/i;
 
 // A scaffold the user confirmed in the plant for this job.
 // "a", "b" and "c", each in quotes.
@@ -102,19 +105,38 @@ function plantOnGround(draft, input = {}) {
 // Work beside the public: the task, the user's own steps or the Access answer name a street, footpath, lane or traffic (messy
 // round 16, A run 4: "None" was taken for Public interface while the user's own step barricaded the street below the frames
 // coming out). A site's own haul road or access road is not a public way, and "no traffic" is not one either.
-const PUBLIC_WAY = /\b(?:footpaths?|pavements?|streets?|laneways?|back lanes?|lanes?|roads?|verges?|kerbs?|nature strips?|pedestrians?|traffic|the public|members of the public|passers-?by|shoppers|neighbou?rs)\b/i;
+// A public bridge or path counts too, typed as it may be ("pedestrain bridge": messy round 17, B run 7).
+const PUBLIC_WAY = /\b(?:footpaths?|pavements?|streets?|laneways?|back lanes?|lanes?|roads?|verges?|kerbs?|nature strips?|pedestr\w*(?: (?:bridges?|paths?|crossings?|walkways?))?|foot ?bridges?|shared paths?|bike paths?|cycle ?ways?|walking (?:paths?|tracks?)|traffic|the public|members of the public|passers-?by|shoppers|neighbou?rs)\b/i;
+// The Access answer says how the crew gets in: a street it comes in from ("the loading dock off Davey Street") is the way in,
+// not a public way beside the work (messy round 17, B run 6: "None" for an indoor hotel fit-out was refused because the
+// Access answer named "Davey Street"). Read as draft.js reads it for high risk work (ACCESS_ROUTE).
+const ACCESS_ROUTE = /\b(?:off|from|via)\s+(?:the\s+)?(?:[\w'-]+\s+){0,3}?(?:roads?|rd|streets?|st|highways?|hwy|avenues?|ave|drives?|parades?|boulevards?|terraces?|tce|crescents?)\b/gi;
+// A step that lifts loads with a crane or hiab: the lift area is where the public must be kept clear (messy round 17, A run 4:
+// Public "none" passed beside hiab lifts on a driveway by a public terrace).
+const LIFT_STEP = /\b(?:cranes?|hiabs?|truck loading crane|vehicle loading crane|crane crew)\b/i;
 const NOT_PUBLIC = /\b(?:site|haul|internal|access|private|construction|temporary|service)\s+(?:roads?|lanes?|tracks?)\b|\b(?:no|not|without|nil|none)\b[^.;,]{0,20}\b(?:traffic|public|pedestrians?|footpaths?|roads?|streets?)\b|\bopen (?:edges?|lanes? of the floor)\b/gi;
 function publicWay(draft, input) {
   const sources = [
     ['The task', String((input && (input.task || input.jobDescription)) || '')],
     ...(draft.jobSteps || []).filter((step) => step.own).map((step) => [`Your step "${String(step.step || '').replace(/\s*\(Our own step\)$/, '')}"`, [step.step, ...(step.hazards || []), ...(step.controls || [])].join('\n')]),
-    ['Your Access answer', String(((input && input.site) || {}).access || '')],
+    ['Your Access answer', String(((input && input.site) || {}).access || '').replace(ACCESS_ROUTE, ' ')],
   ];
   for (const [where, text] of sources) {
     const found = PUBLIC_WAY.exec(String(text).replace(NOT_PUBLIC, ' '));
-    if (found) return { where, words: found[0] };
+    if (found) return { where, words: found[0], why: `${where} names "${found[0]}", so the public or traffic is near the work.`, ask: publicExample(found[0]) };
   }
+  const lift = (draft.jobSteps || []).find((step) => step && !step.own && LIFT_STEP.test(String(step.step || '')) && !/\(Does not apply to this job\)$/.test(String(step.step || '')));
+  if (lift) return { where: `The step "${lift.step}"`, words: 'lift', why: `The step "${lift.step}" lifts loads, so the lift area must be kept clear of the public.`, ask: 'Say how the public is kept out of the lift area, for example "Lift area inside the site fence, no public access" or "Footpath closed with barricades during each lift".' };
   return null;
+}
+// The example in the refusal fits what was found (messy round 17, B runs 6 and 8: the example was about window frames
+// coming out, for a hotel fit-out and for tree planting).
+function publicExample(words) {
+  const say = 'Say how the public and traffic are kept clear of the work, for example';
+  if (/^(?:foot ?paths?|pavements?|verges?|nature strips?)$/i.test(words)) return `${say} "Footpath beside the work closed with barricades and signs" or "Footpath stays open behind a hoarding".`;
+  if (/traffic|roads?|lanes?|streets?|kerbs?/i.test(words)) return `${say} "Work area fenced off from the street, deliveries inside the site" or "Lane closed under the traffic management plan".`;
+  if (/pedestr|bridges?|paths?|ways?|tracks?/i.test(words)) return `${say} "Path closed at both ends with barricades and signs while we work" or "Path stays open behind a fenced walkway".`;
+  return `${say} "Footpath beside the work closed with barricades and signs" or "Work area fenced off, no public inside".`;
 }
 function liveSupplyHazard(draft) {
   for (const step of draft.jobSteps || []) {
@@ -227,6 +249,14 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   }
   // "No crane" while the task names a crane (draft.js withCraneCheck): the person says who operates it, or keeps No crane
   // (messy round 16, B run 7).
+  // The state ticked is not the job address's state (messy round 17, A run 4: Northern Territory ticked for a Fremantle WA
+  // address printed no warning). The SWMS must use the law of the state where the work is done.
+  const fromAddress = require('./public/address').stateFromAddress(String(input.workplace || '')).state;
+  const ticked = String(input.state || '').toLowerCase();
+  if (fromAddress && ticked && fromAddress !== ticked) {
+    const name = (id) => ({ qld: 'Queensland', nsw: 'New South Wales', vic: 'Victoria', sa: 'South Australia', wa: 'Western Australia', tas: 'Tasmania', nt: 'the Northern Territory', act: 'the Australian Capital Territory' }[id] || id.toUpperCase());
+    add({ id: 'stateCheck', kind: 'state', field: 'states', label: 'State', need: `The job address is in ${name(fromAddress)}, but ${name(ticked)} is ticked. Tick the state the job is in, or change the job address.` });
+  }
   const crane = draft.craneConflict;
   if (crane && !crane.kept) add({ id: 'craneCheck', kind: 'crane', field: 'crane-check', label: 'Crane', need: `You answered No crane, but the task names "${crane.words}". Say who operates it: Our company or A crane company. If no crane, crane truck or hiab is used, press Keep No crane.` });
   for (const item of FIELDS) {
@@ -260,7 +290,16 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // The plant to be used, confirmed by the user, and the emergency response for the work (goal 2).
   add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
-  for (const item of emergencyQuestions(draft, said)) {
+  const emergencyAsked = emergencyQuestions(draft, said);
+  for (const item of emergencyAsked) {
+    // The rescue equipment has the gear the rescue answer uses: "harness and line from the top" with "ladder at the trench"
+    // as the only equipment is refused (messy round 17, A run 2).
+    const rescue = item.kit ? emergencyAsked.find((other) => other.category === item.category && other.rescue) : null;
+    const gear = rescue ? (String(rescue.answer || '').match(RESCUE_GEAR) || [])[0] : '';
+    if (gear && item.answer && !RESCUE_GEAR.test(String(item.answer)) && !NO_GEAR_NEEDED.test(String(item.answer))) {
+      judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], kit: true, gear: { word: gear.toLowerCase(), pattern: RESCUE_GEAR.source } }, item.answer);
+      continue;
+    }
     judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}), ...(item.stop ? { stop: true } : {}), ...(item.controls ? { controls: true } : {}), ...(item.role ? { role: true } : {}), ...(item.category === 'fall' && item.rescue ? { fall: true } : {}) }, item.answer);
   }
   // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
@@ -311,8 +350,11 @@ function gateChecks(input = {}, draft = {}, options = {}) {
       rule.ask = 'Say what the ground is like where it sets up, for example "Level asphalt in the back lane, firm" or "Level concrete slab, no loads over 3 kPa".';
     }
     if (field.id === 'publicInterface' && street) {
-      rule.noneRefused = `${street.where} names "${street.words}", so the public or traffic is near the work.`;
-      rule.ask = 'Say how the public and traffic are kept clear of the work, for example "Footpath below closed with barricades and signs while frames come out".';
+      rule.noneRefused = street.why;
+      rule.ask = street.ask;
+      // "None" that goes on to say how the public is kept away answers the question (messy round 17, B run 6: "None. The
+      // hotel is closed for the fit-out and the site is fenced off from Davey Street.").
+      rule.noneWithReason = true;
     }
     // "na" says the question does not apply, but other trades either work near the crew or none do (messy round 16, A
     // run 2: "na" printed "Other trades: Not applicable").

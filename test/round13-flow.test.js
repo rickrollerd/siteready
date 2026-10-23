@@ -162,13 +162,13 @@ test('a pasted section heading comes off the task line and the title, numbered o
   const bridge = prepareDraft(draftBody({ state: 'act', residential: 'no', fallRisk: 'yes', crane: 'none', task: 'replace bridge bearings n expansion joints, saw cut n jackhammer out the old joint' }));
   assert.equal(bridge.task, 'Replace bridge bearings and expansion joints, saw cut and jackhammer out the old joint');
   assert.equal(titleFor({}, { task: 'replace bridge bearings n expansion joints' }), 'Replace bridge bearings and expansion joints');
-  // A company name keeps its lone "n" in lower case; a person's "n" is an initial.
-  assert.equal(nameCase.tidyCompany('tamar joinery n fitout'), 'Tamar Joinery n Fitout');
-  assert.equal(nameCase.tidyCompany('dandenong civil n concrete'), 'Dandenong Civil n Concrete');
+  // A company name's lone "n" reads "and" since messy round 17 (flow18 decision 1); a person's "n" is an initial.
+  assert.equal(nameCase.tidyCompany('tamar joinery n fitout'), 'Tamar Joinery and Fitout');
+  assert.equal(nameCase.tidyCompany('dandenong civil n concrete'), 'Dandenong Civil and Concrete');
   assert.equal(nameCase.tidyName('sam n lee'), 'Sam N Lee');
   const d = prepareDraft(draftBody({ ...ANSWERED, state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', crane: 'none', company: 'dandenong civil n concrete', principalContractor: 'tamar joinery n fitout' }));
-  assert.equal(d.subcontractor, 'Dandenong Civil n Concrete');
-  assert.equal(d.principalContractor, 'Tamar Joinery n Fitout');
+  assert.equal(d.subcontractor, 'Dandenong Civil and Concrete');
+  assert.equal(d.principalContractor, 'Tamar Joinery and Fitout');
 });
 
 // ---- 5. Weak answers that passed or printed oddly ----

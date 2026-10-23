@@ -276,8 +276,8 @@ test('names, places and sentences print with their capitals, and a lone "n" as "
   assert.equal(draft.site.find((field) => field.id === 'publicInterface').text, 'Public footpath on Liverpool St under the scaffold');
   assert.ok(draft.plant.some((item) => item.item === 'gin wheel n rope' && item.shown === 'Gin wheel and rope'));
   assert.ok(!JSON.stringify(draft.controls).includes('. barrier'), JSON.stringify(draft.controls));
-  // A company keeps its "n".
-  assert.equal(nameCase.tidyCompany('swan valley scaffold n access'), 'Swan Valley Scaffold n Access');
+  // A company's lone "n" reads "and" since messy round 17 (flow18 decision 1).
+  assert.equal(nameCase.tidyCompany('swan valley scaffold n access'), 'Swan Valley Scaffold and Access');
 });
 
 // ---- 7. Chips only where they answer the question for this crew ----

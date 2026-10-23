@@ -533,7 +533,7 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const muster = String(input.musterPoint || '').replace(/\s+/g, ' ').trim();
   // A lone "n" typed for "and" prints "and", as the header's muster point does (messy round 15, A run 4: "Pakenham St n
   // High St" in the Emergency table).
-  rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: muster ? names.tidyPlace(muster.replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and')) : '' });
+  rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: muster ? names.withPlaceNames(names.tidyPlace(names.hurried(muster)), names.placeNames([input.workplace, input.hospital].filter((text) => typeof text === 'string'))) : '' });
   rows.push({ type: 'Fire', equipment: /\b(hot work|weld\w*|torch\w*|brazing|grinding|oxy|lpg|electric\w*)\b/i.test(text) ? 'Fire extinguisher suited to the hazard (dry powder or CO2 near electrical equipment)' : 'Fire extinguisher', detail: '' });
   rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${names.tidyPersonRole(String(input.firstAider).replace(/\s+/g, ' ').trim())}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${names.tidyName(String(input.hospital).replace(/\s+/g, ' ').trim())}` : '' });
   // With falls answered No, a line that only names a harness or EWP as one way up does not bring the row:

@@ -277,9 +277,8 @@ test('a lone "n" prints "and" in printed answers that are not names', () => {
   assert.equal(draft.site.find((field) => field.id === 'access').text, 'Through the loading dock and goods lift to level 1.');
   assert.match(draft.musterPoint, /Front gate and site office on Crown Street/);
   assert.ok(!JSON.stringify(draft.jobSteps).includes('dock n goods'));
-  // A company keeps its "n".
-  assert.equal(draft.subcontractor === undefined || !/ and /.test(nameCase.tidyCompany('canberra clean n shine')), true);
-  assert.equal(nameCase.tidyCompany('canberra clean n shine'), 'Canberra Clean n Shine');
+  // A company's lone "n" reads "and" too since messy round 17 (flow18 decision 1).
+  assert.equal(nameCase.tidyCompany('canberra clean n shine'), 'Canberra Clean and Shine');
 });
 
 // ---- 5. SiteWrite's chips name the trade, service or place ----

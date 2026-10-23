@@ -542,8 +542,9 @@
       S.editing = { id: saved.id, title: saved.title, revision: saved.revision };
       // A SWMS of a project is that saved SWMS from now on: Save, Download and Submit keep one record of it.
       if (S.projectSaved) S.projectSaved(S.actionInput, saved.id, { ...S.actionInput, ...answersNow(kind) });
-      // Saved, so the copy kept on this device is no longer needed (goal 7).
-      if (S.clearUnsaved) S.clearUnsaved();
+      // Saved and downloaded: the work stays on this device, marked as the saved SWMS, so a reload or a return to the home
+      // page brings it back with its revision (messy round 17, B all runs: after a download the page reloaded empty).
+      if (S.unsavedDownloaded) S.unsavedDownloaded(); else if (S.clearUnsaved) S.clearUnsaved();
       status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.${revised ? resignLine(saved.revision) : ''}`);
       if ($('new-save')) { $('new-save').textContent = 'Saved'; $('new-save').disabled = true; }
     };
@@ -559,7 +560,8 @@
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
         if (S.projectSaved) S.projectSaved(S.actionInput, data.swms.id, body.input);
-        if (S.clearUnsaved) S.clearUnsaved();
+        // Saved: the work stays on this device as the saved SWMS, as after a download (messy round 17).
+        if (S.unsavedDownloaded) S.unsavedDownloaded(); else if (S.clearUnsaved) S.clearUnsaved();
         // Nothing changed since it was saved: it keeps its revision (messy round 16, SiteLink stuck point 1).
         status('new-status', data.swms.unchanged
           ? `Saved "${data.swms.title}". Nothing has changed since revision ${data.swms.revision || 1}, so it stays revision ${data.swms.revision || 1}. Find it under My SWMS.`

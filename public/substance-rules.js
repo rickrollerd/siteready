@@ -231,6 +231,9 @@
   // A reason that only says the product is not used, with nothing of why ("dont use any", "not needed"): messy round
   // 13, B run 6, "dont use any" was taken as the sealant reason.
   const ONLY_NOT_USED = /^(?:we |i )?(?:dont|don't|don’t|do not|never|wont|won't|will not)\s+(?:use|need|have|do)(?:\s+(?:any|it|them|one|this|that|those|these|any of (?:it|them|those)))?\.?$|^(?:it'?s |they'?re |are |is )?(?:not|none|nothing)\s+(?:used|needed|required|applicable)\.?$|^(?:no|none) (?:used|needed|required)\.?$/i;
+  // A reason as the message quotes it: whole up to 120 letters, cut at a word after that (messy round 17, B run 7: a fuel
+  // reason quoted to 60 letters read as if the rest, naming the saw, was not read).
+  const quoteReason = (reason) => { const text = clean(reason); return text.length <= 120 ? text : `${text.slice(0, 120).replace(/\s+\S*$/, '')} ...`; };
   function reasonNeed(reason) {
     const text = clean(reason);
     if (!text) return 'missing';
@@ -502,11 +505,11 @@
     const conflict = sdsConflict(type, sds);
     if (conflict) return conflict;
     const fuelled = draft && BY_OTHERS.test(clean(reason)) ? ownFuelledPlant(type, draft) : null;
-    if (fuelled) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says others do it, but your own plant "${fuelled.plant}" runs on ${fuelled.word.toLowerCase()}. Add the ${type === 'Fuels (diesel, petrol)' ? 'fuel' : 'gas'} you use with its safety data sheet, or take that plant off.`;
+    if (fuelled) return `${SHORT.get(type)}: "${quoteReason(reason)}" says others do it, but your own plant "${fuelled.plant}" runs on ${fuelled.word.toLowerCase()}. Add the ${type === 'Fuels (diesel, petrol)' ? 'fuel' : 'gas'} you use with its safety data sheet, or take that plant off.`;
     const refuel = type === 'Fuels (diesel, petrol)' && draft && BY_OTHERS.test(clean(reason)) ? refuelStep(draft) : null;
-    if (refuel) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says others do it, but the job step "${refuel.step}" has your crew's plant ${refuel.word.toLowerCase()} on site. Add the fuel you use with its safety data sheet, or change that step's lines if your crew does not refuel.`;
+    if (refuel) return `${SHORT.get(type)}: "${quoteReason(reason)}" says others do it, but the job step "${refuel.step}" has your crew's plant ${refuel.word.toLowerCase()} on site. Add the fuel you use with its safety data sheet, or change that step's lines if your crew does not refuel.`;
     const used = draft && BY_OTHERS.test(clean(reason)) ? usedByOwnSteps(type, draft) : known && BY_OTHERS.test(clean(reason)) && known.own ? known : null;
-    if (used) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says others do it, but the job step "${used.step}" in this SWMS uses "${used.word.toLowerCase()}". Add the product you use, or take that step or line off.`;
+    if (used) return `${SHORT.get(type)}: "${quoteReason(reason)}" says others do it, but the job step "${used.step}" in this SWMS uses "${used.word.toLowerCase()}". Add the product you use, or take that step or line off.`;
     // SiteWrite's own step uses it: no reason settles it while that step is in the SWMS (messy round 8:
     // paint "painters do it" beside four paint steps, solvents "supplied and applied by others" beside
     // "Clean brushes and rollers").
@@ -530,7 +533,7 @@
     // The user's own task names the work as the crew's ("Make roof penetrations, waterproof them"): a reason that says
     // another trade does it does not settle it (messy round 11, run 2: "the roofer does it").
     const ownSaid = OTHERS_REASON.test(clean(reason)) ? ownTaskUse(type, words) : '';
-    if (ownSaid) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says another trade does it, but your task names "${ownSaid.word}" as your crew's work ("${ownSaid.sentence.slice(0, 80)}"). Add the product you use, or take that work out of the task if another trade does it.`;
+    if (ownSaid) return `${SHORT.get(type)}: "${quoteReason(reason)}" says another trade does it, but your task names "${ownSaid.word}" as your crew's work ("${ownSaid.sentence.slice(0, 80)}"). Add the product you use, or take that work out of the task if another trade does it.`;
     const plant = type === FUEL ? (draft ? fuelledPlant(draft) : known && known.plant ? known.step : '') : '';
     const wordNamed = namedIn(type, words) || namedIn(type, String(steps || '').replace(/\([^()]*\(diesel or petrol\)\)|\(diesel or petrol\)/g, ' '));
     const asked = wordNamed || !plant ? reasonAsked(type, words, steps) : { word: 'diesel or petrol', said: `your plant list has "${plant}", which runs on diesel or petrol` };
@@ -538,20 +541,22 @@
     const named = asked.word;
     const need = reasonNeed(reason);
     if (need === 'missing') return `${SHORT.get(type)}: ${asked.said}. Add the product you use, or give a short reason it is not required, ${reasonExample(type)}.`;
-    if (need === 'weak') return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" does not say why it is not required. Give a short reason, ${reasonExample(type)}, or add the product you use.`;
+    if (need === 'weak') return `${SHORT.get(type)}: "${quoteReason(reason)}" does not say why it is not required. Give a short reason, ${reasonExample(type)}, or add the product you use.`;
     // A reason that says a machine in this SWMS's plant list is another firm's ("forklift is the builders") does not say who
     // fuels it while the crew lists it as plant it uses (messy round 15, A run 3).
     if (type === FUEL && draft && OWNED_BY_OTHERS.test(clean(reason)) && !FUELLED_SAID.test(clean(reason))) {
       const said = (clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []).map((word) => word.toLowerCase().replace(/s$/, ''));
       const listed = [...((draft && draft.plant) || []), ...((draft && draft.plantInferred) || [])].map((item) => String((item && (item.known || item.item)) || ''));
       const named = said.find((word) => !/^(?:petrol|diesel)$/.test(word) && listed.some((name) => name.toLowerCase().includes(word)));
-      if (named) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" says the ${named} is not yours, but it is in this SWMS's plant list. Say who fuels it, for example "The builder's ${named} is fuelled by the builder; we do not refuel on site", or untick it under Plant and equipment if your crew does not use it.`;
+      if (named) return `${SHORT.get(type)}: "${quoteReason(reason)}" says the ${named} is not yours, but it is in this SWMS's plant list. Say who fuels it, for example "The builder's ${named} is fuelled by the builder; we do not refuel on site", or untick it under Plant and equipment if your crew does not use it.`;
     }
     // A reason that names one machine ("we fill the excavator at the yard") does not settle the other fuelled plant in the plant
     // list (messy round 14, A run 3: the plate compactor runs on fuel too). An auger on the excavator or skid steer is its
     // attachment, not plant of its own.
     if (type === FUEL && draft && /\b(?:we|our|us|ourselves)\b/i.test(clean(reason))) {
-      const said = (clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []).map((word) => word.toLowerCase().replace(/s$/, ''));
+      // A machine named by its last word ("our saw", "the pump") counts as the listed machine it names (messy round 17, B run 7:
+      // "our saw is filled at the yard" was refused for the concrete saw in the plant list).
+      const said = [...(clean(reason).match(new RegExp(FUELLED_PLANT.source, 'gi')) || []), ...(clean(reason).match(/\b(?:saws?|pumps?)\b/gi) || [])].map((word) => word.toLowerCase().replace(/s$/, ''));
       // Only plant the SWMS lists as used: not an item SiteWrite is not sure of, nor one the user unticked (messy round 15, B run
       // 8: the query named a water cart the user had left unticked).
       const sure = (list) => list.filter((item) => item && !item.maybe && !/, where one is used\b/.test(String(item.licence || '')));
@@ -560,7 +565,7 @@
       const carrier = listed.some((name) => /\b(?:excavators?|skid steers?|posi-?tracks?|bobcats?)\b/i.test(name));
       // A crane, truck or forklift is often another firm's plant: only the crew's own small and earthmoving plant is named.
       const others = listed.filter((name) => !(carrier && /\bauger\b/i.test(name)) && !/\b(?:cranes?|trucks?|forklifts?|telehandlers?)\b/i.test(name) && !said.some((word) => name.toLowerCase().includes(word)));
-      if (said.length && said.every((word) => !/^(?:petrol|diesel|plant)$/.test(word)) && others.length) return `${SHORT.get(type)}: "${clean(reason).slice(0, 60)}" names the ${said[0]}, but the plant list also has ${others.slice(0, 3).join(' and ')}, which ${others.length > 1 ? 'run' : 'runs'} on diesel or petrol. Say how that plant is fuelled too, for example "all our plant is filled at the yard", or add the fuel you use.`;
+      if (said.length && said.every((word) => !/^(?:petrol|diesel|plant)$/.test(word)) && others.length) return `${SHORT.get(type)}: "${quoteReason(reason)}" names the ${said[0]}, but the plant list also has ${others.slice(0, 3).join(' and ')}, which ${others.length > 1 ? 'run' : 'runs'} on diesel or petrol. Say how that plant is fuelled too, for example "all our plant is filled at the yard", or add the fuel you use.`;
     }
     return '';
   }
@@ -731,7 +736,8 @@
   function stepLine(row) {
     const item = rowOf(row);
     if (!item.product || isOpen(item.product) || !item.controls.length) return '';
-    const head = item.type ? `${SHORT.get(item.type)} (${item.product})` : tableLine(item.product);
+    // The product's name as the table prints it, "n" as "and" (messy round 17, A run 4: "pool screed n grout" in a step line).
+    const head = item.type ? `${SHORT.get(item.type)} (${typedSds(item.product)})` : tableLine(item.product);
     return `${head}: ${item.controls.map(inLine).join('; ')}; see its safety data sheet.`;
   }
 
