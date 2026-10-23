@@ -36,8 +36,8 @@ test('work a ticked step\'s own lines already cover is not listed as having no j
   assert.ok(names(wall).includes('Build the retaining wall'));
   assert.deepEqual(wall.notCovered, []);
   // Run 4, rows a scope reading matched to no job steps: frame fixing is in "Stand the door frames".
-  const doors = draftOf({ state: 'wa', task: 'Supply and install door frames, doors and hardware.', unmatched: ['Fix frames with Dyna-bolts and masonry bolts', 'Protect adjacent and finished surfaces and replace damaged materials'] });
-  assert.deepEqual(doors.notCovered, ['Protect adjacent and finished surfaces and replace damaged materials']);
+  const doors = draftOf({ state: 'wa', task: 'Supply and install door frames, doors and hardware.', unmatched: ['Fix frames with Dyna-bolts and masonry bolts', 'Mask and protect the finished floors and walls from damage'] });
+  assert.deepEqual(doors.notCovered, ['Mask and protect the finished floors and walls from damage']);
   assert.equal(stepCoveringPart('Fix frames with Dyna-bolts and masonry bolts', doors.jobSteps), 'Stand the door frames');
 });
 
@@ -52,8 +52,8 @@ test('the match stays tight: what the work is done with or where is not what it 
 });
 
 test('"A step in this SWMS covers it" deals with the work while that step is in the SWMS', () => {
-  const base = { state: 'wa', task: 'Supply and install door frames, doors and hardware.', unmatched: ['Protect adjacent and finished surfaces and replace damaged materials'] };
-  const part = 'Protect adjacent and finished surfaces and replace damaged materials';
+  const base = { state: 'wa', task: 'Supply and install door frames, doors and hardware.', unmatched: ['Mask and protect the finished floors and walls from damage'] };
+  const part = 'Mask and protect the finished floors and walls from damage';
   const before = draftOf(base);
   assert.deepEqual(notCoveredLeft(before), [part]);
   assert.match(notCoveredRefusal(before, {}), /say which step in this SWMS covers it/);
@@ -69,12 +69,15 @@ test('"A step in this SWMS covers it" deals with the work while that step is in 
 
 test('the page offers the steps of this SWMS by number, and shows the work covered by the step named', () => {
   const p = loadPage(['gate-rules.js', 'app.js'], () => ({ body: {} }));
-  const part = 'Protect adjacent and finished surfaces and replace damaged materials';
+  const part = 'Mask and protect the finished floors and walls from damage';
   const data = draftOf({ state: 'wa', task: 'Supply and install door frames, doors and hardware.', unmatched: [part] });
   const block = p.run(`notCoveredBlock(${JSON.stringify(data)})`);
   assert.match(block, /<label for="cover-step-0">A step in this SWMS covers it<\/label><select id="cover-step-0" data-cover-step="0" class="plain"><option value="">Choose the step that covers it<\/option><option value="Use power tools">Step 2: Use power tools<\/option>/);
-  assert.doesNotMatch(block, /Step 1: Before starting|Finish and clean up<\/option>/);
-  assert.match(block, /SiteWrite has no job steps for: Protect adjacent and finished surfaces and replace damaged materials\. Write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it\./);
+  // Messy round 16, A run 1: "Finish and clean up" is offered too; "Before starting" is not.
+  // Protecting adjacent surfaces and making good damage is a duty, not work with no job steps: masking is the example here.
+  assert.doesNotMatch(block, /Step 1: Before starting/);
+  assert.match(block, /Finish and clean up<\/option>/);
+  assert.match(block, /SiteWrite has no job steps for: Mask and protect the finished floors and walls from damage\. Write your own step for it, say which step in this SWMS covers it, or say which SWMS covers it\./);
   const covered = draftOf({ state: 'wa', task: 'Supply and install door frames, doors and hardware.', unmatched: [part], notCoveredInStep: { [part]: 'Hang the doors' } });
   p.run(`coverInStep = ${JSON.stringify({ [part]: 'Hang the doors' })}`);
   const done = p.run(`notCoveredBlock(${JSON.stringify(covered)})`);

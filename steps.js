@@ -10,7 +10,9 @@ const VARIANT_LABELS = { carpJoinery: 'Joinery, doors and trim (as the task name
   // Messy round 14, A run 4: "Stand the door frames" showed ticked and "Hang the doors" printed.
   doorHang: 'Door frames and doors (as the task names them)',
   // Messy round 15, B run 6: "Set the joints" and "Sand the joints" could not be found by their own names.
-  plasterSanding: 'Cut, set and sand plasterboard (as the task names them)' };
+  plasterSanding: 'Cut, set and sand plasterboard (as the task names them)',
+  // Messy round 16, A run 2: "downpipe" found only the gutter cleaning, fascia and box gutter steps.
+  gutters: 'Fascia, gutters and downpipes (as the task names them)' };
 
 function stepLibrary() {
   const kinds = new Map();
@@ -85,6 +87,10 @@ const SEARCH_TEXT = (() => {
 const ALIASES = {
   roadPlant: 'profiling profiler cold planing milling road plant',
   asphaltLay: 'asphalt paving paver',
+  // Messy round 16: "dyna-bolt" found nothing and "masonry bolt" only demolition (A run 1); "remove old windows" offered the sill
+  // and demolition steps, though "Install windows" takes the old windows out (A run 4).
+  silicaDrill: 'dyna bolt dynabolt dynabolts masonry bolt masonry bolts anchor bolts anchors chemset holes fixings',
+  windowInstall: 'remove old windows take out old windows replace windows window frames',
 };
 
 // The kinds of work a trade does: a scope trade (trades.js) or a pick list trade (pick-lists.json).

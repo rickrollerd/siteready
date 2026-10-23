@@ -3576,7 +3576,8 @@ function stepCovering(data, part) {
 // "A step in this SWMS covers it": the SWMS's own job steps to choose from, by number and name, the
 // steps you wrote included (messy round 10, run 2: only SiteWrite's steps were listed, so none was shown).
 function coverStep(data, part, index) {
-  const steps = (data.jobSteps || []).map((step, at) => ({ step: step.step, number: at + 1, own: step.own })).filter((item) => !['Before starting', 'Finish and clean up'].includes(item.step));
+  // "Finish and clean up" can cover work such as protecting and making good finishes (messy round 16, A run 1).
+  const steps = (data.jobSteps || []).map((step, at) => ({ step: step.step, number: at + 1, own: step.own })).filter((item) => item.step !== 'Before starting');
   if (!steps.length) return '';
   return `<div class="cover-where cover-step"><label for="cover-step-${index}">A step in this SWMS covers it</label><select id="cover-step-${index}" data-cover-step="${index}" class="plain"><option value="">Choose the step that covers it</option>${steps.map((item) => `<option value="${esc(item.step)}">Step ${item.number}: ${esc(item.step)}</option>`).join('')}</select></div>`;
 }

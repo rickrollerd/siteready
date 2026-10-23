@@ -2263,6 +2263,7 @@
   "group": "paintExternal",
   "step": "Paint the outside of the structure at height",
   "text": "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.",
+  "unless": "mobileScaffoldOnly",
   "code": "Scaffolding",
   "section": "s 2.4.1, s 3.8, s 4.2"
  },
@@ -8712,7 +8713,8 @@
   "step": "Drill or cut concrete, masonry or stone",
   "text": "No cutting or chasing above shoulder height with hand-held tools. A fit for purpose work platform is used so tools are worked within a safe range.",
   "code": "NSW Cutting drilling and grinding concrete",
-  "section": "s 5.2, s 6.1"
+  "section": "s 5.2, s 6.1",
+  "unless": "drillOnly"
  },
  {
   "op": "add",
@@ -8728,7 +8730,8 @@
   "step": "Drill or cut concrete, masonry or stone",
   "text": "Hand-held saws are not slewed in the cut to change direction, and the operator stands away from the direction of the cut, to avoid kick-back.",
   "code": "NSW Cutting drilling and grinding concrete",
-  "section": "s 6.1"
+  "section": "s 6.1",
+  "unless": "drillOnly"
  },
  {
   "op": "add",

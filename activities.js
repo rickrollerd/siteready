@@ -4324,20 +4324,24 @@ const ACTIVITIES = [
     when: 'signageInstall',
     steps: [{
       step: 'Install signs and screens',
-      hazards: [{ unless: 'signPostsOnly', text: 'A fall from the EWP or ladder.' }, { unless: 'signPostsOnly', only: 'screenWork', text: 'The sign or screen falls while it is lifted or fixed.' }, { unless: 'signPostsOnly', only: 'signNoScreen', text: 'The sign falls while it is lifted or fixed.' }, { only: 'signPostsOnly', text: 'Striking buried services when digging post holes.' }, { unless: 'signPostsOnly', text: 'Electric shock connecting lit signs.' }, { unless: 'signPostsOnly', text: 'People below are struck by falling items.' }, { only: 'signPostsOnly', text: 'Vehicles in the car park or road strike workers.' }],
+      hazards: [{ unless: 'signPostsOnly', text: 'A fall from the EWP or ladder.' }, { unless: 'signPostsOnly', only: 'screenWork', text: 'The sign or screen falls while it is lifted or fixed.' }, { unless: 'signPostsOnly', only: 'signNoScreen', text: 'The sign falls while it is lifted or fixed.' }, { only: 'signPostsOnly', text: 'Striking buried services when digging post holes.' }, { unless: ['signPostsOnly', 'smallSign'], text: 'Electric shock connecting lit signs.' }, { only: 'smallSign', text: 'Drilling into hidden cables or pipes.' }, { unless: 'signPostsOnly', text: 'People below are struck by falling items.' }, { only: 'signPostsOnly', text: 'Vehicles in the car park or road strike workers.' }],
       controls: [
         { fact: 'fallControl' },
         { unless: 'signPostsOnly', only: 'screenWork', ...src('Signs and screens are lifted with a crane, hoist or EWP rated for the load, not carried up ladders.', QCODE('Hazardous manual tasks', 's 4.4')) },
-        { unless: 'signPostsOnly', only: 'signNoScreen', ...src('Signs are lifted with a crane, hoist or EWP rated for the load, not carried up ladders.', QCODE('Hazardous manual tasks', 's 4.4')) },
+        { unless: ['signPostsOnly', 'smallSign'], only: 'signNoScreen', ...src('Signs are lifted with a crane, hoist or EWP rated for the load, not carried up ladders.', QCODE('Hazardous manual tasks', 's 4.4')) },
         { unless: 'signPostsOnly', only: 'pylonSign', text: 'Fixings into the pylon frame suit the frame and the load, as the designer specifies.' },
         { only: 'facadeSign', text: 'Fixings into the facade suit the wall and the load, as the designer specifies.' },
-        { unless: 'signPostsOnly', ...src('An exclusion zone is set up below, with any footpath closure the council requires.', WHS('s 55')) },
+        // Small signs fixed inside (regulatory and fire signs, block plans) are drilled and fixed like other fittings: the fixing
+        // step's own lines, with their source (messy round 16, A run 3).
+        { only: 'smallSign', ...src('Before drilling, check for cables and pipes with a detector and the services drawings, and keep clear of them.', NSWC('NSW Cutting drilling and grinding concrete', 's 7.3')) },
+        { only: 'smallSign', text: 'Fixings suit the wall or floor and the load, as the manufacturer specifies. Heavy items are lifted into place by two people or with a lifter.' },
+        { unless: ['signPostsOnly', 'smallSign'], ...src('An exclusion zone is set up below, with any footpath closure the council requires.', WHS('s 55')) },
         { unless: 'signPostsOnly', only: 'screenWork', ...src('Power to lit signs and screens is connected by a licensed electrician.', ESR('s 146')) },
-        { unless: 'signPostsOnly', only: 'signNoScreen', ...src('Power to lit signs is connected by a licensed electrician.', ESR('s 146')) },
+        { unless: ['signPostsOnly', 'smallSign'], only: 'signNoScreen', ...src('Power to lit signs is connected by a licensed electrician.', ESR('s 146')) },
         { only: 'signPosts', ...src('Holes for sign posts are dug only after current underground services information is obtained.', WHS('s 304')) },
         { only: 'signPosts', text: 'Services are located on site before holes for sign posts are dug.' },
         { only: 'signPosts', text: 'Posts bolted to a slab go in only after the slab is scanned, and the area is closed to vehicles while they go in.' },
-        src('Near live lines, people, plant and loads stay outside the network operator\'s exclusion zones, with a trained safety observer, unless the network operator\'s access permit covers the work.', LINES('s 4.2, s 4.3.2')),
+        { unless: 'smallSign', ...src('Near live lines, people, plant and loads stay outside the network operator\'s exclusion zones, with a trained safety observer, unless the network operator\'s access permit covers the work.', LINES('s 4.2, s 4.3.2')) },
       ],
     }],
     ppe: ['harness'],
@@ -6685,12 +6689,14 @@ const ACTIVITIES = [
     when: 'flashingReplace',
     steps: [{
       step: 'Replace the flashing',
-      hazards: ['A fall from the roof.', 'Cuts from sheet metal.', 'Silica dust from cutting into mortar or masonry for the flashing.', 'Lead from old lead flashings.'],
+      hazards: ['A fall from the roof.', 'Cuts from sheet metal.', { only: 'flashingChase', text: 'Silica dust from cutting into mortar or masonry for the flashing.' }, 'Lead from old lead flashings.'],
       controls: [
         src('The old flashing is kept from blowing off the roof.', WHS('s 54, s 55')),
         'The old flashing is cut out and removed with cut resistant gloves.',
         src('Old lead flashing is handled with gloves and hands are washed before eating. It is not burnt or ground.', QCODE('Demolition', 's 4.2')),
-        'Raking out mortar joints for the flashing is done with on-tool extraction and a P2 respirator.',
+        { only: 'flashingChase', text: 'Raking out mortar joints for the flashing is done with on-tool extraction and a P2 respirator.' },
+        // Roof flashings with no wall chase: the roofing step's own edge protection line, with its source (messy round 16, A run 2).
+        { unless: 'flashingChase', ...src('Edge protection is in place at the roof edges before work starts.', NSWC('NSW Work on roofs', 's 5.2')) },
         'The new flashing is fixed and sealed to the roofing manufacturer\'s details, and the roof is checked for leaks before the work is finished.',
       ],
     }],
@@ -11301,7 +11307,7 @@ ACTIVITIES.push(
         ],
       },
       {
-        unless: 'washoutOnly',
+        unless: ['washoutOnly', 'roofNoDust'],
         step: 'Clean up the work area',
         hazards: ['Dust from sweeping up concrete, masonry and plasterboard waste.', 'Slips on slurry and wet floors.'],
         controls: [
@@ -11959,6 +11965,9 @@ function jobStepsFor(rawFlags, factText, fallback) {
   const flags = {
     ...rawFlags,
     trenchWork: anyFlag(rawFlags, ['trench', 'shallowTrench', 'layInExcavation', 'inTrench', 'inExcavation', 'deepTrench', 'trenchSupport']),
+    // Mobile scaffolds and no fixed scaffold: no scaffold ties to leave alone (messy round 16, B run 5: a painter on mobile scaffolds got
+    // the fixed scaffold's tie line).
+    mobileScaffoldOnly: Boolean(rawFlags.mobileScaffold) && !anyFlag(rawFlags, ['scaffold', 'scaffoldUse', 'scaffoldDismantleOnly']),
     // Paints, adhesives, sealants, membranes or solvents in the work, for the washout lines that apply only then.
     solventWork: Boolean(rawFlags.productWords) || anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'floorLevel', 'wpLiquid', 'wpTorch', 'wpPrep', 'wpEdge', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'tileMix', 'lineMarking', 'sprayFoam', 'graffitiRemoval']),
     // Cement, concrete, mortar, grout or render in the work, for the cement wash water lines. Without a
