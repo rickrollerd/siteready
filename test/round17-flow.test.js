@@ -178,7 +178,8 @@ test('the places the SWMS names take their capitals in the task, the muster poin
   const places17 = nameCase.placeNames(['9 Marine Terrace, Fremantle WA 6160', 'Fiona Stanley Hospital, Emergency Department']);
   assert.equal(nameCase.tidyLines('fiona stanley hospital is the one to use\ncraig dunn to sign off b4 start\nuse north canberra hospital ED', [], ['Craig Dunn'], places17), 'Fiona Stanley Hospital is the one to use\nCraig Dunn to sign off before start\nUse north Canberra hospital ED');
   // The review route tidies the conditions with the SWMS's own people and places.
-  assert.match(fs.readFileSync(path.join(__dirname, '..', 'reviews.js'), 'utf8'), /tidyLines\(typedText, \[\], tidy\.personNames\(/);
+  // With the SWMS's own companies too (messy round 19, B run 7).
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'reviews.js'), 'utf8'), /tidyLines\(territory \? typedText\.replace\([^\n]*\[printed\.subcontractor, printed\.principalContractor\][^\n]*tidy\.personNames\(/);
 });
 
 test('a product\'s name prints "and" for "n" in its step line and where another SWMS offers it', () => {

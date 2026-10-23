@@ -282,7 +282,10 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
   // hospital" and "University of canberra hospital" stayed in lower case).
   const tidy = require('./sitelink-answers');
   const printed = (kept && kept.draft) || {};
-  const text = tidy.tidyLines(typedText, [], tidy.personNames([printed.siteManager, printed.worksManager, printed.complianceResponsible, printed.reviewer, printed.firstAider, printed.preparedBy].filter((value) => typeof value === 'string')), tidy.placeNames([printed.workplace, printed.hospital].filter((value) => typeof value === 'string')));
+  // The SWMS's own companies take their capitals too, and "the act" in an ACT SWMS is the territory (messy round 19, B run 7:
+  // "list the act demolition licence for molonglo demolition" printed as typed).
+  const territory = /^(?:act|australian capital territory)$/i.test(String(printed.state || '')) || /\bACT\b/.test(String(printed.workplace || ''));
+  const text = tidy.tidyLines(territory ? typedText.replace(/\b(the|in|an?) act\b(?=\s+[a-z])/gi, '$1 ACT') : typedText, [printed.subcontractor, printed.principalContractor].filter((value) => typeof value === 'string' && value.trim()), tidy.personNames([printed.siteManager, printed.worksManager, printed.complianceResponsible, printed.reviewer, printed.firstAider, printed.preparedBy].filter((value) => typeof value === 'string')), tidy.placeNames([printed.workplace, printed.hospital].filter((value) => typeof value === 'string')));
   if (!current) throw fail(409, `This is revision ${kept.revision}. The business has saved revision ${swms.revision} since, so this one cannot be given a response. Ask the business for the current revision and its reference.`);
   // A business cannot approve its own SWMS: someone signed in to it cannot review it.
   const own = await db.one('SELECT id FROM users WHERE email = $1 AND company_id = $2', [req.reviewer.email, swms.company_id]);

@@ -63,7 +63,9 @@ const OPTIONAL = [
 const SITE_NONE = new Set(SITE_NONE_LIST);
 // The gear a rescue answer names, which the rescue equipment answer must have too.
 const RESCUE_GEAR = /\b(?:harness(?:es)?|lifelines?|(?:rescue )?lines?|ropes?|tripods?|winch(?:es)?|davits?|stretchers?|spinal boards?|rescue kits?|pole)\b/i;
-const NO_GEAR_NEEDED = /\b(?:rescue kit|kit)\b/i;
+// A first aid kit is not rescue gear (messy round 19, B run 8: "ladder n first aid kit at the trench box" passed beside a rescue
+// with a harness and line).
+const NO_GEAR_NEEDED = /\b(?:rescue kit|(?<!first aid )kit)\b/i;
 
 // A scaffold the user confirmed in the plant for this job.
 // "a", "b" and "c", each in quotes.
@@ -115,7 +117,9 @@ const ACCESS_ROUTE = /\b(?:off|from|via)\s+(?:the\s+)?(?:[\w'-]+\s+){0,3}?(?:roa
 // Public "none" passed beside hiab lifts on a driveway by a public terrace).
 const LIFT_STEP = /\b(?:cranes?|hiabs?|truck loading crane|vehicle loading crane|crane crew)\b/i;
 // Compaction rollers only, not paint rollers ("Clean brushes and rollers").
-const MOBILE_PLANT_STEP = /\b(?:earthmoving plant|excavators?|skid steers?|bobcats?|loaders?|(?:vibrating|smooth drum|padfoot|road|compaction|steel drum|multi-tyred|ride-on) rollers?|graders?|dozers?|tippers?|dump trucks?|mobile plant)\b/i;
+// A concrete pump and its trucks too (messy round 19, A run 1: Public "None" beside the pump and concrete trucks at the gate).
+const MOBILE_PLANT_STEP = /\b(?:concrete pumps?|earthmoving plant|excavators?|skid steers?|bobcats?|loaders?|(?:vibrating|smooth drum|padfoot|road|compaction|steel drum|multi-tyred|ride-on) rollers?|graders?|dozers?|tippers?|dump trucks?|mobile plant)\b/i;
+const AWNING_WORK = /\b(?:(?:street|footpath|external|entry|shopfront) )?awnings?\b/i;
 const NOT_PUBLIC = /\b(?:site|haul|internal|access|private|construction|temporary|service)\s+(?:roads?|lanes?|tracks?)\b|\b(?:no|not|without|nil|none)\b[^.;,]{0,20}\b(?:traffic|public|pedestrians?|footpaths?|roads?|streets?)\b|\bopen (?:edges?|lanes? of the floor)\b/gi;
 function publicWay(draft, input) {
   const sources = [
@@ -127,6 +131,10 @@ function publicWay(draft, input) {
     const found = PUBLIC_WAY.exec(String(text).replace(NOT_PUBLIC, ' '));
     if (found) return { where, words: found[0], why: `${where} names "${found[0]}", so the public or traffic is near the work.`, ask: publicExample(found[0]) };
   }
+  // An awning is built over the footpath or street frontage (messy round 19, B run 6: Public "none" passed for the external awning
+  // soffits, worked from an EWP over the street frontages). "None" with how the public is kept away passes.
+  const awning = AWNING_WORK.exec(String((input && (input.task || input.jobDescription)) || '').replace(NOT_PUBLIC, ' '));
+  if (awning) return { where: 'The task', words: awning[0], why: `The task names "${awning[0]}", which is usually built over a footpath or street frontage, so the public may be below the work.`, ask: 'Say how the public is kept clear below it, for example "Footpath under the awning closed with barricades and signs while we work" or "None. The awning is inside the site hoarding, no public access".' };
   const lift = (draft.jobSteps || []).find((step) => step && !step.own && LIFT_STEP.test(String(step.step || '')) && !/\(Does not apply to this job\)$/.test(String(step.step || '')));
   if (lift) return { where: `The step "${lift.step}"`, words: 'lift', why: `The step "${lift.step}" lifts loads, so the lift area must be kept clear of the public.`, ask: 'Say how the public is kept out of the lift area, for example "Lift area inside the site fence, no public access" or "Footpath closed with barricades during each lift".' };
   // A step that runs mobile plant: its work area must be kept clear of the public too (messy round 18, B run 8: Public "none"

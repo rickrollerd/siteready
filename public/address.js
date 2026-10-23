@@ -88,7 +88,21 @@
         if (match.index > best.at) best = { state: id, from: 'place', at: match.index };
       }
     }
-    return best.state ? { state: best.state, from: 'place' } : { state: '', from: '' };
+    if (best.state) return { state: best.state, from: 'place' };
+    // A capital city typed one letter out ("darwn", "hobrat") is that city (messy round 19, B run 8: "12 bishop st stuart park
+    // darwn" set no state, so a suburb in another place could rank first).
+    const slip = placeWords(typed).reverse().map((word) => CAPITALS.find(([name]) => word.length >= 5 && oneOff(word, name))).find(Boolean);
+    return slip ? { state: slip[1], from: 'place' } : { state: '', from: '' };
+  }
+  const CAPITALS = [['darwin', 'nt'], ['perth', 'wa'], ['hobart', 'tas'], ['sydney', 'nsw'], ['brisbane', 'qld'], ['adelaide', 'sa'], ['melbourne', 'vic'], ['canberra', 'act']];
+  // One letter added, left out, changed or two letters swapped.
+  function oneOff(a, b) {
+    if (a === b || Math.abs(a.length - b.length) > 1) return false;
+    for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+      if (a[i] === b[i]) continue;
+      return a.slice(i + 1) === b.slice(i + 1) || a.slice(i) === b.slice(i + 1) || a.slice(i + 1) === b.slice(i) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
+    }
+    return true;
   }
 
   // The suburb or town words typed after the street ("parramatta" in "88 phillip st parramatta"), in

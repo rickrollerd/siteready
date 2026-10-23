@@ -609,6 +609,8 @@ function payload() {
     // Kept with the work, on this device and in a saved SWMS, so a step unticked by hand stays unticked after a
     // reload or sign-in and the task is then reworded (messy round 12, B run 8 and A run 2).
     kindsOff: stepsOff.size ? [...stepsOff] : undefined,
+    // The steps added by hand, while the steps follow the task's words again after a retype (input.js).
+    kindsAdded: stepsAdded.size ? [...stepsAdded] : undefined,
     kindsSeen: stepPicks && stepsSeen ? stepsSeen : undefined,
     // The crane and fall answers the step list was drawn with, and the steps a changed answer brought (input.js).
     answersSeen: stepsSeen && stepsSeenWith ? stepsSeenWith : undefined,
@@ -1094,6 +1096,8 @@ document.getElementById('start').addEventListener('submit', (event) => {
     pickGaps = picked && picked.gaps && picked.gaps.length ? [...picked.gaps] : null;
     // The scope reading's or pick list's own steps are ticked, as they were before any untick by hand.
     if (stepPicks) stepPicks.forEach((id) => stepsOff.delete(id));
+    // The steps added by hand stay with the new words (messy round 19, A run 4).
+    if (stepPicks && stepsAdded.size) stepPicks = [...new Set([...stepPicks, ...[...stepsAdded].filter((id) => !stepsOff.has(id))])];
     choicesTask = task;
   }
   // The scope's words go with a task from a scope, changed by the user or not.
@@ -1125,6 +1129,9 @@ let priorKinds = null;
 // The steps the user unticked by hand. They stay unticked when the task's words are changed and Continue is pressed again,
 // which starts again from the steps found in the new words (messy round 12, run 6: an unticked step came back ticked).
 let stepsOff = new Set();
+// The steps the user added by hand (Add a step, or a methodology step accepted). They stay ticked when the task is retyped and
+// Continue or "Go back to the suggested steps" is pressed (messy round 19, A run 4: an added step went at a retype).
+let stepsAdded = new Set();
 // Steps for work the scope gives to others, which the user chose to leave out.
 let leaveOut = null;
 // Rows of the scope reading with no job steps, while the task is the one read from the scope.
@@ -1201,6 +1208,7 @@ function replaceTask(written, answered = {}) {
   stepsBrought = new Set();
   stepsSeenWith = null;
   stepsOff = new Set();
+  stepsAdded = new Set();
   leaveOut = null;
   scopeUnmatched = null;
   scopeWordsNow = null;
@@ -1266,6 +1274,7 @@ function newSwms() {
   stepPicks = null;
   priorKinds = null;
   stepsOff = new Set();
+  stepsAdded = new Set();
   stepsBrought = new Set();
   stepsSeenWith = null;
   leaveOut = null;
@@ -1411,6 +1420,29 @@ function renderSteps(steps) {
   fillStepAdd();
 }
 
+// After a draft is prepared, the step list is drawn again from the answers now, so a step an answer brought since the list was
+// drawn shows ticked there as it is in the draft (messy round 19, A runs 3 and 4: "Use mobile scaffolds" and "Work from
+// ladders" were in the draft and not ticked in the list). Only the step list is drawn; a later load of the questions wins.
+// Only while the steps follow the task's words: with picks of the user's own, the server keeps such a step with them at the
+// next change of steps (input.js kindsSeen), and the picks are not changed under a part already ticked as checked.
+async function syncStepList(draft) {
+  if (stepPicks || !questions || !document.getElementById('steps-block')) return;
+  // Only where the draft has a step none of the ticked boxes names.
+  const named = new Set(tickedSteps().flatMap((id) => { const kind = stepById.get(id); return kind ? [kind.label, ...(kind.steps || [])] : []; }));
+  const own = new Set((ownSteps || []).map((item) => item.name));
+  const missing = ((draft && draft.jobSteps) || []).map((step) => String(step.step || '')).filter((name) => name && !['Before starting', 'Finish and clean up'].includes(name) && !own.has(name) && !/\((?:Our own step|Does not apply to this job)\)$/.test(name) && !named.has(name));
+  if (!missing.length) return;
+  const seq = questionsSeq;
+  const sent = payload();
+  try {
+    const { response, data } = await postJson('/api/draft/questions', sent);
+    // Nothing the page sends changes, so the draft shown and the parts ticked as checked stay as they are.
+    if (!response.ok || seq !== questionsSeq || stepPicks || !data || !data.steps) return;
+    questions.steps = data.steps;
+    renderSteps(data.steps);
+  } catch { /* the list stays as it was */ }
+}
+
 // The Recommended steps the server ticked with the user's picks (input.js kindsKept) are picks from now on.
 function keepFoundSteps(data) {
   if (data && Array.isArray(data.kindsBrought)) data.kindsBrought.filter((id) => typeof id === 'string' && !stepsOff.has(id)).forEach((id) => stepsBrought.add(id));
@@ -1461,7 +1493,10 @@ function draftUpdating(note) {
 // The draft prepared again where it is, or, where the change brings a new question with no answer yet,
 // the page goes to that question and the draft stays as it is until it is answered.
 async function updateInPlace() {
-  const open = ((questions && questions.required) || []).filter((item) => !item.choices && !String((document.getElementById(`fact-${item.id}`) || {}).value || '').trim());
+  // A design question answered "Not issued yet" may stay empty (D278 item 4): it is not waited for (messy round 19, A run 1:
+  // "This part updates once you answer "Formwork design" above" after "Not issued yet" was chosen).
+  const notIssued = (item) => { const design = questionDesign(item.id); const row = design && designRow(design.id); return Boolean(row && row.status === 'notIssued'); };
+  const open = ((questions && questions.required) || []).filter((item) => !item.choices && !String((document.getElementById(`fact-${item.id}`) || {}).value || '').trim() && !notIssued(item));
   if (open.length) {
     // The draft's step questions stay held until the draft can be updated, so the user does not answer ones the change
     // may take away.
@@ -1593,6 +1628,7 @@ document.getElementById('step-add').addEventListener('change', (event) => {
   const current = stepPicks || tickedSteps().concat(stepsAround);
   stepPicks = [...new Set([...current, id])];
   stepsOff.delete(id);
+  stepsAdded.add(id);
   document.getElementById('step-search').value = '';
   stepSearchIds = null;
   refreshSteps();
@@ -1614,7 +1650,9 @@ document.getElementById('steps-reset').addEventListener('click', () => {
   stepPicks = fromScope ? [...scope.kinds] : picked ? [...pickedTask.kinds] : null;
   priorKinds = !stepPicks && before && before.length ? [...before] : stepPicks ? null : priorKinds;
   choicesTask = task;
-  stepsOff.clear();
+  // The user's own choices stay: a step unticked by hand stays unticked and a step added by hand stays ticked (messy round 19,
+  // A run 4: "Go back" ticked "Apply render to walls" again after the user had unticked it).
+  if (stepPicks) stepPicks = [...new Set([...stepPicks.filter((id) => !stepsOff.has(id)), ...[...stepsAdded].filter((id) => !stepsOff.has(id))])];
   stepsBrought = new Set();
   refreshSteps();
 });
@@ -1633,11 +1671,12 @@ const methodSteps = {
     const added = ids.filter((id) => !current.includes(id));
     if (!added.length) return [];
     stepPicks = [...new Set([...current, ...added])];
-    added.forEach((id) => stepsOff.delete(id));
+    added.forEach((id) => { stepsOff.delete(id); stepsAdded.add(id); });
     refreshSteps();
     return added;
   },
   removeKinds(ids) {
+    ids.forEach((id) => stepsAdded.delete(id));
     if (!stepPicks) return;
     stepPicks = stepPicks.filter((id) => !ids.includes(id));
     refreshSteps();
@@ -2202,6 +2241,7 @@ function fillStart(input) {
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string' && !(stepPicks || []).includes(id)) : []);
+  stepsAdded = new Set(Array.isArray(input.kindsAdded) ? input.kindsAdded.filter((id) => typeof id === 'string') : []);
   stepsSeen = Array.isArray(input.kindsSeen) ? input.kindsSeen.filter((id) => typeof id === 'string') : null;
   stepsSeenWith = input.answersSeen && typeof input.answersSeen === 'object' ? { crane: String(input.answersSeen.crane || ''), fallRisk: String(input.answersSeen.fallRisk || '') } : null;
   stepsBrought = new Set(Array.isArray(input.kindsBrought) ? input.kindsBrought.filter((id) => typeof id === 'string') : []);
@@ -2532,6 +2572,8 @@ function fillBox(line, key, gate, anchored) {
 const gateTarget = (gap) => (gap.kind === 'line' ? document.getElementById(`gap-${gap.id}`) : gap.field ? document.getElementById(gap.field) : null);
 function markGaps(gaps) {
   const byField = new Map(gaps.filter((gap) => gap.kind !== 'line' && gap.field).map((gap) => [gap.field, gap]));
+  // The draft's check says it now: the early word under the box goes (EARLY_PEOPLE).
+  for (const field of byField.keys()) { const early = document.getElementById(`early-${field}`); if (early) early.hidden = true; }
   document.querySelectorAll('.gate-need[data-gate-for]').forEach((note) => {
     if (byField.has(note.dataset.gateFor) && document.getElementById(note.dataset.gateFor)) return;
     const el = document.getElementById(note.dataset.gateFor);
@@ -3526,6 +3568,41 @@ document.getElementById('hospital-list').addEventListener('click', (event) => {
   hospital.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
+// A people or place box is judged as soon as it is left, by the rule the download check uses, so the same answer gets the same
+// word in every box from the start (messy round 19, A run 4: "dave" as site manager showed no word until the draft came, while
+// "jake" in another box was refused). Once the draft's own check covers the box, its "Needed before download" note says it.
+// Prepared by with a name and no position gets a note only (B run 8: "dylan hart" printed with no position): the box is filled
+// with the account's name, so the download does not wait for it.
+const EARLY_PEOPLE = { 'site-manager': { optional: true, kind: 'person' }, 'prepared-by': { optional: true, kind: 'preparer' }, 'muster-point': { ask: 'Say where everyone meets in an emergency.', kind: 'musterEarly' } };
+// The rule the download uses for each early-only kind, so the note says whether the download waits for it.
+const EARLY_GATE = { preparer: { optional: true, kind: 'person' }, musterEarly: { ask: 'Say where everyone meets in an emergency.', kind: 'place' } };
+function earlyRule(id) {
+  const rules = window.SiteWriteGate;
+  if (!rules) return null;
+  if (EARLY_PEOPLE[id]) return EARLY_PEOPLE[id];
+  const item = (rules.PEOPLE_FIELDS || []).find((entry) => entry.field === id && entry.kind);
+  return item ? rules.fieldRule(item) : null;
+}
+document.addEventListener('change', (event) => {
+  const el = event.target;
+  if (!el || !el.id || !(el.matches && el.matches('input[type="text"], textarea'))) return;
+  const rule = earlyRule(el.id);
+  if (!rule) return;
+  const value = String(el.value || '').trim();
+  const covered = shownChecks.some((check) => check.field === el.id && liveNeed(check));
+  const text = value && !covered ? window.SiteWriteGate.answerNeed(rule, value) : '';
+  let note = document.getElementById(`early-${el.id}`);
+  if (!note && text) {
+    note = document.createElement('p');
+    note.id = `early-${el.id}`;
+    note.className = 'answer-note';
+    note.setAttribute('role', 'status');
+    const holder = el.closest('.field') || el.parentElement;
+    if (holder) holder.appendChild(note);
+  }
+  if (note) { note.textContent = text ? `${EARLY_GATE[rule.kind] && !window.SiteWriteGate.answerNeed(EARLY_GATE[rule.kind], value) ? 'Check this' : 'Check this before download'}: ${text}` : ''; note.hidden = !text; }
+});
+
 // Each box remembers what was typed in the last few SWMS on this device, and offers it
 // again. Nothing leaves the device. Storage can be off (private browsing): then nothing is kept.
 const MEMORY_KEY = 'sitewrite.fieldMemory';
@@ -3699,7 +3776,8 @@ function showCraneWarning() {
 function craneCheckBlock(data) {
   const crane = data && data.kind === 'draft' && data.craneConflict;
   if (!crane || crane.kept) return '';
-  return `<div class="warning crane-check" id="crane-check" tabindex="-1"><p><strong>Check your answer on the crane.</strong> You answered No crane, but the task names "${esc(crane.words)}". If a crane, crane truck or hiab is used, say who operates it.</p>${craneButtons('Keep No crane: no crane, crane truck or hiab is used')}</div>`;
+  const why = crane.scope ? `the scope says you supply the cranage: "${esc(crane.scope)}"` : `the task names "${esc(crane.words)}".`;
+  return `<div class="warning crane-check" id="crane-check" tabindex="-1"><p><strong>Check your answer on the crane.</strong> You answered No crane, but ${why} If a crane, crane truck or hiab is used, say who operates it.</p>${craneButtons('Keep No crane: no crane, crane truck or hiab is used')}</div>`;
 }
 document.addEventListener('click', (event) => {
   const set = event.target.closest && event.target.closest('[data-crane-set]');
@@ -4031,6 +4109,8 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     // What is saved: the input sent, with changes moved onto any line SiteWrite has reworded.
     const sent = { ...JSON.parse(body), ...(stepPicks ? { kinds: [...stepPicks] } : {}), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     shownSent = sent;
+    // Before the check panel is drawn, so a part ticked as checked is never ticked while the list is drawn again.
+    if (data.kind === 'draft') await syncStepList(data);
     showGate();
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteWrite.showActions(data, sent);

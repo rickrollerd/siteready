@@ -262,6 +262,7 @@ function harnessAnswer(value) {
 
 function draftBody(body) {
   const out = draftFields(body);
+  const picked = Array.isArray(out.kinds);
   // The job steps the user unticked by hand, sent while the steps follow the task's words (no picks of their own): the
   // steps found in the words, less these, are the picks, so a step unticked stays unticked when the task is changed and
   // Continue is pressed again (messy round 12, run 6: "Brazing and soldering (hot work)" came back ticked).
@@ -273,6 +274,17 @@ function draftBody(body) {
   // Kept with the input, so a saved SWMS opened again still knows which steps were unticked by hand (messy round
   // 12: an unticked step came back after a reload or sign-in once the task was reworded).
   if (off.length) out.kindsOff = off;
+  // The job steps the user added by hand, sent while the steps follow the task's words again (the task was retyped): they are
+  // ticked with the steps found in the new words, as they were before (messy round 19, A run 4: "Set up traffic barriers and
+  // temporary fencing", added by hand, went when the task was retyped and Continue pressed).
+  const added = Array.isArray(body.kindsAdded) ? [...new Set(body.kindsAdded.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].filter((id) => !off.includes(id)).slice(0, 40) : [];
+  if (added.length) {
+    out.kindsAdded = added;
+    if (!picked) {
+      const found = out.kinds || require('./draft').foundKinds(out);
+      if (Array.isArray(found)) out.kinds = [...new Set([...found.filter((id) => !off.includes(id)), ...added])];
+    }
+  }
   // A Recommended step found since the step list was last drawn (kindsSeen, the steps it suggested then), from a site
   // answer or a reworded task, is ticked with the user's picks unless they unticked it by hand: they never saw it to
   // untick (messy round 15, A run 4: "Plan the work near overhead power lines", from the Live services answer "power
@@ -282,7 +294,10 @@ function draftBody(body) {
     out.kindsSeen = seen;
     const draft = require('./draft');
     const found = draft.foundKinds({ ...out, kinds: undefined });
-    const kept = Array.isArray(found) ? found.filter((id) => draft.LOCKED_KINDS.has(id) && !seen.includes(id) && !off.includes(id) && !out.kinds.includes(id)) : [];
+    // Any step, not only a Recommended one: a step an answer brought after the list was drawn was in the draft, and adding a
+    // step must not take it out (messy round 19: "Use mobile scaffolds" from the fall answer, A run 3, and "Work from
+    // ladders" from the Access answer, A run 4, went when a step was added).
+    const kept = Array.isArray(found) ? found.filter((id) => !seen.includes(id) && !off.includes(id) && !out.kinds.includes(id)) : [];
     if (kept.length) {
       out.kinds = [...out.kinds, ...kept];
       out.kindsKept = kept;
@@ -384,7 +399,7 @@ function draftFields(body) {
     notCoveredConfirmed: Array.isArray(body.notCoveredConfirmed) ? body.notCoveredConfirmed.filter((part) => typeof part === 'string').slice(0, 60).map((part) => textField(part, 5000)) : undefined,
     // A task from a scope: the plain task first given, the scope's full words and its notes (D251, D252).
     scopeTask: body.scopeTask && typeof body.scopeTask === 'object' && !Array.isArray(body.scopeTask)
-      ? { plain: textField(body.scopeTask.plain, 5000), full: textField(body.scopeTask.full, 12000), notes: textField(body.scopeTask.notes, 6000) }
+      ? { plain: textField(body.scopeTask.plain, 5000), full: textField(body.scopeTask.full, 12000), notes: textField(body.scopeTask.notes, 6000), ...(textField(body.scopeTask.crane, 600) ? { crane: textField(body.scopeTask.crane, 600) } : {}) }
       : undefined,
     // The site answers were given once for the whole project and filled across to this SWMS (the one-go
     // page): the high risk work they alone bring is not this SWMS's own (messy round 8 and 9, SiteLink

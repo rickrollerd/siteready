@@ -103,6 +103,8 @@
     if (!text) return '';
     const quoted = `"${text}"`;
     if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet.`;
+    // "me" as a muster point is not a place (messy round 19, A run 4: it was told to name a role).
+    if (PRONOUN.test(text) && (kind === 'place' || kind === 'musterEarly')) return `${quoted} is not a place. Name the place everyone meets, for example "Main gate on Smith Street, beside the site office".`;
     if (PRONOUN.test(text)) return PERSON_KINDS.has(kind) ? `${quoted} does not say who. Give their name and role, for example "Sam Lee, site supervisor".` : `${quoted} does not say who. Name the role, for example "The site supervisor".`;
     if (AMOUNT_ONLY.test(text)) return `${quoted} gives an amount, not who or what. Name them, or say what applies on this job.`;
     if (ASKED_BACK.test(text)) return `${quoted} is a question, not an answer. Say what applies on this job.`;
@@ -222,7 +224,7 @@
     if (/^\s*\+?61/.test(String(text || '')) && digits.startsWith('61')) digits = `0${digits.slice(2).replace(/^0/, '')}`;
     return (digits.length === 10 && /^(?:0[2-478]|1[38]00)/.test(digits)) || (digits.length === 8 && /^[2-9]/.test(digits)) || (digits.length === 6 && /^13/.test(digits));
   }
-  const PERSON_KINDS = new Set(['person', 'firstAider']);
+  const PERSON_KINDS = new Set(['person', 'firstAider', 'preparer']);
   // A person the site must be able to find is named in full: one first name or a nickname ("dean", "Dazza") or a first
   // name and an initial ("dean k") is not enough (messy round 14, A run 3 and B runs 5 and 7). The role after the
   // name ("Rob, our supervisor", "Sione Leading Hand") is not part of the name; nor is a phone number.
@@ -244,19 +246,26 @@
     if (words.length === 2 && words[1].replace(/[.]/g, '').length === 1) return `${quoted} gives a first name and an initial only. Give their full name so the site can find them, for example "Sam Lee, supervisor".`;
     return '';
   }
+  const BARE_GATE = /^(?:the |our |site |at the )?(?:front|back|rear|side|main|site|top|bottom|north|south|east|west)\s+(?:gate|entrance|entry|fence)\.?$/i;
+  // A ground or deck answer that only points to the engineer or the drawings gives no load (messy round 19, A run 1: "deck loads
+  // per engineer" passed and printed).
+  const GROUND_DEFERS = /\b(?:as )?per (?:the )?(?:engineers?|eng|design(?:er)?|drawings?|dwgs?|builder|specs?|specification)\b|\bengineer (?:to )?(?:advise|confirm)\b/i;
   const NAME_THEN_PLACE = /^(?![^,]*\b(?:at|the|in|on|by|from|near|of|our|my)\b)[^,]*\s(office|site|yard|depot|workshop|ute|truck|gate)\.?$/i;
   function fieldWeak(kind, text) {
     const quoted = `"${text}"`;
     // One rule in every person's box: a role with no name is refused, the first aider's box too (messy
     // round 10, run 3: "The site supervisor" was accepted as first aider and refused elsewhere).
     if (PERSON_KINDS.has(kind) && ROLE_ONLY.test(text)) return `${quoted} is a role, not a person. Give their name and role, for example "Sam Lee, ${clean(text).replace(/^(?:the|our|my|a|site|project) /i, (word) => (/^(?:site|project) $/i.test(word) ? word : '')).toLowerCase()}".`;
-    if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
-    if (kind === 'place' && VEHICLE_PLACE.test(text)) return `${quoted} is a vehicle, which moves. Name a fixed place a new worker can find, for example "Main gate on Smith Street, beside the site office".`;
+    // "front gate" alone does not say which street a new worker heads for (messy round 19, B run 8): said under the muster point box
+    // as soon as it is left (kind 'musterEarly', public/app.js), but not a refusal, as one gate is clear on a small site.
+    if (kind === 'musterEarly' && BARE_GATE.test(text)) return `${quoted} does not say which street or side the gate is on. Name it so a new worker can find it, for example "Front gate on Smith Street, beside the site office".`;
+    if ((kind === 'place' || kind === 'musterEarly') && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
+    if ((kind === 'place' || kind === 'musterEarly') && VEHICLE_PLACE.test(text)) return `${quoted} is a vehicle, which moves. Name a fixed place a new worker can find, for example "Main gate on Smith Street, beside the site office".`;
     if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
-    if (kind === 'person' && (NOT_A_PERSON.test(text) || A_TRADE.test(text) || UNNAMED_PARTY.test(clean(text)))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
+    if ((kind === 'person' || kind === 'preparer') && (NOT_A_PERSON.test(text) || A_TRADE.test(text) || UNNAMED_PARTY.test(clean(text)))) return `${quoted} does not name a person. Give their name and role, for example "Sam Lee, supervisor".`;
     if (PERSON_KINDS.has(kind)) { const only = personNameNeed(text); if (only) return only; }
     // A name run into a place, with no role (messy round 11, run 2: "Sarah O'Brien Office" as Prepared by).
-    const place = kind === 'person' ? NAME_THEN_PLACE.exec(text) : null;
+    const place = kind === 'person' || kind === 'preparer' ? NAME_THEN_PLACE.exec(text) : null;
     // The example names the person with their capitals ("Priya Dalgarno, office manager", messy round 16, SiteLink).
     // A word that only says which place ("front office", "head office", "site office") is not part of the name: "bethany ngata
     // front office" gives "Bethany Ngata, office manager", not "Bethany Ngata Front, office manager" (messy round 17, SiteLink).
@@ -272,6 +281,9 @@
     // got the example "Tina, office manager", which is itself one name only).
     if (place && !/\s/.test(named.trim())) return `${quoted} gives one name only, and ends in "${said}", which is a place, not a role. Give their full name and role, for example "${capitals} (surname), ${role}".`;
     if (place) return `${quoted} ends in "${said}", which is a place, not a role. Give their name and role, for example "${capitals}, ${role}".`;
+    // Prepared by prints as "Name and position": a name with no position leaves the position blank (messy round 19, B run 8:
+    // "dylan hart").
+    if (kind === 'preparer' && !/[,(]/.test(text) && !NAME_ROLE_TAIL.test(text)) return `${quoted} gives no position. Give your name and position, for example "${clean(text).replace(/(^|\s)([a-z])/g, (whole, before, letter) => `${before}${letter.toUpperCase()}`)}, supervisor".`;
     // A council or authority named only by what it is ("council": messy round 18, B run 6) does not say which one.
     if (kind === 'company' && BARE_AUTHORITY.test(text)) return `${quoted} does not say which one. Give its full name, for example "Glenorchy City Council", or the name of the principal contractor running the site.`;
     if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
@@ -280,6 +292,7 @@
     if (kind === 'services' && !SERVICE_KIND.test(text)) return `${quoted} does not say which services. Name them and where they are, for example "Live 240 V power in the ceiling, gas main under the car park", or write None.`;
     if (kind === 'public' && words(text) < 2) return `${quoted} does not say where the public or traffic is. Say where they are near the work, for example "Public footpath beside the hoarding on Smith Street", or write None.`;
     if (kind === 'trades' && GENERIC_TRADES(text)) return `${quoted} does not say which trades. Name them and where they work, for example "Electricians on the same level" or "Plumbers below us", or write None.`;
+    if (kind === 'ground' && GROUND_DEFERS.test(text) && !/\d/.test(text) && words(text) < 8) return `${quoted} does not say what the ground or deck takes. Give the load or how it is for the work, for example "Deck rated 3 kPa (about 300 kg per square metre) on the engineer's drawing S-201" or "Level concrete slab, no loads over 3 kPa".`;
     if (kind === 'ground' && words(text) < 3 && !GROUND_SAYS.test(text)) return `${quoted} does not say what the ground or deck is like. Say how it is for the work, for example "Level concrete slab, no loads over 3 kPa", or write None.`;
     if (kind === 'ground' && words(text) < 2 && !GROUND_STATE.test(text)) return `${quoted} names the surface but not how it is for the work. Say whether it is level, firm or soft and any load limit, for example "Level asphalt car park, firm" or "Level concrete slab, no loads over 3 kPa", or write None.`;
     if (kind === 'access' && (words(text) < 2 || (words(text) < 3 && !ACCESS_SHORT.test(text)))) return `${quoted} does not say how the crew gets to the work. Say the way in and up, for example "Through the Smith Street gate, then the stair tower to level 2".`;
@@ -376,7 +389,7 @@
     if (NONE.test(text) && !rule.none) return `${rule.name} cannot be ${quoted}: every SWMS names it. ${rule.ask}`;
     if (rule.naRefused && /^(?:na|n\/a|n\.a\.?|not applicable|not relevant|does not apply|doesn'?t apply)\.?$/i.test(text)) return `${quoted} says the question does not apply. ${rule.naRefused}`;
     // Not applicable is refused where the SWMS itself says the thing is there (a scaffold in the plant).
-    if (rule.noneRefused && NONE.test(text) && !(rule.noneWithReason && keptAway(text)) && !(rule.noneChecked && checkedNone(text))) return `${rule.noneRefused} ${rule.ask}`;
+    if (rule.noneRefused && NONE.test(text) && !(rule.noneWithReason && keptAway(text)) && !(rule.noneChecked && checkedNone(text)) && !(rule.kind === 'services' && namesLiveService(text))) return `${rule.noneRefused} ${rule.ask}`;
     if (rule.kind) { const weak = fieldWeak(rule.kind, text); if (weak) return `${weak}`; }
     return '';
   }
@@ -389,8 +402,15 @@
   // the locator show nothing in the fence line" (messy round 18, B run 6). "None" alone is refused there.
   const CHECKED_FOR = /\b(?:before you dig|byda|dbyd|dial before|locat\w*|scann\w*|service plans?|plans? show\w*|pot ?hol\w*|asset owners?|detector|ground penetrating radar|gpr)\b/i;
   const checkedNone = (text) => words(text) >= 5 && CHECKED_FOR.test(text.replace(/^\W*\w+\W*/, ''));
+  // "None" that goes on to name a live service and where it is ("None. All services disconnected by others ... Overhead power line
+  // on the Barry Drive frontage, kept 6 m clear") names the services: the "None" is for those made safe (messy round 19, B run 7:
+  // refused as naming none).
+  const LIVE_SERVICE_WORD = /\b(?:power ?lines?|overhead (?:power |hv |electric )?(?:lines?|wires?|cables?)|(?:hv|lv|electric\w*|power|data|comms|telstra|nbn|fibre|optic\w*|gas|water|sewer\w*|stormwater) (?:mains?|lines?|cables?|pipes?|pits?|services?|supply|supplies|conduits?)|cables?|mains|switchboards?|substations?|transformers?|gas|water mains?|sewer\w*|\d+ ?k?v)\b/i;
+  const MADE_SAFE = /\b(?:disconnect\w*|isolat\w*|capped|cut (?:off|and capped)|terminated|removed|made safe|de-?energi[sz]\w*|decommission\w*|dead|none|no|not)\b/i;
+  const namesLiveService = (text) => words(text) >= 5 && String(text).replace(/^\W*\w+\W*/, '').split(/(?<=[.;])\s+|\s*;\s*/).some((part) => LIVE_SERVICE_WORD.test(part) && !MADE_SAFE.test(part));
   // A person's name and nothing else: two or three words, none of them a role, a common word or a verb.
-  const NOT_NAME = /^(?:the|a|an|our|my|his|her|their|its|it|them|they|he|she|we|us|and|n|or|by|with|from|on|at|in|to|of|for|is|are|who|then|spotter|operator|supervisor|foreman|leading|lead|hand|ground|person|worker|workers|crew|offsider|labourer|rigger|dogman|electrician|observer|attendant|first|aider|trained|team|apprentice|manager|engineer|scaffolder|fitter|driver|safety|site|stand-by|standby|lowers?|lowering|stops?|isolates?|rescues?|calls?|uses?|reaches?|brings?|lifts?|presses?|turns?|keys?|switch\w*|platform|ewp|lift|scissor|boom|plant|machine|controls?)$/i;
+  // Words that say what is done ("pull him out": messy round 19, B run 8, was refused as a person's name) are not names either.
+  const NOT_NAME = /^(?:the|a|an|our|my|his|her|him|their|its|it|them|they|he|she|we|us|and|n|or|by|with|from|on|at|in|to|of|for|is|are|who|then|out|up|down|off|over|back|away|pull|pulls|get|gets|grab|grabs|drag|drags|help|helps|carry|carries|haul|hauls|winch|winches|bring|call|ring|phone|go|goes|climb|climbs|first|aid|ambulance|000|spotter|operator|supervisor|foreman|leading|lead|hand|ground|person|worker|workers|crew|offsider|labourer|rigger|dogman|electrician|observer|attendant|first|aider|trained|team|apprentice|manager|engineer|scaffolder|fitter|driver|safety|site|stand-by|standby|lowers?|lowering|stops?|isolates?|rescues?|calls?|uses?|reaches?|brings?|lifts?|presses?|turns?|keys?|switch\w*|platform|ewp|lift|scissor|boom|plant|machine|controls?)$/i;
   function nameOnly(text) {
     const list = clean(text).replace(/[.]+$/, '').split(/\s+/);
     return list.length >= 2 && list.length <= 3 && list.every((word) => /^[A-Za-z][A-Za-z'’-]+$/.test(word) && !NOT_NAME.test(word));
