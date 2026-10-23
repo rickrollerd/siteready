@@ -1245,7 +1245,7 @@ const ACTIVITIES = [
           { only: 'groundSlab', ...src('Where bundles are lifted in by crane, they are slung by the crane crew with slings or chains rated for the load.', TOWER('s 7.1.4, s 7.2.1')) },
           { only: 'groundSlab', text: 'Bundles are never slung by the tie wire, and are landed on bearers clear of the excavation edge.' },
           'Cap or cover exposed starter bars and ends of bars.',
-          src('Keep penetration covers in place. Fence any opening before a cover is lifted to pass bars through.', NSWC('NSW Formwork', 's 6.5')),
+          { unless: 'reoNoCage', ...src('Keep penetration covers in place. Fence any opening before a cover is lifted to pass bars through.', NSWC('NSW Formwork', 's 6.5')) },
           'Lay walkways over the reo where people need to cross it.',
           src('Team lift long or heavy bars, and rotate tying tasks.', QCODE('Hazardous manual tasks', 's 4.7')),
           'Cut and trim bars with a bar cutter, or with a grinder or cut-off saw with its guards in place. Wear eye and hearing protection, and keep sparks away from combustible materials and other workers.',
@@ -1254,7 +1254,7 @@ const ACTIVITIES = [
           { unless: 'aboveGroundOnly', text: 'Footings, thickenings and pits are entered by a secured ladder, with water pumped out and a barrier at the edge.' },
           { unless: 'aboveGroundOnly', text: 'Before entering a footing, thickening or pit, check the depth: one deeper than 1.5 m is not covered by this SWMS, so stop, have the SWMS reviewed, and do not enter until its sides are shored, benched or battered and checked.' },
           { unless: 'aboveGroundOnly', text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
-          'Where walls, lift shafts or stairwells are reinforced, fix the reo from working platforms or scaffolds, never by climbing the cage, and brace tall wall cages so they cannot topple.',
+          { unless: 'reoNoCage', text: 'Where walls, lift shafts or stairwells are reinforced, fix the reo from working platforms or scaffolds, never by climbing the cage, and brace tall wall cages so they cannot topple.' },
           // No deck (footings, a slab on the ground, an in-ground pool): no deck edge or deck pour lines (messy round 10, run 3).
           { unless: 'reoNoDeck', ...src('Edge protection is in place at the deck perimeter, openings and voids.', NSWC('NSW Formwork', 's 6.1')) },
           { unless: 'reoNoDeck', text: 'Work inside the edge protection at all times.' },
@@ -3348,13 +3348,14 @@ const ACTIVITIES = [
       ],
     }, {
       step: 'Core fill blockwork',
-      hazards: ['Cement burns and dermatitis.', 'Strain lifting bags.', 'A concrete placing boom strikes a person.'],
+      // No boom lines where the core fill is pumped with a line pump and no boom (messy round 18, A run 3).
+      hazards: ['Cement burns and dermatitis.', 'Strain lifting bags.', { unless: 'noBoom', text: 'A concrete placing boom strikes a person.' }],
       controls: [
         { fact: 'safetyDataSheet' },
         'Avoid skin contact with wet mortar and grout: gloves, long sleeves and eye protection, and wash skin straight away.',
         src('Move bags with mechanical aids rather than carrying them.', `${QCODE('Hazardous manual tasks', 's 4.4')}; ${NSWC('NSW Manual tasks', 's 2.2, s 4.4')}`),
-        src('A concrete placing boom used for core filling has a registered design, is a registered item and is operated by a licensed operator.', WHS('schedule 3, schedule 5')),
-        'Never stand under a working boom.',
+        { unless: 'noBoom', ...src('A concrete placing boom used for core filling has a registered design, is a registered item and is operated by a licensed operator.', WHS('schedule 3, schedule 5')) },
+        { unless: 'noBoom', text: 'Never stand under a working boom.' },
       ],
     }],
     ppe: ['gloveChemical', 'goggles'],
@@ -8465,6 +8466,9 @@ const ACTIVITIES = [
       hazards: ['A load falls in the shaft.', 'Lifting beam or gear failure.'],
       controls: [
         src('Lift with plant and lifting beams designed for the load, within their limits, never over people, and kept under control. Dual lifts only where each machine is designed to lift.', WHS('s 219')),
+        // The crane step's sourced exclusion line, reused word for word: no one is below the load in the shaft (messy round 18, B run 5:
+        // the hoisting step stayed High after its own controls).
+        src('Exclusion zone. No one goes under a suspended load.', NSWC('NSW Moving plant on construction sites', 's 5.2, s 6.4')),
         src('Slinging and directing loads out of the operator\'s view is dogging, and setting up hoists is rigging. Dual lifts need at least an intermediate rigging licence. Sight each licence.', WHS('s 81, s 85, schedule 3')),
         src('Install with the manufacturer\'s jigs and tools, by competent people with the available information.', `${WHS('s 204')}; ${MODEL('Managing the risks of plant in the workplace', 's 3.2')}`),
       ],
@@ -9263,16 +9267,18 @@ const ACTIVITIES = [
     steps: [{
       step: 'Dig post holes',
       only: 'fencePostHoles',
-      hazards: ['Striking buried services.', 'Entanglement in a post hole auger.', { unless: 'farmWork', text: 'Neighbours or the public near the work.' }, { only: 'farmWork', text: 'Stock moving into the work area.' }, 'Silica dust, noise and flying particles from cutting and coring.', 'Heat and sun.'],
+      hazards: ['Striking buried services.', 'Entanglement in a post hole auger.', { unless: 'farmWork', text: 'Neighbours or the public near the work.' }, { only: 'farmWork', text: 'Stock moving into the work area.' }, { unless: 'soilHoles', text: 'Silica dust, noise and flying particles from cutting and coring.' }, 'Heat and sun.'],
       controls: [
         src('Get the underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
         POTHOLE_SERVICES,
         'Augers are used with guards in place and loose clothing secured. Two people handle a two-person auger.',
         { unless: 'farmWork', ...src('Keep the public and neighbours out of the work area with barriers, and cover or fence open holes.', WHS('s 298')) },
         { only: 'farmWork', text: 'Stock are moved out of the paddock or yard, or kept out with a temporary fence, while the work is done, and open holes are covered or fenced.' },
-        src('Where posts are set in paving or concrete, core or cut the hole with water suppression or on-tool extraction, as cutting concrete and pavers releases silica dust. Anyone still at risk of exposure wears a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`),
-        src('Assess in writing before drilling or cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')),
-        SILICA_FOLLOW_UP[1],
+        // Holes augered or dug in soil cut no concrete, paving or rock, so no silica lines (messy round 18, B run 8: holes augered in gravel
+        // printed silica "from cutting and coring" and forced a silica product).
+        { unless: 'soilHoles', ...src('Where posts are set in paving or concrete, core or cut the hole with water suppression or on-tool extraction, as cutting concrete and pavers releases silica dust. Anyone still at risk of exposure wears a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`) },
+        { unless: 'soilHoles', ...src('Assess in writing before drilling or cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')) },
+        { unless: 'soilHoles', ...SILICA_FOLLOW_UP[1] },
         { only: 'substation', text: 'Plant and materials keep the network operator\'s exclusion distances from live equipment.' },
         { only: 'substation', text: 'No one enters the substation or works inside its fence without the network operator\'s access permit and escort.' },
         'Sun protection: hat, long sleeves, sunglasses and SPF 30 or higher sunscreen.',
@@ -9372,14 +9378,14 @@ const ACTIVITIES = [
     when: 'cleaningHeight',
     steps: [{
       step: 'Clean windows and balconies',
-      hazards: ['A fall from a balcony or from a ladder near an edge.', 'Items fall from balconies.'],
+      hazards: [{ unless: 'noBalcony', text: 'A fall from a balcony or from a ladder near an edge.' }, { only: 'noBalcony', text: 'A fall from a ladder or platform.' }, { unless: 'noBalcony', text: 'Items fall from balconies.' }],
       controls: [
         { only: 'bmu', ...src('Work from the building maintenance unit (BMU) only where it is designed to AS 1418.13, is operated by competent people to AS 2550.13, and harnesses are attached to its designated anchorage points.', QCODE('Managing the risk of falls', 's 5.1')) },
         { only: 'bmu', text: 'The BMU has been inspected, its certification is current, and work stops in high wind.' },
         { unless: 'ewpNamed', ...src('Work from the floor with extendable tools, using access equipment only for glass these cannot reach. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.', `${WHS('s 78')}; ${MODEL('Managing the risk of falls', 's 4.1, s 4.2')}`) },
-        { unless: 'bmu', text: 'Outside glass that cannot be reached from the floor or a balcony is cleaned only from an EWP, or by a rope access or building maintenance unit contractor under their own SWMS.' },
+        { unless: ['bmu', 'scaffoldGlass'], text: 'Outside glass that cannot be reached from the floor or a balcony is cleaned only from an EWP, or by a rope access or building maintenance unit contractor under their own SWMS.' },
         src('No stepladders at balustrades or open edges. Ladders only for short light work.', MODEL('Managing the risk of falls', 's 9.1')),
-        src('Nothing is left loose on balconies, with an exclusion zone below where items could fall.', WHS('s 55')),
+        { unless: 'noBalcony', ...src('Nothing is left loose on balconies, with an exclusion zone below where items could fall.', WHS('s 55')) },
       ],
     }],
   },
@@ -9525,7 +9531,8 @@ const ACTIVITIES = [
         src('Wear the fit tested half-face respirator, with the filter type the safety data sheet lists, when applying solvent-based or two-part products, or where vapour cannot be kept below the exposure standard.', QCODE('Managing risks of hazardous chemicals', 's 4.1, s 4.2')),
         src('Long periods kneeling are a hazardous manual task: rotate tasks.', QCODE('Hazardous manual tasks', 's 2.2, s 4.7')),
         'Use knee pads.',
-        'The room is closed with a barrier and a no entry sign while primer and membrane are applied, and stays closed until the membrane has cured. No one walks on it or tiles over it before then.',
+        // Not on the back of a retaining wall, which is no room and is not tiled (messy round 18, A run 3).
+        { unless: 'wpWallBack', text: 'The room is closed with a barrier and a no entry sign while primer and membrane are applied, and stays closed until the membrane has cured. No one walks on it or tiles over it before then.' },
       ],
     }],
     ppe: ['gloveChemical', 'goggles', 'halfFace'],
@@ -13401,7 +13408,8 @@ const CITE = { WHS, MODEL, QCODE, NSWC, LINES };
 // licence line stayed after the boom was unticked). The lines' words are unchanged.
 for (const name of ['Set up the concrete pump and placing boom', 'Pump and place concrete']) {
   const step = stepOf('concrete', name);
-  const boomOnly = (item) => /\bboom\b/i.test(typeof item === 'string' ? item : item.text || '') && !/\bline pumps?\b/i.test(typeof item === 'string' ? item : item.text || '');
+  // "Placing booms" as well (messy round 18, A run 3: the boom registration line printed for a line pump).
+  const boomOnly = (item) => /\bbooms?\b/i.test(typeof item === 'string' ? item : item.text || '') && !/\bline pumps?\b/i.test(typeof item === 'string' ? item : item.text || '');
   const mark = (item) => {
     if (!boomOnly(item)) return item;
     if (typeof item === 'string') return { unless: 'noBoom', text: item };

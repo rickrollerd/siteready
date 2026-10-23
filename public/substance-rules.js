@@ -22,7 +22,9 @@
     ['Solvents and thinners', /\b(solvents?(?! cement| weld\w*)|thinners?|turps)\b/i, 'Solvent or thinner'],
     // An epoxy, resin or chemical anchor adhesive ("chemset epoxy anchor adhesive") is the epoxy row, not a second
     // product (messy round 10, run 8: one product asked for twice, and the second "Not required" refused).
-    ['Adhesives', /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(adhesives?|glues?)\b|\b(vinyl|carpet)\b/i, 'Adhesive'],
+    // Vinyl named only as what is heat welded ("heat weld the vinyl joins") is not laid with adhesive (messy round 18, A run 2: adhesives
+    // were asked for a heat welding SWMS).
+    ['Adhesives', /(?<!\b(?:epoxy|resin|chemset|chem-set|chemical anchor(?:ing)?|injection|anchor(?:ing)?)\s(?:[\w-]+\s){0,2})\b(adhesives?|glues?)\b|\bcarpet\b|(?<!\bweld\w*\s+(?:the\s+|all\s+)?)\bvinyl\b(?!\s+(?:joins?|seams?|joints?|weld\w*)\b)/i, 'Adhesive'],
     ['Wood dust (MDF and hardwood)', /\b(mdf|particleboard|wood dust|sawdust|(?:cut|saw|sand|rout|machin)\w* [^.\n]{0,30}\b(?:timber|wood|hardwood|mdf|joinery))\b/i, 'Board or timber product'],
     // A bond breaker and a gap filler are sealants too (messy round 16, B run 6: the bond breaker the task names was not asked).
     ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone|bond ?breakers?|gap fill(?:er|ers|ing)?)\b/i, 'Sealant'],
@@ -339,11 +341,16 @@
     const out = [];
     const sentences = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => !NOT_OURS.test(sentence));
     const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+(?:and|n)\s+|\s*&\s*/))
-      .map((clause) => clean(clause).replace(/[.:\s]+$/, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
+      .map((clause) => clean(clause).replace(/[.:\s]+$/, '').replace(/^(?:a|an|the|some|our)\s+/i, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
     for (const clause of clauses) {
       // Concrete named on its own is the cement product (messy round 17, A run 2: "concrete, form oil n curing compound" made no
       // concrete product, and cement was asked again).
-      const type = TYPES.find((one) => namedIn(one, clause)) || (/^(?:(?:pre-?mix(?:ed)?|ready[- ]?mix(?:ed)?|wet|bagged|premixed|n\d+|\d+ ?mpa)\s+)*concrete(?:\s+(?:mix|bags?))?$/i.test(clause) ? 'Cement, concrete, grout and mortar' : '');
+      // A floor levelling compound is a cement product, and a floor or glass cleaner or a polish is a cleaning chemical (messy round 18:
+      // A run 2, "carpet adhesive n floor levelling compound" made no cement product; B run 7, a floor cleaner, a glass cleaner and a
+      // stainless steel polish made none).
+      const type = TYPES.find((one) => namedIn(one, clause)) || (/^(?:(?:pre-?mix(?:ed)?|ready[- ]?mix(?:ed)?|wet|bagged|premixed|n\d+|\d+ ?mpa)\s+)*concrete(?:\s+(?:mix|bags?))?$/i.test(clause) ? 'Cement, concrete, grout and mortar' : '')
+        || (/\b(?:(?:self[- ])?level(?:l)?ing (?:compounds?|screeds?)|floor level(?:l)?ers?|patching compounds?)\b/i.test(clause) ? 'Cement, concrete, grout and mortar' : '')
+        || (/\b(?:cleaners?|polish(?:es)?|sanitis(?:er|ers)|disinfectants?|bleach)\b/i.test(clause) && !/\b(?:vacuum|scrubber|pressure|steam|water ?blast\w*|machine)\b/i.test(clause) ? 'Cleaning chemicals' : '');
       // Each product named is its own row, two of a type too ("pipe thread sealant, duct sealant mastic": messy round 17,
       // SiteLink: the second sealant, the adhesive and the zinc spray were asked again).
       if (type && !out.some((row) => row.product.toLowerCase() === clause.toLowerCase())) out.push({ type, product: clause });
@@ -644,6 +651,10 @@
     [/\bbond ?breakers?\b/i, [/^Apply primers and liquid membranes$/i, /\bmembranes?\b/i, /\bseal\w*/i]],
     [/\bgap fill\w*|\bacrylic (?:gap )?fill\w*|\bfillers?\b/i, [/^Sand and fill surfaces$/i, /\bfill\w*\b/i, /^Prepare to paint$/i, /\bseal\w*|\bcaulk\w*/i]],
     [/\b(?:mineral )?turps\b|\bturpentine\b|\bbrush cleaners?\b/i, [/^Clean brushes and rollers$/i, /^Wash out tools\b/i, /\bclean\w*\b/i]],
+    // Messy round 18 (B run 7): a glass or window cleaner is used in the window step, and a floor cleaner in the floor step, not in the
+    // general "Clean with chemicals".
+    [/\b(?:glass|window|mirror)\b[^.]{0,20}\b(?:cleaners?|cleaning|polish\w*)\b/i, [/^Clean windows\b/i, /\bwindows?\b/i, /\bglass\b/i]],
+    [/\bfloors?\b[^.]{0,20}\b(?:cleaners?|cleaning|polish\w*|strippers?|sealers?)\b/i, [/^Clean floors\b/i, /\bfloors?\b/i]],
     [/\b(?:sealants?|silicone|caulk\w*|mastics?)\b/i, /\b(?:seal\w*|caulk\w*)\b/i],
     // Petrol runs the small plant (saws, compactors, generators), not the diesel earthmoving plant (messy round 9,
     // run 2: petrol for the concrete saw matched to "Run earthmoving plant").

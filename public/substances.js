@@ -46,8 +46,28 @@
       ...R.rowOf(row), id: row.id, type: row.type || '', ...(row.file ? { file: { ...row.file } } : {}), ...(row.read && Array.isArray(row.read.fields) ? { read: { fields: [...row.read.fields] } } : {}),
     }));
     removing = '';
+    for (const row of products) if (row.product) answerTaken.add(String(row.product).toLowerCase());
   }
-  function clear() { load([], [], {}); panelStatus = ''; }
+  function clear() { load([], [], {}); panelStatus = ''; answerTaken.clear(); }
+  // The products the safety data sheet answer names as used become products here, each under its type, as the project page makes
+  // them (messy round 18: A run 2, "carpet adhesive n floor levelling compound" and B run 7, four cleaning products, made no product
+  // on the SWMS page, and each type was asked again). Each still takes its safety data sheet (D256). A type ticked "Not required" or
+  // already with a product is left as it is, and a product taken off is not added again for the same words.
+  const answerTaken = new Set();
+  function fromAnswer(sds) {
+    if (!R.sdsProducts || !String(sds || '').trim()) return false;
+    const before = [...products];
+    const add = R.sdsProducts(sds).filter((row) => !answerTaken.has(row.product.toLowerCase()) && !notUsed.has(row.type) && !before.some((one) => (R.coversType ? R.coversType(one, row.type) : one.type === row.type)));
+    for (const row of R.sdsProducts(sds)) answerTaken.add(row.product.toLowerCase());
+    for (const row of add) {
+      const used = new Set(products.map((one) => one.id));
+      let n = 1;
+      while (used.has(`sub-${n}`)) n += 1;
+      const named = row.product.replace(/\b(?:c?pvc|u-?pvc|lpg|mdf|sbs|abs|hdpe)\b/gi, (word) => word.toUpperCase());
+      products.push({ ...R.rowOf({ type: row.type, product: `${named.charAt(0).toUpperCase()}${named.slice(1)}` }), id: `sub-${n}`, type: row.type, step: '' });
+    }
+    return add.length > 0;
+  }
   const notUsedPayload = () => (notUsed.size ? [...notUsed] : undefined);
   const notUsedWhyPayload = () => { const kept = Object.entries(notUsedWhy).filter(([type, text]) => notUsed.has(type) && String(text || '').trim()); return kept.length ? Object.fromEntries(kept) : undefined; };
 
@@ -424,5 +444,5 @@
   }
   if (document.head) addStyle();
 
-  window.SiteWriteSubstances = { section, payload, notUsedPayload, notUsedWhyPayload, load, clear, need, typeNeed, printedTable };
+  window.SiteWriteSubstances = { section, payload, notUsedPayload, notUsedWhyPayload, load, clear, need, typeNeed, printedTable, fromAnswer };
 })();
