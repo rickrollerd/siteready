@@ -315,7 +315,9 @@ test('the user\'s own track isolation lowers a High rating, and isolation lines 
   const line = 'The track is closed to trains for the whole possession: signals at both ends are locked at stop and derailers are fitted at the worksite limits, so no train can enter the worksite';
   assert.equal(controlLevel(line), 'Isolate or engineer');
   const step = (draft) => draft.jobSteps.find((item) => item.step === 'Replace the sleepers and ballast');
-  assert.equal(step(draftOf(rail())).risk.after.level, 'High');
+  // Inside a track possession the library step is no longer High on its own lines (content18, messy round 17, B run 5); the user's
+  // own isolation line still rates as isolation and keeps it from High.
+  assert.notEqual(step(draftOf(rail())).risk.after.level, 'High');
   const own = draftOf(rail({ controlEdits: { 'Replace the sleepers and ballast': { removed: [], changed: [], added: [line] } } }));
   assert.equal(step(own).risk.after.level, 'Moderate');
 });

@@ -232,7 +232,10 @@ function rating(likelihood, consequence) {
 // So does a delivery kept to its own zone with people kept clear of the truck ("unloaded only in the loading zone", "Spotter keeps
 // people clear of the truck and forklift": messy round 15, A run 1, a user's own delivery step left High after these lines).
 const ALSO_HIGHER = /\b(?:restrained (?:with|to|by)|load restraint|earthed or bonded|bonded|emergency shut-?offs?|prevent\w* re-?energi[sz]\w*)\b|\b(?:unload\w*|load\w*|deliver\w*)\b[^.]{0,30}\bonly (?:in|at|inside) (?:the |a )?(?:designated |marked )?(?:loading|unloading|delivery|laydown) (?:zones?|areas?|bays?)\b|\b(?:keeps?|kept)\s+(?:people|everyone|workers|pedestrians|the public|others)\s+(?:clear|out|away)\b|\b(?:area|zone)s?\b[^.]{0,40}\bkept clear\b|\bwith the area clear\b|\blocate\w* (?:the )?services on site\b|\bservices? (?:are|is) (?:located|found)\b|\bpothol\w*|\bstops? safely if\b|\bfail[- ]safe\b|\bderail\w*|\bsignals?\b[^.]{0,40}\blocked\b|\bclosed to (?:trains|traffic|rail traffic|vehicles)\b|\bno (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)\b|\bno one (?:on foot )?is within the (?:\w+'? )?(?:working area|swing|reach)\b|\b(?:everyone|people|workers|others|the crew)(?: else)? (?:keeps?|stays?|stands?) (?:at least )?\d+(?:\.\d+)? ?m(?:etres?)? (?:clear|away|back)\b|\b(?:reversing|rear[- ]view|360)[- ]?cameras?\b|\bproximity (?:alarms?|sensors?|detection|warning devices?)\b|\bcollision (?:avoidance|warning) (?:systems?|devices?)\b|\bpresence[- ]sensing\b|\bfrom (?:the|a|an) (?:boom lift|ewp|cherry picker)\b/i;
-const higherOrder = (line) => ENGINEERING.test(line) || ALSO_HIGHER.test(line) || HIGHER.has(controlLevel(line));
+// Work inside a track possession, with the track closed to trains, isolates the work from trains (messy round 17, B run 5: "Replace the
+// sleepers and ballast" stayed High after its own possession line).
+const POSSESSION = /\b(?:inside|within|under|during) (?:a |the )?(?:track |rail )?possession\b/i;
+const higherOrder = (line) => ENGINEERING.test(line) || ALSO_HIGHER.test(line) || POSSESSION.test(line) || HIGHER.has(controlLevel(line));
 
 // What answers a catastrophic hazard, by its kind. A guardrail does not answer electric shock, a pipe
 // lifter does not answer a fall and safety mesh does not answer a fall from the edge, so a higher order
@@ -253,7 +256,7 @@ const ANSWERED_BY = [
   // A train is kept off the worksite by closing the track: signals locked at stop, derailers, a closure the user
   // states (messy round 9, run 5). Keeping clear of the crew's own plant does not answer it.
   { hazard: (words) => /\btrains?\b/i.test(words),
-    control: /\b(closed to (?:trains|rail traffic)|no trains? can (?:enter|reach|pass)|derail\w*|signals?\b[^.]{0,40}\blocked|track (?:is )?closed|isolat\w*)\b/i },
+    control: /\b(closed to (?:trains|rail traffic)|no trains? can (?:enter|reach|pass)|derail\w*|signals?\b[^.]{0,40}\blocked|track (?:is )?closed|isolat\w*|(?:inside|within|under|during) (?:a |the )?(?:track |rail )?possession)\b/i },
   { hazard: (words) => !/\btrains?\b/i.test(words) && (/\b(?:struck|strikes?|run over|hit)\b[^.]{0,40}\b(?:trucks?|plant|vehicles?|traffic|forklifts?|excavators?|machines?|machinery|sprayers?|spreaders?|rollers?|cars?)\b|\btraffic\b|\bvehicle strike\b|\bcrushed by (?:plant|a vehicle|a truck|a forklift|mobile plant)\b/i.test(words)),
     control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|(?:keeps?|kept) (?:people|everyone|workers|pedestrians|the public|others) (?:clear|out|away)|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?|(?:truck[- ]mounted |impact )?attenuators?|tmas?|crash cushions?|kept out of (?:its|the) path|stops? safely|closed to (?:trains|traffic|rail traffic|vehicles)|no (?:trains?|vehicles?|traffic) can (?:enter|reach|pass)|derail\w*|no one (?:on foot )?is within|reversing cameras?|proximity (?:alarms?|sensors?|detection))\b|\b(?:everyone|people|workers|others|the crew)(?: else)? (?:keeps?|stays?|stands?) (?:at least )?\d+(?:\.\d+)? ?m(?:etres?)? (?:clear|away|back)\b/i },
   // Striking a buried service: the service found on site first (located, potholed, the plans worked to).
@@ -303,11 +306,17 @@ function riskFor(step, shared = [], strict = false) {
 // checklist item 6). A control printed once in an earlier step and shared with this one counts for
 // this step's rating while the earlier step still prints it. Where the rating relies on it, the
 // step names that earlier step (seeAlso), so the reader finds the control.
+const PAIRED_STEPS = { 'Set up rescue equipment': ['Work over the water', 'Work from the barge or marine plant'] };
 const lineKey = (line) => String(line).replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 function ratedSteps(steps) {
   const printed = new Map();
   for (const step of steps) for (const line of step.controls || []) if (!printed.has(lineKey(line))) printed.set(lineKey(line), step.step);
+  // A step whose hazard another step's lines control: the rescue set-up's fall into the water is stopped by the barriers and
+  // railings of the work over the water (messy round 17, B run 7: "Set up rescue equipment" stayed High after its controls).
+  const byName = new Map(steps.map((step) => [step.step, step]));
   return steps.map(({ seeAlso: _seeAlso, ...step }) => {
+    const paired = (PAIRED_STEPS[step.step] || []).filter((name) => byName.has(name)).flatMap((name) => (byName.get(name).controls || []).map((text) => ({ text })));
+    if (paired.length) step = { ...step, sharedControls: [...(step.sharedControls || []), ...paired] };
     const shared = (step.sharedControls || []).filter((item) => printed.has(lineKey(item.text)) && printed.get(lineKey(item.text)) !== step.step);
     if (!shared.length) return { ...step, risk: riskFor(step) };
     const risk = riskFor(step, shared.map((item) => item.text));
@@ -439,6 +448,9 @@ function plantFor(text) {
     const global = new RegExp(entry.pattern.source, entry.pattern.flags.includes('g') ? entry.pattern.flags : `${entry.pattern.flags}g`);
     if (entry.skipIf && [...text.matchAll(global)].every((match) => entry.skipIf.test(text.slice(Math.max(0, match.index - 20), match.index + match[0].length + 20)))) continue;
     if (entry.item === 'Scaffold' && !/\bscaffold/i.test(text.replace(/\bmobile scaffold\w*/gi, ''))) continue;
+    // Rail welds made by the aluminothermic (thermit) process use no electric welder (messy round 17, B run 5: the user's thermit weld
+    // step listed a welder, tested and tagged to AS/NZS 3012).
+    if (entry.item === 'Welder' && /\b(?:thermite?|alumino[- ]?thermic)\b/i.test(text) && !/\b(?:arc|mig|tig|stick|electric|electrodes?|welding machines?|welders? and leads|flash[- ]butt)\b/i.test(text)) continue;
     // The general EWP goes beside a scissor or boom lift only where the words name an EWP apart from it (messy round 10,
     // run 8: "our scissor lift" and "from the EWP" listed the scissor lift only).
     if (entry.item === 'Elevating work platform' && found.some((item) => /elevating work platform|Scissor lift/.test(item.item)) && !SEPARATE_EWP.test(withoutScissorEwp(text))) continue;
@@ -556,7 +568,9 @@ function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const liveSaid = live.replace(NO_LINES, ' ');
   const linesDenied = liveSaid !== live && !LINE_WORDS.test(liveSaid);
   if (LINE_WORDS.test(`${input.task || ''}\n${liveSaid}`) || (LINE_WORDS.test(coreText) && !noLive && !linesDenied)) rows.push({ type: 'Contact with power lines', equipment: 'Keep everyone well clear of a person, plant or load in contact with a line. Call 000 and the network operator. The operator stays in the plant unless there is fire', detail: '' });
-  if (highRisk.some((item) => /energised electrical/i.test(item)) || /\b(energised parts?|live cables?|energised cables?|live electrical parts?|live parts|partly energised)\b/i.test(text)) rows.push({ type: 'Electric shock or arc flash', equipment: 'Isolate the supply before touching the person. Low voltage rescue kit, CPR and defibrillator (AED), burns first aid', detail: '' });
+  // "No" to live electrical work: a line naming live parts nearby does not bring the low voltage rescue row (messy round 17, A run 3).
+  const liveWorkNo = /^\s*no\b/i.test(String((input.facts && input.facts.liveElectrical) || ''));
+  if (highRisk.some((item) => /energised electrical/i.test(item)) || (!liveWorkNo && /\b(energised parts?|live cables?|energised cables?|live electrical parts?|live parts|partly energised)\b/i.test(text))) rows.push({ type: 'Electric shock or arc flash', equipment: 'Isolate the supply before touching the person. Low voltage rescue kit, CPR and defibrillator (AED), burns first aid', detail: '' });
   if (highRisk.some((item) => /trench|shaft/i.test(item))) rows.push({ type: 'Trench', equipment: 'Rescue plan for a trench collapse (Excavation work Code of Practice s 3.8). No one enters an unsupported trench to rescue', detail: '' });
   if (highRisk.some((item) => /drowning/i.test(item))) rows.push({ type: 'Person in the water', equipment: 'Raise the alarm and reach with the rescue pole or throw the life ring. No one enters the water to rescue unless trained and equipped. Call 000', detail: '' });
   if (highRisk.some((item) => /confined space/i.test(item))) rows.push({ type: 'Confined space', equipment: 'Rescue plan and equipment, started from outside the space', detail: '' });
@@ -1093,7 +1107,12 @@ function registersFor(draft, input = {}) {
   const slings = listed.some((item) => /^Lifting gear\b/.test(item.known || item.item)) || /\ba licensed dog(?:ger|man) directs\b/i.test(lineText.replace(/\bwhere\b[^.]*\ba licensed dog(?:ger|man) directs\b/gi, ''))
     || /\b(?:slung|slinging\b[^.]{0,60}\bis done) by (?:a )?licensed dog(?:gers?|man|men)\b(?:(?! where)[^.])*\./i.test(lineText)
     || /\b(?:slung|directed)\b[^.]{0,80}\bonly by (?:a )?licensed dog(?:gers?|man|men)\b/i.test(lineText);
-  if (slings && !(craneCompany && !ourSlinging) && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging|advanced rigging)/.test(name))) qualifications.push(DOGGING);
+  // No crane, and the lifting gear unticked: nothing is slung, so the excavator's lifting lines bring no dogging licence (messy round
+  // 17, A run 2: "dogging or rigging" listed with No crane and the lifting gear unticked).
+  const choice = input && input.plantChoice && typeof input.plantChoice === 'object' ? input.plantChoice : null;
+  const gearOff = craneNone && Boolean(choice) && Array.isArray(choice.notUsed) && choice.notUsed.some((name) => /^Lifting gear\b/.test(String(name || ''))) && !listed.some((item) => /^Lifting gear\b/.test(item.known || item.item));
+  if (gearOff) qualifications.splice(0, qualifications.length, ...qualifications.filter((name) => name !== DOGGING || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText)));
+  if (slings && !gearOff && !(craneCompany && !ourSlinging) && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging|advanced rigging)/.test(name))) qualifications.push(DOGGING);
   // A licence or ticket the user gave for their own plant item is listed with the licences too, not only in
   // the plant table (messy round 5: HR and MR truck licences printed only in the plant table).
   for (const item of listed.filter((entry) => entry.own && !entry.licenceAsked)) {

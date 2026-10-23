@@ -261,7 +261,20 @@ function designsNeeded(draft) {
   const found = new Map();
   const task = clean(draft && draft.task);
   for (const step of (draft && draft.jobSteps) || []) {
-    if (step.own) continue;
+    // The user's own step that names a design ("Form up the capping beam to the formwork design") relies on it, and is held by it
+    // where it builds the work (messy round 17, B run 7: the own formwork step named the design and was not linked to it).
+    if (step.own) {
+      const words = [step.step, ...(step.controls || []), ...(step.hazards || [])].map((line) => withoutCitation(String(line || ''))).join('\n');
+      for (const kind of KINDS) {
+        const label = clean(kind.label).toLowerCase();
+        if (!label || !new RegExp(`\\b${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}s?\\b`, 'i').test(words)) continue;
+        if (kind.when && !kind.when.test(task)) continue;
+        if (!found.has(kind.id)) found.set(kind.id, { id: kind.id, label: kind.label, steps: [] });
+        const line = (step.controls || []).find((item) => typeof item === 'string' && new RegExp(label.split(/\s+/)[0], 'i').test(item)) || '';
+        found.get(kind.id).steps.push({ step: step.step, line, holds: /^(?:erect|stand|form|build|install|set|fix|place)\w*\b/i.test(clean(step.step)), own: true });
+      }
+      continue;
+    }
     for (const kind of KINDS) {
       if (kind.steps && !kind.steps.test(step.step || '')) continue;
       if (kind.when && !kind.when.test(task)) continue;
@@ -487,7 +500,9 @@ function tableRows(draft) {
     row.status === 'given' ? row.by : '',
     row.status === 'given' ? [row.number, revisionText(row.revision) ? `rev ${revisionText(row.revision)}` : ''].filter(Boolean).join(' ') : '',
     row.status === 'given' ? dateText(row.date) : '',
-    `${row.statusText}${row.steps.length ? ` Used in: ${row.steps.join('; ')}.` : ''}`,
+    // A design not issued that holds no step says so where it names the steps, as the page does (messy round 17, A run 2 and B run 7:
+    // the page said no step is held while the table said "Used in: Pump and place concrete").
+    `${row.statusText}${row.steps.length ? (row.status === 'notIssued' && Array.isArray(row.held) && !row.held.length ? ` Worked to in: ${row.steps.join('; ')}. No step is held.` : ` Used in: ${row.steps.join('; ')}.`) : ''}`,
   ]);
 }
 const TABLE_TITLE = 'Designs this SWMS relies on';

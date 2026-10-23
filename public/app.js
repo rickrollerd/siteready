@@ -1424,7 +1424,8 @@ const REMOVED_WARNINGS = {
   water: 'The work is near water. Make sure drowning risks are controlled.',
   power: 'The work is near power lines. Make sure approach distances are kept.',
   propping: 'The work needs temporary support. Make sure the structure is propped before it is cut or loaded.',
-  trench: 'The work involves a trench. Make sure the trench is supported or kept shallow before anyone enters it.',
+  // The group's first step locates the underground services (messy round 17, B run 8: unticking it took that step with no word of it).
+  trench: 'The work involves digging or a trench. Make sure underground services are located before digging, and the trench is supported or kept shallow before anyone enters it.',
   inTrench: 'The work is in a trench deeper than 1.5 m. Make sure the trench is supported before anyone enters it.',
 };
 
@@ -2839,7 +2840,9 @@ function readNote(row) {
 // where no step of the SWMS builds to the design, and the SWMS said only to update it when the design is issued).
 function designHoldNote(found, question) {
   if (found && Array.isArray(found.held) && !found.held.length) return 'No step of this SWMS builds to this design, so no step is held. The SWMS says: "Not issued yet. Update this SWMS when it is issued."';
-  return question ? 'The answer above prints as a hold point: the steps that rely on the design do not start until it is issued and this SWMS is updated. You can leave the answer empty.' : 'The steps that build to it print a hold point: "Do not start this step until the design is issued and this SWMS is updated."';
+  // Before the draft says which steps build to it, the page says what D291 does, not that every use is held (messy round 17, A run 2:
+  // "The answer above prints as a hold point" for a pour crew whose SWMS printed no hold point).
+  return question ? 'The steps of this SWMS that build to the design print a hold point: they do not start until it is issued and this SWMS is updated. Steps that only work to it, such as the pour, say to update this SWMS when it is issued. You can leave the answer empty.' : 'The steps that build to it print a hold point: "Do not start this step until the design is issued and this SWMS is updated."';
 }
 function designCard(row, found, { question = false } = {}) {
   const id = esc(row.id);
@@ -2851,7 +2854,7 @@ function designCard(row, found, { question = false } = {}) {
   return `<fieldset class="field design-card" id="design-${id}" data-design="${id}" data-status="${esc(status)}" tabindex="-1">
     <legend>${esc(row.what || (added ? 'Another design' : (found && found.label) || 'Design'))}</legend>
     ${question ? '<p class="meta">Give the design once here. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS.</p>' : ''}
-    ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : question ? '' : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
+    ${found && found.steps.length ? `<p class="meta">${row.status === 'notIssued' && Array.isArray(found.held) && !found.held.length ? `Worked to in: ${esc(found.steps.join('; '))}. No step is held.` : `Used in: ${esc(found.steps.join('; '))}.`}</p>` : question ? '' : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
     <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
     <div class="design-given">
       ${readNote(row)}
@@ -3228,7 +3231,7 @@ function designsTable(draft, swmsId) {
   const note = `${designs ? 'Each step that relies on a design names it. ' : ''}${methods ? 'The work follows each methodology listed here. ' : ''}Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.`;
   const labels = [first, 'Prepared by', 'Document or drawing, revision', 'Date', 'Status'];
   return `<h4>${title}</h4><p class="meta">${note}</p>
-    <table class="stack"><thead><tr>${labels.map((label) => `<th>${label}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${cells(row).map((value, i) => `<td data-label="${labels[i]}">${esc(value)}</td>`).join('')}<td data-label="Status">${esc(`${row.statusText}${row.steps.length ? ` Used in: ${row.steps.join('; ')}.` : ''}`)}${opener(row)}</td></tr>`).join('')}</tbody></table>`;
+    <table class="stack"><thead><tr>${labels.map((label) => `<th>${label}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${cells(row).map((value, i) => `<td data-label="${labels[i]}">${esc(value)}</td>`).join('')}<td data-label="Status">${esc(`${row.statusText}${row.steps.length ? (row.status === 'notIssued' && Array.isArray(row.held) && !row.held.length ? ` Worked to in: ${row.steps.join('; ')}. No step is held.` : ` Used in: ${row.steps.join('; ')}.`) : ''}`)}${opener(row)}</td></tr>`).join('')}</tbody></table>`;
 }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 function designDate(value) {

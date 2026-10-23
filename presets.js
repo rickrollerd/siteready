@@ -158,8 +158,13 @@ const BUILDING_HEIGHT = /\b(roofs?|ceilings?|scaffold\w*|storeys?|level [1-9]\d*
 
 // Standard answers for a required fact, as { label, text }. With the task, the fall
 // control answers are put in the order that suits it.
+// The boom lift answer's steel connection wording only where the work is steel (messy round 17, A run 3 and the SiteLink run: "Connections
+// are made from boom lifts ... No one climbs the steel" offered for CCTV cameras and ductwork). Otherwise the same answer without the
+// steel words, as the falls code's boom lift anchor line has it (s 5.1).
+const STEEL_TASK = /\b(?:steel(?!\s+(?:studs?|track|frames?\s+(?:walls?|partitions?)|stud))|steelwork|purlins?|girts?|portal frames?|trusses|beams?|columns?|rafters)\b/i;
+const BOOM_GENERAL = 'Work at height is done from boom lifts with guardrails, with harnesses attached to the boom lift anchor points.';
 function answersFor(id, task) {
-  const list = (ANSWERS[id] || []).map(([label, text]) => ({ label, text }));
+  const list = (ANSWERS[id] || []).map(([label, text]) => ({ label, text: label === 'Boom lifts' && task && !STEEL_TASK.test(task) ? BOOM_GENERAL : text }));
   if (id === 'pressureTesting' && task) return pressureAnswers(list, task);
   if (id === 'silicaControls') return silicaAnswers(list, task);
   // The hospital's shutdown answer only where the work is at a hospital (messy round 10, run 6).

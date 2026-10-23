@@ -227,6 +227,9 @@ const libraryLine = (text) => {
 };
 function anchorLine(step, stateId) {
   if (stepLines(step).slice(1).some((line) => ANCHOR_SAID.test(lineText(line)))) return null;
+  // A line that clips the harness to the EWP's own anchor already says what it is clipped to (messy round 17, A run 3: "Use an EWP
+  // to fit cameras ..., with the harness clipped to its anchor" got the 15 kN anchor rating line too).
+  if (stepLines(step).slice(1).some((line) => /\b(?:EWPs?|elevating work platforms?|boom lifts?|baskets?)\b[^.]*\bharness\b[^.]*\banchor\b/i.test(lineText(line)))) return null;
   const boom = /\bboom(?:-type)? (?:lifts?|EWPs?|platforms?)\b|\bEWPs?\b|\belevating work platforms?\b/i.test([step.step, ...(step.hazards || [])].join(' '));
   const found = libraryLine(boom ? BOOM_ANCHOR : RATED_ANCHOR);
   return found ? localControl(found.text, found.source, stateId) : null;

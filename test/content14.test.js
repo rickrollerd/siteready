@@ -231,7 +231,8 @@ test('SiteWrite\'s own order: bearings before the nosing pour, tiling drilled an
   const tiles = names(draftOf(pack('b-tiling', 'Trade installation: all tiled areas', { state: 'nsw', crane: 'company' })));
   assert.ok(before(tiles, 'Lay tiles', 'Drill tiled walls for fixings'));
   assert.ok(before(tiles, 'Lay tiles', 'Clean with chemicals'));
-  assert.ok(before(tiles, 'Cut tiles and stone', 'Lay the screed'));
+  // Tiles are cut as they are laid, after the screed they go on (content18, messy round 17, A runs 1 and 4).
+  assert.ok(before(tiles, 'Lay the screed', 'Cut tiles and stone'));
   const whole = names(draftOf(pack('b-tiling', 'Trade installation: whole project', { state: 'nsw', crane: 'company' })));
   assert.ok(before(whole, 'Cut tiles and stone', 'Lay tiles near open edges'));
   assert.ok(before(whole, 'Mix and spread the tile adhesive', 'Lay tiles near open edges'));
