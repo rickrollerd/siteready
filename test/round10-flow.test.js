@@ -28,6 +28,8 @@ const stepLines = (draft) => (draft.jobSteps || []).flatMap((step) => step.contr
 const ROOF = 'Install remote refrigeration: condensing units on the roof plant deck, refrigerant pipework, brazing and pressure testing.';
 const ROOF_FACTS = { fallControl: 'Plant deck has permanent guardrails.', hotWorkPermit: 'Hot work permit from the builder, fire watch 30 minutes after.', pressureTesting: 'Nitrogen to 4000 kPa with a regulator, area barricaded.' };
 const NO_HARNESS = 'No harness is used. The plant deck has permanent guardrails on all sides.';
+// Since messy round 16 (flow17) a "no harness" sentence never prints as a control; what else the answer says prints.
+const NO_HARNESS_REST = 'The plant deck has permanent guardrails on all sides.';
 
 test('"No harness is used" takes the harness, its training and its lines off, and prints whole once in the step at height', () => {
   // Run 1: the file printed a full body harness for the roof step, harness training, and the harness, snap
@@ -39,8 +41,8 @@ test('"No harness is used" takes the harness, its training and its lines off, an
   assert.ok(!ticked(draft).includes('harness'));
   assert.ok(!(draft.qualifications || []).some((name) => /harness/i.test(name)));
   const lines = stepLines(draft);
-  assert.deepEqual(lines.filter((line) => /harness|snap hooks?|lanyards?|fall arrest equipment/i.test(line)), [NO_HARNESS]);
-  const holding = draft.jobSteps.filter((step) => step.controls.includes(NO_HARNESS)).map((step) => step.step);
+  assert.deepEqual(lines.filter((line) => /harness|snap hooks?|lanyards?|fall arrest equipment/i.test(line)), []);
+  const holding = draft.jobSteps.filter((step) => step.controls.includes(NO_HARNESS_REST)).map((step) => step.step);
   assert.equal(holding.length, 1);
   assert.match(holding[0], /roof/i);
   // The questions page shows the harness unticked, and still asks the question, so the answer is kept.
@@ -64,7 +66,8 @@ test('unticking the harness by hand keeps the "no harness" answer, and it does n
   const draft = prepareDraft(input);
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
   assert.ok(!ticked(draft).includes('harness'));
-  assert.equal(stepLines(draft).filter((line) => line === NO_HARNESS).length, 1);
+  assert.equal(stepLines(draft).filter((line) => line === NO_HARNESS_REST).length, 1);
+  assert.ok(!stepLines(draft).includes(NO_HARNESS));
 });
 
 test('a scope rule against harnesses brings no harness and no harness question; "Not used" prints with what it is about', () => {
@@ -80,7 +83,8 @@ test('a scope rule against harnesses brings no harness and no harness question; 
   // Asked anyway (a harness ticked by the user) and answered "Not used. ...": it says what it is about.
   const draft = draftOf({ ...body, facts: { harnessSystem: 'Not used. Unloading is done from the ground beside the truck, nobody stands on the tray.' }, ppe: ['hardHat', 'glassesClear', 'boots', 'hivis', 'harness'] });
   assert.equal(draft.kind, 'draft', (draft.missing || []).join('; '));
-  assert.ok(stepLines(draft).includes('No harness is used. Unloading is done from the ground beside the truck, nobody stands on the tray.'));
+  assert.ok(stepLines(draft).includes('Unloading is done from the ground beside the truck, nobody stands on the tray.'));
+  assert.ok(!stepLines(draft).some((line) => /No harness is used/.test(line)));
   assert.ok(!stepLines(draft).some((line) => /^Not used\./.test(line)));
   assert.ok(!ticked(draft).includes('harness'));
 });

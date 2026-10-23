@@ -300,7 +300,7 @@ app.post('/api/draft/questions', (req, res) => {
   // The designs the job steps rely on, asked under the site questions (designs.js), as the draft
   // would print them now. Nothing is said while the draft would be stood down.
   // A Recommended step ticked with the user's picks because it was not in the list they saw (input.js kindsKept).
-  res.json({ ...result, ...designsAsked(body), ...(body.kindsKept ? { kindsKept: body.kindsKept } : {}) });
+  res.json({ ...result, ...designsAsked(body), ...(body.kindsKept ? { kindsKept: body.kindsKept } : {}), ...(body.kindsBrought ? { kindsBrought: body.kindsBrought } : {}) });
 });
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
@@ -488,7 +488,7 @@ app.post('/api/draft', (req, res) => {
   const checkParts = result.kind === 'draft' ? { checkParts: partHashes(result) } : {};
   // The high risk work the page offers to add, and the items the user added (messy round 5).
   const options = highRiskOptions(draftBody(req.body || {}), result);
-  res.json({ ...result, ...legal, ...checkParts, ...options, ...(body.kindsKept ? { kindsKept: body.kindsKept } : {}) });
+  res.json({ ...result, ...legal, ...checkParts, ...options, ...(body.kindsKept ? { kindsKept: body.kindsKept } : {}), ...(body.kindsBrought ? { kindsBrought: body.kindsBrought } : {}) });
 });
 
 // SiteWrite's own check before the person's (D286): the download gate, then Builder check on the

@@ -709,18 +709,26 @@
   // Only a plain first word takes a small letter: a name typed with its capital keeps it ("Hilti vac on the
   // drill"; messy round 10, run 5).
   const PLAIN_START = /^(?:wear|wearing|use|using|used|keep|kept|store|stored|avoid|do|don't|dont|never|always|only|no|not|wash|ensure|apply|handle|work|provide|ventilate|ventilation|dispose|clean|mix|open|close|remove|take|read|follow|check|if|in|on|when|where|after|before|all|any|a|an|the|good|adequate|local|mechanical|natural|gloves?|safety|eye|eyes|skin|face|chemical|nitrile|rubber|protective|respiratory|respirator|dust|on-tool|extraction|vacuum|wet|water|soap|first|rinse|flush|seek|call|get|move|cover|contain|clear|stop|turn|switch|isolate|label|labelled|decant|pour|spray|brush|roll|cure|allow|let|leave|minimise|limit|restrict|barricade|signs?|fire|hot|cold|heat|ignition|smoking|eating|drinking|wipe|vac|p2|ppe)$/i;
-  const inLine = (text) => {
-    const words = clean(text).replace(/[.;]+$/, '');
+  // So does each part after a semicolon in a line ("avoid breathing fumes; work upwind; Cool burns with water" reads "...; cool
+  // burns with water"), a lone "n" reads "and" and a P2 respirator keeps its capital (messy round 16, A run 4 and B run 8:
+  // "wear gloves n safety glasses", "wear p2 mask", "; Cool burns" and "; Spill kit" printed as typed).
+  const PLAIN_MORE = /^(?:cool|spill|spills|spilt|burns?|kit|eyewash|shower|absorb|bund|bunded|collect|sweep|mop|soak|dilute|neutralise|evacuate|extinguish|notify|report|inhale|inhalation|swallow|ingestion|contact|splash|splashes|breathing|breathe|carry|lift|refuel|refuelling|fuel|engine|container|containers|lids?|caps?|tightly|upright|away|goggles|apron|overalls|boots|long|sleeves|ear|hearing|face|shield|barrier|cream|hands|keep|stay|stand|wait|ventilated|outdoors|indoors|upwind|downwind|small|large|fumes?|vapours?|mist|spray|sparks?|flames?|naked)$/i;
+  const tidyPart = (part) => {
+    const words = part.trim();
     const first = words.split(/\s+/)[0] || '';
-    return /^[A-Z][a-z]/.test(words) && PLAIN_START.test(first) ? `${words[0].toLowerCase()}${words.slice(1)}` : words;
+    return /^[A-Z][a-z]/.test(words) && (PLAIN_START.test(first) || PLAIN_MORE.test(first)) ? `${words[0].toLowerCase()}${words.slice(1)}` : words;
   };
+  const typedSds = (text) => clean(text).replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and').replace(/\bp([123])\b/g, 'P$1');
+  const inLine = (text) => typedSds(text).replace(/[.;]+$/, '').split(/;\s+/).map(tidyPart).join('; ');
+  // A line of the products table: its first capital, "n" as "and" and P2 with its capital.
+  const tableLine = (text) => { const value = typedSds(text); return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : value; };
   // The step's one line for a product (D257): "Curing compound or release agent (Product X): wear
   // chemical resistant gloves; wear goggles; see its safety data sheet." '' until the product has a
   // name and controls.
   function stepLine(row) {
     const item = rowOf(row);
     if (!item.product || isOpen(item.product) || !item.controls.length) return '';
-    const head = item.type ? `${SHORT.get(item.type)} (${item.product})` : item.product;
+    const head = item.type ? `${SHORT.get(item.type)} (${item.product})` : tableLine(item.product);
     return `${head}: ${item.controls.map(inLine).join('; ')}; see its safety data sheet.`;
   }
 
@@ -737,7 +745,7 @@
     if (type === 'Adhesives' && /\b(?:adhesives?|glues?)\b/i.test(clean(item.product))) return true;
     return type === 'Bitumen and asphalt' && /\b(?:bitumen|bituminous|sbs|app|torch[- ]?on)\b/i.test(clean(item.product));
   }
-  const api = { reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, sdsProducts, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
+  const api = { tableLine, reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, sdsProducts, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

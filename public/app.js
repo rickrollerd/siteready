@@ -96,6 +96,8 @@ const PROFILE_FIELDS = { name: 'profile-company', abn: 'profile-abn', address: '
 let profile = loadProfile();
 // Falls answered No, kept after the draft asked to check it against a step that rates a fall High (fallCheckBlock).
 let fallNoKept = false;
+// "No crane" kept after the page asked to check it against a task that names a crane (craneCheckBlock).
+let craneNoKept = false;
 let pendingLogo = profile.logo || '';
 
 function loadProfile() {
@@ -565,6 +567,7 @@ function payload() {
     fallRisk: (document.querySelector('input[name="fallRisk"]:checked') || {}).value || '',
     // Falls answered No, kept after the draft asked to check it (fallCheckBlock).
     fallNoKept: fallNoKept || undefined,
+    craneNoKept: craneNoKept || undefined,
     residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
     // Unanswered until the user answers (messy-user test, 14 October 2026): no crane company is assumed.
     crane: (document.querySelector('input[name="crane"]:checked') || {}).value || '',
@@ -607,6 +610,9 @@ function payload() {
     // reload or sign-in and the task is then reworded (messy round 12, B run 8 and A run 2).
     kindsOff: stepsOff.size ? [...stepsOff] : undefined,
     kindsSeen: stepPicks && stepsSeen ? stepsSeen : undefined,
+    // The crane and fall answers the step list was drawn with, and the steps a changed answer brought (input.js).
+    answersSeen: stepsSeen && stepsSeenWith ? stepsSeenWith : undefined,
+    kindsBrought: stepsBrought.size ? [...stepsBrought] : undefined,
     priorKinds: priorKinds && !stepPicks ? priorKinds : undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
@@ -1092,6 +1098,10 @@ let stepPicks = null;
 // The steps the list suggested when it was last drawn. A Recommended step found after it (from a site answer) is
 // not in it, so the server ticks it with the picks: the user never saw it to untick (messy round 15, A run 4).
 let stepsSeen = null;
+// The crane and fall answers the step list was drawn with, and the steps a changed answer brought since: those are
+// Recommended, and kept with the picks like any other (messy round 16, B run 7).
+let stepsSeenWith = null;
+let stepsBrought = new Set();
 // The scope reading's or pick list's steps for the task as it was before the user reworded it.
 let priorKinds = null;
 // The steps the user unticked by hand. They stay unticked when the task's words are changed and Continue is pressed again,
@@ -1170,6 +1180,8 @@ function replaceTask(written, answered = {}) {
   replaced = { labels: new Map(((questions && questions.required) || []).map((item) => [item.id, item.label])) };
   stepPicks = null;
   priorKinds = null;
+  stepsBrought = new Set();
+  stepsSeenWith = null;
   stepsOff = new Set();
   leaveOut = null;
   scopeUnmatched = null;
@@ -1236,6 +1248,8 @@ function newSwms() {
   stepPicks = null;
   priorKinds = null;
   stepsOff = new Set();
+  stepsBrought = new Set();
+  stepsSeenWith = null;
   leaveOut = null;
   scopeUnmatched = null;
   scopeWordsNow = null;
@@ -1350,8 +1364,12 @@ const pickerName = (name) => ((document.querySelector('input[name="crane"]:check
 function renderSteps(steps) {
   // A step the user unticked by hand is drawn unticked, whatever the server last said.
   const chosen = new Set((steps.chosen || []).filter((id) => !stepsOff.has(id)));
-  const locked = new Set(steps.locked || []);
+  // A step a changed answer brought is Recommended too, while it is suggested.
+  const brought = new Set([...stepsBrought].filter((id) => (steps.suggested || []).includes(id) && !(steps.locked || []).includes(id)));
+  const locked = new Set([...(steps.locked || []), ...brought]);
   const around = new Set(steps.around || []);
+  // Steps the plant confirmed brought, named as such so they can be unticked here (messy round 16, A run 4).
+  const plant = new Set(steps.plant || []);
   stepsAround = [...around];
   stepsSeen = [...(steps.suggested || [])];
   // Suggested steps keep their place when unticked; added steps follow them. A step unticked by hand stays in the
@@ -1364,7 +1382,8 @@ function renderSteps(steps) {
     const off = locked.has(id) && !chosen.has(id) && !around.has(id);
     const warning = around.has(id)
       ? '<span class="step-note">For where the work is done, not the work itself. It is ticked again when you add a step for the work.</span>'
-      : off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || 'The task calls for this step. Make sure this risk is covered another way before work starts.')}</span>` : '';
+      : plant.has(id) && chosen.has(id) ? '<span class="step-note">Added by the plant you confirmed. Untick it if your crew does not do that work.</span>'
+      : off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || (brought.has(id) ? 'Your crane or fall answer calls for this step. Make sure this risk is covered another way before work starts.' : 'The task calls for this step. Make sure this risk is covered another way before work starts.'))}</span>` : '';
     return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(pickerName(kind.label))}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
   }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
   fillStepAdd();
@@ -1372,6 +1391,7 @@ function renderSteps(steps) {
 
 // The Recommended steps the server ticked with the user's picks (input.js kindsKept) are picks from now on.
 function keepFoundSteps(data) {
+  if (data && Array.isArray(data.kindsBrought)) data.kindsBrought.filter((id) => typeof id === 'string' && !stepsOff.has(id)).forEach((id) => stepsBrought.add(id));
   if (!stepPicks || !data || !Array.isArray(data.kindsKept) || !data.kindsKept.length) return;
   stepPicks = [...new Set([...stepPicks, ...data.kindsKept.filter((id) => typeof id === 'string' && !stepsOff.has(id))])];
 }
@@ -1396,19 +1416,39 @@ const REMOVED_WARNINGS = {
 // adding a step sent the page back to "Prepare the statement" and hid the review banner).
 async function refreshSteps() {
   const drafted = Boolean(shownDraft) && !resultEl.classList.contains('hidden');
+  // The draft's questions that follow the job steps (products, emergency, plant, designs) are held while the draft is
+  // updated for the change, so none outlives its step on screen (messy round 16, A run 2: after the flashing step was
+  // unticked, its cement and silica questions stayed until Update the draft was pressed).
+  if (drafted) draftUpdating('Updating the draft for your change to the job steps.');
   const asked = await loadQuestions({ stay: true, keepTicked: true, keepDraft: drafted }).catch((error) => { document.getElementById('facts-error').textContent = error.message; return false; });
-  if (!drafted || !asked) return undefined;
+  if (!drafted || !asked) { draftUpdating(''); return undefined; }
   return updateInPlace();
+}
+// The draft's step questions held, with a note saying why, or let go ('').
+const STEP_PANELS = '#substances-panel, #emergency-panel, #plant-panel, .design-card';
+function draftUpdating(note) {
+  resultEl.querySelectorAll(STEP_PANELS).forEach((panel) => {
+    panel.classList.toggle('updating', Boolean(note));
+    if (note) panel.setAttribute('inert', ''); else panel.removeAttribute('inert');
+    let said = panel.querySelector(':scope > .updating-note');
+    if (note && !said) { said = document.createElement('p'); said.className = 'updating-note'; said.setAttribute('role', 'status'); panel.prepend(said); }
+    if (said) { if (note) said.textContent = note; else said.remove(); }
+  });
 }
 // The draft prepared again where it is, or, where the change brings a new question with no answer yet,
 // the page goes to that question and the draft stays as it is until it is answered.
 async function updateInPlace() {
   const open = ((questions && questions.required) || []).filter((item) => !item.choices && !String((document.getElementById(`fact-${item.id}`) || {}).value || '').trim());
   if (open.length) {
+    // The draft's step questions stay held until the draft can be updated, so the user does not answer ones the change
+    // may take away.
+    draftUpdating(`This part updates once you answer "${open[0].label}" above and press Prepare the statement.`);
     goToAnswer(open[0].id);
     return undefined;
   }
-  return prepareDraft({ scroll: false });
+  const done = await prepareDraft({ scroll: false });
+  if (!done) draftUpdating('');
+  return done;
 }
 
 // PPE for all work and PPE for particular steps (D246, D247). ppePlaced holds where the user put
@@ -1537,9 +1577,22 @@ document.getElementById('step-add').addEventListener('change', (event) => {
 
 document.getElementById('step-search').addEventListener('input', searchStepsLater);
 
+// The steps the task's words suggest now, as Continue gives them: a task still as picked or read from a scope starts from
+// its own steps, and a reworded one from the steps found in its words, with those the pick list or scope chose that the
+// words still name (messy round 16, A run 4: after the task was retyped, "Go back to the suggested steps" dropped
+// "Install windows", which the new words still name).
 document.getElementById('steps-reset').addEventListener('click', () => {
-  stepPicks = null;
+  const task = document.getElementById('task').value.trim();
+  const scope = window.siteWriteScopeTask;
+  const fromScope = scope && scope.task === task && Array.isArray(scope.kinds);
+  const picked = !fromScope && pickedTask && pickedTask.task === task && Array.isArray(pickedTask.kinds);
+  const before = scope && scope.task !== task && Array.isArray(scope.kinds) ? scope.kinds
+    : !fromScope && pickedTask && pickedTask.task !== task && Array.isArray(pickedTask.kinds) ? pickedTask.kinds : null;
+  stepPicks = fromScope ? [...scope.kinds] : picked ? [...pickedTask.kinds] : null;
+  priorKinds = !stepPicks && before && before.length ? [...before] : stepPicks ? null : priorKinds;
+  choicesTask = task;
   stepsOff.clear();
+  stepsBrought = new Set();
   refreshSteps();
 });
 
@@ -1748,11 +1801,14 @@ function drawBlankForm(box) {
   // (messy round 13, A run 2: "rated for na m" printed).
   const said = [];
   const G = window.SiteWriteGate;
+  const before = kept.template.split(BLANK_SPLIT);
   form.querySelectorAll('[data-blank-n]').forEach((input) => {
     const value = values[Number(input.dataset.blankN)] || '';
     if (document.activeElement !== input && input.value !== value) input.value = value;
     input.classList.toggle('empty', !input.value.trim());
-    const why = input.value.trim() && G ? (G.blankFillNeed ? G.blankFillNeed(input.value) : G.notAnswer(input.value)) : '';
+    // A blank that asks who ("rated by ____") names someone, not "the anchor installer" (messy round 16, A run 2).
+    const who = G && G.whoFillNeed && /\bby\s*$/i.test(before[Number(input.dataset.blankN)] || '') ? G.whoFillNeed(input.value) : '';
+    const why = input.value.trim() && G ? (G.blankFillNeed ? G.blankFillNeed(input.value) : G.notAnswer(input.value)) || who : '';
     input.classList.toggle('bad', Boolean(why));
     if (why) said.push(`${input.getAttribute('aria-label') || 'This blank'}: ${why}`);
   });
@@ -2017,6 +2073,7 @@ async function loadQuestions(options = {}) {
   const warning = document.getElementById('fall-warning');
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
+  showCraneWarning();
   // Work SiteWrite has no job steps for is stood down: the user hears it here, not only at the draft.
   showStandDown(data);
   weakNotes = weakMap(data.weak);
@@ -2057,6 +2114,7 @@ async function loadQuestions(options = {}) {
   document.querySelectorAll('[data-site]').forEach((el) => { if (siteMemory[el.dataset.site] !== undefined) el.value = siteMemory[el.dataset.site]; });
   showAllBlanks();
   drawDesigns(data.designs || []);
+  stepsSeenWith = { crane: sent.crane || '', fallRisk: sent.fallRisk || '' };
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
   if (!options.stay) { factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); markStage('questions'); }
@@ -2116,11 +2174,14 @@ function fillStart(input) {
   showSlinging();
   pick('fallRisk', input.fallRisk);
   fallNoKept = input.fallNoKept === true;
+  craneNoKept = input.craneNoKept === true;
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   stepsOff = new Set(Array.isArray(input.kindsOff) ? input.kindsOff.filter((id) => typeof id === 'string' && !(stepPicks || []).includes(id)) : []);
   stepsSeen = Array.isArray(input.kindsSeen) ? input.kindsSeen.filter((id) => typeof id === 'string') : null;
+  stepsSeenWith = input.answersSeen && typeof input.answersSeen === 'object' ? { crane: String(input.answersSeen.crane || ''), fallRisk: String(input.answersSeen.fallRisk || '') } : null;
+  stepsBrought = new Set(Array.isArray(input.kindsBrought) ? input.kindsBrought.filter((id) => typeof id === 'string') : []);
   priorKinds = Array.isArray(input.priorKinds) ? input.priorKinds.filter((id) => typeof id === 'string') : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
@@ -2406,6 +2467,15 @@ document.querySelectorAll('input[name="fallRisk"], input[name="residential"]').f
 });
 // A new fall answer is checked afresh against the steps.
 document.querySelectorAll('input[name="fallRisk"]').forEach((input) => input.addEventListener('change', () => { fallNoKept = false; }));
+// A crane or fall answer changed once the questions are shown asks them again at once, so the steps it brings show in the
+// step list, ticked and Recommended, before anything else is ticked or unticked (messy round 16, B run 7: "Our company"
+// brought the hiab step into the draft, but the list still showed the steps of "No crane", and an untick dropped it).
+document.querySelectorAll('input[name="crane"], input[name="slinging"], input[name="fallRisk"]').forEach((input) => input.addEventListener('change', () => {
+  if (input.name === 'crane') craneNoKept = false;
+  if (!questions || factsForm.classList.contains('hidden')) return;
+  showCraneWarning();
+  refreshSteps();
+}));
 
 document.getElementById('back').addEventListener('click', () => {
   factsForm.classList.add('hidden');
@@ -3406,7 +3476,9 @@ document.getElementById('hospital-find').addEventListener('click', async () => {
     if (data.error) { box.innerHTML = `<p class="meta">${esc(data.error)}</p>`; return; }
     // What Google's list shows of each: an emergency department listed at the hospital, or a private hospital, which may
     // have none or charge for it (messy round 15, A runs 2 to 4).
-    const careNote = (place) => (place.emergencyListed ? '<br><span class="meta">Emergency department listed</span>' : place.private ? '<br><span class="meta">Private hospital: it may have no emergency department, or charge for one</span>' : '');
+    // A private hospital with an emergency department listed says both (messy round 16, B run 5: St Andrew's showed only
+    // "Emergency department listed").
+    const careNote = (place) => (place.emergencyListed && place.private ? '<br><span class="meta">Private hospital, emergency department listed: it may charge for emergency care</span>' : place.emergencyListed ? '<br><span class="meta">Emergency department listed</span>' : place.private ? '<br><span class="meta">Private hospital: it may have no emergency department, or charge for one</span>' : '');
     const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">${place.km ? `About ${esc(place.km)} km` : 'Less than 0.1 km'} away in a straight line</span>${careNote(place)}</button></li>`;
     box.innerHTML = `${data.hospitals.length ? `<p class="meta"><strong>Hospitals.</strong> Check the one you pick has a 24 hour emergency department.</p><ul class="care-list">${data.hospitals.map(option).join('')}</ul>` : '<p class="meta">No hospital found nearby. Type the hospital.</p>'}
       ${data.clinics.length ? `<p class="meta"><strong>Medical centres</strong>, for minor injuries in opening hours. Serious injuries go to an emergency department.</p><ul class="care-list">${data.clinics.map(option).join('')}</ul>` : ''}`;
@@ -3584,6 +3656,46 @@ function coverStep(data, part, index) {
 // Falls answered No while a step of this SWMS rates a fall from height High (draft.js withFallCheck, messy
 // round 8, run 5): the person checks the answer here, as for the other answers that disagree. The download
 // waits until they answer Yes, untick the step or keep No (fallNoKept, declared at the top).
+// "No crane" while the task names a crane (draft.js craneCheck, messy round 16, B run 7): the person checks the answer, as
+// for falls, on the questions page and above the draft. The download waits until they say who operates it or keep No crane.
+const craneButtons = (keep) => `<div class="actions"><button type="button" class="small" data-crane-set="own">Our company operates it</button><button type="button" class="small" data-crane-set="company">A crane company operates it</button><button type="button" class="small secondary" data-crane-keep>${esc(keep)}</button></div>`;
+function showCraneWarning() {
+  const box = document.getElementById('crane-warning');
+  if (!box) return;
+  const crane = (document.querySelector('input[name="crane"]:checked') || {}).value || '';
+  const said = questions && questions.crane && questions.crane.warning;
+  const on = Boolean(said) && crane === 'none' && !craneNoKept;
+  box.innerHTML = on ? `<p style="margin:0 0 8px">${esc(said)}</p>${craneButtons('Keep No crane: none is used')}` : '';
+  box.classList.toggle('hidden', !on);
+}
+function craneCheckBlock(data) {
+  const crane = data && data.kind === 'draft' && data.craneConflict;
+  if (!crane || crane.kept) return '';
+  return `<div class="warning crane-check" id="crane-check" tabindex="-1"><p><strong>Check your answer on the crane.</strong> You answered No crane, but the task names "${esc(crane.words)}". If a crane, crane truck or hiab is used, say who operates it.</p>${craneButtons('Keep No crane: no crane, crane truck or hiab is used')}</div>`;
+}
+document.addEventListener('click', (event) => {
+  const set = event.target.closest && event.target.closest('[data-crane-set]');
+  const keep = event.target.closest && event.target.closest('[data-crane-keep]');
+  if (!set && !keep) return;
+  event.preventDefault();
+  if (keep) {
+    craneNoKept = true;
+    showCraneWarning();
+    if (shownDraft && !resultEl.classList.contains('hidden')) prepareDraft({ scroll: false, keep: '.sheet' });
+    return;
+  }
+  const radio = document.querySelector(`input[name="crane"][value="${set.dataset.craneSet}"]`);
+  if (!radio) return;
+  radio.checked = true;
+  showSlinging();
+  // A crane company asks who slings the loads, on the form above (D258).
+  if (set.dataset.craneSet === 'company' && !document.querySelector('input[name="slinging"]:checked')) {
+    const question = document.getElementById('slinging-question');
+    if (question) { question.scrollIntoView({ behavior: 'smooth', block: 'center' }); question.focus({ preventScroll: true }); }
+  }
+  radio.dispatchEvent(new Event('change', { bubbles: true }));
+});
+
 function fallCheckBlock(data) {
   const fall = data && data.kind === 'draft' && data.fallConflict;
   if (!fall || fall.kept) return '';
@@ -3861,7 +3973,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     const report = data.controlEdits || {};
     followRewords(report.remapped);
     shownReport = report;
-    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), fallCheckBlock(data), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
+    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), fallCheckBlock(data), craneCheckBlock(data), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
     detailsShown = null;
     if (Array.isArray(data.spellingFixes)) showSpellingFixes(data.spellingFixes);
@@ -4023,6 +4135,8 @@ resultEl.addEventListener('click', async (event) => {
     await prepareDraft({ scroll: false });
     const now = shownSteps || [];
     plantAddedSteps = [...new Set([...plantAddedSteps.filter((name) => now.includes(name)), ...now.filter((name) => before.size && !before.has(name) && !/\(Our own step\)$/.test(name))])];
+    // A step the plant brought shows under Job steps, ticked, where the note says it can be unticked (messy round 16, A run 4).
+    if (plantAddedSteps.length) await loadQuestions({ stay: true, keepDraft: true }).catch(() => false);
     const said = document.getElementById('plant-status');
     if (said && plantAddedSteps.length && !said.textContent.includes(plantAddedNote().trim())) said.textContent = `${said.textContent}${plantAddedNote()}`;
     const panel = document.getElementById('plant-panel');
@@ -4588,12 +4702,15 @@ function ownStepProblem(next, list, was) {
           : thinControl ? ['own-controls', why(thinControl, 'Say what is done and how, for example "Wear cut-resistant gloves when handling the mesh".')]
             : (list || []).some((other) => other.name !== was && sameWords(other.name) === sameWords(next.name)) ? ['own-name', 'You already have a step with this name. Give this one another name.'] : null;
 }
+const stepTitle = (name) => { const text = String(name || '').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and'); return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : text; };
 function saveOwnStep(form, after = afterOwnChange) {
   const error = form.querySelector('[data-own-error]');
   const was = form.dataset.ownWas;
   const next = {
     part: form.dataset.ownPart,
-    name: form.querySelector('#own-name').value.replace(/\s+/g, ' ').trim().slice(0, 300),
+    // The name prints as a title: its first capital, and a lone "n" as "and" (messy round 16, A run 4: "take out the old
+    // windows n put in the new frames" printed as typed).
+    name: stepTitle(form.querySelector('#own-name').value.replace(/\s+/g, ' ').trim().slice(0, 300)),
     hazards: linesOf(form.querySelector('#own-hazards').value).slice(0, 20),
     controls: linesOf(form.querySelector('#own-controls').value).slice(0, 30),
     who: form.querySelector('#own-who').value.replace(/\s+/g, ' ').trim().slice(0, 120),
@@ -5078,7 +5195,21 @@ function keepUnsaved() {
   const editing = window.SiteWrite && window.SiteWrite.editing;
   const ownForm = ownFormKept();
   try {
-    localStorage.setItem(UNSAVED_KEY, JSON.stringify({ at: Date.now(), stage: unsavedStage(), input, editing: editing || null, ...(ownForm ? { ownForm } : {}) }));
+    // Work downloaded and not changed since stays marked as downloaded (unsavedDownloaded).
+    let downloaded = '';
+    try { const before = JSON.parse(localStorage.getItem(UNSAVED_KEY) || 'null'); downloaded = before && before.downloaded === JSON.stringify(input) ? before.downloaded : ''; } catch { downloaded = ''; }
+    localStorage.setItem(UNSAVED_KEY, JSON.stringify({ at: Date.now(), stage: unsavedStage(), input, editing: editing || null, ...(ownForm ? { ownForm } : {}), ...(downloaded ? { downloaded } : {}) }));
+  } catch { /* not kept */ }
+}
+// Downloaded (a project's zip saves each SWMS too): the work kept on this device is marked as downloaded as it is now, so a
+// reload brings it back without the "not saved yet" note, until it is changed (messy round 16, A runs 1 and 3: after the
+// zip download, a reload showed "Your work is back as you left it (not saved yet ...)" again).
+function unsavedDownloaded() {
+  unsavedNoteOff();
+  keepUnsaved();
+  try {
+    const kept = JSON.parse(localStorage.getItem(UNSAVED_KEY) || 'null');
+    if (kept && kept.input) localStorage.setItem(UNSAVED_KEY, JSON.stringify({ ...kept, downloaded: JSON.stringify(kept.input) }));
   } catch { /* not kept */ }
 }
 
@@ -5149,6 +5280,12 @@ async function restoreUnsaved() {
     } else fillStart(input);
   } finally {
     restoring = false;
+  }
+  // Work downloaded as it is is back with no "not saved yet" note.
+  if (kept.downloaded && kept.downloaded === JSON.stringify(kept.input)) {
+    if (window.SiteWrite && window.SiteWrite.renderProject) window.SiteWrite.renderProject();
+    if (kept.ownForm && !listOpen) reopenOwnForm(kept.ownForm);
+    return true;
   }
   const when = new Date(Number(kept.at));
   const today = when.toDateString() === new Date().toDateString();
@@ -5308,7 +5445,7 @@ function goToEl(el) {
 
 window.SiteWrite = Object.assign(window.SiteWrite || {}, {
   mustFixPlace, goToMustFix, signedInProfile,
-  pickSwap, pickSwapNote, pickPattern, blankValues, keepUnsaved, clearUnsaved, unsavedNoteOff, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
+  pickSwap, pickSwapNote, pickPattern, blankValues, keepUnsaved, clearUnsaved, unsavedNoteOff, unsavedDownloaded, restoreUnsaved, redrawActions, liveGate, currentAnswers, goToFirstNeed, goToCover, readJson, postJson, SERVER_DOWN,
   api, esc, payload, render, fillForm, fillFields, setProfile, showBuilderFields, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
   drawBlankForm, answerTarget, ownStepProblem, OWN_HIERARCHY, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },

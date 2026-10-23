@@ -87,6 +87,35 @@ function digStep(draft) {
   const step = (draft.jobSteps || []).find((one) => one && DIG_STEP.test(String(one.step || '')) && !/\(Does not apply to this job\)$/.test(String(one.step || '')));
   return step ? step.step : '';
 }
+// A step that sets plant up on the ground (an EWP, a crane or hiab, mobile plant), unless it does not apply: the ground under
+// it matters (messy round 16, A run 2: "na" printed "Ground: Not applicable" with a boom lift set up in a back lane).
+// An EWP counts where it is a boom-type one, which sets up outside on the ground: a scissor lift on a floor inside does not
+// make "na" wrong for Ground (a ceiling job's answer stays as it was).
+const PLANT_ON_GROUND = /\b(?:cranes?|hiabs?|outriggers?|excavators?|loaders?|forklifts?|telehandlers?|bobcats?|skid steers?|piling rigs?|drill rigs?|concrete pumps?|road plant|pavers?|rollers?|profilers?)\b/i;
+const EWP_STEP = /\b(?:elevating work platforms?|ewps?|boom lifts?|cherry pickers?)\b/i;
+const BOOM_NAMED = /\b(?:boom lifts?|boom-type|cherry pickers?|knuckle booms?|stick booms?|trailer[- ]mounted (?:ewps?|booms?))\b/i;
+function plantOnGround(draft, input = {}) {
+  const words = [input.task, input.jobDescription, ...Object.values((input && input.site) || {}), ...((input.plantChoice && input.plantChoice.used) || []), ...((input.plantChoice && input.plantChoice.added) || []).map((item) => item && item.item)].map((text) => String(text || '')).join('\n');
+  const step = (draft.jobSteps || []).find((one) => one && !one.own && !/\(Does not apply to this job\)$/.test(String(one.step || '')) && (PLANT_ON_GROUND.test(String(one.step || '')) || (EWP_STEP.test(String(one.step || '')) && BOOM_NAMED.test(words))));
+  return step ? step.step : '';
+}
+// Work beside the public: the task, the user's own steps or the Access answer name a street, footpath, lane or traffic (messy
+// round 16, A run 4: "None" was taken for Public interface while the user's own step barricaded the street below the frames
+// coming out). A site's own haul road or access road is not a public way, and "no traffic" is not one either.
+const PUBLIC_WAY = /\b(?:footpaths?|pavements?|streets?|laneways?|back lanes?|lanes?|roads?|verges?|kerbs?|nature strips?|pedestrians?|traffic|the public|members of the public|passers-?by|shoppers|neighbou?rs)\b/i;
+const NOT_PUBLIC = /\b(?:site|haul|internal|access|private|construction|temporary|service)\s+(?:roads?|lanes?|tracks?)\b|\b(?:no|not|without|nil|none)\b[^.;,]{0,20}\b(?:traffic|public|pedestrians?|footpaths?|roads?|streets?)\b|\bopen (?:edges?|lanes? of the floor)\b/gi;
+function publicWay(draft, input) {
+  const sources = [
+    ['The task', String((input && (input.task || input.jobDescription)) || '')],
+    ...(draft.jobSteps || []).filter((step) => step.own).map((step) => [`Your step "${String(step.step || '').replace(/\s*\(Our own step\)$/, '')}"`, [step.step, ...(step.hazards || []), ...(step.controls || [])].join('\n')]),
+    ['Your Access answer', String(((input && input.site) || {}).access || '')],
+  ];
+  for (const [where, text] of sources) {
+    const found = PUBLIC_WAY.exec(String(text).replace(NOT_PUBLIC, ' '));
+    if (found) return { where, words: found[0] };
+  }
+  return null;
+}
 function liveSupplyHazard(draft) {
   for (const step of draft.jobSteps || []) {
     const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
@@ -196,6 +225,10 @@ function gateChecks(input = {}, draft = {}, options = {}) {
       : `so ${left.length === 1 ? 'the step' : 'the steps'} ${quotedList(left)} ${left.length === 1 ? 'is' : 'are'} left out of this SWMS.`;
     add({ id: 'fallCheck', kind: 'fall', field: 'fall-check', label: 'Fall from height', need: `You answered No to a fall of more than ${fall.metres} metres, ${said} Answer Yes if anyone could fall more than ${fall.metres} metres.${steps.length ? ' If the step is not part of this job, untick it.' : ''} If no one can fall that far, press Keep No.` });
   }
+  // "No crane" while the task names a crane (draft.js withCraneCheck): the person says who operates it, or keeps No crane
+  // (messy round 16, B run 7).
+  const crane = draft.craneConflict;
+  if (crane && !crane.kept) add({ id: 'craneCheck', kind: 'crane', field: 'crane-check', label: 'Crane', need: `You answered No crane, but the task names "${crane.words}". Say who operates it: Our company or A crane company. If no crane, crane truck or hiab is used, press Keep No crane.` });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     const rule = fieldRule(item);
@@ -261,6 +294,8 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // "None" for Ground where a step digs is not an answer either (messy round 15, SiteLink: "na" printed "Ground: Not
   // applicable" in the In-ground (trench) SWMS).
   const dig = digStep(draft);
+  const ground = dig ? '' : plantOnGround(draft, input);
+  const street = publicWay(draft, input);
   for (const field of SITE_FIELDS) {
     const rule = { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id), ...(SITE_KIND[field.id] ? { kind: SITE_KIND[field.id] } : {}) };
     if (field.id === 'liveServices' && live) {
@@ -271,6 +306,17 @@ function gateChecks(input = {}, draft = {}, options = {}) {
       rule.noneRefused = `The step "${dig}" digs into the ground.`;
       rule.ask = 'Say what the ground is like where you dig, for example "Firm clay fill, no groundwater" or "Sandy soil, trench shields below 1.5 m".';
     }
+    if (field.id === 'ground' && ground) {
+      rule.noneRefused = `The step "${ground}" sets plant up on the ground.`;
+      rule.ask = 'Say what the ground is like where it sets up, for example "Level asphalt in the back lane, firm" or "Level concrete slab, no loads over 3 kPa".';
+    }
+    if (field.id === 'publicInterface' && street) {
+      rule.noneRefused = `${street.where} names "${street.words}", so the public or traffic is near the work.`;
+      rule.ask = 'Say how the public and traffic are kept clear of the work, for example "Footpath below closed with barricades and signs while frames come out".';
+    }
+    // "na" says the question does not apply, but other trades either work near the crew or none do (messy round 16, A
+    // run 2: "na" printed "Other trades: Not applicable").
+    if (field.id === 'otherTrades') rule.naRefused = 'Name the trades working near you and where, or write None if no other trade works near this work.';
     judged({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}` }, rule, site[field.id]);
   }
   // SiteWrite's own control lines with a blank, each filled in where it shows on the draft.

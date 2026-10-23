@@ -337,6 +337,8 @@
     .gate-top { margin: 0 0 12px; }
     /* The plant tick list and the emergency questions in the draft (goal 2, app.js). */
     .answer-panel { border-color: #e3b76b; background: #fffaf0; margin: 10px 0 16px; padding: 16px; }
+    .updating > :not(.updating-note) { opacity: .5; }
+    .updating-note { font-weight: 600; margin: 0 0 8px; }
     .answer-panel.done { border-color: #2e7d4f; background: #eef6f1; }
     .answer-panel fieldset { border: 0; padding: 0; margin: 0 0 14px; }
     .answer-panel legend { font-size: 15px; font-weight: 600; padding: 0; margin-bottom: 4px; }
@@ -969,6 +971,7 @@
 
     <form id="facts" class="panel hidden">
       <p class="warning hidden" id="fall-warning"></p>
+      <div class="warning hidden" id="crane-warning" role="status"></div>
       <p class="warning hidden" id="steps-notice" role="status"></p>
       <div id="own-early"></div>
       <h2>Job steps</h2>
