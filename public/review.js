@@ -18,6 +18,8 @@
   let token = store.get(KEY);
   let ref = '';
   let business = '';
+  // The reference's summary as open() showed it, kept for the page that says an email is not invited.
+  let summaryHtml = '';
   let sending = false;
   // A submission on a SiteLink project, reviewed in the project's context.
   const submissionId = new URLSearchParams(location.search).get('submission') || '';
@@ -243,10 +245,29 @@
       : found.current ? 'This is the current revision.' : 'This revision is no longer current. Ask the business for the current revision and its reference.';
     status('summary', `<strong>Genuine SiteWrite reference.</strong><dl><dt>Prepared for</dt><dd>${esc(found.business)}</dd><dt>Title</dt><dd>${esc(found.title)}</dd>
       ${found.revision ? `<dt>Revision</dt><dd>${esc(found.revision)}</dd>` : ''}<dt>Reference</dt><dd>${esc(found.ref)}</dd></dl><p><strong>${esc(state)}</strong></p>`, found.reviewable ? 'ok' : 'bad');
+    summaryHtml = $('summary').innerHTML;
     if (!found.revision) return;
+    // Only an email the business invited can sign in (D313): the form says who invites.
+    $('signin-invited').textContent = `Only an email ${business || 'the business'} invited can review this SWMS. Enter the work email they invited. If you have not been invited, ask ${business || 'the business'} to invite you from SiteWrite. We email you a link that signs you in on the device you open it on. Your name, company and email are recorded with your response and shown to the business.`;
     if (!token) { show('signin', true); return; }
     await load();
   }
+
+  // Signed in with an email not invited to this SWMS, or one whose invitation was removed (D313): said
+  // plainly, with the way to sign in with another email.
+  function notInvited(message) {
+    show('review', false);
+    status('summary', `${summaryHtml}<div class="bad" id="not-invited"><strong>${esc(message)}</strong><p>Signed in as ${esc($('who').textContent || 'another email')}. If the business invited a different email, sign out and use that one.</p><button type="button" class="light" id="other-email">Sign out and use another email</button></div>`);
+  }
+  $('summary').addEventListener('click', async (event) => {
+    if (!event.target.closest('#other-email')) return;
+    await call('POST', '/api/review/logout').catch(() => {});
+    token = '';
+    store.set(KEY, '');
+    $('summary').innerHTML = summaryHtml;
+    show('signin', true);
+    $('email').focus();
+  });
 
   // Unsent words are kept on this device for each reference, so Back or a reload loses nothing.
   const draftKey = () => `sitewrite.review.${inProject ? `submission.${submissionId}` : ref}`;
@@ -270,6 +291,12 @@
       [data, { reviewer: me }] = await Promise.all([call('GET', `/api/review/swms/${encodeURIComponent(ref)}`), call('GET', '/api/review/me')]);
     } catch (error) {
       if (error.status === 401) { token = ''; store.set(KEY, ''); show('signin', true); return; }
+      if (error.status === 403) {
+        const who = await call('GET', '/api/review/me').catch(() => null);
+        if (who && who.reviewer) $('who').textContent = who.reviewer.email;
+        notInvited(error.message);
+        return;
+      }
       status('summary', esc(error.message), 'bad');
       return;
     }
@@ -427,6 +454,7 @@
       // Send cannot send a response they did not pick (messy round 17, SiteLink blocker 2).
       suggest(suggestFor(data), data.suggestsWhy || '');
     } catch (error) {
+      if (error.status === 403 && !inProject && /invit/i.test(error.message)) { notInvited(error.message); return; }
       status('respond-status', esc(error.message), 'bad');
     } finally {
       if (!(inProject && page && page.submission.channel === 'outside')) {
@@ -533,7 +561,8 @@
       const data = await call('GET', base()).catch(() => null);
       if (data) { if (inProject) page = data; $('responses').innerHTML = responsesBlock(data.responses || []); }
     } catch (error) {
-      if (error.field && FIELDS[error.field]) fieldError(error.field, error.message);
+      if (error.status === 403 && !inProject && /invit/i.test(error.message)) notInvited(error.message);
+      else if (error.field && FIELDS[error.field]) fieldError(error.field, error.message);
       else status('respond-status', esc(error.message), 'bad');
       if (error.status === 409) { if (inProject) loadProject(); else load(); }
     } finally {
@@ -568,6 +597,8 @@
       button.textContent = 'Email me another link';
     } catch (error) {
       status('signin-status', esc(error.message), 'bad');
+      // On a phone the refusal is under the button: it is brought into view (D313: a wrong email is said plainly).
+      $('signin-status').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } finally {
       button.disabled = false;
     }

@@ -114,7 +114,7 @@
 <body>
   <div class="wrap">
     <h1 id="page-title">Review a SWMS</h1>
-    <p class="meta short" id="intro">For the principal contractor's reviewer. Open a SWMS made in SiteWrite by the reference in its footer, read it, run Builder check, and send your response to the business through SiteWrite. You need no SiteWrite account and you pay nothing: you sign in with your work email.</p>
+    <p class="meta short" id="intro">For the principal contractor's reviewer. Open a SWMS made in SiteWrite by the reference in its footer, read it, run Builder check, and send your response to the business through SiteWrite. You need no SiteWrite account and you pay nothing: you sign in with the work email the business invited.</p>
     <form class="panel short" id="find" novalidate>
       <label for="ref" style="margin-top:0">SiteWrite reference</label>
       <input id="ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SW-ABCD-2345">
@@ -125,7 +125,7 @@
     <form class="panel short hidden" id="signin" novalidate>
       <h2>Sign in to review</h2>
       <div id="signin-note" role="alert"></div>
-      <p class="meta">Enter your work email. We email you a link that signs you in on the device you open it on. Your name, company and email are recorded with your response and shown to the business.</p>
+      <p class="meta" id="signin-invited">Only an email the business invited can review this SWMS. Enter the work email it invited. We email you a link that signs you in on the device you open it on. Your name, company and email are recorded with your response and shown to the business.</p>
       <label for="email">Your work email</label>
       <input id="email" type="email" autocomplete="email" inputmode="email">
       <button type="submit" id="send-link">Email me a sign-in link</button>

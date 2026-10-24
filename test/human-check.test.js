@@ -322,7 +322,8 @@ test('the reviewed revision prints the principal contractor\'s response; an unre
   const blank = await word(await (await call('GET', `/api/swms/${id}/docx`, { token })).arrayBuffer());
   assert.match(blank, /Principal contractor review Completed by the principal contractor before the work starts\./);
   assert.match(blank, /Accepted with changes noted below/);
-  // The reviewer returns "Approved with conditions".
+  // The reviewer the business invited (D313) returns "Approved with conditions".
+  assert.equal((await call('POST', `/api/swms/${id}/review-invites`, { token, body: { email: 'hse@tierone.example' } })).status, 201);
   await call('POST', '/api/review/email', { body: { email: 'hse@tierone.example', ref: swms.ref } });
   const { token: reviewer } = await (await call('POST', '/api/review/verify', { body: { token: reviewerLink('hse@tierone.example')[1] } })).json();
   const sent = await call('POST', `/api/review/swms/${swms.ref}/response`, { reviewer, body: { response: 'conditions', text: 'Spotter on the footpath while the posts go in.\nBarrier mesh on the open holes overnight.', name: 'Riley Morgan', company: 'Tier One Builders' } });

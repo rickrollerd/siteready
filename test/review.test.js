@@ -64,6 +64,9 @@ async function signIn(email) {
 const INPUT = ready({ ...ANSWERED, state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', date: '14 October 2026' });
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
+// Each saved SWMS's business session, so a reviewer can be invited to it (D313).
+const owners = new Map();
+
 // A business with a saved SWMS: its session, the SWMS and the reference printed on revision 1.
 async function savedSwms(email, input = INPUT) {
   const token = await signIn(email);
@@ -71,6 +74,7 @@ async function savedSwms(email, input = INPUT) {
   assert.equal(saved.status, 201, JSON.stringify(await saved.clone().json()));
   const { swms } = await saved.json();
   const opened = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
+  owners.set(swms.id, token);
   return { token, id: swms.id, ref: opened.swms.ref, signonPath: opened.swms.signonPath };
 }
 
@@ -80,7 +84,15 @@ function reviewerLink(email) {
   return message && /review\.html\?ref=[^&\s]+&login=([A-Za-z0-9_-]+)/.exec(message.text);
 }
 
-async function reviewerSignIn(email, ref) {
+// The business invites the reviewer to the SWMS the reference was printed on (D313), then the reviewer signs in.
+async function inviteReviewer(email, ref) {
+  const { swms } = await reviews.revisionForRef(ref);
+  const invited = await call('POST', `/api/swms/${swms.id}/review-invites`, { token: owners.get(swms.id), body: { email } });
+  assert.ok([200, 201].includes(invited.status), JSON.stringify(await invited.clone().json()));
+}
+
+async function reviewerSignIn(email, ref, { invite = true } = {}) {
+  if (invite) await inviteReviewer(email, ref);
   const sent = await call('POST', '/api/review/email', { body: { email, ref } });
   assert.equal(sent.status, 200);
   const link = reviewerLink(email);
@@ -97,6 +109,7 @@ test('a reviewer link never opens an account, and reviewer and account sessions 
   const companies = await count('companies');
   const users = await count('users');
   const reviewer = await reviewerSignIn('hse@tierone.example', ref);
+  for (const email of ['other@tierone.example', 'both@tierone.example', 'late@tierone.example']) await inviteReviewer(email, ref);
   assert.equal(await count('companies'), companies, 'no company or trial is made for a reviewer');
   assert.equal(await count('users'), users, 'a reviewer is not an account user');
   const me = await (await call('GET', '/api/review/me', { reviewer })).json();
@@ -265,6 +278,7 @@ test('the read-only sheet carries today\'s content: designs, products from their
   assert.equal(saved.status, 201, JSON.stringify(await saved.clone().json()));
   const { swms } = await saved.json();
   const { ref } = (await (await call('GET', `/api/swms/${swms.id}`, { token })).json()).swms;
+  owners.set(swms.id, token);
   const reviewer = await reviewerSignIn('rich@tierone.example', ref);
   const data = await (await call('GET', `/api/review/swms/${ref}`, { reviewer })).json();
   // The designs table, as it prints, with the file to open.
@@ -452,9 +466,15 @@ test('a later revision starts unreviewed, and a response on the old revision is 
 
 test('the business that prepared a SWMS cannot review it, and a deleted SWMS cannot be opened', async () => {
   const { token, id, ref } = await savedSwms('own7@business.example');
-  // A second person in the same business cannot review it either.
+  // The business cannot invite its own people (D313), and they are not sent a sign-in link.
+  const own = await call('POST', `/api/swms/${id}/review-invites`, { token, body: { email: 'OWN7@business.example ' } });
+  assert.equal(own.status, 403);
+  assert.match((await own.json()).message, /belongs to the business that prepared the SWMS, so it cannot review it/);
+  assert.equal((await call('POST', '/api/review/email', { body: { email: 'own7@business.example', ref } })).status, 403);
+  // Someone invited who then joins the business cannot respond either.
+  const reviewer = await reviewerSignIn('mate7@business.example', ref);
   await call('POST', '/api/company/users', { token, body: { email: 'mate7@business.example' } });
-  const reviewer = await reviewerSignIn('own7@business.example', ref);
+  assert.equal((await call('POST', '/api/auth/verify', { body: { token: lastLinkToken('mate7@business.example') } })).status, 200);
   const response = await call('POST', `/api/review/swms/${ref}/response`, { reviewer, body: { response: 'approved', name: 'Own', company: 'Own' } });
   assert.equal(response.status, 403);
   assert.match((await response.json()).message, /belongs to the business that prepared the SWMS/);

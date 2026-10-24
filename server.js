@@ -130,7 +130,8 @@ app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_W
 // team list does not. If the shared count cannot be read, no email is sent (rate-store.js).
 // The main contractor's sign-in and team invitations (Goal 12 stage 3) count the same way.
 // The sign-in link from a main contractor's list page (stage 5) counts the same way.
-const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email', '/api/hse/email', '/api/hse/orgs/:orgId/members', '/api/list/:token/sign-in'];
+// A business inviting a principal contractor's reviewer to a SWMS (D313) counts the same way.
+const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users', '/api/review/email', '/api/swms/:id/review-invites', '/api/hse/email', '/api/hse/orgs/:orgId/members', '/api/list/:token/sign-in'];
 const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
 const notSending = (req) => req.method !== 'POST';
 app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {

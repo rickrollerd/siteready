@@ -1,6 +1,7 @@
 // Accounts, sites, saved SWMS and worker sign-ons are kept in Postgres.
 // DATABASE_URL points at the database (Railway sets it when a Postgres service
 // is added). Without it the app still drafts, but signing in is switched off.
+const crypto = require('crypto');
 const { Pool } = require('pg');
 
 let pool = null;
@@ -986,6 +987,22 @@ const SCHEMA = [
     back_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS review_conditions_subcontract ON review_conditions (subcontract_id)',
+  // Reviewers by invitation only (D313): the business invites a principal contractor's reviewer by email
+  // on one saved SWMS, and the invitation covers its later revisions. Only an email with a live invitation
+  // (removed_at empty) can sign in to review it, open it, run the check, open its files or respond. A removed
+  // invitation is kept, with when it was removed. invited_by is the user who invited; empty, with source
+  // 'earlier-review', for a reviewer who had responded before invitations began (set up in runMigrations).
+  `CREATE TABLE IF NOT EXISTS swms_review_invites (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL,
+    company_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    invited_by TEXT,
+    source TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    removed_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS swms_review_invites_swms ON swms_review_invites (swms_id, email)',
 ];
 
 // Whether the tables are set up: 'waiting' until migrate() has run, then 'ready' or 'failed'. The
@@ -1032,6 +1049,23 @@ async function runMigrations() {
     registered.add(abn);
     await query('INSERT INTO trial_abns (abn, company_id, created_at) VALUES ($1, $2, $3)', [abn, row.id, new Date()]);
   }
+  await inviteEarlierReviewers();
+}
+
+// Reviewers by invitation (D313): each reviewer who had already responded on a SWMS by its reference is
+// invited to it, so a review under way is not locked out. Only an email with no invitation row on that
+// SWMS at all is added, so one the business removed is never added again on a later start. A response
+// on a SiteLink submission is not one: the lead reviews it from the project. Run with the migrations.
+async function inviteEarlierReviewers() {
+  const invited = new Set((await query('SELECT swms_id, email FROM swms_review_invites')).map((row) => `${row.swms_id} ${row.email}`));
+  const earlier = await query("SELECT r.swms_id, r.reviewer_email, s.company_id, MIN(r.created_at) AS first_at FROM swms_reviews r JOIN swms s ON s.id = r.swms_id WHERE r.submission_id = '' GROUP BY r.swms_id, r.reviewer_email, s.company_id");
+  for (const row of earlier) {
+    const email = String(row.reviewer_email || '').trim().toLowerCase();
+    if (!email || invited.has(`${row.swms_id} ${email}`)) continue;
+    invited.add(`${row.swms_id} ${email}`);
+    await query("INSERT INTO swms_review_invites (id, swms_id, company_id, email, invited_by, source, created_at) VALUES ($1, $2, $3, $4, NULL, 'earlier-review', $5)",
+      [crypto.randomUUID(), row.swms_id, row.company_id, email, row.first_at || new Date()]);
+  }
 }
 
 // Runs fn with a client of its own between BEGIN and COMMIT, and rolls back if fn throws. fn gets
@@ -1057,4 +1091,4 @@ async function transaction(fn) {
   }
 }
 
-module.exports = { connect, useDatabase, enabled, query, one, migrate, readiness, markReady, transaction, sslSettings, tlsProblem };
+module.exports = { connect, useDatabase, enabled, query, one, migrate, inviteEarlierReviewers, readiness, markReady, transaction, sslSettings, tlsProblem };

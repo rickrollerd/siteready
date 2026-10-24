@@ -1,5 +1,6 @@
-// The principal contractor's review (goal 3). The reviewer opens a saved SWMS from the SiteWrite
-// reference printed on it, proves an email address with a sign-in link, sees the revision exactly
+// The principal contractor's review (goal 3). The business invites the reviewer by email (D313). The
+// reviewer opens a saved SWMS from the SiteWrite reference printed on it or the link in the invitation,
+// proves the invited email address with a sign-in link, sees the revision exactly
 // as it was saved (read only), runs the builder check on it, and returns one of three set
 // responses. The response is recorded against that revision with the reviewer's name, company and
 // the date; the business sees it under My SWMS and is emailed that its review is back (D283). A
@@ -59,10 +60,11 @@ function cleanRef(value) {
 // The review page for a reference, printed on the SWMS and shown to the business to send on.
 const reviewLink = (base, ref) => (base && ref ? `${base}/review.html?ref=${encodeURIComponent(ref)}` : '');
 
-// Kept before anything is shown, so a look that cannot be logged is not shown.
-async function logReview(req, action, ref) {
+// Kept before anything is shown, so a look that cannot be logged is not shown. A refused sign-in has no
+// reviewer yet, so the email asked with is logged.
+async function logReview(req, action, ref, email = req.reviewer && req.reviewer.email) {
   await db.query('INSERT INTO review_access_log (id, reviewer_email, action, ref, created_at) VALUES ($1, $2, $3, $4, $5)',
-    [crypto.randomUUID(), req.reviewer.email, action, String(ref || '').slice(0, 40), new Date()]);
+    [crypto.randomUUID(), String(email || ''), action, String(ref || '').slice(0, 40), new Date()]);
 }
 
 // The saved revision a reference was printed on, with its SWMS and business. Throws when the
@@ -79,6 +81,95 @@ async function revisionForRef(value) {
   const company = await db.one('SELECT * FROM companies WHERE id = $1', [swms.company_id]);
   const current = Number(swms.revision || 1) === Number(found.revision);
   return { ref, swms, company, kept, current };
+}
+
+// ---- Reviewers by invitation (D313) ----
+
+// The business invites the principal contractor's reviewer by email on a saved SWMS, and the invitation
+// covers its later revisions. Only an email with a live invitation can sign in to review that SWMS, open
+// it, run the check, open its files or respond. Removed, it stops at once, on a session already open too,
+// as every reviewer route asks again.
+const OWN_BUSINESS = 'This email belongs to the business that prepared the SWMS, so it cannot review it. The principal contractor reviews it.';
+const businessName = (company) => (company && String(company.name || '').trim()) || 'the business that prepared it';
+
+// 'live', 'removed' (its latest invitation was removed) or 'none'.
+async function inviteState(swmsId, email) {
+  const rows = await db.query('SELECT removed_at FROM swms_review_invites WHERE swms_id = $1 AND email = $2 ORDER BY created_at DESC', [String(swmsId), String(email || '')]);
+  if (rows.some((row) => !row.removed_at)) return 'live';
+  return rows.length ? 'removed' : 'none';
+}
+
+function notInvited(company, state) {
+  const name = businessName(company);
+  return state === 'removed'
+    ? fail(403, `Your invitation to review this SWMS has been removed by ${name}. Ask them to invite you again from SiteWrite.`)
+    : fail(403, `This email has not been invited to review this SWMS. Ask ${name} to invite you from SiteWrite.`);
+}
+
+// The revision a reference was printed on, for a signed-in reviewer whose email is invited to its SWMS.
+// A refusal is logged and counted like a look.
+async function invitedRevision(req, value) {
+  const found = await revisionForRef(value);
+  const state = await inviteState(found.swms.id, req.reviewer.email);
+  if (state !== 'live') {
+    await logReview(req, 'refused', found.ref);
+    record('review_refused', found.swms.company_id);
+    throw notInvited(found.company, state);
+  }
+  return found;
+}
+
+// The business's invitations on a SWMS, live ones first, each with who invited and when. A reviewer who
+// had responded before invitations began is noted as from an earlier review.
+async function invitesFor(swmsId) {
+  const rows = await db.query('SELECT i.*, u.name AS invited_by_name, u.email AS invited_by_email FROM swms_review_invites i LEFT JOIN users u ON u.id = i.invited_by WHERE i.swms_id = $1 ORDER BY i.created_at', [String(swmsId)]);
+  const live = rows.filter((row) => !row.removed_at);
+  return live.map((row) => ({
+    id: row.id,
+    email: row.email,
+    by: row.source === 'earlier-review' ? '' : (row.invited_by_name || row.invited_by_email || ''),
+    earlier: row.source === 'earlier-review',
+    date: longDate(row.created_at),
+  }));
+}
+
+// The invitation email, short and plain, with the review link and no attachments.
+function inviteMail({ from, company, title, link }) {
+  return {
+    subject: `${from} has asked you to review a SWMS`,
+    text: `${from} from ${company} has asked you to review the SWMS ${title} in SiteWrite.\n\n${link}\n\nOpen the link and sign in with this email address. You need no SiteWrite account.`,
+  };
+}
+
+// Invites email to review the business's saved SWMS, and sends the invitation. An email already
+// invited is sent it again and kept once. Refused for an email of the business's own people.
+async function invite(req, swms, value) {
+  const email = auth.cleanEmail(value);
+  if (!email) throw Object.assign(fail(400, 'Enter the reviewer\'s email address, such as name@builder.com.au.'), { field: 'invite-email' });
+  const own = await db.one('SELECT id FROM users WHERE email = $1 AND company_id = $2', [email, swms.company_id]);
+  if (own) throw Object.assign(fail(403, OWN_BUSINESS), { field: 'invite-email' });
+  const company = await db.one('SELECT * FROM companies WHERE id = $1', [swms.company_id]);
+  const kept = await revisions.getRevision(swms.id, Number(swms.revision || 1));
+  const ref = kept && kept.ref;
+  if (!ref) throw fail(409, 'This SWMS has no SiteWrite reference yet, so no one can be invited to review it. Save it again, then invite the reviewer.');
+  const link = reviewLink(auth.linkUrl(req), ref);
+  const again = (await inviteState(swms.id, email)) === 'live';
+  if (!again) {
+    await db.query('INSERT INTO swms_review_invites (id, swms_id, company_id, email, invited_by, source, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [auth.newId(), swms.id, swms.company_id, email, req.user.id, '', new Date()]);
+  }
+  const from = String(req.user.name || '').trim() || req.user.email;
+  await sendMail({ to: email, ...inviteMail({ from, company: businessName(company), title: swms.title, link }) });
+  record('review_invite', swms.company_id);
+  return { email, again };
+}
+
+// Removes a live invitation. The reviewer can no longer open or respond to the SWMS, from now.
+async function removeInvite(swms, inviteId) {
+  const row = await db.one('SELECT * FROM swms_review_invites WHERE id = $1 AND swms_id = $2 AND removed_at IS NULL', [String(inviteId || ''), swms.id]);
+  if (!row) throw fail(404, 'That invitation was not found. It may have been removed already.');
+  await db.query('UPDATE swms_review_invites SET removed_at = $1 WHERE swms_id = $2 AND email = $3 AND removed_at IS NULL', [new Date(), swms.id, row.email]);
+  return row.email;
 }
 
 // What the reviewer sees: the revision as printed, without the worker rows, the business's own
@@ -202,7 +293,14 @@ router.post('/review/email', route(async (req, res) => {
   const body = req.body || {};
   const email = auth.cleanEmail(body.email);
   if (!email) throw fail(400, 'Enter a valid email address.');
-  const { ref } = await revisionForRef(body.ref);
+  const { ref, swms, company } = await revisionForRef(body.ref);
+  // Only an email the business invited is sent a link (D313).
+  const state = await inviteState(swms.id, email);
+  if (state !== 'live') {
+    await logReview(req, 'refused-signin', ref, email);
+    record('review_refused', swms.company_id);
+    throw notInvited(company, state);
+  }
   await auth.sendReviewerLink(req, email, ref);
   res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes.` });
 }));
@@ -229,7 +327,7 @@ router.get('/review/me', auth.requireReviewer, route(async (req, res) => {
 // The revision a reference was printed on, as it was saved, read only.
 router.get('/review/swms/:ref', auth.requireReviewer, route(async (req, res) => {
   res.set('Cache-Control', 'no-store');
-  const { ref, swms, company, kept, current } = await revisionForRef(req.params.ref);
+  const { ref, swms, company, kept, current } = await invitedRevision(req, req.params.ref);
   await logReview(req, 'view', ref);
   record('review_view', swms.company_id);
   const responses = (await reviewsFor(swms.id)).filter((item) => item.revision === kept.revision);
@@ -250,7 +348,7 @@ router.get('/review/swms/:ref', auth.requireReviewer, route(async (req, res) => 
 
 // A design or safety data sheet file the revision names, for the reviewer to open.
 router.get('/review/swms/:ref/files/:fileId', auth.requireReviewer, route(async (req, res) => {
-  const { ref, swms, kept } = await revisionForRef(req.params.ref);
+  const { ref, swms, kept } = await invitedRevision(req, req.params.ref);
   const id = String(req.params.fileId || '');
   if (!(await revisionFiles(swms, kept)).has(id)) throw fail(404, 'That file was not found.');
   const file = await designFiles.fileForSwms(swms.company_id, swms.id, id);
@@ -260,13 +358,15 @@ router.get('/review/swms/:ref/files/:fileId', auth.requireReviewer, route(async 
 }));
 
 router.post('/review/swms/:ref/check', auth.requireReviewer, route(async (req, res) => {
-  const { ref, swms, kept } = await revisionForRef(req.params.ref);
+  const { ref, swms, kept } = await invitedRevision(req, req.params.ref);
   await logReview(req, 'check', ref);
   record('review_check', swms.company_id);
   res.json({ ...checkRevision(kept), source: 'saved revision' });
 }));
 
 router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req, res) => {
+  // Asked first, so an email not invited is told that, not which box to fill.
+  const { ref, swms, company, kept, current } = await invitedRevision(req, req.params.ref);
   const body = req.body || {};
   const response = Object.hasOwn(RESPONSES, body.response) ? body.response : '';
   if (!response) throw fail(400, 'Choose a response: Approved, Approved with conditions or Not approved.');
@@ -276,7 +376,6 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
   const name = textField(body.name, 120).replace(/\s+/g, ' ').trim();
   const reviewerCompany = textField(body.company, 200).replace(/\s+/g, ' ').trim();
   if (!name || !reviewerCompany) throw Object.assign(fail(400, !name && !reviewerCompany ? 'Enter your name and your company.' : !name ? 'Enter your name.' : 'Enter your company.'), { field: !name ? 'name' : 'company' });
-  const { ref, swms, company, kept, current } = await revisionForRef(req.params.ref);
   // Typed in a hurry, the conditions and the changes needed read as they print (messy round 15, SiteLink wording 5), with
   // the people and places the SWMS names in their capitals (messy round 17, A run 4 and B run 7: "craig dunn", "fiona stanley
   // hospital" and "University of canberra hospital" stayed in lower case).
@@ -289,7 +388,7 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
   if (!current) throw fail(409, `This is revision ${kept.revision}. The business has saved revision ${swms.revision} since, so this one cannot be given a response. Ask the business for the current revision and its reference.`);
   // A business cannot approve its own SWMS: someone signed in to it cannot review it.
   const own = await db.one('SELECT id FROM users WHERE email = $1 AND company_id = $2', [req.reviewer.email, swms.company_id]);
-  if (own) throw fail(403, 'This email belongs to the business that prepared the SWMS, so it cannot review it. The principal contractor reviews it.');
+  if (own) throw fail(403, OWN_BUSINESS);
   // The same response sent again (a double press, or Back and send again) is kept once and emailed once.
   const recent = await db.one('SELECT * FROM swms_reviews WHERE swms_id = $1 AND revision = $2 AND reviewer_id = $3 ORDER BY created_at DESC LIMIT 1', [swms.id, kept.revision, req.reviewer.id]);
   if (recent && recent.response === response && recent.text === text && Date.now() - new Date(recent.created_at).getTime() < REPEAT_MINUTES * 60 * 1000) {
@@ -320,5 +419,5 @@ router.post('/review/swms/:ref/response', auth.requireReviewer, route(async (req
 }));
 
 module.exports = {
-  router, RESPONSES, REVIEW_BACK, EMPTY_WORDS, SAYS_NOTHING, TEXT_LIMIT, REPEAT_MINUTES, cleanRef, revisionForRef, forReviewer, printedTables, revisionFiles, checkRevision, reviewsFor, latestReview, currentReviews, reviewLink, reviewBackMail, reviewView,
+  router, RESPONSES, REVIEW_BACK, OWN_BUSINESS, inviteState, invitedRevision, invitesFor, invite, removeInvite, inviteMail, EMPTY_WORDS, SAYS_NOTHING, TEXT_LIMIT, REPEAT_MINUTES, cleanRef, revisionForRef, forReviewer, printedTables, revisionFiles, checkRevision, reviewsFor, latestReview, currentReviews, reviewLink, reviewBackMail, reviewView,
 };
