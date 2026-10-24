@@ -160,7 +160,7 @@ const logOf = async (c) => (await call('GET', `/api/hse/subcontracts/${c.subId}`
 
 // ---- Blocker 1: high risk work the subcontractor marked "Does not apply", shown to the builder ----
 
-const BALANCING = { state: 'nsw', task: 'Balance and commission the a/c systems, working from a scissor lift on level 2.', fallRisk: 'no', residential: 'no', crane: 'none', facts: { plantIsolation: 'Each unit is isolated at its local isolator and locked out.' } };
+const BALANCING = { state: 'nsw', task: 'Balance and commission the a/c systems, working from a scissor lift on level 2.', fallRisk: 'no', residential: 'no', crane: 'none', facts: { plantIsolation: 'Each unit is isolated at its local isolator and locked out.', energisedWork: 'none' } };
 const PLANT_OFF = [{ id: 'plant', reason: 'no plant moves where we balance, scissor lift is parked' }];
 
 test('high risk work marked "Does not apply" reaches the builder as the subcontractor\'s call, with its reason (blocker 1)', async () => {
@@ -315,7 +315,7 @@ test('wording: clause headings once, "may not need" said once to the lead, full 
   assert.match(read('public/hse.js'), /const said = item\.group === 'aside' && !\(item\.highRisk && item\.highRisk\.status === 'none'\);/);
   // 7. A point answer ends with a full stop.
   // (messy round 17: with the project's people and "n" and "b4" read too, sitelink-answers.js leadWords).
-  assert.match(read('sitelink-scopes.js'), /\{ answer: true \}\), \{ \.\.\.\(await leadNames\(ctx\)\), stop: true \}\)/);
+  assert.match(read('sitelink-scopes.js'), /\{ answer: true \}\), \{ \.\.\.\(await leadNames\(ctx\)\), scopeText: scopeWordsOf\(await itemsOf\(ctx\.sub\.id\)\), stop: true \}\)/);
   // 8. The "our call" reason on the draft page starts with a capital.
   assert.match(read('public/app.js'), /Reason: \$\{esc\(String\(item\.reason\)\.trim\(\)\.replace\(\/\[\.\\s\]\+\$\/, ''\)\.replace\(\/\^\[a-z\]\/,/);
   // 9. A note sent back ends with a full stop on both sides.

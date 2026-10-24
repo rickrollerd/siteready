@@ -186,7 +186,9 @@ function phoneOnly(text) {
 // Small words stay in lower case unless they come first: "swan coast doors and hardware" reads "Swan Coast
 // Doors and Hardware" (messy round 10, flow9 decision 4 B, recommended). Capitals the person typed are never
 // lowered: a name with any capital is left as typed.
-const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by']);
+// "from" and "with" too: "brodie kwan from tallgum scaffolding" reads "Brodie Kwan from Tallgum Scaffolding" (messy round 19,
+// SiteLink wording 1).
+const SMALL_WORDS = new Set(['and', 'of', 'the', 'for', 'to', 'in', 'on', 'at', 'by', 'from', 'with', 'via']);
 // A surname's own capitals come back too (messy round 14, B run 7: "sharon mcgrath" printed "Sharon Mcgrath"):
 // "Mc" always ("McGrath"), "O'" and each part of a hyphenated name ("O'Brien", "Smith-Jones"), and "Mac" only
 // in the Scottish and Irish names where it is nearly always so written, as "Mack", "Macey" and "Machado" are not.
@@ -283,7 +285,8 @@ function personNames(values) {
   for (const value of values || []) {
     const tidy = tidyPersonRole(clean(value));
     // A phone typed after the name with no comma ("Hamish Te Rangi 0418 552 907") is not part of it (messy round 16).
-    const name = clean(clean(tidy.split(/,|\s[-–]\s|\s\(/)[0]).replace(PHONE_RUN, ' '));
+    // Nor is the company after "from" ("Joel Tuilagi from Tallgum Scaffolding": messy round 19, SiteLink wording 1).
+    const name = clean(clean(tidy.split(/,|\s[-–]\s|\s\(|\s(?:from|of|at|with)\s/i)[0]).replace(PHONE_RUN, ' '));
     const words = name.split(/\s+/);
     if (words.length >= 2 && words.length <= 3 && words.every((word) => /^[A-Z][A-Za-z'’-]+$/.test(word)) && !out.includes(name)) out.push(name);
   }
@@ -324,13 +327,19 @@ const MONTHS = /\b(\d{1,2}(?:st|nd|rd|th)?\s+)(jan|feb|mar|apr|may|jun|jul|aug|s
 const englishWord = (word) => { try { return require('./spelling').isWord(word); } catch { return false; } };
 // The project's people with their capitals inside a text: each full name, and a first name or surname alone that is no
 // English word.
+// A first name or surname that is also an English word ("oliver", "mark", "rose") takes its capital only where a person is
+// named: after "with", "from", "to", "by", "ask", "tell", "call" or "cc", or after another name and "and" or "or" ("Induction
+// with oliver", "emailed to Isla and oliver": messy round 19, SiteLink wording 1, where Oliver Tran is the first aider).
+const PERSON_BEFORE = /(?:\b(?:with|from|to|by|ask|tell|call|ring|phone|contact|cc|see|via|for)|\b[A-Z][a-z'’-]+,? (?:and|or|n|&))\s$/;
 function withPeople(text, people = []) {
   const full = personNames(people);
   let out = withPersonNames(text, full);
-  for (const name of full) {
+  // Twice, so a name after another one given its capital here is read after a name ("isla n oliver").
+  for (const name of [...full, ...full]) {
     for (const word of name.split(/\s+/)) {
-      if (word.length < 4 || !/^[A-Z][a-z'’-]+$/.test(word) || englishWord(word.toLowerCase())) continue;
-      out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), word);
+      if (word.length < 4 || !/^[A-Z][a-z'’-]+$/.test(word)) continue;
+      const english = englishWord(word.toLowerCase());
+      out = out.replace(new RegExp(`\\b${word.toLowerCase()}\\b`, 'g'), (found, at, whole) => (!english || PERSON_BEFORE.test(whole.slice(Math.max(0, at - 40), at)) ? word : found));
     }
   }
   return out;
@@ -455,7 +464,20 @@ function hurried(text) {
   return withDays(loneR(loneN(out.replace(AT_PLACE, ''))));
 }
 // "ok" reads "OK" (messy round 16, SiteLink wording 6: "ok to start" printed "Ok to start").
-const typedWords = (text) => withShortNames(hurried(String(text || '')).replace(/\bok\b/gi, 'OK'));
+// Words typed without their apostrophe, "there own" for "their own", and the builder's people typed "builders engineer" read
+// as written (messy round 19, SiteLink wording 5: "dont", "there own", "isnt" and "hes" in the lead's answers and notes).
+// Only words that are never a plain word without the apostrophe ("cant", "wont", "were" and "lets" are).
+const APOSTROPHES = [
+  [/\b([Dd])ont\b/g, "$1on't"], [/\b([Dd])oesnt\b/g, "$1oesn't"], [/\b([Dd])idnt\b/g, "$1idn't"], [/\b([Ii])snt\b/g, "$1sn't"],
+  [/\b([Aa])rent\b/g, "$1ren't"], [/\b([Ww])asnt\b/g, "$1asn't"], [/\b([Ww])erent\b/g, "$1eren't"], [/\b([Hh])asnt\b/g, "$1asn't"],
+  [/\b([Hh])avent\b/g, "$1aven't"], [/\b([Cc])ouldnt\b/g, "$1ouldn't"], [/\b([Ww])ouldnt\b/g, "$1ouldn't"], [/\b([Ss])houldnt\b/g, "$1houldn't"],
+  [/\b([Hh])es\b/g, "$1e's"], [/\b([Ss])hes\b/g, "$1he's"], [/\b([Tt])heyre\b/g, "$1hey're"], [/\b([Yy])oure\b/g, "$1ou're"], [/\b([Tt])hats\b/g, "$1hat's"],
+  [/\b([Tt])heres\b/g, "$1here's"], [/\b([Ww])hats\b/g, "$1hat's"], [/\b[Ii]m\b/g, "I'm"], [/\b[Ii]ve\b/g, "I've"],
+  [/\b([Tt])here own\b/g, '$1heir own'],
+  [/\b([Bb])uilders(?= (?:engineers?|concreters?|crews?|carpenters?|labourers?|foreman|foremen|supervisors?|site (?:manager|engineer|office|team)|project manager|rep|representatives?|surveyors?|electricians?|scaffolders?|safety (?:officer|advisor|adviser)|hse|whs|people|team|own)\b)/g, "$1uilder's"],
+];
+const withApostrophes = (text) => APOSTROPHES.reduce((out, [pattern, to]) => out.replace(pattern, to), String(text || ''));
+const typedWords = (text) => withShortNames(withApostrophes(hurried(String(text || ''))).replace(/\bok\b/gi, 'OK'));
 // A short name the scope itself writes in capitals keeps them in a title the lead types in lower case: "gas
 // suppression system - ser room" reads "Gas suppression system - SER room" where the scope writes "SER room" (messy
 // round 16, SiteLink wording 3). Only names of two to five letters, never a common short word the scope may write in
@@ -516,4 +538,4 @@ function ourWordsNote(task, subName) {
 // "muster point, first aider and hospital"
 const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || '');
 
-module.exports = { ourWordsNote, withPeople, leadWords, scopeNames, hurried, placeNames, withPlaceNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };
+module.exports = { splitRole, ourWordsNote, withPeople, leadWords, scopeNames, hurried, placeNames, withPlaceNames, withScopeCapitals, personNames, withPersonNames, tidyLines, withShortNames, typedWords, tidyTitle, tidyCompany, notAnswer, personProblem, firstAiderProblem, placeProblem, hospitalProblem, phoneOnly, phoneProblem, tidyName, tidyPerson, tidyPersonRole, tidyPlace, withCompanyNames, capitalFirst, capitalSentences, tidyNote, tidyRole, listed, PASSED_ON };

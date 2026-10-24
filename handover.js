@@ -641,9 +641,27 @@ function withFolded(row, rows) {
     unmatched: Array.isArray(item.unmatched) ? union([item.unmatched, ...folded.map((one) => one.unmatched)]) : null,
     site,
     plant: union([item.plant, ...folded.map((one) => one.plant)]),
-    draftNotes: union([item.draftNotes, ...folded.map((one) => one.draftNotes)]).slice(0, 20),
+    draftNotes: union([own && row.task_changed ? notesForNewWork(item, row.task) : item.draftNotes, ...folded.map((one) => one.draftNotes)]).slice(0, 20),
     activities: [...(item.activities || []), ...folded.flatMap((one) => one.activities || [])],
   };
+}
+
+// Once the lead has changed a SWMS's work, a note that names the scope's work it was about ("Hazardous zone compliance design and
+// installation where nominated: applies only if ...") no longer quotes words the work no longer has (messy round 19, SiteLink
+// wording 2): a condition on it is said of this work ("This work applies only if ..."), and anything else by its own words.
+function notesForNewWork(item, task) {
+  const works = (item.activities || []).map((entry) => String((entry && entry.activity) || entry || '').replace(/[.\s]+$/, '').trim()).filter(Boolean);
+  return (item.draftNotes || []).map((entry) => {
+    const text = typeof entry === 'string' ? entry : entry && typeof entry === 'object' ? entry.note || entry.text || '' : '';
+    // Still named where the new words keep the work as the reading wrote it, or as its plain sentence ("Arrange thermographic
+    // scanning ..." for "Thermographic scanning ...").
+    const said = (one) => [one, require('./public/scope-task').plainTask([{ activity: one }]).replace(/\.$/, '')].some((words) => String(task || '').toLowerCase().includes(words.toLowerCase()));
+    const work = works.find((one) => text.toLowerCase().startsWith(`${one.toLowerCase()}:`) && !said(one));
+    if (!work) return entry;
+    const rest = text.slice(work.length + 1).trim();
+    const now = /^(?:only\s+|also\s+)?(?:applies|apply|is needed|needed|required)\b/i.test(rest) ? `This work ${rest.replace(/^apply\b/i, 'applies')}` : `${rest.charAt(0).toUpperCase()}${rest.slice(1)}`;
+    return typeof entry === 'string' ? now : { ...entry, ...(entry.note ? { note: now } : { text: now }) };
+  });
 }
 
 // Why a SWMS is not on the list to start with, as the lead reads it. 'folded' names the SWMS it is in.
@@ -795,7 +813,20 @@ function asQuestion(text) {
   if (/^(?:who|what|which|when|where|how)\b/i.test(body)) return `${body}?`;
   return line;
 }
-const pointSentence = (text) => asQuestion(sentence(withoutConflictRefs(text)).replace(/([^.!?])$/, '$1.'));
+// A point written as an order to the lead says what is open instead (messy round 19, SiteLink wording 3): "Confirm whether
+// Mechanical bolts CST pits." reads "It is not stated whether Mechanical bolts CST pits.", and "Confirm who does it." and
+// "Confirm who installs.", with no word of what, read "It is not stated who does this work." under the work they are about.
+function notOrder(text) {
+  return String(text || '').split(/(?<=[.!?])\s+/).map((part) => {
+    const found = /^confirm\s+(?:(whether|if|who|which|what|when|where|how)\s+)?(.+?)([.!?]?)$/i.exec(part.trim());
+    if (!found || /^(?:with|to|by|that the builder|the builder)\b/i.test(found[2])) return part;
+    const wh = (found[1] || 'whether').toLowerCase().replace(/^if$/, 'whether');
+    // Only a verb, or a verb and "it" ("does it", "installs"), names nothing: the work the point is on.
+    const what = wh === 'who' && /^[a-z]+(?:\s+(?:it|this|them|that))?$/i.test(found[2].trim()) ? 'does this work' : found[2];
+    return `It is not stated ${wh} ${what}.`;
+  }).join(' ');
+}
+const pointSentence = (text) => asQuestion(notOrder(sentence(withoutConflictRefs(text)).replace(/([^.!?])$/, '$1.')));
 
 // An open point is asked of the lead only when it asks who does the work or who supplies what (messy
 // round 6 decision 6, D307). Messy round 7: a statement that only names the builder ("Shop drawings
@@ -901,9 +932,13 @@ function draftNotes(rows) {
       if (note && activity && ((LOOSE_NOTE.test(note) && note.split(/\s+/).length <= 8) || PRONOUN_NOTE.test(note) || VERB_FIRST_NOTE.test(note) || THEIR_NOTE.test(note) || CONDITION_NOTE.test(note))) note = `${activity}: ${note.replace(/^./, (letter) => letter.toLowerCase()).replace(/([^.])$/, '$1.')}`;
       // A bare word or two ("Dewatering.") says neither the work nor what is open (messy round 9, wording 8), nor
       // do a few words with no verb ("Sequencing with builder trades.").
-      else if (note && activity && (BARE_NOTE.test(note) || verbless(note))) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
+      // "Confirm extent" reads "extent to be confirmed", not "confirm extent to be confirmed" (messy round 19, SiteLink wording 2).
+      else if (note && activity && (BARE_NOTE.test(note) || verbless(note))) note = `${activity}: ${note.replace(/[.\s]+$/, '').replace(/^(?:confirm|check|verify|advise)\s+(?=\S)/i, '').replace(/^./, (letter) => letter.toLowerCase())} to be confirmed.`;
       // Every note ends with a full stop (messy round 11, SiteLink wording 2).
-      if (note) note = withTradeArticle(note).replace(/([^.!?])$/, '$1.');
+      if (note) note = noteWording(withTradeArticle(note).replace(/([^.!?])$/, '$1.'));
+      // A note that says again only what its work already says ("Vacuum excavation where required by builder permits: where
+      // vacuum excavation is required is set by the builder's permits.") is left out (messy round 19, SiteLink wording 2).
+      if (note && activity && saysOnlyItsWork(note, activity)) continue;
       if (note && !out.includes(note)) out.push(note);
     }
   }
@@ -912,13 +947,48 @@ function draftNotes(rows) {
   const flat = (text) => ` ${String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
   return out.filter((note, index) => !out.some((other, at) => at !== index && flat(other).length > flat(note).length && flat(other).startsWith(flat(note).replace(/ $/, '')))).slice(0, 20);
 }
+// A note's own words, as a sentence (messy round 19, SiteLink wordings 2 and 3):
+//   - an order ("Confirm Mechanical installs the covers.") says what is open: "It is to be confirmed whether Mechanical
+//     installs the covers.";
+//   - a few words with "not defined" and no verb ("Boundary with C-1.76 not defined.") take "is";
+//   - a party's approval with no verb ("Builder approval of permits in exclusion zones.") says who must approve what.
+const NOTE_PARTY = '(?:builder|client|principal|principal contractor|superintendent|engineer|consultant|certifier|authority|council)';
+function noteWording(note) {
+  const at = note.indexOf(': ');
+  const head = at > 0 && at <= 200 && !/[.;]/.test(note.slice(0, at)) ? note.slice(0, at + 2) : '';
+  const body = note.slice(head.length);
+  const tidy = (text) => (head ? `${text.charAt(0).toLowerCase()}${text.slice(1)}` : `${text.charAt(0).toUpperCase()}${text.slice(1)}`);
+  const order = /^confirm(?:\s+that)?\s+(?!(?:with|whether|who|which|what|when|where|how|if)\b)(.+?)\.?$/i.exec(body);
+  if (order && !/[.;?]/.test(order[1])) return `${head}${tidy(`It is to be confirmed whether ${order[1]}.`)}`;
+  const asked = /^confirm\s+(whether|who|which|what|when|where|how|if)\s+(.+?)\.?$/i.exec(body);
+  if (asked && !/[.;?]/.test(asked[2])) return `${head}${tidy(`It is to be confirmed ${asked[1].toLowerCase() === 'if' ? 'whether' : asked[1].toLowerCase()} ${asked[2]}.`)}`;
+  const open = /^((?:[A-Za-z0-9][\w./-]*\s+){1,6}?)(not (?:defined|stated|known|clear|specified|confirmed|shown|given|nominated))\.$/i.exec(body);
+  if (open && !NO_VERB.test(open[1])) {
+    const first = open[1].trim().split(/\s+/)[0];
+    return `${head}${open[1].trim()} ${/[^s]s$/i.test(first) ? 'are' : 'is'} ${open[2]}.`;
+  }
+  const approval = new RegExp(`^(${NOTE_PARTY})(?:['’]s)? approval of (.+?)\\.$`, 'i').exec(body);
+  if (approval && !NO_VERB.test(approval[2])) return `${head}${tidy(`The ${approval[1].toLowerCase()} must approve ${approval[2]}.`)}`;
+  return note;
+}
+// Whether a note says nothing its work does not: every word of four letters or more is in the work's own words.
+function saysOnlyItsWork(note, activity) {
+  const stem = (word) => word.toLowerCase().replace(/['’]s$/, '').replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '');
+  const own = new Set(String(activity).split(/[^A-Za-z'’]+/).filter((word) => word.length >= 4).map(stem));
+  const text = note.startsWith(`${activity}:`) ? note.slice(activity.length + 1) : note;
+  const words = text.split(/[^A-Za-z'’]+/).filter((word) => word.length >= 4).map(stem);
+  return words.length >= 3 && words.every((word) => own.has(word));
+}
 // A note that is only a condition ("Only if hazardous areas are nominated on the Drawings.") is said with the work it is
 // about (messy round 18, SiteLink wording 1).
 const CONDITION_NOTE = /^(?:only\s+)?(?:if|where|when|unless|provided|subject to)\b/i;
 // Another trade's subcontractor named with no "the" ("Smoke detectors are Fire subcontractor's equipment.") takes it
 // (messy round 18, SiteLink wording 1).
 const TRADE_SUB = /(?<!\b(?:the|a|an|each|every|this|that|its|their|our|your|any|no)\s)(?<!\b[A-Z][\w'’-]*\s)\b((?:Fire|Electrical|Hydraulic|Hydraulics|Mechanical|Plumbing|Security|Communications|Comms|Civil|Structural|Steel|Roofing|Glazing|Facade|Lift|Lifts|Controls|BMS|Landscaping|Painting|Ceiling|Ceilings|Flooring|Joinery|Concrete|Formwork|Demolition|Scaffold|Scaffolding)(?:\s+(?:services|protection))?\s+[Ss]ubcontractor(?:'s|’s|s)?)\b/g;
-const withTradeArticle = (note) => String(note || '').replace(TRADE_SUB, (whole, name, at, all) => (/(?:^|[.!?]\s+)$/.test(all.slice(0, at)) ? `The ${name}` : `the ${name}`));
+// A trade's subcontractor said before what it owns takes "'s" too: "the Fire subcontractor's equipment", not "the Fire subcontractor
+// equipment" (messy round 19, SiteLink wording 2).
+const withTradeArticle = (note) => String(note || '').replace(TRADE_SUB, (whole, name, at, all) => (/(?:^|[.!?]\s+)$/.test(all.slice(0, at)) ? `The ${name}` : `the ${name}`))
+  .replace(/\b([Ss]ubcontractor)(?= (?:equipment|items?|works?|scope|plant|responsibility|devices?)\b)/g, "$1's");
 
 // The points the scope leaves open about who does the work or what the main contractor provides
 // (the brief's "Unknowns"), one for each activity that has one. The lead may answer them; only the
@@ -1000,11 +1070,15 @@ const NOTE_STOP = new Set(['this', 'that', 'with', 'from', 'they', 'their', 'the
   'through', 'exclusion', 'inclusion', 'specific', 'general', 'about', 'under', 'over', 'before', 'after', 'around', 'between', 'against', 'each', 'every', 'them', 'these', 'those', 'mechanical', 'hydraulic', 'servic', 'service', 'system', 'trade', 'trades',
   // Words that say only that something is open, never what (messy round 11, SiteLink blocker 2: the manholes
   // answer settled "Whether they will be instructed is open." on the storage tanks and the gas meter).
-  'instruct', 'instruction', 'open', 'decid', 'decision', 'determin', 'pend', 'pending', 'option', 'variation', 'price', 'pric', 'yet', 'still', 'now', 'later', 'need', 'requir', 'whom', 'whose']);
+  'instruct', 'instruction', 'open', 'decid', 'decision', 'determin', 'pend', 'pending', 'option', 'variation', 'price', 'pric', 'yet', 'still', 'now', 'later', 'need', 'requir', 'whom', 'whose',
+  // The scope's own words for where a note comes from ("The Associated work note gives ...").
+  'associat', 'associated']);
 // A word is left out when it is a stop word before or after its ending is taken off ("provided" is "provid").
-const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').split(/[^a-z0-9]+/)
+// "Removal", "removes" and "remove" are one word (messy round 19, SiteLink blocker 3: the temporary power note said "removal" and
+// the point "Remove"), and taking something off site is removing it from site (round 18: "builder takes it off site").
+const stems = (text) => new Set(String(text || '').toLowerCase().replace(/switchboards?/g, 'switch board').replace(/\b(?:take|takes|taking|took|taken) (?:(?:it|them|the \w+) )?(?:off|away from) (?:the )?site\b/g, 'remove from site').split(/[^a-z0-9]+/)
   .filter((word) => !NOTE_STOP.has(word))
-  .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
+  .map((word) => word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '').replace(/^remov(?:e|al)$/, 'remov')).filter((word) => word.length >= 4 && !NOTE_STOP.has(word)));
 // The note's own subject: the words after "{the work}: ", when the note starts with the work it is about.
 function noteSubject(entry) {
   const text = String((entry && entry.text) || '');
@@ -1024,9 +1098,12 @@ function noteWork(entry) {
 }
 const sameWords = (a, b) => String(a || '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase() === String(b || '').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
 // A note on who does the work: it names a party doing it.
-const NOTE_WHO = /\b(?:(?:last|first|final|other|each|another|following|preceding|services?|builder['’]?s?)\s+(?:trades?|subcontractors?|contractors?)|by (?:the )?(?:others|builder|main contractor|head contractor|principal contractor|subcontractor|contractor)|whoever|responsib\w*|(?:the|a|an|which|other) part(?:y|ies))\b/i;
+// Also a note that gives the work to a party ("... gives installation of security bolts to CST pit lids to the CST subcontractor."),
+// names whose it is ("Smoke detectors are the Fire subcontractor's equipment.") or marks the party's column of a matrix ("C-10.02
+// places an X under WWTP for ..."): messy round 19, SiteLink blocker 3.
+const NOTE_WHO = /\b(?:(?:last|first|final|other|each|another|following|preceding|services?|builder['’]?s?)\s+(?:trades?|subcontractors?|contractors?)|by (?:the )?(?:others|builder|main contractor|head contractor|principal contractor|subcontractor|contractor)|whoever|responsib\w*|(?:the|a|an|which|other) part(?:y|ies)|to (?:the |an? )?(?:[\w/-]+ ){0,3}?(?:subcontractors?|contractors?|trades?)|(?:the )?(?:[\w/-]+ ){0,2}?(?:subcontractor|contractor|trade)['’]s?(?= (?:equipment|work|scope|responsibility|items?)\b)|(?:places?|puts?|marks?|shows?) an? ['"‘’“”]?x['"‘’“”]? (?:under|against|in))\b/i;
 // Words in a note on who does the work that say only which party, never what the work is ("the last trade").
-const WHO_ONLY = new Set(['last', 'first', 'final', 'shar', 'common', 'each', 'another', 'following', 'preceding', 'whoever', 'responsib', 'responsible', 'party', 'parti']);
+const WHO_ONLY = new Set(['last', 'first', 'final', 'shar', 'common', 'each', 'another', 'following', 'preceding', 'whoever', 'responsib', 'responsible', 'party', 'parti', 'equipment']);
 // A piece of a sentence left as a note when the reading split it ("Pits 3." from "pits 3, 4 and 5 will be ..."):
 // three words or fewer and no verb.
 const fragment = (text) => { const words = String(text || '').replace(/[.\s]+$/, '').split(/\s+/).filter(Boolean); return words.length > 0 && words.length <= 3 && !NO_VERB.test(String(text || '')); };
@@ -1076,9 +1153,13 @@ function withSettled(item, answers, { activities } = {}) {
       const pointWords = stems(`${answer.activity} ${answer.question} ${answer.answer}`);
       // Two words of the subject in the point, one of them in what it asked, or one in what it asked
       // about the same work.
+      // A note on who does the very work a point asks who does is settled by its answer, though the answer names only the party
+      // ("Confirm who does it." on removing the temporary power, "Electrical sub does it."), and so is a note whose every word the
+      // answer says ("Removal from site is by the builder." beside "... builder removes it from site."): messy round 19.
+      const aboutWork = things.length >= 2 && things.every((word) => work.has(word)) && asksWho(answer.question);
       return (said >= 2 && asked >= 1) || (asked >= 1 && Boolean(entry.activity) && answer.activity === entry.activity)
-        || (saysWho && things.length > 0 && things.some((word) => answerWords.has(word)) && things.every((word) => pointWords.has(word))
-          && things.some((word) => work.has(word) || askedWords.has(word)));
+        || (saysWho && things.length > 0 && (things.some((word) => answerWords.has(word)) || aboutWork) && things.every((word) => pointWords.has(word))
+          && (things.some((word) => work.has(word) || askedWords.has(word)) || things.every((word) => answerWords.has(word))));
     };
     const score = (answer) => { const words = stems(`${answer.question} ${answer.answer}`); const work = stems(answer.activity); return [...own].filter((word) => words.has(word)).length + [...own].filter((word) => work.has(word)).length; };
     const found = mine.filter(fits).sort((a, b) => score(b) - score(a))[0];
@@ -1093,7 +1174,7 @@ function notesOf(list) {
   const out = [];
   for (const entry of Array.isArray(list) ? list : []) {
     const raw = typeof entry === 'string' ? entry : entry && typeof entry === 'object' ? entry.note || entry.text || entry.question || '' : '';
-    const text = sentence(withoutConflictRefs(quoteWithoutPrices(String(raw || '')))).replace(/([^.!?])$/, '$1.');
+    const text = noteWording(withTradeArticle(sentence(withoutConflictRefs(quoteWithoutPrices(String(raw || ''))))).replace(/([^.!?])$/, '$1.'));
     // Notes kept before messy round 16 are read by the same rules: a note about the scope's own lines is left out.
     const own = text.replace(/^[^:]{3,120}:\s+/, '');
     if (!text || out.some((one) => one.text === text) || ABOUT_THE_DOCUMENT.test(text) || ABOUT_THE_DOCUMENT.test(own) || READING_DECIDED.test(text)) continue;

@@ -153,7 +153,7 @@ const pointWith = (page, words) => page.points.find((one) => one.question.includ
 
 // ---- Blocker 1: an answer settles only notes about the same thing in the same SWMS's work ----
 
-test('the round 15, 16 and 17 answers settle only the notes on their own subject, in their own SWMS (blocker 1)', () => {
+test('the round 15 to 19 answers settle only the notes on their own subject, in their own SWMS (blocker 1)', () => {
   for (const [round, { answers: given, swms }] of Object.entries(CASES)) {
     for (const one of swms) {
       const notes = handover.withSettled({ draftNotes: handover.notesOf(one.notes) }, given, { activities: one.work }).draftNotes;

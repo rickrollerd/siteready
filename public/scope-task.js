@@ -40,7 +40,7 @@
     // One word in brackets straight after the first verb says how it is done ("Seal (paint) bottoms of doors"): it reads
     // "Seal or paint", not "Seal: paint bottoms of doors" (messy round 14, A run 4).
     text = text.replace(/^([A-Za-z]+)\s*\(([a-z]+)\)\s+/, (whole, verb, other) => `${verb} or ${other} `);
-    text = text.replace(/\s*\(([^)]*)\)/g, (whole, inside) => {
+    text = text.replace(/\s*\(([^)]*)\)/g, (whole, inside, at) => {
       const words = inside.trim();
       // A short name for the words before it ("Combined Services Trench (CST)") stays in its brackets (messy round 17,
       // SiteLink wording 2: "Combined Services Trench: CST pipework").
@@ -52,6 +52,9 @@
       if (/^(?:including|incl\.?|such as|e\.?g\.?)\s/i.test(words)) return `, ${words.replace(/^incl\.?\s/i, 'including ')}`;
       // So does what is left out (messy round 9, wording 1: "Install gas services: excluding storage tank").
       if (/^(?:excluding|excl\.?|except|other than|not including|but not|without)\s/i.test(words)) return `, ${words.replace(/^excl\.?\s/i, 'excluding ')}`;
+      // A few words in the middle of the sentence that say which kind ("Install mechanical services (toilet exhaust) into ...")
+      // stay in their brackets: a colon there breaks the sentence (messy round 19, SiteLink wording 2).
+      if (/^\s*[a-z]/i.test(text.slice(at + whole.length)) && words.split(/\s+/).length <= 4) return ` (${words})`;
       return `: ${words}`;
     });
     text = text.replace(/\s+([,.;:])/g, '$1').replace(/[\s.;,:]+$/, '').trim();
@@ -68,12 +71,24 @@
   // ("Hazardous zone compliance installation"), is carried out. Work that starts with a verb, or with its own -ing word
   // ("Testing and commissioning"), is left as it is.
   const NOT_FIRST = /^(?:install\w*|supply|provide|carry|make|complete|undertake|perform|connect\w*|test\w*|commission\w*|\w+ing)$/i;
+  // Work that starts with its own verb ("Paint mechanical installation") is done to the thing it names: "Paint the mechanical
+  // installation.", not "Carry out paint mechanical installation." (messy round 19, SiteLink wording 2).
+  const WORK_VERB = /^(?:paint|seal|label|clean|protect|insulate|lag|coat|prime|wrap|test|inspect|check|maintain|service|balance|flush|commission|modify|alter|repair|replace|remove|relocate|demolish|isolate|disconnect|reconnect|terminate|extend|upgrade|refurbish|recommission|certify|fix|fit|secure|brace|support|patch)$/i;
+  // A thing named by a word ending in "ing" ("Thermographic scanning of switchboards by specialist ...") is done, by a
+  // specialist where it says so: "Arrange thermographic scanning of switchboards by a specialist ...".
+  const DONE_BY = /\bby (?:an? )?(?:specialists?|(?:specialist |independent |third[- ]party )(?:contractors?|consultants?|testers?|companies))\b/i;
   function withVerb(text) {
     const line = String(text || '');
     const lower = (words) => (/^[A-Z][a-z]/.test(words) ? `${words.charAt(0).toLowerCase()}${words.slice(1)}` : words);
     if (/^final connections?\s+(?:of|to|for)\b/i.test(line)) return `Make the ${lower(line)}`;
     const first = line.split(/\s+/)[0] || '';
-    if (/^(?:[A-Za-z-]+\s+){1,4}installation\b/i.test(line) && !NOT_FIRST.test(first)) return `Carry out ${lower(line)}`;
+    const named = /^((?:[A-Za-z-]+\s+){1,5})installation\b/i.exec(line);
+    if (named && WORK_VERB.test(first)) return /^[A-Za-z-]+\s+(?:the|a|an|all|each|any|our|new|existing)\s/i.test(line) ? line : line.replace(/^([A-Za-z-]+)\s+/, '$1 the ');
+    if (named && !NOT_FIRST.test(first)) return `Carry out ${lower(line)}`;
+    if (/^(?:[A-Za-z-]+\s+){0,2}[a-z]+ing\s+(?:of|to|for)\s/i.test(line) && !/^(?:[A-Za-z-]+\s+){0,2}(?:is|are|will|must|shall)\b/i.test(line)) {
+      const done = line.replace(/\bby (?:specialists?)\b/i, 'by a specialist');
+      return DONE_BY.test(line) ? `Arrange ${lower(done)}` : `Carry out ${lower(done)}`;
+    }
     return line;
   }
 
@@ -121,12 +136,13 @@
   const TRADE_NAMED = /\b(?:electric\w*|sparky|sparkies|plumb\w*|hydraulic\w*|mechanical|hvac|air ?con\w*|fire\w*|sprinkler\w*|carpent\w*|joiner\w*|joinery|til(?:er|ers|ing)|paint\w*|plaster\w*|ceiling\w*|partition\w*|concret\w*|formwork\w*|steel ?fix\w*|reo|steel\w*|scaffold\w*|cranes?|crane crew|rigg\w*|roof\w*|glaz\w*|windows?|facade\w*|cladding|landscap\w*|civil\w*|earthwork\w*|demoli\w*|asbestos|clean\w*|security|data|comms|cabling|lifts?|floor ?(?:layers?|finish\w*|cover\w*)|carpet\w*|vinyl|waterproof\w*|insulat\w*|duct\w*|fans?|kitchens?|masonry|brick\w*|block ?lay\w*|render\w*|signage|traffic control\w*|survey\w*|cabinet\w*|services trades?|pump\w*|piling|drill\w*|welders?|fitters?|electricians?|labourers?)\b/i;
   const WHERE_NAMED = /\b(?:above|below|beneath|overhead|same (?:level|floor|area|room|zone)|levels? \d+|floors? \d+|L\d+|ground floor|basement|roof|plant ?room|riser|shaft|zone \w+|next door|adjacent (?:room|area|level|unit|lot))\b/i;
   const OTHERS_WORK = /\bby (?:other trades|others|other contractors|another contractor|the builder|the main contractor|the head contractor)\b/i;
+  // Security alone names no way in ("Correctional facility security classification areas.": messy round 19, SiteLink smaller).
   // A condition is offered for Public interface only where it names people or traffic near the work, and for Access only
   // where it names a way in or up (messy round 15, A runs 2 and 4: "Existing live HV network of an operating facility."
   // and "Buildings isolated from the network in an operating facility." were offered as Public interface, and "Vehicle
   // access point." as Access). A live network goes to Live services.
   const PUBLIC_NAMED = /\b(?:public|footpaths?|roads?|streets?|traffic|pedestrians?|neighbou?rs?|occupied|occupants?|tenants?|patients?|visitors?|shoppers?|customers?|students?|pupils?|children|staff|residents?|school|car ?parks?|people)\b/i;
-  const ACCESS_NAMED = /\b(?:gates?|stairs?|stair ?towers?|hoists?|lifts?|ladders?|ramps?|loading (?:zones?|docks?|bays?)|laydown|lanes?|driveways?|entr(?:y|ies|ance|ances)|via|through|off|levels?|floors?|escort\w*|security|induct\w*|swipe|passes|permits?|street|st|road|rd|deliver\w*|hours?|times?)\b/i;
+  const ACCESS_NAMED = /\b(?:gates?|stairs?|stair ?towers?|hoists?|lifts?|ladders?|ramps?|loading (?:zones?|docks?|bays?)|laydown|lanes?|driveways?|entr(?:y|ies|ance|ances)|via|through|off|levels?|floors?|escort\w*|security (?:gates?|passes?|clearances?|checks?|screening|escorts?|guards?|inductions?|sign[- ]in|entry|points?|offices?)|induct\w*|swipe|passes|permits?|street|st|road|rd|deliver\w*|hours?|times?)\b/i;
   // An occupied or operating facility has people in it, unless the condition is about its network or services.
   const SERVICE_NAMED = /\b(?:networks?|hv|lv|high voltage|low voltage|power|electric\w*|energis\w*|gas|water mains?|switch ?boards?|cables?|services?|substations?|isolat\w*)\b/i;
   // A condition is offered for Live services only where it names a service, not only that something is live or
@@ -139,7 +155,9 @@
       // Management System.") names no people near the work, and a builder's rule about what goes in the slab ("Builder safety
       // requirement: no in-slab conduits unless no alternative.") is not ground: neither is offered (messy round 18, SiteLink).
       : id === 'publicInterface' ? PUBLIC_NAMED.test(text) || (/\b(?:occupied|in use)\b/i.test(text) && !SERVICE_NAMED.test(text))
-        : id === 'ground' ? !/\b(?:in-slab|conduits?|cast[- ]in|requirements?)\b/i.test(text)
+        // Ground conditions said only to be in a report ("Existing ground conditions per Geotechnical Report.") say none of them
+        // (messy round 19, SiteLink smaller).
+        : id === 'ground' ? !/\b(?:in-slab|conduits?|cast[- ]in|requirements?)\b/i.test(text) && !/\b(?:per|refer(?:\s+to)?|see|as (?:per|in|shown in)|in accordance with|to)\s+(?:the\s+)?(?:[\w-]+\s+){0,2}(?:reports?|drawings?|specifications?|plans?)\b/i.test(text.replace(/\b(?:soft|wet|boggy|rock|sloping|slopes?|kpa|fill|clay|sand|water ?table|groundwater)\b[^.]*/i, ''))
           : id === 'access' ? ACCESS_NAMED.test(text) : true);
   const offerable = (id, text) => { const rules = gate(); return (!rules || !rules.siteNeed || !rules.siteNeed(id, text)) && namesSomething(id, text); };
   function scopeSite(rows) {

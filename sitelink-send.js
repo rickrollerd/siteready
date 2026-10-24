@@ -734,7 +734,8 @@ publicRouter.post('/list/:token/claim', auth.requireUser, route(async (req, res)
     if (again && again.company_id === company.id) { res.json({ ok: true, already: true, company: name, listId: sub.id, message: `This list is already linked to ${name} in SiteWrite.` }); return; }
     await refused(TAKEN(name, contact), 'A second company tried to take up the list in SiteWrite. It stays with the company that took it up first.');
   }
-  await logEntry({ projectId: project.id, subId: sub.id, kind: 'claimed', actorKind: 'sub', actorName: name, summary: `${name} (ABN ${formatAbn(abn)}) took up the list for ${sub.name} in SiteWrite.${mismatch ? ` Its name is not ${sub.name}: check it is the right company.` : ''}`, refs: {} });
+  // The company is named once where it is the company the list is for (messy round 19, SiteLink wording 6).
+  await logEntry({ projectId: project.id, subId: sub.id, kind: 'claimed', actorKind: 'sub', actorName: name, summary: mismatch ? `${name} (ABN ${formatAbn(abn)}) took up the list for ${sub.name} in SiteWrite. Its name is not ${sub.name}: check it is the right company.` : `${name} (ABN ${formatAbn(abn)}) took up its list in SiteWrite.`, refs: {} });
   record('list_claimed', company.id);
   res.json({ ok: true, company: name, listId: sub.id, message: `The list is now linked to ${name} in SiteWrite. ${org.name} can see that you have it.` });
 }));

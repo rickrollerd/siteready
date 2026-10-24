@@ -236,19 +236,19 @@ test('the list holds only what is needed: support work folds into the main SWMS,
   const point = (text) => page.points.find((one) => one.question.startsWith(text));
   assert.equal(point('Who gives access').inPlay, false);
   assert.equal(point('Who supplies the controller').inPlay, false);
-  assert.equal(point('Confirm who supplies').inPlay, true);
+  assert.equal(point('It is not stated who supplies').inPlay, true);
   const project = (await call('GET', `/api/hse/projects/${projectId}`, { reviewer: lead })).data;
   assert.equal(project.subcontracts[0].pointsOpen, 1);
   // Answered points about a SWMS off the list are not sent either.
   await call('PUT', `/api/hse/subcontracts/${subId}/points/${point('Who gives access').id}`, { reviewer: lead, body: { answer: 'The site manager opens the roof hatch.' } });
-  let next = (await call('PUT', `/api/hse/subcontracts/${subId}/points/${point('Confirm who supplies').id}`, { reviewer: lead, body: { answer: 'We supply the units. You install them.' } })).data;
+  let next = (await call('PUT', `/api/hse/subcontracts/${subId}/points/${point('It is not stated who supplies').id}`, { reviewer: lead, body: { answer: 'We supply the units. You install them.' } })).data;
   assert.deepEqual(next.preview.answers.map((one) => one.answer), ['We supply the units. You install them.']);
   // Moving Controls to the list brings its point back; removing the main SWMS takes its point away.
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${controlsItem.id}`, { reviewer: lead, body: { removed: false } })).data;
   assert.equal(next.message, 'Central controller for the VRF systems is moved to the list.');
   assert.equal(next.points.find((one) => one.question.startsWith('Who supplies the controller')).inPlay, true);
   next = (await call('PUT', `/api/hse/subcontracts/${subId}/items/${main.id}`, { reviewer: lead, body: { removed: true } })).data;
-  assert.equal(next.points.find((one) => one.question.startsWith('Confirm who supplies')).inPlay, false);
+  assert.equal(next.points.find((one) => one.question.startsWith('It is not stated who supplies')).inPlay, false);
   assert.deepEqual(next.preview.answers, []);
   assert.equal((await call('GET', `/api/hse/projects/${projectId}`, { reviewer: lead })).data.subcontracts[0].pointsOpen, 1);
 });

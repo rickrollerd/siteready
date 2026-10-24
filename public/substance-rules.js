@@ -350,14 +350,16 @@
   // The products a safety data sheet answer lists as used, each with its type, in the answer's own words: "pipe thread
   // sealant, cutting oil and pvc solvent cement" gives the sealant and the PVC cement (messy round 16, SiteLink: the
   // answer named them, and the SWMS still asked for a sealant and a PVC cement as if they were not given).
-  function sdsProducts(sds) {
-    const out = [];
+  function sdsClauses(sds) {
     const sentences = String(sds || '').split(/(?<=[.;!?])\s+|\n+/).filter((sentence) => !NOT_OURS.test(sentence));
-    const clauses = sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+(?:and|n)\s+|\s*&\s*/))
+    return sentences.flatMap((sentence) => sentence.replace(/^.*?\b(?:products? (?:used|in use)(?: on this job)?|products? we use|we use|we are using)\b\s*(?:are|is|:)?\s*/i, '').split(/,\s*|;\s*|\s+(?:and|n)\s+|\s*&\s*/))
       // A clause after a comma keeps no joining word ("..., and pipe thread sealant" is "pipe thread sealant": messy round 18,
       // SiteLink: "Use And pipe thread sealant" was offered).
       .map((clause) => clean(clause).replace(/^(?:(?:and|n|&|plus|also)\s+)+/i, '').replace(/[.:\s]+$/, '').replace(/^(?:a|an|the|some|our)\s+/i, '')).filter((clause) => clause && !/\b(?:safety data sheets?|sds'?s?)\b/i.test(clause) && clause.split(/\s+/).length <= 8);
-    for (const clause of clauses) {
+  }
+  function sdsProducts(sds) {
+    const out = [];
+    for (const clause of sdsClauses(sds)) {
       // Concrete named on its own is the cement product (messy round 17, A run 2: "concrete, form oil n curing compound" made no
       // concrete product, and cement was asked again).
       // A floor levelling compound is a cement product, and a floor or glass cleaner or a polish is a cleaning chemical (messy round 18:
@@ -373,6 +375,15 @@
       if (type && !out.some((row) => row.product.toLowerCase() === product.toLowerCase())) out.push({ type, product });
     }
     return out;
+  }
+  // An answer that only names products, each by more than its type's word, is those products: each becomes a product with its
+  // own safety data sheet (D256), so it is judged the same however long the list is (messy round 19, SiteLink: Penetrations'
+  // "Fire rated sealant n intumescent mastic" was refused for not saying how the products are handled, and Ductwork's longer
+  // list of the same kind passed). "glue n primer" names types, not products.
+  function sdsNamedProducts(sds) {
+    const clauses = sdsClauses(sds);
+    const products = sdsProducts(sds);
+    return clauses.length > 0 && clauses.every((clause) => clause.split(/\s+/).length >= 2 && products.some((row) => row.product.toLowerCase() === clause.toLowerCase()));
   }
   // Where "Not required" needs a reason: the word in the user's own task or answers, else in the job steps.
   function reasonAsked(type, words, steps = '') {
@@ -813,7 +824,7 @@
     if (type === 'Adhesives' && /\b(?:adhesives?|glues?)\b/i.test(clean(item.product))) return true;
     return type === 'Bitumen and asphalt' && /\b(?:bitumen|bituminous|sbs|app|torch[- ]?on)\b/i.test(clean(item.product));
   }
-  const api = { tableLine, reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, sdsProducts, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
+  const api = { tableLine, reasonExample, REASON_EXAMPLES, ownFuelledPlant, refuelStep, SUBSTANCES, CONTROL_PRODUCTS, TYPES, SHORT, NAMED, clean, linesOf, matchStep, stepOf, dateOf, sdsOld, sdsFuture, OLD_NOTE, isOpen, rowOf, substanceNeed, stepLine, promptName, GENERAL, namedIn, ownWords, reasonNeed, notUsedNeed, stepWords, reasonAsked, sdsConflict, sdsProducts, sdsNamedProducts, cutStep, silicaStep, SILICA, usedByStep, stepUses, BY_OTHERS, coversType };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteSubstanceRules = api;
 })(typeof window !== 'undefined' ? window : globalThis);

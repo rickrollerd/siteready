@@ -247,15 +247,16 @@ test('the office saves on a desktop and the foreman carries on on a phone; a sav
   assert.equal(phone.data.progress.project.items[0].body.company, undefined);
   assert.match(phone.data.progress.updatedOn, /\d{4}/);
   // The foreman changes the muster point back and saves: no change from the builder's now.
-  // Named by the "Prepared by" name on the page, as the foreman has no name on his account (messy round 7:
-  // it showed an email address).
+  // The foreman has no name on his account, so his save is named by no one: never an email address (messy round 7), and not
+  // the page's Prepared by (messy round 19).
   const back = await call('PUT', `/api/from-builders/${c.subId}/progress`, { session: foreman, body: { baseVersion: 1, ...pageWork(list, { worksManager: 'Sam Lee', musterPoint: DETAILS.musterPoint, preparedBy: 'Tom Beck, Foreman' }) } });
   assert.equal(back.status, 200);
   assert.deepEqual(back.data.overrides, []);
   // The office's tab, still on version 1, is refused, and given the foreman's work.
   const behind = await call('PUT', `/api/from-builders/${c.subId}/progress`, { session: c.office, body: { baseVersion: 1, ...work } });
   assert.equal(behind.status, 409);
-  assert.match(behind.data.message, /^This list was saved on another device by Tom Beck on .+\. The newest work is shown\.$/);
+  // A person with no name on the account is not named by the page's Prepared by, which names who prepared the SWMS (messy round 19).
+  assert.match(behind.data.message, /^This list was saved on another device on .+\. The newest work is shown\.$/);
   assert.equal(behind.data.progress.version, 2);
   assert.equal(behind.data.progress.page.musterPoint, DETAILS.musterPoint);
   // The list of lists shows how far the work has got.

@@ -169,7 +169,14 @@ async function progressView(found, company, list) {
 // A name kept before this rule may be an email address: it is not shown.
 // A name saved in lower case shows with its capitals (SiteLink round 10, wording 5: "Last saved on ... by
 // kirra pendlebury").
-const nameOnly = (value) => (String(value || '').includes('@') ? '' : require('./sitelink-answers').tidyName(String(value || '')));
+// A role typed after the name with no comma is not part of the name ("delphine okoro office admin" reads "Delphine Okoro").
+const nameOnly = (value) => {
+  if (String(value || '').includes('@')) return '';
+  const answers = require('./sitelink-answers');
+  const name = answers.tidyName(String(value || ''));
+  const split = name.includes(',') ? { name: name.split(',')[0] } : answers.splitRole(name);
+  return split ? split.name.trim() : name;
+};
 
 // How far the company has got, for its list of lists: from its own saved work only.
 function progressSummary(row, total) {
@@ -275,11 +282,10 @@ router.put('/from-builders/:id/progress', route(async (req, res) => {
   const overrides = builderSet.overridesOf(list.builderSet, page);
   const base = Number(body.baseVersion);
   if (!Number.isInteger(base) || base < 0) throw fail(400, 'Reload the page, then carry on.');
-  // Who saved, by name, never an email address (messy round 7: "by r7c-office-...@siteready.test"). A
-  // person with no name on their account is named by the "Prepared by" name on the page, if any.
-  const typedBy = page && typeof page.preparedBy === 'string' ? page.preparedBy : '';
-  const given = typedBy.split(',')[0].replace(/\s+/g, ' ').trim().slice(0, 120);
-  const who = String(req.user.name || (given && !given.includes('@') ? given : '')).slice(0, 200);
+  // Who saved, by name, never an email address (messy round 7: "by r7c-office-...@siteready.test"). A person with no name on
+  // their account is not named: the "Prepared by" name on the page names who prepared the SWMS, not who saved (messy round 19,
+  // SiteLink wording 6: the foreman's save read "by Delphine Okoro Office Admin", the office's Prepared by as first typed).
+  const who = String(req.user.name || '').replace(/\s+/g, ' ').trim().slice(0, 200);
   const now = new Date();
   // Which page saved (one id for each page load) and the version it started from, kept with the work.
   const pageId = typeof body.pageId === 'string' ? body.pageId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) : '';
