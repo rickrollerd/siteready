@@ -151,6 +151,7 @@ test('the tests run on every pull request and push to main, read only', () => {
   assert.ok(!/write/.test(text.split('jobs:')[0]), 'no write permission');
   assert.ok(!/secrets\./.test(text));
   assert.match(text, /- run: npm ci /);
-  assert.match(text, /- run: npm test\n/);
+  // The tests' output is kept for the failure summary; pipefail keeps a failing run failing through tee.
+  assert.match(text, /\n {10}set -o pipefail\n {10}npm test 2>&1 \| tee test-output\.txt\n/);
   assert.match(text, /persist-credentials: false/);
 });

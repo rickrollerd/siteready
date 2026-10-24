@@ -28,4 +28,11 @@ jobs:
       # pdftotext reads the PDFs in the print tests.
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils > /dev/null
       - run: npm ci --no-audit --no-fund
-      - run: npm test
+      - name: Run the tests
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
+      # The log is long; on a failure, print only the failing tests at its end.
+      - name: Failing tests
+        if: failure()
+        run: grep -A40 '^not ok' test-output.txt | head -400
