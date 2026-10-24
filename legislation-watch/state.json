@@ -306,7 +306,6 @@
       "How to manage work health and safety risks | /publications/code-practice-how-manage-work-health-and-safety-risks",
       "How to safely remove asbestos | /publications/code-practice-how-safely-remove-asbestos",
       "Labelling of workplace hazardous chemicals | /publications/code-practice-labelling-workplace-hazardous-chemicals",
-      "Man overboard: prevention and response | /publications/code-practice-man-overboard-prevention-and-response",
       "Managing electrical risks in the workplace | /publications/managing-electrical-risks-workplace-code-practice",
       "Managing noise and preventing hearing loss at work | /publications/code-practice-managing-noise-and-preventing-hearing-loss-work",
       "Managing risks in stevedoring | /publications/code-practice-managing-risks-stevedoring",
@@ -320,6 +319,7 @@
       "Mines survey | /publications/mines-survey-code-practice",
       "Occupational safety and health in WA public sector | /publications/code-practice-occupational-safety-and-health-western-australian-public-sector",
       "Occupational safety and health in call centres | /publications/code-practice-occupational-safety-and-health-call-centres",
+      "Person overboard: prevention and response | /publications/code-practice-man-overboard-prevention-and-response",
       "Precast, Tilt-up and Concrete Elements in Building Construction | /publications/national-code-practice-precast-tilt-and-concrete-elements-building-construction",
       "Preparation of safety data sheets for hazardous chemicals | /publications/code-practice-preparation-safety-data-sheets-hazardous-chemicals",
       "Prevention and control of legionnaires disease | /publications/code-practice-prevention-and-control-legionnaires-disease",
@@ -515,7 +515,9 @@
     "8c33f3d761",
     "733bcc9075",
     "92e264bee9",
-    "4eecaaa35c"
+    "4eecaaa35c",
+    "5261b6154e",
+    "51eb166719"
   ],
   "alerts:nsw-construction-alerts": {
     "seen": [
@@ -753,7 +755,8 @@
       "https://www.facebook.com/sharer/sharer.php?u=https://www.worksafe.wa.gov.au/work-health-and-safety-alerts",
       "https://x.com/intent/tweet?text=&amp;url=https://www.worksafe.wa.gov.au/work-health-and-safety-alerts",
       "https://www.linkedin.com/shareArticle?mini=true&amp;url=https://www.worksafe.wa.gov.au/work-health-and-safety-alerts",
-      "https://www.worksafe.wa.gov.au/publications/safety-alerts-directory-general-workplaces"
+      "https://www.worksafe.wa.gov.au/publications/safety-alerts-directory-general-workplaces",
+      "https://www.worksafe.wa.gov.au/publications/significant-incident-summary-no-15-mobile-lighting-tower-uncontrolled-movement-mast"
     ],
     "status": "ok"
   },
