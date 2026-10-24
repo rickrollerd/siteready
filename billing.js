@@ -40,6 +40,13 @@ async function fromStripe(where, call) {
 }
 const router = express.Router();
 
+// Subscribing and managing the subscription (card, invoices, cancelling) are for the company's
+// administrator, as adding and removing people are (accounts.js).
+function requireAdmin(req, _res, next) {
+  if (!req.user.is_admin) return next(auth.fail(403, 'Only your company\'s administrator can manage the subscription. Ask them to do this.'));
+  return next();
+}
+
 async function customerFor(company, email) {
   if (company.stripe_customer_id) return company.stripe_customer_id;
   const customer = await stripe().customers.create({
@@ -53,7 +60,7 @@ async function customerFor(company, email) {
 
 // Subscribing during the free trial keeps the rest of the trial: the first
 // charge is on the day the trial would have ended.
-router.post('/billing/checkout', auth.requireUser, route(async (req, res) => {
+router.post('/billing/checkout', auth.requireUser, requireAdmin, route(async (req, res) => {
   if (!enabled()) throw auth.fail(503, 'Subscriptions are not set up yet.');
   const base = auth.appUrl(req);
   const trialEnd = Math.floor(new Date(req.company.trial_ends_at).getTime() / 1000);
@@ -78,7 +85,7 @@ router.post('/billing/checkout', auth.requireUser, route(async (req, res) => {
 }));
 
 // Change card, see invoices, or cancel, on Stripe's own page.
-router.post('/billing/portal', auth.requireUser, route(async (req, res) => {
+router.post('/billing/portal', auth.requireUser, requireAdmin, route(async (req, res) => {
   if (!enabled() || !req.company.stripe_customer_id) throw auth.fail(400, 'There is no subscription to manage yet.');
   const session = await fromStripe('portal', () => stripe().billingPortal.sessions.create({ customer: req.company.stripe_customer_id, return_url: `${auth.appUrl(req)}/` }));
   res.json({ url: session.url });

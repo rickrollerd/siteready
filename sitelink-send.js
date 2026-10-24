@@ -229,9 +229,10 @@ async function deliver(ctx, req, planned) {
   const { sub, project, org } = ctx;
   const sent = await db.query('SELECT COUNT(*) AS n FROM list_links WHERE org_id = $1 AND created_at > $2', [org.id, new Date(Date.now() - 24 * HOUR)]);
   if (Number(sent[0].n) >= dailyLimit()) throw fail(429, `Your account has sent ${sent[0].n} list emails in the last day, the most SiteLink sends in a day. Try again tomorrow.`);
+  // The list's link signs the subcontractor in: never sent without the app's own address (auth.linkUrl).
+  const base = auth.linkUrl(req);
   const token = newSecret();
   const stopToken = newSecret();
-  const base = auth.appUrl(req);
   const final = await plan(ctx, req, { due: planned.due }, { reminder: planned.kind === 'reminder', urls: { link: linkUrl(base, token), stop: stopUrl(base, stopToken) } });
   const who = sender(req);
   const linkId = auth.newId();

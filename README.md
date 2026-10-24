@@ -109,7 +109,11 @@ See `.env.example`.
 | `RATE_LIMIT_EMAIL_REQUESTS` | 10 | Sign-in emails and team invitations per window to one inbox |
 | `RATE_LIMIT_EMAIL_IP_REQUESTS` | 3 times the above | Sign-in emails and team invitations per window from one client address |
 | `TRUST_PROXY` | 1 | Number of proxies in front of the server. Set 0 when clients connect directly, or a client can fake its address to get round the rate limit. |
-| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. Every worker shares one rate limit count, kept in the memory of the primary process. |
+| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. Every worker shares one rate limit count, kept in the memory of the primary process. A number higher than the memory holds (about 512 MB a worker) is cut back, and the log says so. |
+| `APP_URL` | none | The public https address, for example `https://sitewrite.com.au`, with no path. In production (a Railway environment named production, or `NODE_ENV=production` outside Railway) sign-in, reviewer and list links use only this; without a valid https address none are sent and the log says so at start. Elsewhere the request's own address is used when it is not set. |
+| `DATABASE_CA` | none | The database's certificate authority, as PEM text (line breaks may be written as `\n`). When set, the database's certificate is checked against it. When not set, the connection is still encrypted but the certificate is not checked, as before, and the log says so once at start. Not used for a local database or with `DATABASE_SSL=off`. An `sslmode` in `DATABASE_URL` overrides both. |
+
+The tables are set up once at start, before the server takes requests: by the primary process before it starts the workers. If that fails, the server stops with the reason in the log. `/api/health` answers 503 until the tables are ready.
 
 Rate limit counts are kept in memory only, in the primary process, so they hold for one copy of the server. A second copy (a second Railway replica) would keep its own counts, so each limit would double. Before adding one, move the counts to a shared store and change the privacy policy, which says the IP address is kept in memory and not written to storage.
 

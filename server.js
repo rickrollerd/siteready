@@ -705,10 +705,16 @@ app.get('/api/config', (_req, res) => {
   res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month incl. GST', designFiles: { enabled: db.enabled() && designFiles.enabled(), maxMb: designFiles.MAX_MB } });
 });
 
+// Ready only once the tables are set up (db.readiness): a server still setting them up, or whose set-up
+// failed, answers 503, so no traffic is sent to it as ready.
 app.get('/api/health', async (_req, res) => {
   let database = 'off';
-  if (db.enabled()) database = await db.query('SELECT 1').then(() => 'ok').catch(() => 'failing');
-  res.status(database === 'failing' ? 503 : 200).json({ ok: database !== 'failing', database });
+  if (db.enabled()) {
+    const tables = db.readiness();
+    database = tables === 'ready' ? await db.query('SELECT 1').then(() => 'ok').catch(() => 'failing') : tables === 'failed' ? 'setup failed' : 'starting';
+  }
+  const ok = database === 'ok' || database === 'off';
+  res.status(ok ? 200 : 503).json({ ok, database });
 });
 
 app.use('/api', accounts.router);
@@ -781,21 +787,43 @@ app.use((error, req, res, _next) => {
 // One worker per processor core, as many as the memory allows. A worker holds the step library, the word
 // list and its drafts: about 290 MB after its first draft and 400 MB after a few downloads (measured 16
 // October 2026). More workers than the memory holds are stopped by the host, and a request in flight on a
-// stopped worker comes back as a 502 (messy round 6). WEB_CONCURRENCY, when set, is used as it is.
+// stopped worker comes back as a 502 (messy round 6). WEB_CONCURRENCY, when set, is used up to what the
+// memory holds; more is cut back, with a warning in the log.
 const WORKER_MB = 512;
-function workerCount() {
-  const set = Number(process.env.WEB_CONCURRENCY);
-  if (Number.isFinite(set) && set >= 1) return Math.floor(set);
+function workerCount({ warn = () => {} } = {}) {
   const memory = Math.min(Number(process.constrainedMemory && process.constrainedMemory()) || Infinity, os.totalmem());
-  return Math.max(1, Math.min(os.availableParallelism(), Math.floor(memory / (WORKER_MB * 1024 * 1024))));
+  const fits = Math.max(1, Math.floor(memory / (WORKER_MB * 1024 * 1024)));
+  const set = Number(process.env.WEB_CONCURRENCY);
+  if (Number.isFinite(set) && set >= 1) {
+    if (Math.floor(set) <= fits) return Math.floor(set);
+    warn(`WEB_CONCURRENCY is ${Math.floor(set)}, but the memory holds ${fits} worker${fits === 1 ? '' : 's'} at about ${WORKER_MB} MB each: running ${fits}.`);
+    return fits;
+  }
+  return Math.max(1, Math.min(os.availableParallelism(), fits));
 }
 
+// The tables are set up once, before anything listens: by the primary before it starts the workers, or
+// by the one process before it listens. If that fails, start() fails and the server does not start.
 // A worker that stops is replaced.
-function start() {
+async function start() {
   const PORT = process.env.PORT || 3849;
-  const workers = workerCount();
+  const workers = workerCount({ warn: (line) => { if (cluster.isPrimary) console.error(line); } });
   // In production, a feature whose secret key is missing stays off, and the log names the variable.
   if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
+  // In production, sign-in links go only to APP_URL; without a usable one none are sent.
+  if (cluster.isPrimary && auth.appUrlProblem()) console.error(auth.appUrlProblem());
+  if (cluster.isPrimary && db.tlsProblem()) console.warn(db.tlsProblem());
+  if (db.enabled()) {
+    if (cluster.isPrimary) {
+      try {
+        await db.migrate();
+      } catch (error) {
+        throw Object.assign(new Error(`Database setup failed: ${error.message}`), { cause: error });
+      }
+    } else {
+      db.markReady();
+    }
+  }
   // Keeping checked SWMS in production without its storage bucket keeps no originals, and says so.
   const storage = require('./checked-swms').enabled() ? require('./file-store').storageProblem() : null;
   if (cluster.isPrimary && storage) console.error(storage);
@@ -811,10 +839,9 @@ function start() {
       cluster.fork();
     });
     console.log(`SiteWrite server running on http://localhost:${PORT} with ${workers} workers`);
-    return;
+    return null;
   }
   if (db.enabled()) {
-    db.migrate().catch((error) => console.error('Database setup failed:', error.message));
     // One process sends review reminders, every 6 hours.
     if (!cluster.worker || cluster.worker.id === 1) {
       const remind = () => {
@@ -822,7 +849,7 @@ function start() {
         // A change to the law or the library released with this version is run once (library-notices.json).
         libraryNotices.runLibraryNotices().catch((error) => console.error('Library notices failed:', error.message));
       };
-      setTimeout(remind, 60 * 1000);
+      setTimeout(remind, 60 * 1000).unref();
       setInterval(remind, 6 * 60 * 60 * 1000).unref();
     }
   }
@@ -835,11 +862,17 @@ function start() {
   server.keepAliveTimeout = 65000;
   server.headersTimeout = 66000;
   server.requestTimeout = 70000;
+  return server;
 }
 
 process.on('unhandledRejection', (error) => recordError('unhandledRejection', error));
 
-if (require.main === module) start();
+if (require.main === module) {
+  start().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
 
 module.exports = {
   app,

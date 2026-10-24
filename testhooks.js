@@ -1,18 +1,21 @@
 // Staging test hooks, for automated testing only. They are on only when TEST_HOOKS_SECRET
-// (at least 32 characters) is set, and never in a Railway environment named production.
+// (at least 32 characters) is set, and never in production: a Railway environment named production,
+// or NODE_ENV=production on a server outside Railway (secret-keys.js isProduction).
 // Mail to an address at TEST_MAIL_DOMAIN goes to a test inbox in the database instead of
 // being sent, and each call must carry the secret in the X-Test-Secret header.
 const crypto = require('crypto');
 const express = require('express');
 const db = require('./db');
 const { divertMail } = require('./mailer');
+const { isProduction } = require('./secret-keys');
 
 const DOMAIN = () => String(process.env.TEST_MAIL_DOMAIN || 'siteready.test').toLowerCase();
 
 function enabled() {
   const secret = String(process.env.TEST_HOOKS_SECRET || '');
   if (secret.length < 32) return false;
-  if (String(process.env.RAILWAY_ENVIRONMENT_NAME || '').toLowerCase() === 'production') return false;
+  if (String(process.env.RAILWAY_ENVIRONMENT_NAME || '').trim().toLowerCase() === 'production') return false;
+  if (isProduction()) return false;
   return true;
 }
 
