@@ -615,7 +615,8 @@ function install(router, deps) {
     // "Potoroo bend builds", "Approval is a hold point before install").
     // "n", "b4" and the project's people with their capitals too (messy round 17, SiteLink wording 3: "Callum fitzwilliam
     // will give you the date", "n walkways", "b4 use").
-    const answer = answers.leadWords(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }), { ...(await leadNames(ctx)), stop: true });
+    // With the scope's own short names in capitals ("cst pit lids" reads "CST pit lids": messy round 19, SiteLink wording 5).
+    const answer = answers.leadWords(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }), { ...(await leadNames(ctx)), scopeText: scopeWordsOf(await itemsOf(ctx.sub.id)), stop: true });
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
     res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));

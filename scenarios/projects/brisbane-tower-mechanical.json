@@ -161,6 +161,7 @@
       "fallRisk": "yes",
       "facts": {
         "refrigerantClass": "a2l",
+        "energisedWork": "testing",
         "plantIsolation": "Each unit is isolated at its local isolator and locked out with personal padlocks, tested by trying to start it, and the building management system is put in manual off for plant under its control.",
         "fallControl": "Roof plant is commissioned only inside the roof edge protection, and ceiling units are reached from platform ladders or scissor lifts with guardrails."
       },
@@ -182,6 +183,7 @@
           "Fall control",
           "Refrigerant safety class",
           "Plant isolation procedure",
+          "Work on or near energised parts",
           "Working at height"
         ]
       }

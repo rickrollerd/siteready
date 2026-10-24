@@ -303,7 +303,7 @@ test('round 10: work named only as a destination or a marking job does not bring
   assert.ok(!workFlags('Tape all glazing and the like to windows and doors to clearly identify it.', {}).glassHandle);
   assert.ok(!workFlags('Paint walls. Mask and cut in around all electrical fittings and switchboards.', {}).electricalWork);
   assert.ok(!workFlags('Install a new gas cooktop and connect it.', {}).replaceAppliance);
-  const kitchen = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Install and commission refrigeration equipment and cooking equipment in the commercial kitchen.', facts: { safetyDataSheet: 'Refrigerant SDS.', plantIsolation: 'Isolated and locked out at the switchboard.' } });
+  const kitchen = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Install and commission refrigeration equipment and cooking equipment in the commercial kitchen.', facts: { safetyDataSheet: 'Refrigerant SDS.', plantIsolation: 'Isolated and locked out at the switchboard.', energisedWork: 'none' } });
   assert.ok((kitchen.highRisk || []).some((item) => /refrigerant/i.test(item)));
 });
 

@@ -487,7 +487,7 @@ test('with an ABN on the subcontract, only a company with that ABN can claim the
   const page = await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead });
   assert.equal(page.data.sending.claimed.name, 'Tallow Formwork Pty Ltd');
   const log = page.data.sending.log.map((entry) => entry.text);
-  assert.ok(log.includes(`Tallow Formwork Pty Ltd (ABN ${subAbn.slice(0, 2)} ${subAbn.slice(2, 5)} ${subAbn.slice(5, 8)} ${subAbn.slice(8)}) took up the list for Tallow Formwork Pty Ltd in SiteWrite.`));
+  assert.ok(log.includes(`Tallow Formwork Pty Ltd (ABN ${subAbn.slice(0, 2)} ${subAbn.slice(2, 5)} ${subAbn.slice(5, 8)} ${subAbn.slice(8)}) took up its list in SiteWrite.`));
   assert.ok(log.includes('Tallow Formwork Pty Ltd: A company whose ABN does not match the ABN you gave tried to take up the list in SiteWrite. It was not linked to them.'));
   // The ABN that decided it cannot be changed now.
   const change = await call('PUT', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead, body: { name: 'Tallow Formwork Pty Ltd', trade: 'Formwork', email: 'office@claim1-sub.example', abn: nextAbn() } });
