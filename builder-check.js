@@ -1570,7 +1570,17 @@ function weighted(swms, state, context) {
   {
     const faults = firmFaults(steps);
     if (faults.length) {
-      const fixes = faults.slice(0, 3).map((item) => `"${item.step}" (step ${item.at}) is usually done before "${item.after}" (step ${item.afterAt}). Check the order of the job steps, and move the step if the work is done in that order.`);
+      // Faults after the same step are named together, so a step moved above several earlier steps names each of them (messy round 19,
+      // B run 7: "Demolish the structure" moved above four steps, and W17 named only the strip out).
+      const groups = [];
+      for (const item of faults) {
+        const group = groups.find((other) => other.after === item.after && other.afterAt === item.afterAt);
+        if (group) group.items.push(item); else groups.push({ after: item.after, afterAt: item.afterAt, items: [item] });
+      }
+      const listed = (items) => items.map((item) => `"${item.step}" (step ${item.at})`).reduce((text, name, index, all) => (index === 0 ? name : `${text}${index === all.length - 1 ? ' and ' : ', '}${name}`), '');
+      const fixes = groups.slice(0, 3).map((group) => (group.items.length === 1
+        ? `"${group.items[0].step}" (step ${group.items[0].at}) is usually done before "${group.after}" (step ${group.afterAt}). Check the order of the job steps, and move the step if the work is done in that order.`
+        : `${listed(group.items)} are usually done before "${group.after}" (step ${group.afterAt}). Check the order of the job steps, and move "${group.after}" if the work is done in that order.`));
       out.push({ rule: 'W17', title: 'Job steps in the order the work is done', hard: false, pass: false, points: 0, max: 0, message: fixes.join(' '), fixes, source: sourceFor('W17', state) });
     }
   }

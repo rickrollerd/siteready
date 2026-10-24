@@ -147,7 +147,11 @@
     }));
   }
   // The answer to a "by others" step: the user's, else Yes where the package's own work names it.
-  const othersAnswer = (answers, pack, entry) => (answers[pack.name] || {})[entry.step] || (ownsStep(pack.rows, entry.step) ? 'yes' : 'no');
+  // The reading's own quote of the clause, and the scope's other packages, count too: the clause that gives the crew the work may be
+  // quoted only in the "by others" entry, or read into another package (messy round 19, A run 1: scope 2.4 "Supply and install edge
+  // protection to all slab edges ... Perimeter screens are supplied by others" started at "No, leave it out").
+  const othersAnswer = (answers, pack, entry, allRows = []) => (answers[pack.name] || {})[entry.step]
+    || (ownsStep([...(pack.rows || []), ...(entry && entry.says ? [{ activity: entry.says }] : []), ...(Array.isArray(allRows) ? allRows : [])], entry.step) ? 'yes' : 'no');
   // The sentence of the package's own work, not given to others, that names a step's work, or '' (messy
   // round 10, run 4: "No, leave it out" for final painting by others also took off the crew's own step for
   // "Bottoms of doors are to be sealed (painted) prior to being hung"). That work keeps its step.
@@ -183,7 +187,7 @@
       const kinds = mapped ? [...(mapped.groups || [])] : null;
       const leaveOut = [];
       for (const entry of (mapped && mapped.byOthers) || []) {
-        if (othersAnswer(answers, pack, entry) === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else if (!ownWorkNaming(pack.rows, entry.step)) leaveOut.push(entry.step);
+        if (othersAnswer(answers, pack, entry, work.flatMap((other) => other.rows)) === 'yes') { if (kinds && !kinds.includes(entry.group)) kinds.push(entry.group); } else if (!ownWorkNaming(pack.rows, entry.step)) leaveOut.push(entry.step);
       }
       return {
         // A work title where the package's name is bare or an area (handover.js packageTitles, messy round

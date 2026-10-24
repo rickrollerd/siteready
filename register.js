@@ -163,6 +163,10 @@ const QUALIFICATIONS = [
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?|install\w* (?:split |reverse cycle )?air ?condition\w*)\b/i],
   ['Gas work licence', /\b(?<!medical )(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
   [ASBESTOS_REMOVALIST, /\basbestos\b/i],
+  // The demolition licence a step names is listed with the licences (messy round 19, B run 7: "Demolish the structure" said "any
+  // demolition licence the territory requires", and Licences did not list it). The library holds no source naming each state's
+  // licence class, so the row says what the step says.
+  ['Demolition licence, where the state or territory requires one for the work', /\bdemolition licen[cs]e\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
   ['Working at heights and harness training', /\b(harness|travel restraint|fall arrest)\b/i],
@@ -289,16 +293,22 @@ function lowFall(step) {
   const words = [...(step.hazards || []), ...(step.controls || [])].join(' ');
   return Boolean(step.own) && UNDER_TWO_METRES.test(words) && !OVER_TWO_METRES.test(words);
 }
+// Reo loaded onto the deck with no crane (by hand or forklift, no load swinging overhead): its line landing the bundles over the bearers
+// within the formwork's allowable load counts as answering the deck's collapse, as the ply step's "laid and fixed deck over the bearers,
+// within the load the formwork design allows" already does (messy round 19, A run 1: "Load reo onto the deck" stayed High after its
+// controls with No crane). The crane lift keeps its rating.
+const LOADED_WITHIN_DESIGN = /\bover the bearers\b[^.]{0,40}\bwithin the formwork's allowable load\b/i;
 function riskFor(step, shared = [], strict = false) {
+  const withinDesign = step && step.step === 'Load reo onto the deck' ? (step.controls || []).filter((line) => LOADED_WITHIN_DESIGN.test(String(line))) : [];
   const fatal = consequenceOf(step.hazards || []);
   // Only a person's fall is made a major injury: any other fatal hazard keeps the step catastrophic.
   const consequence = fatal === 5 && lowFall(step) && consequenceOf((step.hazards || []).filter((line) => !PERSON_FALL(line) && !/\b(?:tips?|collaps\w*)\b/i.test(line))) < 5 ? 4 : fatal;
   const before = consequence >= 4 ? 3 : 4;
-  const higher = [...(step.controls || []), ...shared].filter(higherOrder);
+  const higher = [...(step.controls || []), ...shared].filter((line) => higherOrder(line) || withinDesign.includes(line));
   const worst = (step.hazards || []).filter((line) => (consequence === 5 ? CATASTROPHIC.test(String(line).replace(HANDS_CRUSHED, ' ')) : true));
   const answered = higher.length > 0 && worst.every((line) => {
     const kinds = ANSWERED_BY.filter((item) => item.hazard(line));
-    return !kinds.length || kinds.some((item) => higher.some((control) => item.control.test(control)));
+    return !kinds.length || kinds.some((item) => higher.some((control) => item.control.test(control) || (withinDesign.includes(control) && /\b(?:collapse\w*|fails?|failure)\b/i.test(line))));
   });
   const engineered = (!strict && (step.controls || []).some((line) => ENGINEERING.test(line))) || answered;
   const after = engineered ? 1 : 2;
@@ -1023,7 +1033,7 @@ function registersFor(draft, input = {}) {
   // The plant SiteWrite lists, for the user to confirm (goal 2), and the plant that prints: only
   // what the user confirmed, once they have.
   const plantInferred = plant.map((item) => localPlant(item, stateId)).map((item) => ({ item: item.item, maybe: WHERE_USED.test(item.licence) }));
-  const listed = confirmedPlant(plant, input.plantChoice, stateId);
+  let listed = confirmedPlant(plant, input.plantChoice, stateId);
   // A hazard about residues or waste swept up is not a product the crew uses (messy round 4: plaster and
   // adhesive asked for a paint washout).
   // The solvent vapour from PVC primer and solvent cement is that product's, not a separate solvent (messy
@@ -1105,6 +1115,11 @@ function registersFor(draft, input = {}) {
   // dogman slings the crane's loads).
   const ownHoisting = listed.some((item) => /^Lifting beam and chain block\b/.test(item.known || item.item)) || /\bchain[- ]?block\w*|\blifting beams?\b/i.test(task);
   if (craneCompany && !ourSlinging && !ownHoisting) qualifications.splice(0, qualifications.length, ...qualifications.filter((name) => name !== DOGGING));
+  // Where the crane company's dogman slings, the lifting gear row and the rigger in Who say it is theirs, so neither reads as a licence
+  // our crew needs and Licences leaves out (messy round 19, B run 8: the lifting gear row named a dogging or rigging licence and step 7's
+  // Who was "Licensed rigger", with neither in Licences).
+  const theirSlinging = craneCompany && !ourSlinging && !ownHoisting && !qualifications.includes(DOGGING);
+  if (theirSlinging) listed = listed.map((item) => (/^Lifting gear\b/.test(item.known || item.item) && /needs a dogging or rigging licence\.$/.test(item.licence || '') ? { ...item, licence: 'None for the gear itself. The crane company\'s licensed dogger or rigger slings the loads with it.' } : item));
   if (craneCompany && !ourSlinging && ownHoisting && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging|advanced rigging)/.test(name))) qualifications.push(DOGGING);
   if (craneCompany && ourSlinging && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging)/.test(name))) qualifications.push(DOGGING);
   // Slinging loads is dogging or rigging work, as the lifting gear's own row says, and a step that has a
@@ -1161,6 +1176,10 @@ function registersFor(draft, input = {}) {
   if (qualifications.some((name) => /^Refrigerant handling/.test(name) && !/, where our crew\b/.test(name)) && !substances.items.some((item) => item.product === 'Refrigerants')) substances.items.push({ product: 'Refrigerants', sds: '', quantity: '' });
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Plumbing and drainage licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Plumbing and Drainage Act 2018 (Qld)'])].sort() };
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Gas work licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'])].sort() };
+  // A vacuum lifter is lifting gear only under a crane: with no crane listed its row says nothing of one (messy round 19, B run 6:
+  // "Lifting gear when used under a crane" printed for a ceilings crew with No crane).
+  const craneListed = listed.some((item) => /\bcranes?\b/i.test(`${item.known || ''} ${item.item}`));
+  if (!craneListed) listed = listed.map((item) => (item.item === 'Vacuum lifter' || item.known === 'Vacuum lifter' ? { ...item, inspection: String(item.inspection || '').replace(/\s*Lifting gear when used under a crane\./, '') } : item));
   return {
     plant: listed.map((item) => localPlant(item, stateId)).map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
     plantInferred,
@@ -1172,7 +1191,7 @@ function registersFor(draft, input = {}) {
     // Codes of practice are cited only where they have been matched to the state (Queensland so far).
     emergency: emergencyFor(allText, { ...input, substanceTypes: (substances.items || []).length }, rescueRisk, listed, `${task}\n${hazardText}${draft.electricalLinesOnly ? '\noverhead power lines' : ''}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,
-    jobSteps: ratedSteps(printedSteps),
+    jobSteps: ratedSteps(theirSlinging ? printedSteps.map((step) => (step.responsible === 'Licensed rigger' ? { ...step, responsible: 'Crane company\'s licensed rigger' } : step)) : printedSteps),
   };
 }
 

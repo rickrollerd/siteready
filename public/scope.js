@@ -412,7 +412,7 @@
     const titled = (aiReading.reading.titles && aiReading.reading.titles[pack.name]) || pack.name;
     const name = offer && !offer.full ? `${esc(C().CRANAGE_TICK)}</strong> <span class="meta">(${esc(titled)}: ${count})</span>` : `${esc(titled)}</strong> <span class="meta">(${count})</span>`;
     const others = full ? ((mapped && mapped.byOthers) || []).map((entry, j) => {
-      const yes = C().othersAnswer(choice.answers, pack, entry) === 'yes';
+      const yes = C().othersAnswer(choice.answers, pack, entry, C().packagesOf(aiReading.reading).work.flatMap((other) => other.rows)) === 'yes';
       // The crew's own work that names the same work keeps its step whatever is answered (messy round 10, run 4).
       const own = C().ownWorkNaming ? C().ownWorkNaming(pack.rows, entry.step) : '';
       const ownNote = own ? ` Your own work names it too ("${esc(own.replace(/[.\s]+$/, ''))}"), so its step stays for that work. This answer is about the work done by others.` : '';

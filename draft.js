@@ -497,7 +497,7 @@ const RULED_OUT = {
   slabPour: (task) => suspendedOnly(task),
   // Door frames set into partitions are not hanging doors (messy-user test, 14 October 2026: a ceilings
   // and partitions SWMS printed "Hang the doors").
-  doorHang: (task) => !/\bdoors?\b(?![- ]?(?:frames?|jambs?|stops?|openings?|hardware|furniture|protection|heads?))/i.test(task),
+  doorHang: (task) => !/\bdoors?\b(?![- ]?(?:frames?|jambs?|stops?|openings?|hardware|furniture|protection|heads?))/i.test(task) && !/\bpressed metal (?:door )?frames?\b/i.test(task),
   slabGround: (task) => suspendedOnly(task),
   // Deck formwork for an in-ground pool or tank, whose walls are formed with the tank wall steps, or for
   // slabs on the ground only, whose edge forms are the slab on ground steps (messy round 5: deck, edge
@@ -1695,7 +1695,10 @@ const ELV_SECURITY = /\b(electronic (?:door )?lock\w*|door locking (?:systems?|c
 // round 7: "Install cast in items: cast in plates, ferrules, conduits" gave a formwork crew the electrical
 // licensing lines and low voltage rescue).
 const CAST_IN_ITEMS = /\bcast[- ]in (?:items?|plates?|ferrules?)\b[^.]*/gi;
-const ELECTRICAL_CORE = { test: (text) => ELECTRICAL_RAW.test(String(text || '').replace(CAST_IN_ITEMS, ' ')) && (!(ICT_WORK.test(String(text || '')) || ELV_SECURITY.test(String(text || ''))) || POWER_WORDS.test(String(text || ''))) };
+// Concrete chased, cored or drilled for conduits or cables is concrete work for them, not electrical work (messy round 19, A run 2:
+// "Scabble and chase concrete for conduits" gave a penetrations package the electrical licensing lines and low voltage rescue).
+const CHASED_FOR = /\b(?:chas\w*|scabbl\w*|cor(?:e|es|ed|ing)|drill\w*|penetrations?|sleeves?)\b[^.]{0,40}\bfor (?:the |new )?(?:conduits?|cables?|cabling)\b/gi;
+const ELECTRICAL_CORE = { test: (text) => ELECTRICAL_RAW.test(String(text || '').replace(CAST_IN_ITEMS, ' ').replace(CHASED_FOR, ' ')) && (!(ICT_WORK.test(String(text || '')) || ELV_SECURITY.test(String(text || ''))) || POWER_WORDS.test(String(text || ''))) };
 const ELECTRICAL_WORK = ELECTRICAL_CORE;
 const SWITCHBOARD_WORDS = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?|(?:replac\w*|upgrad\w*|chang\w*|install\w*) (?:the |a |new )?(?:main )?switchboards?)\b/i;
 // "Prior to the energisation of a building" is a point in time, not switchboard work.
@@ -4468,6 +4471,10 @@ function uncleanedArea(text, steps) {
 }
 const ACCESS_EQUIPMENT_STEP = /^(?:Use an elevating work platform|Use mobile scaffolds|Work from ladders|Work from trestle platforms|Work from the scaffold|Erect the scaffold|Work from a swing stage)$/;
 const NAMED_GAPS = [
+  // Messy round 19 (B run 6): awning soffits lined overhead, and a metal panel such as trimdek fixed to a facade, had no step and were not
+  // listed beside the fibre cement cladding step. The library holds no step for either.
+  { said: /\bawning soffits?\b|\bsoffit (?:linings?|sheets?|sheeting)\b|\b(?:line|lining|sheet\w*)\b[^.,;]{0,20}\bsoffits?\b/i, done: /\b(?:awning|eaves?) soffits?\b|\bsoffit (?:linings?|sheets?)\b/i },
+  { said: /\b(?:trimdek|trim-?deck|klip-?lok|spandek|metal (?:wall )?cladding|metal (?:facade )?panels?)\b(?![^.]{0,40}\broof)/i, done: /^(?:Fix new roofing|Fix the roof|Install the metal cladding|Fix the metal wall sheets)$/i },
   // Messy round 18 (B run 5): lift machines wheeled in from the loading dock to the shaft had no step and were not listed. Moving heavy
   // plant on wheels, dollies or skates is the user's step (D220); a step that moves plant into position covers it.
   { said: /\bwheel(?:s|ed|ing)?\b[^.,;]{0,20}\b(?:in|into|across|through|along|to)\b|\b(?:on|with) (?:machine )?(?:dollies|dolly|skates)\b/i, done: /^(?:Receive plant and move it into position|Move the load\b|Jack and skid\b|Operate (?:forklifts|the telehandler)|Use pallet jacks)/i, whole: true },
@@ -4543,7 +4550,11 @@ const WHEN_ONLY = /^(?:(?:possible|potential|occasional|any|some)\s+)?(?:night|w
 const CONTROL_ONLY_PART = /^(?:fall (?:protection|prevention|arrest)|edge protection|exclusion zones?|barricades?|barriers?|traffic control|spotters?|ppe|personal protective equipment|supervision|harness(?:es)?|guardrails?|handrails?)\b(?:(?!\b(?:install\w*|erect\w*|fix\w*|build\w*|supply and install)\b)[^.])*\b(?:for|when|during|while|to)\b/i;
 const PROTECT_DUTY = /\bprotect\w*\b[^.]{0,50}\b(?:and|then)\s+(?:replace|repair|make good|rectify)\w*\b[^.]{0,20}\bdamag\w*/i;
 function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched, pickGaps, kindsOff }) {
-  const { SITE_WORK, notOwnWork } = require('./scope');
+  const { SITE_WORK, notOwnWork: othersLine } = require('./scope');
+  // Items the builder or others supply that the crew installs are the crew's work (messy round 19, A run 1: "Install cast in items
+  // supplied by others" was neither stepped nor listed).
+  const SUPPLIED_FOR_US = /\b(?:supplied|provided|free[- ]issued?) by (?:the )?(?:builder|client|others|principal contractor|main contractor)\b|\b(?:builder|client)[- ]supplied\b|\bfree[- ]issued?\b/gi;
+  const notOwnWork = (line) => othersLine(/\b(?:install\w*|fix\w*|fit\w*|plac\w*|hang\w*|lay\w*|set\w*|cast\w* in)\b/i.test(String(line || '').replace(SUPPLIED_FOR_US, ' ')) ? String(line || '').replace(SUPPLIED_FOR_US, ' ') : line);
   const verbs = (text) => (text.match(new RegExp(SITE_WORK.source, 'gi')) || []).filter((word) => !/s$/i.test(word));
   const steps = allSteps.filter((step) => !['Before starting', 'Finish and clean up'].includes(step.step));
   const inDraft = new Set(kindsWithSteps(tradeFlags(task, facts, state)));
@@ -4552,9 +4563,12 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
   const parts = (Array.isArray(unmatched) ? unmatched.map((row) => cleanLine(withoutNotes(row, notOwnWork))) : taskParts(withoutOthersLists(typed, notOwnWork), SITE_WORK, notOwnWork)).filter((part) => !OTHERS_THING.test(part));
   const cleaningSteps = steps.some((step) => /^Clean (?:floors, fixtures and plant rooms|with chemicals)$/.test(step.step));
   const picked = (Array.isArray(pickGaps) ? pickGaps : []).map((part) => cleanLine(part).replace(/[.,;:]+$/, '')).filter(Boolean);
-  const found = dedupe(parts.filter((part) => {
+  const corniceGap = (text) => /\bcornices?\b/i.test(text) && !allSteps.some((step) => /\bcornices?\b/i.test([step.step, ...step.hazards].join(' ')));
+  const forUs = (line) => (/\b(?:install\w*|fix\w*|fit\w*|plac\w*|hang\w*|lay\w*|set\w*|cast\w* in)\b/i.test(String(line || '').replace(SUPPLIED_FOR_US, ' ')) ? String(line || '').replace(SUPPLIED_FOR_US, ' ').replace(/\s+/g, ' ').trim() : line);
+  const found = dedupe(parts.map(forUs).filter((part) => {
     const text = readSlang(ownWork(part));
     if (notOwnWork(text) || CATEGORY_FACTS.some((item) => item.applies(text))) return false;
+    if (corniceGap(text)) return true;
     // A quantity ("2 passenger lifts n 1 goods lift, 14 levels") or where the work is ("Both internal and external") names no
     // work (messy round 14, B runs 5 and 7).
     if (QUANTITY_ONLY.test(text.trim().replace(/[.,;:]+$/, '')) || WHERE_ONLY.test(text.trim().replace(/[.,;:]+$/, '')) || WHEN_ONLY.test(text.trim().replace(/[.,;:]+$/, ''))) return false;
@@ -4570,6 +4584,11 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
     // all trade specific handling equipment for movement and installation of their work", was listed).
     // A trade's final clean of its own work is the "Finish and clean up" step's work (messy round 17, B run 6).
     if (!cleaningSteps && FINAL_OWN_CLEAN.test(text) && allSteps.some((step) => step.step === 'Finish and clean up')) return false;
+    // Cornices are fixed at the ceiling line with cornice cement: skirting and architrave lines that name mouldings do not cover them
+    // (messy round 19, B run 6: "Install cornices and mouldings" had no step and was not listed). The library holds no cornice step.
+    if (corniceGap(text)) return true;
+    // So is the crew's daily clean up of its own work area (messy round 19, A run 1, once the rubbish steps were unticked).
+    if (!cleaningSteps && /^\s*(?:daily|regular|ongoing|general|progressive)?\s*clean(?:ing)?[- ]?up(?: of (?:the |our )?(?:own )?(?:work )?areas?)?\s*[.,;:]*$/i.test(text) && allSteps.some((step) => step.step === 'Finish and clean up')) return false;
     if (/^\s*(?:[a-z-]+\s+){0,2}(?:of\s+)?(?:their|its|our|the subcontractor'?s|the contractor'?s) (?:own )?works?\s*[.,;:]*$/i.test(text)) return false;
     // An EWP named by its kind ("we use a cherry picker at the back lane") is the EWP step's work where it prints (messy round 16, A run
     // 2: the cherry picker was listed beside "Use an elevating work platform").
@@ -4605,7 +4624,7 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
   // Roads and car parks a cleaning scope lists are swept: the library has no sweeping step, so the area stays listed though a pressure
   // cleaning step shares its words (messy round 18, B run 7: "Road surface cleaning" got no step and no listing). The user can point it
   // at the pressure cleaning step where that is how it is done.
-  }).flatMap((part) => (cleaningSteps && ROAD_AREA.test(part) && !steps.some((step) => /\bsweep\w*/i.test(step.step)) ? [part] : uncoveredPieces(part, steps, SITE_WORK))).map((part) => part.replace(/[.,;:]+$/, '')));
+  }).flatMap((part) => ((cleaningSteps && ROAD_AREA.test(part) && !steps.some((step) => /\bsweep\w*/i.test(step.step))) || corniceGap(part) ? [part] : uncoveredPieces(part, steps, SITE_WORK))).map((part) => part.replace(/[.,;:]+$/, '')));
   // Work the library has no step for, named in so many words, though other steps share its words (messy round 11, runs 1
   // and 4: formwork to in situ stairs, and a scaffold's loading bay, had no step and were not listed).
   // A scope package's own words are read for these too, not only the rows its reading left unmatched (messy round 13, A run 2:
@@ -4633,6 +4652,9 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
       if (notOwnWork(text) || found.some((item) => sameText(item) === sameText(text))) continue;
       const kinds = suggestedKinds(text, {}, { ...state, kinds: null, allWords: true }).filter((id) => !SUPPORT_KINDS.has(id));
       if (!kinds.some((id) => off.has(id)) || kinds.some((id) => inDraft.has(id))) continue;
+      // Clean up and the removal of the crew's own waste and offcuts are the "Finish and clean up" step's work once the rubbish steps are
+      // unticked (messy round 19, A run 1: the fragment "removal of formwork offcuts" was listed).
+      if (kinds.every((id) => id === 'wasteRemoval') && allSteps.some((step) => step.step === 'Finish and clean up')) continue;
       // Named by the piece of a list that is the unticked work ("Install pool copings and waterproof joints and caulking").
       const pieces = text.split(/,\s*(?:and\s+|then\s+)?|\s+(?:and|then)\s+/).filter((one) => /\S\s+\S/.test(one));
       const piece = pieces.find((one) => suggestedKinds(one, {}, { ...state, kinds: null, allWords: true }).some((id) => off.has(id)));
@@ -5455,6 +5477,16 @@ function buildDraft(input, screen) {
   // are worked out from SiteWrite's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
   const edited = withStepCover(applyStepEdits(withOwnSteps({ ...draft, ...registers, task: nameCase.withPlaceNames(ANSWER_SHORT(andForN(typed)), swmsPlaces(input)), warnings, notCovered, ppe: plantPpe(chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers), registers, input, task) }, input), input), input);
+  // The user's own steps name products too: a type their words name is asked for, as SiteWrite's own steps' are (messy round 19,
+  // A run 3: an own step joining condensate drains with PVC solvent cement asked for no PVC product).
+  const ownWords = edited.jobSteps.filter((step) => step.own).flatMap((step) => [step.step, ...(step.hazards || []), ...(step.controls || [])]).map((line) => (typeof line === 'string' ? line : (line && line.text) || '')).join('\n');
+  if (ownWords && edited.substances && Array.isArray(edited.substances.items)) {
+    const have = new Set(edited.substances.items.map((item) => item.product));
+    // The solvent in PVC primer and solvent cement is that product's, not a solvent of its own (as register.js reads the steps).
+    const pvc = /\b(?:solvent cement|pvc primer)\b/i.test(ownWords);
+    const named = require('./public/substance-rules').SUBSTANCES.filter(([type, pattern]) => !have.has(type) && pattern.test(ownWords) && !(pvc && type === 'Solvents and thinners' && !/\b(?:thinners?|turps|acetone)\b/i.test(ownWords))).map(([product]) => ({ product, sds: '', quantity: '' }));
+    if (named.length) edited.substances = { ...edited.substances, items: [...edited.substances.items, ...named] };
+  }
   // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
   // that need it, and each such step says what to wear in one line of its own.
   const kindSteps = require('./substances').withProductKindLines(edited.jobSteps, input);
@@ -5506,6 +5538,9 @@ function plantPpe(ppe, registers, input = {}, task = '') {
   const off = new Set(Array.isArray(input.ppeOff) ? input.ppeOff : []);
   const add = new Set();
   if ((registers.plant || []).some((item) => NOISY_PLANT.test(`${item.known || ''} ${item.item}`))) add.add('earMuffs');
+  // A chainsaw in the plant list brings chainsaw chaps or trousers, as the library's chainsaw lines say its operators wear (messy
+  // round 19, B run 7: a demolition SWMS listed the chainsaw and its "chainsaw PPE" line, with no chaps ticked).
+  if ((registers.plant || []).some((item) => !item.maybe && /\bchainsaws?\b/i.test(`${item.known || ''} ${item.item}`))) add.add('chaps');
   const choice = input.plantChoice && typeof input.plantChoice === 'object' ? input.plantChoice : null;
   if (choice) {
     const kinds = addedPlantSteps(choice, task);
@@ -5543,7 +5578,9 @@ const INDOOR_TRADES = ['flooring', 'doors', 'carpentry', 'plasterboard', 'kitche
 // Work that is done indoors by its nature: carpet, vinyl and other floor coverings, and the subfloor they are laid on (messy round 18,
 // A run 2: a broad brim and sunscreen were ticked for laying carpet and sheet vinyl).
 const INDOOR_BY_NATURE = /\b(carpet\w*|sheet vinyl|vinyl (?:floor\w*|sheets?|planks?|tiles?)|floor coverings?|subfloors?|cove[ds]? skirting|coving|linoleum|lino)\b/i;
-const INDOOR_WORK = /\b(wet areas?|garages?|coffee machines?|cold stores?|cool ?rooms?|gyms?|gymnasiums?|showers?|hotels?|factor(?:y|ies)|workshops?|dishwash\w*|commercial kitchens?|pubs?|escalators?|shopping centres?|malls?|interior|inside|indoors?|internal|shop|office|bathrooms?|bedrooms?|lounge rooms?|laundr\w*|kitchens?|ensuites?|toilets?|ceilings?|roof spaces?|car parks?|warehouse|switchboards?|plant rooms?|classrooms?|caf(?:e|é)s?|restaurants?|food courts?|corridors?|hallways?|stairwells?|wards?|hospitals?|surgery|surgeries|theatres?|comms rooms?|data centres?|lift shafts?|stair ?lifts?|underfloor|workshops?|church halls?|halls?|aged care|nursing homes?|science labs?|cupboards?|hotel rooms?|laborator\w*|cooktops?|stoves?|ovens?|toilet blocks?|corridors?|warehouses|distribution centres?|wallpaper|smoke alarms?|ducted (?:heating|air\w*|systems?)|fit[- ]?off|power points?|light switch(?:es)?|pallet racking)\b/i;
+// Work in an existing, live or energised building is indoor work unless the task says it is outside (messy round 19, A run 2: a broad
+// brim and sunscreen for core drilling in an energised existing building).
+const INDOOR_WORK = /\b(existing (?:buildings?|facilit(?:y|ies))|live facilit(?:y|ies)|energised buildings?|occupied buildings?|wet areas?|garages?|coffee machines?|cold stores?|cool ?rooms?|gyms?|gymnasiums?|showers?|hotels?|factor(?:y|ies)|workshops?|dishwash\w*|commercial kitchens?|pubs?|escalators?|shopping centres?|malls?|interior|inside|indoors?|internal|shop|office|bathrooms?|bedrooms?|lounge rooms?|laundr\w*|kitchens?|ensuites?|toilets?|ceilings?|roof spaces?|car parks?|warehouse|switchboards?|plant rooms?|classrooms?|caf(?:e|é)s?|restaurants?|food courts?|corridors?|hallways?|stairwells?|wards?|hospitals?|surgery|surgeries|theatres?|comms rooms?|data centres?|lift shafts?|stair ?lifts?|underfloor|workshops?|church halls?|halls?|aged care|nursing homes?|science labs?|cupboards?|hotel rooms?|laborator\w*|cooktops?|stoves?|ovens?|toilet blocks?|corridors?|warehouses|distribution centres?|wallpaper|smoke alarms?|ducted (?:heating|air\w*|systems?)|fit[- ]?off|power points?|light switch(?:es)?|pallet racking)\b/i;
 
 const OUTDOOR_WORDS = /\b(external\w*|outside|outdoors?|roofs?(?! spaces?| cavit)|balcon\w*|eaves|facade)\b/i;
 // Work done outdoors by its nature, where the task does not say so.
@@ -6603,7 +6640,20 @@ function withoutUntickedPlant(draft, input) {
   const listedItems = new Set((draft.plant || []).map((item) => item.item));
   const absent = new Set([...plantFor(draft.jobSteps.flatMap((step) => [...step.hazards, ...step.controls]).join('\n')).map((item) => item.item)].filter((item) => !listedItems.has(item) && !usedItems.has(item) && !taskItems.has(item)));
   const keep = (line) => !gone.some((pattern) => pattern.test(line)) && !(goneItems.size && (onlyUntickedPlant(line, goneItems) || (plantFor(String(line).replace(/\s*\((?:[^()]|\([^()]*\))*\)$/, '')).some((item) => goneItems.has(item.item)) && onlyUntickedPlant(line, new Set([...goneItems, ...absent])))));
-  return { ...draft, jobSteps: draft.jobSteps.map((step) => (step.hazards.every(keep) && step.controls.every(keep) ? step : { ...step, hazards: step.hazards.filter(keep), controls: step.controls.filter(keep) })) };
+  return { ...draft, jobSteps: draft.jobSteps.map((step) => (step.hazards.every(keep) && step.controls.every(keep) ? step : rerated(step, { ...step, hazards: step.hazards.filter(keep), controls: step.controls.filter(keep) }))) };
+}
+// A step that lost a hazard with the unticked plant is rated again from the hazards it keeps: its consequence before controls comes
+// from them, and its likelihood after controls stays as its controls gave it (messy round 19, B run 5: "Butt fuse polyethylene pipe"
+// stayed Possible x Catastrophic once the generator, and with it the electric shock hazard, came off). A rating the user gave stays.
+function rerated(old, step) {
+  if (!old.risk || step.hazards.length === old.hazards.length) return step;
+  const { riskFor, MATRIX, LIKELIHOOD, CONSEQUENCE } = require('./register');
+  const fresh = riskFor(step);
+  if (fresh.before.consequence >= old.risk.before.consequence) return step;
+  const rate = (likelihood, consequence) => ({ likelihood, consequence, level: MATRIX[likelihood][consequence - 1], label: `${LIKELIHOOD[likelihood]} x ${CONSEQUENCE[consequence]}` });
+  const after = old.risk.ownRating ? old.risk.after : rate(Math.min(old.risk.after.likelihood, fresh.before.likelihood), fresh.before.consequence);
+  const { response, ...kept } = old.risk;
+  return { ...step, risk: { ...kept, before: fresh.before, after, ...(response && after.level === 'High' ? { response } : {}) } };
 }
 
 function withoutNotApplying(draft, input) {
@@ -6737,7 +6787,7 @@ function ownStepPlace(item, steps) {
 // coat after the paving, B run 8). Each is [words, stage, the stage of a library step that must be there].
 // The words of an own step that unloads a delivery, touches up paint on the erected steel, or takes the old windows out and puts
 // the new frames in (messy round 16). step-stages.js reads the same words for W17.
-const { OWN_SET_OUT, OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_FORMING, OWN_BREAK_OLD } = require('./step-stages');
+const { OWN_VIBRATION, OWN_SET_OUT, OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_FORMING, OWN_BREAK_OLD } = require('./step-stages');
 const OWN_STAGES = [
   [/\b(?:mill(?:s|ed|ing)?|profil\w*|cold plan\w*)\b/i, 21, (stage) => stage >= 93 && stage <= 101],
   [/\btack ?coat\w*|\bbond coat\w*|\bprime coat\w*/i, 94.9, (stage) => stage === 95],
@@ -6774,6 +6824,8 @@ const OWN_STAGES = [
   [OWN_FORMING, 50, (stage) => stage >= 58 && stage <= 62],
   // Messy round 18 (B run 8): the line is set out and the holes marked before the digging, and before the plant that digs them.
   [OWN_SET_OUT, 25, (stage) => stage >= 26 && stage < 50],
+  // Messy round 19 (A run 3): vibration isolators and acoustic pads go in before the plant is fixed on its supports.
+  [OWN_VIBRATION, 79.4, (stage) => stage >= 79.5 && stage <= 91],
 ];
 // Shorthand in the user's words read as said ("fit the foam b4 pour"), for placing the step (messy round 17, A run 2).
 const ownPlaceWords = (item) => `${item.name}. ${item.part || ''}`.replace(/\bb4\b/gi, 'before').replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
@@ -7335,6 +7387,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false, nested = false, allWo
 
 const UNDER_SLAB = /\b(slab soffits?|soffits? of the slab|towers?|apartments?|levels? \d+|multi-?storey|suspended (?:grid )?ceilings?|grid ceilings?|coffered ceilings?|concrete slabs?)\b/i;
 const ROOF_SPACE_SAID = /\b(roof ?spaces?|attics?|in the roof|roof (?:trusses|framing|cavit\w*)|trusses|rafters|top floor|houses?|dwellings?)\b/i;
+const SERVICES_BY_OTHERS = /\b(?:old |existing |redundant )?services\b[^.]{0,30}\b(?:are |were |have been |will be )?(?:disconnected|isolated|made safe|capped(?: off)?|cut back|terminated)\b[^.]{0,30}\b(?:by others|by the (?:authorit(?:y|ies)|utilit(?:y|ies)|builder|principal contractor|client|owner)|beforehand|before (?:we|our crew|the crew|work) start\w*)\b/i;
 const SERVICES_MADE_SAFE = /\b(?:old |existing |redundant )?services\b[^.]{0,20}\b(?:made safe|make safe|cut back|disconnect\w*|capped|cap(?:ped)? off|terminated)\b/i;
 // The sentences of a cleaning task that only clean: a cleaning word ("polish all tile surfaces", "the removal of paint, mortar
 // tags, render and the like on the frame and glass", "tracks ... are clean") and no work that builds, fixes or coats.
@@ -7369,7 +7422,8 @@ function readWorkFlags(fullTask, facts = {}, ownCrane = false, nested = false, a
     liftCarWork: /\blift cars?\b/i.test(task) && !LIFT_WORK.test(task.replace(/\blift cars?\b/gi, '')),
     asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix|potholes?|cold mix)\b/i.test(task),
     insulation: (/\b(insulation|glasswool|glass wool|rockwool|batts|sisalation|(?:roof|insulation|foil) blankets?)\b/i.test(task) || /\b(?:lay|install|fix|run)\w* (?:the )?blankets?\b[^.]{0,30}\b(?:roofs?|sheets?|sheeting|purlins?)\b/i.test(task)) && !MECHANICAL_WORK.test(task) && !/\b(ductwork|pipework|lagging|membranes?|waterproof\w*)\b/i.test(task) && !/\b(roof sheet\w*|roofing)\b/i.test(othersAndDenials(task).others),
-    doorHang: /\b(door ?frames?|door ?sets?|hang\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fit|replac)\w* (?:an? |the )(?:[\w-]+ ){0,3}door(?! hardware| and window| protection| seals?| closers?| furniture| handles?))\b/i.test(task) && !/\b(garage|roller|security|screen|fly|landing|shower|glass sliding|sliding glass) doors?\b/i.test(task),
+    // Pressed metal frames fixed into drywalls are door frames (messy round 19, B run 6: no step stood them).
+    doorHang: /\b(door ?frames?|door ?sets?|pressed metal (?:door )?frames?|metal door frames?|hang\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fit|replac)\w* (?:an? |the )(?:[\w-]+ ){0,3}door(?! hardware| and window| protection| seals?| closers?| furniture| handles?))\b/i.test(task) && !/\b(garage|roller|security|screen|fly|landing|shower|glass sliding|sliding glass) doors?\b/i.test(task),
     ...slabGroundFlags(task, flags),
     ...gapFlags(task),
     ...written,
@@ -8964,7 +9018,9 @@ function settleFlags(flags, task, facts = {}) {
   out.timberStructure = T(/\b(cross laminated timber|clt|glulam|mass timber|lvl beams?)\b/i);
   if (out.timberStructure) out.timberFloor = false;
   if (T(/\b(void|atrium) (?:protection )?nets?\b|\bsafety nets?\b/i)) out.safetyNet = true;
-  if (T(/\b(temporary works platforms?|protection deck|gantry)\b/i) && T(/\b(over|above) (?:an? |the )?(?:occupied |live )?(?:road|street|footpath|rail\w*)\b/i)) { out.scaffold = true; out.workAbove = true; out.road = true; }
+  // A gantry over a footpath protects people walking below; it is work above traffic only over a road or rail line (messy
+  // round 19, A run 4: a footpath gantry got "Work above traffic or a rail line" and the check's rail protection finding).
+  if (T(/\b(temporary works platforms?|protection deck|gantry)\b/i) && T(/\b(over|above) (?:an? |the )?(?:occupied |live )?(?:road|street|footpath|rail\w*)\b/i)) { out.scaffold = true; out.road = true; if (T(/\b(over|above) (?:an? |the )?(?:occupied |live )?(?:road|street|rail\w*)\b/i)) out.workAbove = true; }
   if (T(CONTAMINATED_GROUND)) { out.contaminatedSpoil = true; if (!T(/\b(excavat\w*|dig\w*|trench\w*|earthworks?|bulk)\b/i)) out.earthworks = true; }
   if (T(/\bdewatering bores?\b|\bspear points?\b/i)) out.dewatering = true;
   out.shotcrete = T(/\b(shotcrete|sprayed concrete|gunite)\b/i) && !T(/\bpools?\b/i);
@@ -9772,7 +9828,10 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     pneumaticTube: PNEUMATIC_TUBE.test(task),
     // Installing generators and fuel systems, not testing or terminating to ones already in.
     // A new generator only tested or commissioned, with no install, is a generator test.
-    generatorPlant: (/\b(?:install\w*|supply and install|new|place\w*|set|crane|craning|craned|lift\w*)\b[^.]{0,40}\b(?:generators?|day tanks?)\b|\bgenerators?\b[^.]{0,30}\binstall\w*/i.test(task.replace(/[^.]+\.?/g, (sentence) => (/\b(test\w*|commission\w*|load banks?|load shed\w*)\b/i.test(sentence) && !PLANT_WORK.test(sentence) ? ' ' : sentence))) || /\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b/i.test(task) && /\bgenerators?\b/i.test(task)),
+    // A generator's control panel, master control system or switchboard is electrical work on it, not installing the generator (messy
+    // round 19, A run 2: "Install generator control panel and modify existing generator master control system" read as installing
+    // generators with fuel tanks and fuel lines, and the package was listed as fuel line work).
+    generatorPlant: (/\b(?:install\w*|supply and install|new|place\w*|set|crane|craning|craned|lift\w*)\b[^.]{0,40}\b(?:generators?(?!\s+(?:master\s+|main\s+)?(?:control\w*|panels?|switch\w*|monitor\w*|alarms?|interfaces?|cabl\w*|wiring|circuit breakers?))|day tanks?)\b|\bgenerators?\b[^.]{0,30}\binstall\w*/i.test(task.replace(/[^.]+\.?/g, (sentence) => (/\b(test\w*|commission\w*|load banks?|load shed\w*)\b/i.test(sentence) && !PLANT_WORK.test(sentence) ? ' ' : sentence))) || /\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b/i.test(task) && /\bgenerators?\b/i.test(task)),
     // Boilers being installed, not boilers named only as what a supply connects to.
     boilerPlant: /\b(?:install\w*|commission\w*|set\w*|lift\w*|replac\w*|supply and install)\b[^.]{0,40}\b(?:boilers?|pressure vessels?|calorifiers?|steam plant)\b|\b(?:boilers?|pressure vessels?|calorifiers?)\b[^.]{0,30}\b(?:install\w*|commission\w*)\b/i.test(task),
     cleaningStands: (CLEANING.test(task) || /\bclean\w* (?:the |all )?(?:[\w-]+ )?(?:stands?|grandstands?|seats?|tiers?|aisles?)\b/i.test(task)) && /\b(stands?|seats?|tiers?|grandstands?|aisles?)\b/i.test(task),
@@ -10113,7 +10172,9 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     coolroom: /\b(?:install\w*|erect\w*|build\w*|construct\w*|suppl\w*|new)\b[^.,;(]{0,30}\b(?:cool ?rooms?|freezer rooms?|walk-in (?:freezers?|cool ?rooms?|fridges?))\b|\b(?:cool ?rooms?|coolroom|freezer(?: rooms?)?|cold ?rooms?) panels?\b|\bpanels?\b[^.]{0,30}\b(?:cool ?rooms?|freezer rooms?)\b/i.test(task),
     // Bagging is a render finish; bagged concrete or mix, and baggage, are not (messy round 18, B run 8: "posts concreted from bagged
     // mix" ticked "Apply render to walls" for a fence).
-    rendering: /\b(render\w*|bagg(?!age\b|ed\s+(?:(?:rapid[- ]set|quick[- ]set|premixed?|dry|fast[- ]setting)\s+)?(?:concrete|cement|mix(?:es)?|premix|mortar|sand|gravel|aggregate|rock|grout|products?|materials?)\b)\w*|skim coat\w*)\b/i.test(task) && !/\bsurrender\b/i.test(task),
+    // The renderers named as the trade the work is for, or work left ready for render, is another trade's rendering (messy round
+    // 19, A run 4: a scaffold "for the renderers" ticked "Apply render to walls").
+    rendering: /\b(render\w*|bagg(?!age\b|ed\s+(?:(?:rapid[- ]set|quick[- ]set|premixed?|dry|fast[- ]setting)\s+)?(?:concrete|cement|mix(?:es)?|premix|mortar|sand|gravel|aggregate|rock|grout|products?|materials?)\b)\w*|skim coat\w*)\b/i.test(task.replace(/\b(?:for|by|to suit|ready for|before|after)\s+(?:the\s+)?(?:render(?:ers?|ing)?|render(?:ing)? trades?)\b|\brenderers?\b/gi, '')) && !/\bsurrender\b/i.test(task),
     floorSanding: /\b(sand\w*|polish\w*|finish\w*|refinish\w*|coat\w*|oil\w*|stain\w*|strip\w*)\b[^.]{0,30}\b(floorboards?|timber floors?|timber decks?|decks?)\b|\b(floorboards?|timber floors?)\b[^.]{0,40}\b(sand\w*|finish\w*|coat\w*)/i.test(task),
     liftInstall: /\b(?:install\w*|supply and install)\b[^.]{0,30}\b(?:passenger |goods |platform )?lifts?\b(?!\s+(?:pits?(?!\s+(?:ladders?|buffers?))|cars?|lobb(?:y|ies)|cores?|motor rooms?|machine rooms?|overruns?|charging|walls?|landings?|areas?|bays?|wells?|shafts?))/i.test(task) && !/\bstair ?lifts?\b/i.test(task),
     // Resheeting a road, or a paver with the road plant, lays asphalt.
@@ -10453,7 +10514,11 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
   // The ACT and NSW keep registers of houses with loose-fill asbestos insulation.
   const looseFill = ['act', 'nsw'].includes(state.id) && /\b(19[0-7]\d|19[0-7]0s|pre-?19[0-7]\d|pre-?1980)\b/i.test(task) && /\b(houses?|homes?|dwellings?)\b/i.test(task);
   // Work near live parts that someone else isolates gets the step to confirm their isolation.
-  const isolationByOthers = ['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts.liveElectrical));
+  // So does work on old services that others have disconnected before the crew starts: the crew confirms their isolation, it does
+  // not isolate them itself (messy round 19, B run 7: "Services are disconnected by others before we start" ticked "Isolate and make
+  // safe the old services").
+  const servicesByOthers = SERVICES_BY_OTHERS.test(source);
+  const isolationByOthers = ['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts.liveElectrical)) || servicesByOthers;
   const trade = { ...tradeFlags(task, facts, state), ...extra };
   // A package that is only the access equipment ("Work from mobile scaffolds"), from a cleaning or painting
   // scope, is that trade's work at height (messy round 6: a cleaning scope's access equipment SWMS had no
@@ -10502,6 +10567,9 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),
   });
+  // The old services' removal stays only where the task names it; otherwise they go with the strip out or the demolition.
+  const servicesRemoved = /\b(?:remov\w*|strip\w*|cut out|rip\w* out)\b[^.]{0,30}\b(?:the )?(?:old |existing |redundant )?(?:services|pipework|ductwork|cabling|cable trays?)\b/i.test(source);
+  if (servicesByOthers) steps.splice(0, steps.length, ...steps.filter((step) => step.step !== 'Isolate and make safe the old services' && (servicesRemoved || step.step !== 'Remove the old services')));
   sdsAnswerToItsStep(steps, factText('safetyDataSheet'));
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
   // A general step is not repeated beside the step for the same work (messy round 7: "Strip out the room"
@@ -10518,8 +10586,26 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
   // "None: everything is isolated and proved de-energised first": the step keeps its statement that no work is done on or
   // near energised parts (and with it the high risk work category, as parts stay energised nearby), but not the lines for
   // energised testing (messy round 11, run 3: both printed beside the answer).
+  // An access hatch cut in the ceiling sheets the crew fixes itself, in a commercial or tower building, is cut in a new ceiling: the old
+  // ceiling's asbestos line and the house ceiling's joists line are not this work (messy round 19, B run 6: "In a building built before
+  // 2004 ..." and "cut between the joists" printed for a new residential tower's grid ceilings).
+  const hatch = steps.find((step) => step.step === 'Cut the opening and fit the access hatch');
+  if (hatch && steps.some((step) => ['Fix ceiling sheets', 'Move and fix plasterboard sheets', 'Cut and fix plasterboard'].includes(step.step)) && NOT_HOUSE.test(task)) {
+    hatch.controls = hatch.controls.filter((line) => !/^(?:In a building built before 2004, the ceiling is checked for asbestos|The opening is cut between the joists)\b/.test(typeof line === 'string' ? line : line.text));
+    hatch.hazards = hatch.hazards.filter((line) => !/^Asbestos in an old ceiling\.$/.test(typeof line === 'string' ? line : line.text));
+  }
+  // A mechanical services crew isolates the air handling unit itself: its fire damper line is printed without "by the mechanical
+  // services contractor", the same control and source (as D279 item 4 rewords the crane crew lines at print; the library is
+  // unchanged) (messy round 19, A run 3: the line named the crew's own trade as someone else).
+  if (MECHANICAL_WORK.test(task) || MECHANICAL_SYSTEMS.test(task)) {
+    for (const step of steps) step.controls = step.controls.map((line) => (typeof line === 'object' && /^The air handling unit serving the duct is shut down and isolated by the mechanical services contractor\b/.test(line.text) ? { ...line, text: line.text.replace(' by the mechanical services contractor', '') } : typeof line === 'string' && /^The air handling unit serving the duct is shut down and isolated by the mechanical services contractor\b/.test(line) ? line.replace(' by the mechanical services contractor', '') : line));
+  }
   const energised = steps.find((step) => step.step === 'Work on or near energised parts');
-  if (energised && choiceAnswer('energisedWork', facts.energisedWork) === 'none') {
+  // A crew that does no electrical work of its own, and says No to live electrical work or None to energised parts, does not get the
+  // energised parts step for live parts nearby: the answer settles it (messy round 19, A run 2: a penetrations package kept the step,
+  // printing "No electrical work is done on or near energised parts", after No and None).
+  if (energised && !trade.isolation && !trade.electricalWork && (choiceAnswer('liveElectrical', facts.liveElectrical) === 'no' || choiceAnswer('energisedWork', facts.energisedWork) === 'none')) steps.splice(steps.indexOf(energised), 1);
+  else if (energised && choiceAnswer('energisedWork', facts.energisedWork) === 'none') {
     const forLiveWork = /\b(?:energised (?:testing|electrical work|work)|fault (?:found|finding)|tested while energised|near exposed energised|maximum expected energy|for the energy at the point of work|safety observer|testing that the risk assessment)\b|^(?:For energised testing|During energised testing|Watches, jewellery, body piercings|Workers position themselves so that an involuntary action)\b/i;
     energised.controls = energised.controls.filter((line) => { const text = typeof line === 'string' ? line : line.text; return /^No electrical work is done on or near energised parts\b/.test(text) || !forLiveWork.test(text); });
   }
@@ -10529,7 +10615,23 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
   // The steps in the order the work is done, stage by stage, after the pairs of steps above (messy round 10).
   const withClass = inStageOrder(inWorkSequence(scaffoldLicenceLine(oneOwnLiftStep(tidySteps(extra.fallAccess ? accessBeforeHeight(steps, extra) : steps, combinedFacts(task, facts) + restraint, answers, setting), setting), scaffoldType)), (step) => step.step, stageFlags);
   const cited = state.id === 'qld' ? scaffoldDesignLines(withClass, scaffoldType, task) : withClass;
-  return withoutScaffoldCode(withoutSprayCode(cited, `${combinedFacts(task, facts)}\n${(setting && setting.plantNames) || ''}`));
+  return withoutTowerCode(withoutScaffoldCode(withoutSprayCode(cited, `${combinedFacts(task, facts)}\n${(setting && setting.plantNames) || ''}`)), `${combinedFacts(task, facts)}\n${(setting && setting.plantNames) || ''}`);
+}
+
+// The tower crane code is cited only where a tower crane is named: for a mobile crane or a crane truck its reference is left off the
+// lines that cite it, which stay as they are (messy round 19, A run 3: the crane crew step and the codes list cited the Tower crane
+// code for the crane company's mobile crane).
+function withoutTowerCode(steps, words) {
+  if (/\btower cranes?\b/i.test(words)) return steps;
+  const tower = /^(?:SafeWork NSW Code of practice: )?Tower cranes? Code of Practice\b/i;
+  const drop = (line) => {
+    if (typeof line !== 'string') return line;
+    const match = /\s\(((?:[^()]|\([^()]*\))*)\)$/.exec(line);
+    if (!match || !match[1].split(/;\s*/).some((part) => tower.test(part))) return line;
+    const kept = match[1].split(/;\s*/).filter((part) => !tower.test(part));
+    return `${line.slice(0, match.index)}${kept.length ? ` (${kept.join('; ')})` : ''}`;
+  };
+  return steps.map((step) => ({ ...step, controls: step.controls.map(drop) }));
 }
 
 // The ladder line that also cites the scaffolding code (no ladder set up on a scaffold platform) prints without that
@@ -10851,6 +10953,8 @@ function settingOf(task, facts = {}, site = {}, plantNames = '') {
     linesDenied,
     powerLines: POWER_LINES_NAMED.test(answers),
     traffic: TRAFFIC_NAMED.test(answers),
+    // A chemical product named in the task or an answer, for the EWP's chemicals line (messy round 19, A run 1).
+    chemicalsNamed: /\b(chemicals?|paint\w*|spray\w*|sealants?|mastics?|silicone|adhesives?|glues?|solvents?|thinners?|cleaning|cleaners?|detergents?|coatings?|membranes?|primers?|epoxy|resins?|herbicides?|pesticides?|acids?|degreas\w*|foam fill\w*|fire ?stop\w*|intumescent)\b/i.test(answers.replace(/\b(?:water|dust|fixed|misting|fog\w*) (?:sprays?|spraying)\b|\bspray\w* (?:with )?water\b|\bsprays? for dust\b/gi, ' ')),
     // The plant the user confirmed counts too: a confirmed scissor lift with no other platform is the only one
     // (messy round 10, run 1: boom and outrigger lines for the scissor lift in a kitchen).
     scissorOnly: (/\bscissor ?lifts?\b/i.test(platforms) && !OTHER_PLATFORMS.test(platforms) && !/\b(?:ewps?|elevating work platforms?)\b/i.test(platforms))
@@ -10866,10 +10970,12 @@ function settingOf(task, facts = {}, site = {}, plantNames = '') {
 // in a commercial, civil or custodial building; a Queensland place only in Queensland; "where there is no
 // principal contractor" only where none is named; the crane company only where a crane is used; the
 // shopping centre line only where the building is occupied or a centre.
-const NOT_HOUSE = /\b(commercial|industrial|civil|correctional|prisons?|detention|custodial|gaols?|jails?|sprinklers?|hydrants?|fire services?|strata|offices?|shopping|retail|hospitals?|schools?|universit(?:y|ies)|factor(?:y|ies)|warehouses?|plant ?rooms?|substations?|switch ?rooms?|apartment (?:buildings?|blocks?|towers?)|towers?|car ?parks?|airports?|stations?)\b/i;
+// A resort's lobby, common areas and back of house, a riser, exit lighting or a vending machine are not a house either (messy round 19,
+// A runs 2 and 3: house roof space lines, solar panels, occupants and off-peak circuits, for a new resort and an apartment fit-out).
+const NOT_HOUSE = /\b(resorts?|hotels?|motels?|lobb(?:y|ies)|common areas?|back of house|risers?|exit (?:lighting|lights|signs)|vending machines?|commercial|industrial|civil|correctional|prisons?|detention|custodial|gaols?|jails?|sprinklers?|hydrants?|fire services?|strata|offices?|shopping|retail|hospitals?|schools?|universit(?:y|ies)|factor(?:y|ies)|warehouses?|plant ?rooms?|substations?|switch ?rooms?|apartment (?:buildings?|blocks?|towers?)|towers?|car ?parks?|airports?|stations?)\b/i;
 const OCCUPIED = /\b(shopping|centres?|malls?|retail|occupied|tenan\w*|in use|operating|open to the public|live (?:buildings?|sites?|hospitals?|wards?)|hospitals?|schools?|airports?|stations?|hotels?)\b/i;
 const WORK_LINES = [
-  { pattern: /^(?:Where the house has solar panels or a battery|When the power is turned off for roof space work, every supply to the building is switched off at the board, including any off-peak circuit|Occupants are told before the power is switched off)\b/, keep: (setting, task) => !NOT_HOUSE.test(task) },
+  { pattern: /^(?:Where the house has solar panels or a battery|When the power is turned off for roof space work, every supply to the building is switched off at the board, including any off-peak circuit|Occupants are told before the power is switched off|Consumer mains and solar panel cables running through the roof space)\b/, keep: (setting, task) => !NOT_HOUSE.test(task) },
   { pattern: /^In cyclone prone areas, north of Bundaberg\b/, keep: (setting) => !setting.stateId || setting.stateId === 'qld' },
   { pattern: /^Where there is no principal contractor\b/, keep: (setting) => !setting.pcNamed },
   { pattern: /\bcrane (?:company|company's|crew)\b/i, keep: (setting, task, step) => !setting.noCrane || /\bcranes?\b/i.test(step) },
@@ -10887,6 +10993,16 @@ const WORK_LINES = [
   // "The crane company's or principal contractor's lift plan" is not a choice the crew's own hiab or crane has (messy
   // round 12, A run 2): it goes too, and the step's own line on planning the lift stays.
   { pattern: /\bcrane company(?:'s)?\b/i, keep: (setting, task, step, line) => !setting.ownCrane || /\bcrane company(?:'s)? or (?!principal contractor)|\bor (?:by )?the crane company\b|\bregist\w*/i.test(line) },
+  // With no crane, the lines for crane loads, crane crews and a crane holding a section go (messy round 19, A run 1: "Load ply onto
+  // the deck" printed "crane loads are slung by a licensed dogger" and the crane landing zone lines after No crane; B run 7:
+  // "Demolish the structure" printed "Where a crane holds a section while it is cut free" after No crane).
+  { pattern: /\bcrane loads\b|^Crane crews land loads\b|^Where a crane holds a section\b/i, keep: (setting, task, step) => !setting.noCrane || /\bcranes?\b/i.test(step) },
+  // Pulling a wall down by rope or chain only where the task names it (B run 7: an excavator demolition printed the line).
+  { pattern: /^Where a wall or structure is pulled down by rope or chain\b/, keep: (setting, task) => /\b(?:ropes?|chains?|winch\w*|pull\w* (?:\w+ ){0,3}down|tow\w*)\b/i.test(task) },
+  // The sander near a service line only where the task sands (B run 7: a demolition SWMS printed the disc sander line in "Plan
+  // the work near overhead power lines").
+  { pattern: /\bmanual sanding is considered instead of a heavy electric disc sander\b/, keep: (setting, task) => /\b(?:sanding|sanders?|sand(?:s|ed)? (?:back|down|the|and))\b/i.test(task) },
+  { pattern: /^Where chemicals are used from the platform\b/, keep: (setting) => setting.chemicalsNamed !== false },
   { pattern: /^In a shopping centre or other occupied building\b/, keep: (setting, task) => OCCUPIED.test(task) },
   // The demolition scaffold's lines only where a scaffold is named (messy round 11, run 7: containment sheeting and
   // scaffold dismantling lines for an annex knocked down by excavator, with no scaffold).
