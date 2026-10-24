@@ -654,7 +654,10 @@ test('failed questions leave out a business that opted out of industry data, pro
     assert.equal(await wrongOnce('missoptout@read.example', (swms) => db.query('UPDATE companies SET industry_opt_out = TRUE WHERE id = (SELECT company_id FROM swms WHERE id = $1)', [swms.id])), 0);
     process.env.RAILWAY_ENVIRONMENT_NAME = 'production';
     delete process.env.CONTROL_LEARNING_KEY;
+    // Production sends sign-in links only to APP_URL (auth.js), as the real one has it set.
+    process.env.APP_URL = 'https://sitewrite.example';
     assert.equal(await wrongOnce('missprod@read.example'), 0);
+    delete process.env.APP_URL;
     if (railway === undefined) delete process.env.RAILWAY_ENVIRONMENT_NAME;
     else process.env.RAILWAY_ENVIRONMENT_NAME = railway;
     assert.equal(await wrongOnce('misskept@read.example'), 1);
@@ -664,6 +667,7 @@ test('failed questions leave out a business that opted out of industry data, pro
     assert.equal(await db.one("SELECT id FROM check_question_misses WHERE id = 'old-miss'"), null);
   } finally {
     delete process.env.CONTROL_LEARNING;
+    delete process.env.APP_URL;
     if (railway === undefined) delete process.env.RAILWAY_ENVIRONMENT_NAME;
     else process.env.RAILWAY_ENVIRONMENT_NAME = railway;
   }

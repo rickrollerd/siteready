@@ -216,3 +216,24 @@ test('figures by place are released only where at least 10 businesses are counte
   assert.ok(result.figures.every((item) => item.businesses >= 10));
   assert.equal(result.withheldSwms, 7);
 });
+
+// Outside review: subscribing and managing the subscription are for the company's administrator.
+test('a team member who is not the administrator cannot subscribe or open the billing page', async () => {
+  const admin = await signIn('boss@team-billing.example');
+  assert.equal((await call('POST', '/api/company/users', { token: admin, body: { email: 'crew@team-billing.example' } })).status, 200);
+  const crew = (await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken('crew@team-billing.example') } })).json()).token;
+  assert.ok(crew);
+  const user = await db.one('SELECT company_id, is_admin FROM users WHERE email = $1', ['crew@team-billing.example']);
+  assert.equal(user.is_admin, false);
+  await db.query('UPDATE companies SET stripe_customer_id = $1 WHERE id = $2', ['cus_team', user.company_id]);
+  const before = asked.length;
+  for (const route of ['/api/billing/checkout', '/api/billing/portal']) {
+    const response = await call('POST', route, { token: crew });
+    assert.equal(response.status, 403, route);
+    assert.equal((await response.json()).message, 'Only your company\'s administrator can manage the subscription. Ask them to do this.');
+  }
+  assert.equal(asked.length, before, 'Stripe was not asked');
+  assert.equal((await call('POST', '/api/billing/portal', { token: admin })).status, 200);
+  assert.equal((await call('POST', '/api/billing/checkout', { token: admin })).status, 200);
+  assert.equal((await call('POST', '/api/billing/portal')).status, 401, 'signed out');
+});

@@ -9,6 +9,7 @@ const {
 const db = require('./db');
 const { sendMail } = require('./mailer');
 const { record } = require('./events');
+const { isProduction } = require('./secret-keys');
 
 const TRIAL_DAYS = 14;
 const LINK_MINUTES = 20;
@@ -35,18 +36,49 @@ function cleanEmail(value) {
   return /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/.test(email) ? email : '';
 }
 
+// APP_URL as an https origin (no path), or '' when it is not one.
+function httpsOrigin(value) {
+  const text = String(value || '').trim().replace(/\/+$/, '');
+  try {
+    const url = new URL(text);
+    return url.protocol === 'https:' && url.origin === text ? text : '';
+  } catch {
+    return '';
+  }
+}
+
 // Where links in emails point, and which page origins passkeys accept. An email sent on a timer
-// has no request: its links need APP_URL, and without it there is no address ('').
+// has no request: its links need APP_URL, and without it there is no address (''). In production
+// the address is APP_URL only, and only when it is an https origin: the Host header a request
+// carries is never used, so a forged one cannot point a sign-in link at another site.
 function appUrl(req) {
+  if (isProduction()) return httpsOrigin(process.env.APP_URL);
   return (process.env.APP_URL || (req ? `${req.protocol}://${req.get('host')}` : '')).replace(/\/+$/, '');
 }
 
+// The address for a link that signs someone in (account, reviewer, SiteLink and list links). With
+// no address, nothing is sent: the person is told, and the log at start says why (appUrlProblem).
+function linkUrl(req) {
+  const base = appUrl(req);
+  if (!base) throw fail(503, 'SiteWrite cannot send sign-in links just now. Try again later.');
+  return base;
+}
+
+// The line the server logs at start when production has no usable APP_URL.
+function appUrlProblem() {
+  if (!isProduction() || httpsOrigin(process.env.APP_URL)) return null;
+  return process.env.APP_URL
+    ? 'APP_URL is not an https address with no path (for example https://sitewrite.com.au): sign-in, reviewer and list links are not sent in production until it is.'
+    : 'APP_URL is not set: sign-in, reviewer and list links are not sent in production until it is set to the public https address.';
+}
+
 function passkeySettings(req) {
-  const url = new URL(appUrl(req));
+  const url = new URL(linkUrl(req));
   return { rpID: process.env.RP_ID || url.hostname, origin: url.origin };
 }
 
 async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
+  const base = linkUrl(req);
   const token = newToken();
   // A new link replaces any earlier unused link for the same email (and the same company invite),
   // so an old link left in an inbox stops working.
@@ -54,13 +86,13 @@ async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
   else await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL AND purpose <> $2', [email, REVIEWER]);
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at) VALUES ($1, $2, $3, $4)',
     [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000)]);
-  const link = `${appUrl(req)}/?login=${token}`;
+  const link = `${base}/?login=${token}`;
   // An invitation reads as one, not as a sign-in the person asked for (messy round 7), as SiteLink's does.
   if (invitedBy) {
     await sendMail({
       to: email,
       subject: `${invitedBy} has added you on SiteWrite`,
-      text: `${invitedBy} has added you to their company on SiteWrite. Use this link to sign in and see its SWMS.\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${appUrl(req)} and sign in with this email address. If you did not expect this email, you can ignore it.`,
+      text: `${invitedBy} has added you to their company on SiteWrite. Use this link to sign in and see its SWMS.\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${base} and sign in with this email address. If you did not expect this email, you can ignore it.`,
     });
     return;
   }
@@ -123,11 +155,16 @@ async function userForEmail(email, companyId, source = '') {
   return db.one('SELECT * FROM users WHERE id = $1', [id]);
 }
 
+// A link is used up in one statement that also checks it is unused and in date, so two requests
+// with the same link cannot both get through: only the one that changed the row goes on.
+async function useLink(token, reviewer) {
+  return db.one(`UPDATE login_tokens SET used_at = now() WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now() AND purpose ${reviewer ? '=' : '<>'} $2 RETURNING *`, [hash(token), REVIEWER]);
+}
+
 async function finishLogin(token, req = null) {
-  const row = await db.one('SELECT * FROM login_tokens WHERE token_hash = $1', [hash(token)]);
-  // A reviewer's link never opens an account (or starts a trial).
-  if (!row || row.used_at || new Date(row.expires_at) < new Date() || row.purpose === REVIEWER) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
-  await db.query('UPDATE login_tokens SET used_at = $1 WHERE token_hash = $2', [new Date(), row.token_hash]);
+  // A reviewer's link never opens an account (or starts a trial), and is left unused.
+  const row = await useLink(token, false);
+  if (!row) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
   const user = await userForEmail(row.email, row.company_id, row.source || '');
   return createSession(user.id, req);
 }
@@ -136,11 +173,12 @@ async function finishLogin(token, req = null) {
 // sign-in link, but it opens the list again, so the person can claim it once signed in. A first sign-in
 // starts the company's trial as usual, tagged with the project it came from.
 async function sendListLink(req, email, { listToken, source, builder }) {
+  const base = linkUrl(req);
   const token = newToken();
   await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL AND purpose <> $2', [email, REVIEWER]);
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, source) VALUES ($1, $2, $3, $4, $5)',
     [hash(token), email, null, later(LINK_MINUTES * 60 * 1000), String(source || '').slice(0, 120)]);
-  const link = `${appUrl(req)}/list.html?t=${encodeURIComponent(listToken)}&login=${token}`;
+  const link = `${base}/list.html?t=${encodeURIComponent(listToken)}&login=${token}`;
   await sendMail({
     to: email,
     subject: 'Your SiteWrite sign-in link',
@@ -211,9 +249,9 @@ async function reviewerToken(email) {
 // /hse.html. An invited person's email names who added them and to which account, and says how to
 // sign in once the link has expired, as an invitation is often opened later.
 async function sendHseLink(req, email, { invitedBy = '', orgName = '' } = {}) {
-  const token = await reviewerToken(email);
   // SiteLink, the builders' side (D303), is served at /sitelink as well as /hse.html.
-  const page = `${appUrl(req)}/sitelink`;
+  const page = `${linkUrl(req)}/sitelink`;
+  const token = await reviewerToken(email);
   const opening = invitedBy && orgName ? `${invitedBy} has added you to the ${orgName} team on SiteLink by SiteWrite.` : 'Use this link to sign in to SiteLink by SiteWrite.';
   await sendMail({
     to: email,
@@ -223,8 +261,9 @@ async function sendHseLink(req, email, { invitedBy = '', orgName = '' } = {}) {
 }
 
 async function sendReviewerLink(req, email, ref) {
+  const base = linkUrl(req);
   const token = await reviewerToken(email);
-  const link = `${appUrl(req)}/review.html?ref=${encodeURIComponent(ref)}&login=${token}`;
+  const link = `${base}/review.html?ref=${encodeURIComponent(ref)}&login=${token}`;
   await sendMail({
     to: email,
     subject: 'Your SiteWrite review sign-in link',
@@ -233,9 +272,8 @@ async function sendReviewerLink(req, email, ref) {
 }
 
 async function finishReviewerLogin(token) {
-  const row = await db.one('SELECT * FROM login_tokens WHERE token_hash = $1', [hash(token)]);
-  if (!row || row.used_at || new Date(row.expires_at) < new Date() || row.purpose !== REVIEWER) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
-  await db.query('UPDATE login_tokens SET used_at = $1 WHERE token_hash = $2', [new Date(), row.token_hash]);
+  const row = await useLink(token, true);
+  if (!row) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
   let reviewer = await db.one('SELECT * FROM reviewers WHERE email = $1', [row.email]);
   if (!reviewer) {
     await db.query('INSERT INTO reviewers (id, email, created_at) VALUES ($1, $2, $3)', [newId(), row.email, new Date()]);
@@ -282,11 +320,11 @@ async function saveChallenge(challenge, userId = null) {
   return id;
 }
 
+// A challenge is taken in one statement, so it is used once at most; an expired one is left for the
+// clean-up (accounts.removeExpired).
 async function takeChallenge(id) {
-  const row = await db.one('SELECT * FROM challenges WHERE id = $1', [String(id || '')]);
+  const row = await db.one('DELETE FROM challenges WHERE id = $1 AND expires_at > now() RETURNING *', [String(id || '')]);
   if (!row) throw fail(400, 'Face ID sign-in timed out. Try again.');
-  await db.query('DELETE FROM challenges WHERE id = $1', [row.id]);
-  if (new Date(row.expires_at) < new Date()) throw fail(400, 'Face ID sign-in timed out. Try again.');
   return row;
 }
 
@@ -358,7 +396,7 @@ async function passkeyLogin(req) {
 }
 
 module.exports = {
-  TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl,
+  TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl, linkUrl, appUrlProblem,
   sendLoginLink, sendListLink, finishLogin, createSession, hasAccess,
   readSession, requireUser, requireAccess,
   sendReviewerLink, sendHseLink, finishReviewerLogin, readReviewer, requireReviewer,

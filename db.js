@@ -5,13 +5,31 @@ const { Pool } = require('pg');
 
 let pool = null;
 
+// How the connection is encrypted. A local database, or DATABASE_SSL=off, has none. With DATABASE_CA
+// (the certificate authority's PEM text, as the database host gives it) the server's certificate is
+// checked against it. Without it the connection is still encrypted but the certificate is not
+// checked, as before; the server says so once at start (tlsProblem).
+function sslSettings(env = process.env) {
+  const url = String(env.DATABASE_URL || '');
+  if (/localhost|127\.0\.0\.1/.test(url) || env.DATABASE_SSL === 'off') return false;
+  // A PEM pasted into one line keeps its line breaks as \n.
+  const ca = String(env.DATABASE_CA || '').replace(/\\n/g, '\n').trim();
+  if (ca) return { rejectUnauthorized: true, ca };
+  return { rejectUnauthorized: false };
+}
+
+function tlsProblem(env = process.env) {
+  const ssl = env.DATABASE_URL ? sslSettings(env) : false;
+  if (!ssl || ssl.rejectUnauthorized) return null;
+  return 'DATABASE_CA is not set: the database connection is encrypted, but its certificate is not checked.';
+}
+
 function connect() {
   if (pool || !process.env.DATABASE_URL) return pool;
-  const local = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: Number(process.env.DATABASE_POOL || 5),
-    ssl: local || process.env.DATABASE_SSL === 'off' ? false : { rejectUnauthorized: false },
+    ssl: sslSettings(),
   });
   // A connection the database drops while idle (a restart or an outage) is reported here.
   // Without a listener it stopped the server process; the next query opens a new connection.
@@ -970,7 +988,25 @@ const SCHEMA = [
   'CREATE INDEX IF NOT EXISTS review_conditions_subcontract ON review_conditions (subcontract_id)',
 ];
 
+// Whether the tables are set up: 'waiting' until migrate() has run, then 'ready' or 'failed'. The
+// health check reports the server ready only once they are (server.js). A worker forked after the
+// primary set the tables up is told with markReady().
+let migration = 'waiting';
+const readiness = () => migration;
+const markReady = () => { migration = 'ready'; };
+
 async function migrate() {
+  migration = 'running';
+  try {
+    await runMigrations();
+    migration = 'ready';
+  } catch (error) {
+    migration = 'failed';
+    throw error;
+  }
+}
+
+async function runMigrations() {
   for (const statement of SCHEMA) await query(statement);
   // Added after launch: the person who created each company is its administrator.
   const columns = await query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'is_admin'");
@@ -1021,4 +1057,4 @@ async function transaction(fn) {
   }
 }
 
-module.exports = { connect, useDatabase, enabled, query, one, migrate, transaction };
+module.exports = { connect, useDatabase, enabled, query, one, migrate, readiness, markReady, transaction, sslSettings, tlsProblem };

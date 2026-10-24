@@ -262,8 +262,9 @@
       return;
     }
     const paying = ['active', 'trialing', 'past_due'].includes(me.company.planStatus);
+    // Only the administrator manages the subscription (billing.js); anyone else who presses Subscribe is told to ask them.
     const billingLink = !config.billing ? '' : paying
-      ? '<button type="button" class="link" id="manage-billing">Billing</button>'
+      ? (me.user.isAdmin ? '<button type="button" class="link" id="manage-billing">Billing</button>' : '')
       : `<button type="button" class="small" id="subscribe">Subscribe, ${esc(config.price)}</button>`;
     bar.innerHTML = `<span class="bar-note"><strong>${esc(me.company.name || me.user.email)}</strong> · ${esc(trialText(me.company))}</span>
       <span class="bar-links">

@@ -2,55 +2,102 @@ name: Send SWMS pack
 
 # Builds a project's SWMS set as Word files and emails them, from the SiteWrite
 # account, for people to review. Run it from the Actions tab.
+#
+# The project and the email text are names of files in scenarios/projects, never
+# paths (scenarios/project-files.js). Every input reaches the shell through env,
+# never written into a command. The pack is built in one job with no mail login;
+# the job that sends it holds the login and reads only the pack it was handed.
 on:
   workflow_dispatch:
     inputs:
       project:
-        description: Project file
-        default: scenarios/projects/brisbane-tower.json
+        description: Project (a file in scenarios/projects, without .json)
+        default: brisbane-tower
       to:
-        description: Send to (blank sends to the SiteWrite account)
+        description: Send to (one address; blank sends to the SiteWrite account)
         default: ''
       body:
-        description: Email text file
-        default: scenarios/projects/brisbane-tower-email.txt
+        description: Email text (a file in scenarios/projects, without .txt)
+        default: brisbane-tower-email
 
 permissions:
   contents: read
 
 jobs:
-  send:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: '22'
+      - name: Check the inputs
+        env:
+          PROJECT: ${{ inputs.project }}
+          BODY: ${{ inputs.body }}
+          TO: ${{ inputs.to }}
+        run: |
+          node scenarios/project-files.js "$PROJECT" .json > /dev/null
+          node scenarios/project-files.js "$BODY" .txt > /dev/null
+          node -e 'const to = process.env.TO; if (to && !require("./scenarios/email-pack").ADDRESS.test(to)) { console.error("Send to must be one plain email address."); process.exit(1); }'
       - run: npm ci --omit=optional --no-audit --no-fund
       - run: npm test
       - name: Build the Word files
-        run: node scenarios/project-pack.js "${{ inputs.project }}" pack "$(TZ=Australia/Brisbane date '+%-d %B %Y')"
+        env:
+          PROJECT: ${{ inputs.project }}
+          BODY: ${{ inputs.body }}
+        run: node scenarios/project-pack.js "$PROJECT" pack "$(TZ=Australia/Brisbane date '+%-d %B %Y')" "$BODY"
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: pack
+          path: pack
+          retention-days: 1
+          if-no-files-found: error
+
+  send:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: pack
+          path: pack
+      # The address only: the password is not given to a step that runs a script.
+      - name: Write the email
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          TO: ${{ inputs.to }}
+        run: |
+          if [ -z "$SMTP_USERNAME" ]; then
+            echo "The SMTP_USERNAME secret is needed." >&2
+            exit 1
+          fi
+          node scenarios/email-pack.js pack "$SMTP_USERNAME" "${TO:-$SMTP_USERNAME}" > message.eml
+          ls -la pack
       - name: Email them
         env:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           TO: ${{ inputs.to }}
-          PROJECT: ${{ inputs.project }}
-          BODY: ${{ inputs.body }}
         run: |
           if [ -z "$SMTP_USERNAME" ] || [ -z "$SMTP_PASSWORD" ]; then
             echo "SMTP_USERNAME and SMTP_PASSWORD secrets are needed." >&2
             exit 1
           fi
-          RCPT="${TO:-$SMTP_USERNAME}"
-          TITLE=$(node -e "console.log(require('./' + process.argv[1]).title)" "$PROJECT")
-          node scenarios/email-pack.js pack "$SMTP_USERNAME" "$RCPT" "SiteWrite SWMS for review: $TITLE" "$BODY" > message.eml
-          ls -la pack
           curl --silent --show-error --ssl-reqd \
             --url 'smtps://smtp.gmail.com:465' \
             --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
             --mail-from "$SMTP_USERNAME" \
-            --mail-rcpt "$RCPT" \
+            --mail-rcpt "${TO:-$SMTP_USERNAME}" \
             --upload-file message.eml
-          echo "Sent $(ls pack | wc -l) files."
+          echo "Sent $(ls pack/*.docx | wc -l) files."
