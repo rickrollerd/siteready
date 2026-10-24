@@ -375,9 +375,14 @@ function designRows(draft, input) {
   // on its card, is listed with that number and revision, and asked for in full so it prints in the table
   // (messy round 7: "temporary support design SK-201 rev B" printed only as a control).
   const facts = (input && input.facts) || {};
-  const named = Object.entries(QUESTION_DESIGNS).filter(([question, item]) => !listed.has(item.id) && !answers.has(item.id) && typeof facts[question] === 'string').map(([question, item]) => {
-    const found = /\b([A-Z]{1,6}[- ]?\d{1,5}[A-Z]?(?:[-/]\d{1,4})?)\s*,?\s*\(?\s*rev(?:ision)?\.?\s*([A-Z0-9]{1,3})\b/i.exec(facts[question]);
-    return found ? { id: item.id, what: item.label, label: item.label, status: '', by: '', number: found[1], revision: found[2], date: '', file: null, steps: [], needed: true, fromAnswer: true } : null;
+  // So is one named by its number alone after "design" or "drawing", as the design revision is optional (D222), and one whose card holds
+  // only the number the answer filled (messy round 19, A run 1: the temporary support design TW-04 and the load limit drawing S-201
+  // printed only under Documents to keep).
+  const named = Object.entries(QUESTION_DESIGNS).filter(([question, item]) => !listed.has(item.id) && (!answers.has(item.id) || !answerFields(answers.get(item.id)).status) && typeof facts[question] === 'string').map(([question, item]) => {
+    const found = /\b([A-Z]{1,6}[- ]?\d{1,5}[A-Z]?(?:[-/]\d{1,4})?)\s*,?\s*\(?\s*rev(?:ision)?\.?\s*([A-Z0-9]{1,3})\b/i.exec(facts[question])
+      || /\b(?:design|drawing|document)\s+(?:no\.?\s*|number\s*)?([A-Z]{1,6}[- ]?\d{1,5}[A-Z]?(?:[-/]\d{1,4})?)\b()/.exec(facts[question]);
+    const card = answers.has(item.id) ? answerFields(answers.get(item.id)) : null;
+    return found ? { id: item.id, what: item.label, label: item.label, status: '', by: card ? card.by : '', number: (card && card.number) || found[1], revision: (card && card.revision) || found[2] || '', date: card ? card.date : '', file: null, steps: [], needed: true, fromAnswer: true } : null;
   }).filter(Boolean);
   const added = [...answers.values()].filter((row) => ADDED.test(row.id) && clean(row.what)).map((row) => ({ ...answerFields(row), id: row.id, what: clean(row.what), label: '', steps: [], needed: false }));
   const { methodNeed } = require('./public/gate-rules');

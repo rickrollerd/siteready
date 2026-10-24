@@ -99,6 +99,9 @@
     'Cement, concrete, grout and mortar': /^(?:Pump and place concrete|Place concrete|Pour the\b|Form and pour\b|Finish concrete$)/i,
     // The road plant too (messy round 16, B run 8: diesel went to "Separate plant and people on site").
     'Fuels (diesel, petrol)': /\b(?:refuel\w*|run (?:the )?(?:earthmoving |road )?plant|run earthmoving plant|operate (?:the )?(?:\w+ ){0,2}(?:plant|machines?)|generators?)\b/i,
+    // Setting compounds are used where the joints are set, not where the sheets are fixed (messy round 19, B run 6: base coat went to
+    // "Move and fix plasterboard sheets").
+    'Plaster, jointing and setting compounds': /^(?:Set the joints|Set and sand\b|Skim\b|Patch\b)/i,
     // The refrigerant is charged in the charging step, not the pipe run that names it (messy round 14, A run 1).
     'Refrigerants': /^(?:Evacuate and charge|Charge|Recover)\b/i,
   };
@@ -108,7 +111,9 @@
   // sleeper step run with the hi-rail excavator or the bobcat's auger step).
   const STEP_HINT = { 'Fuels (diesel, petrol)': /\b((?<!separate )plant(?! the\b)|machines?|generators?|excavat\w*|dig\w*|earthmoving|refuel\w*|compressors?|rollers?|pavers?|profil\w*|chainsaws?|mulchers?)\b/i };
   const STEP_HINT_LAST = { 'Fuels (diesel, petrol)': /\b(trucks?|cranes?)\b/i };
-  const LINE_HINT = { 'Fuels (diesel, petrol)': /\b(excavators?|sleeper changers?|road rail vehicles?|hi-?rail|tampers?|track (?:maintenance )?machines?|regulators?|generators?|compressors?|bobcats?|skid steers?|posi-?tracks?|loaders?|dozers?|graders?|rollers?|chainsaws?|mulchers?|concrete saws?|road saws?)\b/i };
+  // A ballast regulator is rail plant; "the regulator" in a notification or sampling line is the WHS regulator (messy round 19, B run 7:
+  // diesel went to "Check for asbestos before starting", whose lines name the regulator).
+  const LINE_HINT = { 'Fuels (diesel, petrol)': /\b(excavators?|sleeper changers?|road rail vehicles?|hi-?rail|tampers?|track (?:maintenance )?machines?|ballast regulators?|generators?|compressors?|bobcats?|skid steers?|posi-?tracks?|loaders?|dozers?|graders?|rollers?|chainsaws?|mulchers?|concrete saws?|road saws?)\b/i };
   // Adhesive with no step that names it goes where the joinery, trims or floor coverings it fixes go in (messy round 17, B run 6:
   // "SiteWrite could not tell which step uses it" for a joiner's adhesive).
   const ADHESIVE_STEP = /\b(?:joinery|cabinets?|benchtops?|skirting|architraves?|floor coverings?|trims?|panels?|cladding)\b/i;
@@ -209,14 +214,18 @@
     'Epoxy, resins and two-part products': /\b(?:epoxy|epoxies|resins?|two[- ]part|two[- ]pack|2[- ]pack|chem-?set|chemical anchors?)\b/i,
     // An epoxy or resin mortar or grout is that product, not a cement one (messy round 9: cement refused because
     // the SDS answer named "two part epoxy mortar", already listed as an epoxy).
-    'Cement, concrete, grout and mortar': /\b(?:(?<!solvent |pvc |fibre[- ])cement\w*|(?<!\b(?:epoxy|resin|polyurethane|polymer)\s+(?:\w+\s+)?)(?:grout\w*|mortars?)|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
-    'Plaster, jointing and setting compounds': /\b(?:plaster(?!board)\w*|setting compounds?|jointing compounds?|base coat)\b/i,
+    // Cornice cement is a plaster cornice adhesive, not a cement product (messy round 19, B run 6).
+    'Cement, concrete, grout and mortar': /\b(?:(?<!solvent |pvc |fibre[- ]|cornice )cement\w*|(?<!\b(?:epoxy|resin|polyurethane|polymer)\s+(?:\w+\s+)?)(?:grout\w*|mortars?)|render(?:ing)?|wet concrete|concrete (?:pour|plac|truck|pump)\w*|pour\w* (?:the )?concrete)\b/i,
+    // Topping and finishing compounds and cornice cement are setting products too (messy round 19, B run 6: "base coat n topping compound"
+    // made only "Base coat", and cornice cement was filed as a cement).
+    'Plaster, jointing and setting compounds': /\b(?:plaster(?!board)\w*|setting compounds?|jointing compounds?|base coats?|topping compounds?|finishing compounds?|top coat compounds?|cornice (?:cement|adhesive)s?)\b/i,
     'Synthetic mineral fibres (insulation)': /\b(?:insulation(?! (?:resistance|failure|fault|test\w*|breakdown))|insulaton|insulat(?:e|es|ing)(?= (?:the |all )?(?:duct\w*|pip\w*|roofs?|walls?|ceilings?|floors?|slabs?|soffits?))|lagg(?:ing|ed)|glass ?wool|batts|rock ?wool|mineral wool)\b/i,
     'Curing compounds and form release agents': /\b(?:curing compounds?|form oil|release agents?)\b/i,
     'Respirable crystalline silica (concrete, masonry, tile and stone dust)': /\b(?:silica|engineered stone)\b/i,
     'PVC primer and solvent cement': /\b(?:solvent cement|pvc primer|pvc glue|pvc cement)\b/i,
     'Fuels (diesel, petrol)': /\b(?:diesel|petrol|unleaded|fuels?)\b/i,
-    'Gases (LPG, acetylene, oxygen)': /\b(?:lpg|propane|acetylene|oxy[- ]?acetylene|gas (?:bottles?|cylinders?|torch\w*)|torch[- ]?on)\b/i,
+    // MAPP gas and its Map-Pro substitute are brazing gases (messy round 19, B run 5: "MAPP gas for brazing" made no product).
+    'Gases (LPG, acetylene, oxygen)': /\b(?:lpg|propane|acetylene|oxy[- ]?acetylene|gas (?:bottles?|cylinders?|torch\w*)|torch[- ]?on|mapp(?: gas)?|map[- ]?pro|map gas)\b/i,
     'Refrigerants': /\b(?:refrigerants?|r32|r410a|r134a)\b/i,
     // "Clean with chemicals" and "cleaning products" name them too (messy round 10, run 7: "Not required" taken with
     // no reason beside SiteWrite's own step "Clean with chemicals").
@@ -359,7 +368,9 @@
         || (/\b(?:cleaners?|polish(?:es)?|sanitis(?:er|ers)|disinfectants?|bleach)\b/i.test(clause) && !/\b(?:vacuum|scrubber|pressure|steam|water ?blast\w*|machine)\b/i.test(clause) ? 'Cleaning chemicals' : '');
       // Each product named is its own row, two of a type too ("pipe thread sealant, duct sealant mastic": messy round 17,
       // SiteLink: the second sealant, the adhesive and the zinc spray were asked again).
-      if (type && !out.some((row) => row.product.toLowerCase() === clause.toLowerCase())) out.push({ type, product: clause });
+      // What it is used for is not its name ("MAPP gas for brazing" is "MAPP gas").
+      const product = clause.replace(/\s+(?:for|to)\s+(?:the\s+)?(?:braz\w*|solder\w*|weld\w*|cut\w*|heat\w*|joint\w*|join\w*|sealing|fixing|use)\b.*$/i, '') || clause;
+      if (type && !out.some((row) => row.product.toLowerCase() === product.toLowerCase())) out.push({ type, product });
     }
     return out;
   }
@@ -393,9 +404,12 @@
     const text = withoutSource(line);
     return !NOT_THIS_JOB.test(String(line)) && !CONDITION.test(text) && (CUTS_CONCRETE.test(text) || SILICA_WORK.test(text));
   };
+  // Hammer drilling into concrete for the anchors is the drilling itself, wherever the line says it for its noise (messy round 19, A run 3:
+  // the silica went to "Fix plant on its supports", not "Fix hangers and supports", where the anchors are hammer drilled).
+  const HAMMER_DRILLS = /\bhammer drill\w*\b[^.\n]{0,20}\b(?:into|in|through) (?:the )?(?:concrete|masonry|soffits?|slabs?)\b/i;
   const controlHere = (line) => {
     const text = withoutSource(line);
-    return !CONDITION.test(text) && (CUTS_CONCRETE.test(text) || DRILLS_ANCHORS.test(text)) && DUST_CONTROL.test(text);
+    return !CONDITION.test(text) && (((CUTS_CONCRETE.test(text) || DRILLS_ANCHORS.test(text)) && DUST_CONTROL.test(text)) || HAMMER_DRILLS.test(text));
   };
   // The job step that cuts, drills, cores, grinds, chases or breaks out concrete, masonry, stone or slabs,
   // or says it makes silica dust doing so: by its name, its hazards, its controls, or the user's own step
@@ -651,7 +665,10 @@
     [/\bduct\w*\b[^.]{0,20}\b(?:sealants?|mastics?|sealers?|tapes?)\b|\b(?:sealants?|mastics?)\b[^.]{0,20}\bduct\w*/i, [/^Install ductwork$/i, /\bduct\w*/i]],
     [/\b(?:cable )?jointing resins?\b|\bcable joint\w* (?:resins?|compounds?|kits?)\b|\bresins?\b[^.]{0,20}\b(?:cable )?joints?\b/i, [/\bterminat\w*\b/i, /\bjoint\w*\b/i, /^Connect and commission$/i]],
     [/\bconduits?\b[^.]{0,20}\b(?:solvent )?(?:cements?|glues?|primers?)\b|\b(?:pvc|solvent) (?:cements?|glues?)\b[^.]{0,20}\bconduits?\b/i, [/^Lay conduits$/i, /^Rough-in$/i, /\bconduits?\b/i, /^Install (?:cable tray and|communications) containment$/i]],
-    [/\bcornice (?:adhesives?|glues?)\b/i, [/^Fix skirting and architraves$/i, /^Set the joints$/i]],
+    [/\bcornice (?:adhesives?|glues?|cements?)\b/i, [/^Fix skirting and architraves$/i, /^Set the joints$/i]],
+    // A curing compound is sprayed on the finished slab, not on the deck the release agent goes on (messy round 19, A run 1: the curing
+    // compound went to "Lay the formwork deck", though "Finish concrete" names it).
+    [/\bcuring (?:compounds?|membranes?|agents?)\b|\bcure\w*\b/i, [/^Cure the concrete$/i, /^Finish (?:the )?concrete$/i, /\bcur(?:e|ing)\b/i]],
     // Messy round 16: a pipe thread sealant seals the threaded pipe joints, not the caulking (A run 3); a bond breaker goes in at the
     // junctions with the membrane (B run 6); an acrylic gap filler fills the gaps before painting (B run 5); mineral turps cleans the
     // brushes (B run 5). Each had "could not tell" or went to the wrong step.

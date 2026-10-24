@@ -42,7 +42,7 @@ const BY_NAME = {
   // The barge is set up and moored before the work over the water done from it (messy round 17, B run 7: the barge step at 10 of 11).
   'Work from the barge or marine plant': 10, 'Work in the rail corridor': 10, 'Enter a private property': 10, 'Work next to the live hospital': 10,
   'Work above traffic or a rail line': 10, 'Work in the car park': 10, 'Separate plant and people on site': 10, 'Set up traffic barriers and temporary fencing': 10,
-  'Erect temporary fencing': 10, 'Erect the hoardings': 10, 'Erect the gantry': 12, 'Set up site sheds': 10, 'Install and maintain erosion and sediment controls': 10,
+  'Erect temporary fencing': 10, 'Erect the hoardings': 10, 'Erect the gantry': 11.5, 'Set up site sheds': 10, 'Install and maintain erosion and sediment controls': 10,
   'Protect neighbouring buildings and the street': 10, 'Protect the footpath': 10, 'Check for asbestos before starting': 10, 'Take samples of suspect materials': 10,
   'Plan core holes': 10, 'Work at podium edges': 10, 'Install or remove edge protection': 10, 'Install anchor points and static lines': 10,
   'Work at open lift shafts and landing doors': 10, 'Plan the heavy lift': 10, 'Plan the dual lift': 10, 'Inspect, test and tag electrical equipment': 10,
@@ -311,6 +311,9 @@ function contextStages(names, flags = {}) {
   // A pump named only for the core fill pumps once the blocks are laid (messy round 18, A run 3: the pump set-up and the pumping came
   // before "Lay blocks and bricks", though the footing was poured from the truck's chute).
   if (flags.pumpForCoreFill && has('Lay blocks and bricks') && has('Core fill blockwork')) Object.assign(out, { 'Set up the concrete pump and placing boom': 71, 'Set up the concrete pump': 71, 'Pump and place concrete': 71.5 });
+  // Messy round 19. The access hatch is cut in a ceiling sheet once the sheets are fixed (B run 6: "Cut the opening and fit the access
+  // hatch" came before the plasterboard was cut and fixed). In an existing ceiling it keeps its place.
+  if (has('Cut the opening and fit the access hatch') && ['Fix ceiling sheets', 'Move and fix plasterboard sheets', 'Cut and fix plasterboard'].some(has)) out['Cut the opening and fit the access hatch'] = 84.5;
   if (flags.mountingFirst && [...names].some((name) => typeof BY_NAME[name] === 'number' && BY_NAME[name] >= 78 && BY_NAME[name] < 83)) out['Fix rails, fittings and equipment to walls and floors'] = 79;
   return out;
 }
@@ -367,7 +370,8 @@ function inStageOrder(steps, nameOf = (step) => step.step, flags = {}) {
   for (let index = 0; index < list.length; index += 1) {
     if (typeof stages[index] === 'number') continue;
     const start = index;
-    while (index + 1 < list.length && typeof stages[index + 1] !== 'number') index += 1;
+    // The crane crew's step is a run of its own, so it goes where the lifts are, not with the access steps written beside it.
+    while (index + 1 < list.length && typeof stages[index + 1] !== 'number' && !LIFTS_IN.has(nameOf(list[index + 1])) && !LIFTS_IN.has(nameOf(list[start]))) index += 1;
     const run = list.slice(start, index + 1);
     const first = nameOf(run[0]);
     const lead = stages[start] === 'lead';
@@ -386,6 +390,12 @@ function inStageOrder(steps, nameOf = (step) => step.step, flags = {}) {
       if (LIFTS_IN.has(first) && !LIFTED_WORK(anchor.stage)) {
         const work = blocks.filter((block) => LIFTED_WORK(block.stage));
         if (work.length) anchor = work.reduce((best, block) => (block.stage < best.stage ? block : best), work[0]);
+      }
+      // The crane crew's lifts bring the deliveries in, so the step goes before the plant or materials are received, wherever it was
+      // written (messy round 19, A run 3: the crane step came after "Receive plant and move it into position").
+      if (LIFTS_IN.has(first)) {
+        const deliveries = blocks.filter((block) => block.stage >= 15 && block.stage < 19);
+        if (deliveries.length && anchor.stage > deliveries[0].stage) anchor = deliveries.reduce((best, block) => (block.stage < best.stage ? block : best), deliveries[0]);
       }
       if (ACCESS.has(first) || first === 'Work in the roof space') {
         const work = next.filter((at) => byIndex.get(at).stage >= WORK_FROM && byIndex.get(at).stage < 120);
@@ -569,6 +579,14 @@ const FIRM = [
   // (B run 5: the hoisting step moved above both, and W17 said nothing).
   [['Excavate and set out the retaining wall', 'Dig and pour footings', 'Dig and pour the footings'], ['Cut blocks and bricks', 'Lay blocks and bricks']],
   [['Work at open lift shafts and landing doors', 'Work with the crane crew during lifts'], ['Lift machines, rails and equipment into the shaft']],
+  // Messy round 19. A demolition starts from the asbestos check and the isolation, strips out and takes the roof off, then brings the
+  // structure down (B run 7: "Demolish the structure" moved above all four, and W17 named only the strip out). The footpath gantry goes
+  // up before the scaffold above it (A run 4: SiteWrite put the gantry after the scaffold).
+  [['Check for asbestos before starting', 'Take samples of suspect materials', 'Confirm the isolation by others before work', 'Isolate and make safe the old services'],
+    ['Strip out the room', 'Strip out ceilings, partitions and floor coverings', 'Remove old roofing', 'Strip the roof tiles', 'Demolish', 'Demolish the structure']],
+  [['Remove old roofing', 'Strip the roof tiles'], ['Demolish the structure']],
+  [['Erect the gantry'], ['Erect the scaffold']],
+  [['Fix ceiling sheets'], ['Cut the opening and fit the access hatch']],
 ];
 // For each step, the group it is in in each chain.
 const FIRM_AT = new Map();
@@ -604,6 +622,9 @@ const OWN_BEFORE_POUR = /\b(?:before|b4|prior to|ahead of)\s+(?:the\s+|each\s+)?
 const OWN_FORMING = /^(?!.*\b(?:strip\w*|remov\w*|dismantl\w*)\b).*(?:\bform(?:s|ed|ing)?\b(?:\s+up)?[^.]{0,40}\b(?:beams?|capping|walls?|kerbs?|edges?|abutments?|footings?|columns?|piers?|plinths?|upstands?|stairs?)\b|\bformwork\b|\bshutter\w*)/i;
 const OWN_BREAK_OLD = /\b(?:jackhammer\w*|break\w* (?:out|up)|scabbl\w*|demolish\w*)\b[^.]{0,40}\b(?:old|existing|damaged)\b/i;
 const OWN_SET_OUT = /\b(?:set(?:s|ting)?|mark(?:s|ed|ing)?|peg(?:s|ged|ging)?|string(?:s|ing)?)\s+out\b|\bset-?out\b|\bmark\w*\b[^.]{0,30}\b(?:post |footing |pier )?holes?\b/i;
+// Messy round 19 (A run 3): vibration isolators and acoustic pads go under the plant before it is fixed on its supports (an own step went
+// in after the insulation, and W17 said nothing).
+const OWN_VIBRATION = /\b(?:vibration (?:isolat\w*|separation|mounts?|pads?)|anti-?vibration|acoustic (?:pads?|mounts?|separation)|isolation (?:mounts?|pads?|springs?)|spring (?:mounts?|isolators?)|inertia (?:bases?|blocks?))\b/i;
 const SET_OUT_BEFORE = ['Dig post holes', 'Dig footing holes', 'Excavate', 'Dig the trench', 'Bulk excavate and load trucks', 'Excavate and set out the retaining wall', 'Dig and pour footings', 'Dig and pour the footings'];
 const OWN_FIRM = [
   [OWN_UNLOAD, ['Set up the crane'], ['Rig and lift the load', 'Land and release the load', 'Lift and land steel with the crane company', 'Lift and land steel with the crane', 'Erect and connect steel at height', 'Lift the portable building onto its footings', 'Rig, lift and land loads with the tower crane']],
@@ -625,6 +646,7 @@ const OWN_FIRM = [
   // Messy round 18 (B run 8): the line is set out and the holes marked before they are dug (an own set-out step went after "Dig post
   // holes", and W17 said nothing).
   [OWN_SET_OUT, [], SET_OUT_BEFORE],
+  [OWN_VIBRATION, ['Receive plant and move it into position'], ['Fix plant on its supports', 'Install plant and equipment on the roof', 'Fix the units in place', 'Insulate ductwork and pipework', 'Connect and commission', 'Commission the plant', 'Commission and balance the system']],
 ];
 function ownFirm(name) {
   if (!OWN_MARK.test(name)) return null;
@@ -685,4 +707,4 @@ function orderFaults(steps, nameOf = (step) => step.step, flags = {}) {
   return faults;
 }
 
-module.exports = { OWN_SET_OUT, OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_BEFORE_POUR, OWN_FORMING, OWN_BREAK_OLD, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };
+module.exports = { OWN_VIBRATION, OWN_SET_OUT, OWN_UNLOAD, OWN_TOUCH_UP, OWN_WINDOWS_OUT, OWN_BEFORE_POUR, OWN_FORMING, OWN_BREAK_OLD, STAGES, BY_NAME, FIRM, stageOf, stageName, contextStages, inStageOrder, orderFaults, firmBefore, firmFaults, firmOrder };

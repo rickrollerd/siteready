@@ -71,10 +71,14 @@ function withSubstances(draft, input, today = new Date()) {
   // The lines of an answer to the old "Safety data sheet" question stay in a step until a product is
   // placed in it; then the product's own SDS controls replace them (owner, D282).
   const answered = new Set(require('./draft').sdsAnswerLines(input && input.facts).map(same));
+  // The answer printed whole as one line counts too, as its first words are written (messy round 19, B run 5: "PVC primer and solvent
+  // cement, MAPP gas for brazing. SDS in the van." stayed in the PVC step beside its two products).
+  const lead = same(input && input.facts && typeof input.facts.safetyDataSheet === 'string' ? input.facts.safetyDataSheet : '').slice(0, 40);
+  const isAnswer = (line) => answered.has(same(withoutCitation(line))) || (lead.length >= 12 && same(withoutCitation(line)).startsWith(lead));
   const jobSteps = steps.map((step) => {
     const lines = [...new Set(products.filter((item) => item.line && item.step === step.step).map((item) => item.line))];
     if (!lines.length) return step;
-    const controls = step.controls.filter((line) => !answered.has(same(withoutCitation(line))));
+    const controls = step.controls.filter((line) => !isAnswer(line));
     for (const line of lines) {
       const level = rank(line);
       const after = controls.reduce((last, other, i) => (rank(other) <= level ? i : last), -1);

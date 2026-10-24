@@ -189,7 +189,9 @@ const isWorkStep = (step) => !GENERAL_STEPS.has(step.step);
 function abrasiveWork(step) {
   const words = new Set();
   for (const sentence of stepLines(step).flatMap(sentencesOf)) {
-    if (!ABRASIVE.test(sentence) || NOT_USED.test(sentence)) continue;
+    // A tool kept out of a power line's exclusion zone is not grinding or cutting done in the step (messy round 19, B run 7: "Plan the
+    // work near overhead power lines" printed a face shield "while grinding" for a demolition crew).
+    if (!ABRASIVE.test(sentence) || NOT_USED.test(sentence) || /\bexclusion zones?\b/i.test(sentence)) continue;
     if (/\bgrind/i.test(sentence)) words.add('grinding');
     if (/\bsaws?\b|\bsaw ?cut|\bcut-?off\b|\babrasive\b/i.test(sentence)) words.add('cutting');
     if (/\bchas(?:e|es|ing|er|ers)\b/i.test(sentence)) words.add('chasing');

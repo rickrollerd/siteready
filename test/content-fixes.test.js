@@ -268,7 +268,9 @@ test('lines that apply only to some work stay out of other work', () => {
 });
 
 test('door frames in partitions are not door hanging; a formwork package with a stair does not get the pour steps', () => {
-  assert.deepEqual(packageKinds('Install pressed metal door frames into the drywalls. Install plasterboard ceilings.', ['plasterSheets', 'doorHang']), ['plasterSheets']);
+  // Messy round 19 (B run 6): the pressed metal frames are stood with the frame step; still no door is hung (test/content20.test.js).
+  assert.deepEqual(packageKinds('Install pressed metal door frames into the drywalls. Install plasterboard ceilings.', ['plasterSheets', 'doorHang']), ['plasterSheets', 'doorHang']);
+  assert.deepEqual(packageKinds('Install the door frames into the drywalls. Install plasterboard ceilings.', ['plasterSheets', 'doorHang']), ['plasterSheets']);
   assert.deepEqual(packageKinds('Supply and hang doors to all units.', ['doorHang']), ['doorHang']);
   assert.deepEqual(packageKinds('Erect, strip and remove formwork and propping to suspended slabs. Erect and strip formwork to in situ concrete stairs and landings.', ['formwork', 'slabPour', 'propping']), ['formwork', 'propping']);
 });
