@@ -700,7 +700,31 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   res.json({
     swms: { ...swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons, reviewLink: reviews.reviewLink(auth.appUrl(req), kept && kept.ref) }), ...(sent ? { submitted: { to: sent.org, project: sent.project, on: longDate(sent.submitted_at) } } : {}) },
     input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons }, reviews: pcReviews, selfCheck, lastCheck,
+    invites: await reviews.invitesFor(row.id),
   });
+}));
+
+// The principal contractor's reviewers the business has invited to review a saved SWMS (D313). Any
+// signed-in person in the business can invite one, or remove one. Each invitation covers the SWMS's
+// later revisions, and only an invited email can open the SWMS by its reference and respond.
+router.get('/swms/:id/review-invites', requireUser, route(async (req, res) => {
+  const row = await ownSwms(req, req.params.id);
+  res.json({ invites: await reviews.invitesFor(row.id) });
+}));
+
+router.post('/swms/:id/review-invites', requireUser, route(async (req, res) => {
+  const row = await ownSwms(req, req.params.id);
+  const { email, again } = await reviews.invite(req, row, req.body && req.body.email);
+  res.status(again ? 200 : 201).json({
+    message: again ? `${email} was already invited. The invitation has been sent again.` : `${email} has been invited and sent the review link.`,
+    invites: await reviews.invitesFor(row.id),
+  });
+}));
+
+router.delete('/swms/:id/review-invites/:inviteId', requireUser, route(async (req, res) => {
+  const row = await ownSwms(req, req.params.id);
+  const email = await reviews.removeInvite(row, req.params.inviteId);
+  res.json({ message: `${email} can no longer open or respond to this SWMS.`, invites: await reviews.invitesFor(row.id) });
 }));
 
 // Every revision kept, newest first, each with what changed from the one before.
@@ -1088,6 +1112,7 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM design_file_uses WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   // The principal contractor's responses go with the SWMS.
   await db.query('DELETE FROM swms_reviews WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  await db.query('DELETE FROM swms_review_invites WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
   // Design files no saved SWMS names any more, and files attached but never saved after 7 days.
   await designFiles.removeUnused(now);

@@ -6,7 +6,7 @@
 // Every row tied to the business goes: the company and its logo, its people and their sign-ins,
 // sessions, Face ID keys and sign-in links, sites, saved SWMS with every revision and the design
 // files attached to them (in the storage bucket or the database), worker sign-ons,
-// reads and translations, review flags, references (so the public check says the reference is
+// reads and translations, review flags, the reviewers it invited (D313), references (so the public check says the reference is
 // not found), AI readings, action counts, its industry records, the SWMS it checked with the builder
 // check and kept (checked-swms.js: each document no other business also checked, with its original,
 // learning copy and lines), and the owner's access log entries about it. Two things stay: the ABN in trial_abns, with no link to the account, so a deleted
@@ -85,6 +85,8 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   // in its project's log: it stays, with no link to the SWMS once that goes.
   await run('swms_reviews', `DELETE FROM swms_reviews WHERE swms_id IN (${SWMS}) AND submission_id = ''`);
   await db.query(`UPDATE swms_reviews SET swms_id = '' WHERE swms_id IN (${SWMS})`, [id]);
+  // The reviewers it invited to its SWMS (D313).
+  await run('swms_review_invites', 'DELETE FROM swms_review_invites WHERE company_id = $1');
   await run('review_access_log', `DELETE FROM review_access_log WHERE ref IN (SELECT ref FROM swms_refs WHERE company_id = $1 OR swms_id IN (${SWMS}))`);
   // The design files the business attached, from the storage bucket or the database, then their rows.
   for (const [table, n] of Object.entries(await removeDesignFiles(id))) removed[table] = (removed[table] || 0) + n;

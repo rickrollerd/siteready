@@ -98,6 +98,8 @@ const TIED = {
   // The principal contractor's response to its SWMS, and the reviewer's looks at its reference (goal 3).
   swms_reviews: ['SELECT id FROM swms_reviews WHERE swms_id = $1', (b) => [b.swmsId]],
   review_access_log: ['SELECT id FROM review_access_log WHERE ref = $1', (b) => [b.reviewRef]],
+  // The reviewers it invited to its SWMS (D313).
+  swms_review_invites: ['SELECT id FROM swms_review_invites WHERE company_id = $1 OR swms_id = $2', (b) => [b.companyId, b.swmsId]],
   // Its own work on a builder's list it took up (Goal 12 stage 6).
   sub_progress: ['SELECT subcontract_id FROM sub_progress WHERE company_id = $1', ID],
 };
@@ -179,6 +181,8 @@ async function seedBusiness(key) {
   assert.equal((await call('GET', `/api/swms/${swms.id}/docx`, { token })).status, 200);
   // The principal contractor's reviewer opens the current revision by its reference and responds (goal 3).
   const reviewRef = (await db.one('SELECT ref FROM swms_refs WHERE swms_id = $1 AND revision = 2', [swms.id])).ref;
+  // The business invites the reviewer first (D313).
+  assert.equal((await json('POST', `/api/swms/${swms.id}/review-invites`, { token, body: { email: `hse@${key.toLowerCase()}-builder.example` } })).status, 201);
   await call('POST', '/api/review/email', { body: { email: `hse@${key.toLowerCase()}-builder.example`, ref: reviewRef } });
   const reviewLogin = /&login=([A-Za-z0-9_-]+)/.exec([...mailbox].reverse().find((item) => item.to === `hse@${key.toLowerCase()}-builder.example`).text)[1];
   const reviewer = (await json('POST', '/api/review/verify', { body: { token: reviewLogin } })).data.token;

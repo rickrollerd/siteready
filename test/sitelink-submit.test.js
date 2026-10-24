@@ -327,6 +327,26 @@ test('review states: Not approved needs the changes; Approved with conditions ke
   assert.equal(refused.status, 403);
 });
 
+// Reviewers by invitation (D313) leave SiteLink as it was: a SWMS submitted on a builder's list is already bound to
+// the project, so the lead opens, checks and responds to it from the project with no invitation, and no invitation
+// is made for the lead, at the response or when the migrations run again. The lead's session does not open the
+// SWMS by its reference, which needs an invitation from the business.
+test('a submission is reviewed from the project with no invitation, and the lead is not invited by it (D313)', async () => {
+  const c = await claimed('inv313');
+  const [fence] = c.list.items;
+  const sid = (await submitItems(c, [one(fence)])).data.submitted[0].id;
+  const sub = await db.one('SELECT swms_id, ref FROM submissions WHERE id = $1', [sid]);
+  assert.equal((await call('GET', `/api/hse/submissions/${sid}`, { reviewer: c.lead })).status, 200);
+  assert.equal((await call('POST', `/api/hse/submissions/${sid}/check`, { reviewer: c.lead })).status, 200);
+  const sent = await call('POST', `/api/hse/submissions/${sid}/response`, { reviewer: c.lead, body: { response: 'approved' } });
+  assert.equal(sent.status, 201, JSON.stringify(sent.data));
+  await db.inviteEarlierReviewers();
+  assert.equal((await db.query('SELECT id FROM swms_review_invites WHERE swms_id = $1', [sub.swms_id])).length, 0);
+  const byRef = await call('GET', `/api/review/swms/${sub.ref}`, { reviewer: c.lead });
+  assert.equal(byRef.status, 403);
+  assert.match(byRef.data.message, /This email has not been invited to review this SWMS\. Ask Tallow Interiors Pty Ltd to invite you from SiteWrite\./);
+});
+
 test('a later revision starts unreviewed; a response on the earlier one is refused; its open conditions still count', async () => {
   const c = await claimed('later1');
   const [fence] = c.list.items;

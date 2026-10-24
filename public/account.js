@@ -807,7 +807,7 @@
   // The business's own check of a saved SWMS (D290) is named for the business, held with its ABN, so it
   // is not mistaken for the principal contractor's review.
   const ownName = () => (me && me.company && me.company.name) || 'your business';
-  function pcReviewBlock(swms, reviews) {
+  function pcReviewBlock(swms, reviews, invites) {
     const current = (reviews || []).filter((item) => item.revision === Number(swms.revision));
     const earlier = (reviews || []).filter((item) => item.revision !== Number(swms.revision));
     const textHead = { conditions: 'Conditions', changes: 'Changes needed' };
@@ -816,7 +816,8 @@
     const conditionList = (item) => `<ul class="pc-conditions">${item.conditions.map((one) => `<li><span class="pill">${esc(one.status)}</span> ${esc(one.text)}</li>`).join('')}</ul>`;
     const line = (item) => `<li><strong class="${PC_CLASS[item.response] || ''}">${esc(item.label)}</strong> · revision ${esc(item.revision)} · ${esc(item.date)}<br>${esc(item.name)}, ${esc(item.company)}${item.email ? ` (<a href="mailto:${esc(item.email)}">${esc(item.email)}</a>)` : ''}
       ${item.sitelink && (item.conditions || []).length ? `<div class="pc-text"><strong>Conditions:</strong>${conditionList(item)}</div>` : item.text ? `<div class="pc-text"><strong>${textHead[item.response] || 'Comments'}:</strong>\n${esc(conditionLines(item.text))}</div>` : ''}</li>`;
-    const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteWrite, send them the reference ${esc(swms.ref)} or this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
+    // Only a reviewer the business invites can open it (D313), so the way to send it is the invitation below.
+    const send = swms.reviewLink ? `<p class="meta">To have the principal contractor review revision ${esc(swms.revision)} in SiteWrite, invite their reviewer by email below. The invitation sends them the reference ${esc(swms.ref)} and this link: <a href="${esc(swms.reviewLink)}" target="_blank" rel="noopener">${esc(swms.reviewLink)}</a></p>` : '';
     const latest = current[0];
     // A SWMS submitted on a main contractor's list in SiteLink goes back the same way: submitted again
     // from From main contractors, with each condition marked done there.
@@ -829,7 +830,58 @@
         <div class="actions"><button type="button" id="pc-fix">Fix this in SiteWrite</button></div>` : '';
     return `<div class="pc-review${latest && latest.response !== 'approved' ? ' pc-back' : ''}" id="pc-review"><h2>Principal contractor review</h2>
       ${current.length ? `<ul class="pc-list">${current.map(line).join('')}</ul>${fix}` : swms.submitted ? `<p>Revision ${esc(swms.revision)} was submitted to ${esc(swms.submitted.to)} for ${esc(swms.submitted.project)} on ${esc(swms.submitted.on)}. Its review shows here when ${esc(swms.submitted.to)} sends it.</p>` : `<p>Revision ${esc(swms.revision)} has not been reviewed yet.</p>${send}`}
-      ${earlier.length ? `<details><summary>Earlier revisions (${earlier.length})</summary><ul class="pc-list">${earlier.map(line).join('')}</ul></details>` : ''}</div>`;
+      ${earlier.length ? `<details><summary>Earlier revisions (${earlier.length})</summary><ul class="pc-list">${earlier.map(line).join('')}</ul></details>` : ''}
+      ${swms.reviewLink ? `<div id="pc-invites">${invitesBlock(invites)}</div>` : ''}</div>`;
+  }
+
+  // Who the business has invited to review the SWMS (D313): only they can open it by its reference and
+  // respond. Each invitation covers later revisions too, and can be removed, which stops it at once.
+  function invitesBlock(invites) {
+    const list = invites || [];
+    const who = (item) => (item.earlier ? `from an earlier review, ${esc(item.date)}` : `invited${item.by ? ` by ${esc(item.by)}` : ''} on ${esc(item.date)}`);
+    return `<h3 class="signed-head">Who can review it</h3>
+      <p class="meta">Only the people you invite can open this SWMS by its reference and send a response. An invitation covers later revisions too.</p>
+      ${list.length ? `<ul class="pc-list" id="invite-list">${list.map((item) => `<li><strong>${esc(item.email)}</strong> <span class="meta">${who(item)}</span> <button type="button" class="link" data-invite-remove="${esc(item.id)}" data-invite-email="${esc(item.email)}">Remove</button></li>`).join('')}</ul>` : '<p id="invite-list">No one is invited yet.</p>'}
+      <div class="field"><label for="invite-email">Reviewer's email (principal contractor)</label>
+      <input id="invite-email" type="text" inputmode="email" autocomplete="off" maxlength="254"></div>
+      <div class="actions"><button type="button" class="secondary" id="invite-send">Invite to review</button></div>
+      <p class="note hidden" id="invite-status" role="status"></p>`;
+  }
+
+  // The invitation buttons, bound again each time the block is drawn.
+  function bindInvites(id) {
+    const box = $('pc-invites');
+    if (!box) return;
+    const redraw = (invites, message) => {
+      box.innerHTML = invitesBlock(invites);
+      status('invite-status', message);
+      bindInvites(id);
+    };
+    const send = async () => {
+      const button = $('invite-send');
+      button.disabled = true;
+      try {
+        const data = await call('POST', `/api/swms/${id}/review-invites`, { email: $('invite-email').value });
+        redraw(data.invites, data.message);
+      } catch (error) {
+        status('invite-status', error.message, true);
+        button.disabled = false;
+        $('invite-email').focus();
+      }
+    };
+    $('invite-send').addEventListener('click', send);
+    $('invite-email').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); send(); } });
+    box.querySelectorAll('[data-invite-remove]').forEach((button) => button.addEventListener('click', async () => {
+      if (!confirm(`Remove ${button.dataset.inviteEmail}? They will no longer be able to open or respond to this SWMS.`)) return;
+      button.disabled = true;
+      try {
+        const data = await call('DELETE', `/api/swms/${id}/review-invites/${encodeURIComponent(button.dataset.inviteRemove)}`);
+        redraw(data.invites, data.message);
+      } catch (error) {
+        status('invite-status', error.message, true);
+        button.disabled = false;
+      }
+    }));
   }
 
   async function openSwms(id) {
@@ -852,7 +904,7 @@
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
           <p class="meta">It opens with the updated wording, for you to check each part and save it as a new revision.</p></div>` : ''}
         ${sameNumbersNote(draft)}
-        ${pcReviewBlock(swms, data.reviews)}
+        ${pcReviewBlock(swms, data.reviews, data.invites)}
         ${historyBlock(history)}
         <div class="actions wrap-actions">
           <button type="button" id="saved-docx">Download Word</button>
@@ -899,6 +951,7 @@
     // The business's own check of the revision as it prints (D290, D286): SiteWrite's check was made
     // when the SWMS was opened.
     restoreTyped('saved');
+    bindInvites(id);
     S.humanCheck.bind('saved', { key: `saved:${id}:${swms.revision}`, initial: data.selfCheck || { partHashes: {} } });
     $('saved-docx').addEventListener('click', () => run(() => download(`/api/swms/${id}/docx`, 'SWMS.docx')));
     $('saved-pdf').addEventListener('click', () => run(() => download(`/api/swms/${id}/pdf`, 'SWMS.pdf')));

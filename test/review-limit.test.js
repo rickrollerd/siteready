@@ -24,3 +24,21 @@ test('reviewer sign-in emails and review pages are rate limited', async () => {
     server.close();
   }
 });
+
+// A business's invitations to review a SWMS (D313) count toward the same per-inbox limit as the reviewer's own sign-in links.
+test('invitations to review count toward the inbox\'s email limit', async () => {
+  const server = app.listen(0);
+  await new Promise((resolve) => server.once('listening', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const post = (route) => fetch(`${base}${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'invited@builder.example' }) });
+    assert.notEqual((await post('/api/swms/one/review-invites')).status, 429);
+    assert.notEqual((await post('/api/swms/two/review-invites')).status, 429);
+    const third = await post('/api/auth/email');
+    assert.equal(third.status, 429, 'the same inbox, by another route, is over the limit');
+    // Removing an invitation sends nothing and is not counted.
+    assert.notEqual((await fetch(`${base}/api/swms/one/review-invites/x`, { method: 'DELETE' })).status, 429);
+  } finally {
+    server.close();
+  }
+});
