@@ -114,7 +114,8 @@
       "Welding processes | /doc/model-code-practice-welding-processes",
       "Work health and safety consultation, cooperation and coordination | /doc/model-code-practice-work-health-and-safety-consultation-cooperation-and-coordination"
     ],
-    "status": "ok"
+    "status": "unreadable",
+    "since": "2026-10-29"
   },
   "code:qld-codes": {
     "items": [
@@ -1063,7 +1064,8 @@
       "https://www.worksafe.vic.gov.au/safety-alerts/prefabricated-concrete-elements-falling-during-transport",
       "https://www.worksafe.vic.gov.au/safety-alerts/prevention-fires-secure-facilities",
       "https://www.worksafe.vic.gov.au/safety-alerts/exposure-cytotoxic-medicines-and-associated-contaminated-waste",
-      "https://www.worksafe.vic.gov.au/safety-alerts/verifying-employee-qualifications"
+      "https://www.worksafe.vic.gov.au/safety-alerts/verifying-employee-qualifications",
+      "https://www.worksafe.vic.gov.au/safety-alerts/dangers-relating-falling-objects-while-lifting-lowering-and-suspending-loads"
     ],
     "status": "ok"
   },
@@ -1083,7 +1085,8 @@
   },
   "qld-security-act": {
     "version": "2025-05-26",
-    "status": "ok"
+    "status": "unreadable",
+    "since": "2026-10-29"
   },
   "vic-es-act": {
     "version": "8 Sep 2026 089",
