@@ -541,7 +541,9 @@
     "2dad53436d",
     "bd298b855d",
     "a341055670",
-    "9b7e7e6f80"
+    "9b7e7e6f80",
+    "39c8c72c59",
+    "7025201afd"
   ],
   "alerts:nsw-construction-alerts": {
     "seen": [
@@ -1068,7 +1070,9 @@
       "https://www.worksafe.vic.gov.au/safety-alerts/prevention-fires-secure-facilities",
       "https://www.worksafe.vic.gov.au/safety-alerts/exposure-cytotoxic-medicines-and-associated-contaminated-waste",
       "https://www.worksafe.vic.gov.au/safety-alerts/verifying-employee-qualifications",
-      "https://www.worksafe.vic.gov.au/safety-alerts/dangers-relating-falling-objects-while-lifting-lowering-and-suspending-loads"
+      "https://www.worksafe.vic.gov.au/safety-alerts/dangers-relating-falling-objects-while-lifting-lowering-and-suspending-loads",
+      "https://www.worksafe.vic.gov.au/safety-alerts/quad-bike-dangers-inclines-and-unstable-surfaces",
+      "https://www.worksafe.vic.gov.au/safety-alerts/silo-safety-alert"
     ],
     "status": "ok"
   },
@@ -1698,5 +1702,40 @@
     ],
     "status": "ok"
   },
-  "hand:code:swa-model-codes": "2026-10"
+  "hand:code:swa-model-codes": "2026-10",
+  "hand:code:qld-codes": "2026-10",
+  "hand:code:tas-codes": "2026-10",
+  "hand:code:act-codes": "2026-10",
+  "hand:code:nt-codes": "2026-10",
+  "hand:code:tas-code-abrasive": "2026-10",
+  "hand:code:tas-code-asbestos-manage": "2026-10",
+  "hand:code:tas-code-chemicals": "2026-10",
+  "hand:code:tas-code-confined": "2026-10",
+  "hand:code:tas-code-construction": "2026-10",
+  "hand:code:tas-code-demolition": "2026-10",
+  "hand:code:tas-code-electrical": "2026-10",
+  "hand:code:tas-code-excavation": "2026-10",
+  "hand:code:tas-code-falls": "2026-10",
+  "hand:code:tas-code-manual": "2026-10",
+  "hand:code:tas-code-noise": "2026-10",
+  "hand:code:tas-code-plant": "2026-10",
+  "hand:code:tas-code-spray": "2026-10",
+  "hand:code:tas-code-tower": "2026-10",
+  "hand:code:tas-code-welding": "2026-10",
+  "hand:code:nt-code-abrasive": "2026-10",
+  "hand:code:nt-code-asbestos-manage": "2026-10",
+  "hand:code:nt-code-chemicals": "2026-10",
+  "hand:code:nt-code-confined": "2026-10",
+  "hand:code:nt-code-construction": "2026-10",
+  "hand:code:nt-code-electrical": "2026-10",
+  "hand:code:nt-code-excavation": "2026-10",
+  "hand:code:nt-code-falls": "2026-10",
+  "hand:code:nt-code-manual": "2026-10",
+  "hand:code:nt-code-noise": "2026-10",
+  "hand:code:nt-code-plant": "2026-10",
+  "hand:code:nt-code-precast": "2026-10",
+  "hand:code:nt-code-silica": "2026-10",
+  "hand:code:nt-code-spray": "2026-10",
+  "hand:code:nt-code-tower": "2026-10",
+  "hand:code:nt-code-welding": "2026-10"
 }
