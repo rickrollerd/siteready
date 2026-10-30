@@ -538,7 +538,10 @@
     "007a388f49",
     "19ba290a54",
     "e4f3dfd852",
-    "2dad53436d"
+    "2dad53436d",
+    "bd298b855d",
+    "a341055670",
+    "9b7e7e6f80"
   ],
   "alerts:nsw-construction-alerts": {
     "seen": [
@@ -1084,9 +1087,8 @@
     "status": "ok"
   },
   "qld-security-act": {
-    "version": "2025-05-26",
-    "status": "unreadable",
-    "since": "2026-10-29"
+    "version": "2026-10-29",
+    "status": "ok"
   },
   "vic-es-act": {
     "version": "8 Sep 2026 089",
