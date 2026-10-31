@@ -1423,21 +1423,24 @@ function renderSteps(steps) {
 // After a draft is prepared, the step list is drawn again from the answers now, so a step an answer brought since the list was
 // drawn shows ticked there as it is in the draft (messy round 19, A runs 3 and 4: "Use mobile scaffolds" and "Work from
 // ladders" were in the draft and not ticked in the list). Only the step list is drawn; a later load of the questions wins.
-// Only while the steps follow the task's words: with picks of the user's own, the server keeps such a step with them at the
-// next change of steps (input.js kindsSeen), and the picks are not changed under a part already ticked as checked.
+// With picks of the user's own too (flow21, round 20 A run 2: after the plant was confirmed, "Use mobile scaffolds" from the fall
+// answer was in the draft and unticked in the list, and the next step change then lost it): the server keeps such a step with the
+// picks (input.js kindsKept, held by keepFoundSteps), so the picks sent are the picks the list then shows, and nothing the user
+// ticked or unticked by hand changes. The picks are not changed under a part already ticked as checked.
 async function syncStepList(draft) {
-  if (stepPicks || !questions || !document.getElementById('steps-block')) return;
+  if (!questions || !document.getElementById('steps-block')) return;
   // Only where the draft has a step none of the ticked boxes names.
   const named = new Set(tickedSteps().flatMap((id) => { const kind = stepById.get(id); return kind ? [kind.label, ...(kind.steps || [])] : []; }));
   const own = new Set((ownSteps || []).map((item) => item.name));
   const missing = ((draft && draft.jobSteps) || []).map((step) => String(step.step || '')).filter((name) => name && !['Before starting', 'Finish and clean up'].includes(name) && !own.has(name) && !/\((?:Our own step|Does not apply to this job)\)$/.test(name) && !named.has(name));
   if (!missing.length) return;
   const seq = questionsSeq;
+  const picks = JSON.stringify(stepPicks);
   const sent = payload();
   try {
     const { response, data } = await postJson('/api/draft/questions', sent);
     // Nothing the page sends changes, so the draft shown and the parts ticked as checked stay as they are.
-    if (!response.ok || seq !== questionsSeq || stepPicks || !data || !data.steps) return;
+    if (!response.ok || seq !== questionsSeq || JSON.stringify(stepPicks) !== picks || !data || !data.steps) return;
     questions.steps = data.steps;
     renderSteps(data.steps);
   } catch { /* the list stays as it was */ }
@@ -2055,6 +2058,7 @@ async function askOnce() {
     weakNotes = weakMap(data.weak);
     drawRequired(data.required);
     drawDesigns(data.designs || []);
+    showScaffoldField();
     const said = document.getElementById('facts-error');
     if (said && said.dataset.askFailed) { said.textContent = ''; delete said.dataset.askFailed; }
   } catch (error) {
@@ -2178,6 +2182,7 @@ async function loadQuestions(options = {}) {
   drawDesigns(data.designs || []);
   stepsSeenWith = { crane: sent.crane || '', fallRisk: sent.fallRisk || '' };
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
+  showScaffoldField();
   factsForm.classList.remove('hidden');
   if (!options.stay) { factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); markStage('questions'); }
   // The questions stage is kept, so a reload brings the user back to the questions, not the start.
@@ -2612,6 +2617,29 @@ function markGaps(gaps) {
 // answered and comes back if the answer is taken out. The server checks again before any download.
 // Items it judges alone (the plant, anything else left open) wait for the draft to be prepared again.
 let shownChecks = [];
+
+// The scaffold supervisor's box shows as soon as a scaffold is involved, not only once the draft asks for it
+// (messy round 20, A run 4: it was first seen at checking). A scaffold is involved where the task, the fall answer,
+// a job step ticked or the plant confirmed names one, a mobile scaffold too. "No scaffold" and "not using scaffolds"
+// do not count. Nothing names one: the box stays off the page, as before (D237).
+const NO_SCAFFOLD = /\b(?:no|not|nil|none|never|without)\b[^.;,\n]{0,30}\bscaffold\w*/gi;
+const scaffoldMentioned = (text) => /\bscaffold(?:s|ing)?\b/i.test(String(text || '').replace(NO_SCAFFOLD, ' '));
+function scaffoldEarly() {
+  const value = (id) => ((document.getElementById(id) || {}).value || '');
+  const texts = [value('task'), value('fact-fallControl')];
+  tickedSteps().forEach((id) => { const kind = stepById.get(id); if (kind) texts.push(kind.label, ...(kind.steps || [])); });
+  if (plantChoice) texts.push(...(plantChoice.used || []));
+  texts.push(...plantOwn().map((item) => item.item));
+  if (plantPending && plantPending.ticks) texts.push(...Object.keys(plantPending.ticks).filter((name) => plantPending.ticks[name]));
+  return texts.some(scaffoldMentioned);
+}
+function showScaffoldField() {
+  const field = document.getElementById('scaffold-supervisor-field');
+  if (!field) return;
+  field.classList.toggle('hidden', !(shownChecks.some((check) => check.id === 'scaffoldSupervisor') || scaffoldEarly()));
+}
+document.addEventListener('input', () => showScaffoldField());
+document.addEventListener('change', () => showScaffoldField());
 function liveNeed(check) {
   const rules = window.SiteWriteGate;
   // A design is judged from its card as it is now.
@@ -4094,8 +4122,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     if (data.kind === 'draft') drawDesigns(data.designs || []);
     shownChecks = data.gateChecks || data.gate || [];
     // The scaffold supervisor is asked for only where this SWMS involves a scaffold.
-    const scaffoldField = document.getElementById('scaffold-supervisor-field');
-    if (scaffoldField) scaffoldField.classList.toggle('hidden', !shownChecks.some((check) => check.id === 'scaffoldSupervisor'));
+    showScaffoldField();
     gateDrawn = '';
     resultEl.innerHTML = `${fixingHtml()}${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     // The note under the high risk work box is said once, by the draft drawn after the change.
@@ -5465,7 +5492,7 @@ if (typeof window.addEventListener === 'function') {
     showStage(stage);
   });
 }
-window.SiteWrite = Object.assign(window.SiteWrite || {}, { markStage });
+window.SiteWrite = Object.assign(window.SiteWrite || {}, { markStage, scaffoldMentioned, showScaffoldField });
 
 document.addEventListener('click', (event) => {
   if (!event.target.closest('#unsaved-clear')) return;

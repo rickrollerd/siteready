@@ -89,7 +89,7 @@ test('the page keeps the steps added by hand through a retype, and "Go back" kee
   assert.match(app, /if \(stepPicks && stepsAdded\.size\) stepPicks = /);
   // After a draft the step list is drawn again from the answers now, and the draft shown is not marked out of date for it.
   assert.match(app, /if \(data\.kind === 'draft'\) await syncStepList\(data\);\n\s*showGate\(\);/);
-  assert.match(app, /async function syncStepList\(draft\) \{\n  if \(stepPicks \|\| !questions/);
+  assert.match(app, /async function syncStepList\(draft\) \{\n  if \(!questions/);
   const sent = [];
   const LIBRARY = { groups: [{ trade: 'Scaffolding', kinds: ['scaffold', 'rendering', 'footpathClosure', 'loaderCrane'].map((id) => ({ id, label: id, steps: [id] })) }] };
   const p = loadPage(['app.js'], (method, route, body) => {
