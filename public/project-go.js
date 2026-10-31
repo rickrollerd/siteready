@@ -725,6 +725,9 @@
       <div class="meta" id="go-status" role="status"></div>
       <div class="actions"><button type="button" class="small secondary" id="project-close">${builder() ? 'Close the list' : 'Close project'}</button></div>`;
     project.items.forEach((_item, index) => { reopenOwnForm(index); notesFor(index); });
+    // The scaffold supervisor's box shows on the questions page where a SWMS names a scaffold.
+    const scaffoldBox = $('scaffold-supervisor-field');
+    if (scaffoldBox && scaffoldNeeded()) scaffoldBox.classList.remove('hidden');
     sharedNotes();
     if (!project.items.every((_item, index) => asked.has(index))) askAll();
   }
@@ -1000,7 +1003,14 @@
 
   // ---- The reason at each shared box (messy round 3: a refused answer showed no reason at its field) ----
 
-  const scaffoldNeeded = () => project.items.some((item) => (item.needs || []).includes(SCAFFOLD[1]));
+  // Asked at once where a SWMS's task or fall answer names a scaffold, a mobile scaffold too, not only once it is
+  // prepared and its check asks (messy round 20, A run 4). Where none is named, it stays off the page (D237).
+  const scaffoldEarly = (item) => {
+    const named = S.scaffoldMentioned || (() => false);
+    return named(item.goTask !== undefined ? item.goTask : item.task) || named((item.facts || {}).fallControl) || (item.kinds || []).some((id) => /scaffold/i.test(String(id)));
+  };
+  const scaffoldRequired = () => project.items.some((item) => (item.needs || []).includes(SCAFFOLD[1]));
+  const scaffoldNeeded = () => scaffoldRequired() || project.items.some(scaffoldEarly);
   function setNote(el, id, text) {
     let note = $(id);
     if (!note && text) {
@@ -1021,7 +1031,7 @@
     const rules = gate();
     if (!rules || !rules.answerNeed || !project || project.stage === 'check') return;
     const tried = Boolean(project.tried);
-    const people = [...PEOPLE, ...(scaffoldNeeded() ? [SCAFFOLD] : [])];
+    const people = [...PEOPLE, ...(scaffoldRequired() ? [SCAFFOLD] : [])];
     for (const [field] of people) {
       const el = $(field);
       const rule = peopleRule(field);

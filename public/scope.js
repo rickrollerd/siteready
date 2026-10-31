@@ -308,9 +308,10 @@
     try {
       await readWithAi({ state: kept.state || '' }, kept.id, kept.done ? kept.choice || { chosen: [], answers: {} } : null);
     } catch (error) {
-      keepReading(null);
       // A reading that is gone (or another account's) is forgotten without a word; its bar goes too.
-      if (error.status === 404) $('scope-results').innerHTML = '';
+      // Any other failure (a phone's network cut while the page was in the background) keeps it, so it
+      // is picked up again when the page is seen (flow21: a finished reading must not be lost).
+      if (error.status === 404) { keepReading(null); $('scope-results').innerHTML = ''; }
       else $('scope-error').textContent = error.message;
     } finally {
       $('scope-read').disabled = false;
@@ -328,8 +329,12 @@
     return tracker;
   }
 
+  // Only the latest reading draws on the page: an older wait that ends later never wipes the list.
+  let readToken = 0;
   async function readWithAi(body, resumeId, keptChoice = null) {
     running = true;
+    const mine = ++readToken;
+    const latest = () => mine === readToken;
     let tracker = null;
     try {
       let reading;
@@ -339,6 +344,7 @@
         $('scope-results').innerHTML = `<p class="note" aria-live="polite">${LEAD} This usually takes a few minutes. You can leave this page open and come back.</p>`;
         reading = await S.call('POST', '/api/scope/ai', body);
       }
+      if (!latest()) return;
       // Kept from before and already read: shown at once, with no bar and no message.
       const waited = Boolean(resumeId) || reading.status === 'reading';
       if (reading.status === 'reading') {
@@ -351,6 +357,7 @@
         await wait(10000);
         // The state picked on the form names the high risk construction work in each package.
         reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
+        if (!latest()) return;
         if (tracker && reading.status === 'reading') tracker.update(reading.progress);
       }
       if (reading.status !== 'done') {
@@ -370,10 +377,11 @@
     } catch (error) {
       // The bar stops where it was; the error shows as before. Refused at the start (a trial ended),
       // the "reading" note goes.
+      if (!latest()) throw error;
       if (tracker) { tracker.fail(); $('scope-results').innerHTML = tracker.html(); } else $('scope-results').innerHTML = '';
       throw error;
     } finally {
-      running = false;
+      if (latest()) running = false;
     }
   }
 
@@ -479,7 +487,10 @@
       text: any ? 'The AI has finished reading the scope. Choose the SWMS you need.' : 'The AI has finished reading the scope. It found no work packages in it.',
       button: any ? 'Choose the SWMS' : 'Show the result',
       tab: 'scope read',
-      go: () => {
+      go: async () => {
+        // The list is drawn again from the server's reading if it is not on the page (flow21: the message
+        // said the scope was read, and the list was blank).
+        if (!listShown()) await restoreList();
         const list = document.querySelector('.scope-packages') || $('scope-results');
         if (list && list.scrollIntoView) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
         const first = document.querySelector('[data-package]');
@@ -488,6 +499,41 @@
       after,
     });
   }
+
+  // Whether the list of work packages is on the page now.
+  const listShown = () => Boolean(aiReading) && /class="scope-packages"/.test($('scope-results').innerHTML || '');
+  // The finished reading's list drawn again from the server's reading (never from what the page holds), with
+  // the ticks kept with it. False where there is no finished reading to draw it from.
+  async function restoreList() {
+    const kept = keptReading() || {};
+    const id = kept.id || (aiReading && aiReading.id);
+    if (!id || !S.call) return false;
+    const was = choice && aiReading && aiReading.id === id ? { crane: choice.crane || '', slinging: choice.slinging || '', answers: choice.answers || {}, chosen: [...choice.ticked] } : null;
+    const saved = kept.choice || {};
+    const state = kept.state || (aiReading && aiReading.state) || '';
+    try {
+      const reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(id)}?state=${encodeURIComponent(state)}`);
+      if (!reading || reading.status !== 'done') return false;
+      $('scope-panel').open = true;
+      showPackages(reading, was || { crane: saved.crane || '', slinging: saved.slinging || '', answers: saved.answers || {}, chosen: saved.chosen || [] });
+      keepReading({ id: reading.id, state, done: true, choice: kept.choice || null });
+      return true;
+    } catch (error) {
+      if (error.status === 404) { keepReading(null); $('scope-results').innerHTML = ''; }
+      else $('scope-error').textContent = error.message;
+      return false;
+    }
+  }
+  // The page seen again (a phone brings a tab back from the background, or Back returns to it): a reading
+  // kept, finished or still running, whose list is not on the page is picked up again.
+  async function backOnPage() {
+    if (running || listShown() || !S.signedIn || !S.signedIn()) return;
+    const kept = keptReading();
+    if (!kept || !kept.id) return;
+    await resumeReading();
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') backOnPage().catch(() => {}); });
+  if (typeof window.addEventListener === 'function') window.addEventListener('pageshow', (event) => { if (event && event.persisted) backOnPage().catch(() => {}); });
 
   // Ticks, the crane answer and the scope review answers are kept as they change. A new crane
   // answer redraws the cranage package, ticked or not as that answer offers it.
@@ -515,8 +561,8 @@
       const pack = work[Number(target.dataset.others)];
       choice.answers[pack.name] = { ...(choice.answers[pack.name] || {}), [target.dataset.step]: target.value };
     } else return;
-    $('scope-choice-error').textContent = '';
-    $('scope-confirm').textContent = prepareButton();
+    choiceSay('');
+    if ($('scope-confirm')) $('scope-confirm').textContent = prepareButton();
     keepChoice();
   });
   // The ticks, crane answer and scope review answers, kept with the finished reading.
@@ -566,25 +612,44 @@
       button.disabled = false;
     }
   }
+  // The line under the Prepare button. It is made again if the list was drawn without it, and brought into
+  // view, so a press that does nothing always says why (flow21).
+  function choiceSay(text) {
+    let line = $('scope-choice-error');
+    if (text && !/id="scope-choice-error"/.test($('scope-results').innerHTML || '')) {
+      $('scope-results').insertAdjacentHTML('beforeend', '<p class="error" id="scope-choice-error" role="alert"></p>');
+      line = $('scope-choice-error');
+    }
+    if (!line) return;
+    line.textContent = text;
+    if (text && line.scrollIntoView) line.scrollIntoView({ block: 'center' });
+  }
   // The packages ticked go straight into the project as its SWMS, one each.
-  function confirmPackages() {
+  async function confirmPackages() {
+    // No list on the page to take the ticks from: it is drawn again, and the press says what is needed.
+    if (!aiReading || !choice || !listShown()) {
+      if (!(await restoreList())) { choiceSay('The list of work packages could not be shown. Read the scope again.'); return; }
+      choiceSay('Tick at least one work package.');
+      return;
+    }
     const { work } = C().packagesOf(aiReading.reading);
     const chosen = work.filter((pack) => choice.ticked.has(pack.name)).map((pack) => pack.name);
-    if (!chosen.length) { $('scope-choice-error').textContent = 'Tick at least one work package.'; return; }
-    $('scope-choice-error').textContent = '';
+    if (!chosen.length) { choiceSay('Tick at least one work package.'); return; }
+    choiceSay('');
     // Who runs the crane is asked on the list only where there is cranage; it then holds for every SWMS.
     // Otherwise it is left unanswered, unless the scope clearly says cranes are used by others for this
     // work (messy round 3: "A crane company" was ticked for scopes that never mention a crane).
     const crane = (work.some((pack) => C().isCranage(pack.name)) ? choice.crane : '') || C().craneFromReading(aiReading.reading);
     const slinging = crane === 'company' ? choice.slinging || '' : '';
     const items = C().projectItems(aiReading.reading, chosen, { answers: choice.answers, crane, slinging });
+    if (!items.length) { choiceSay('Tick at least one work package.'); return; }
     startProject(items, { readingId: aiReading.id, state: aiReading.state || '', chosen, answers: choice.answers, crane, slinging });
     // Prepared: the project holds the reading now, and "Change the SWMS chosen" opens it again.
     if (project && project.from && project.from.readingId === aiReading.id) keepReading(null);
   }
 
   $('scope-results').addEventListener('click', (event) => {
-    if (event.target.closest('#scope-confirm')) { confirmPackages(); return; }
+    if (event.target.closest('#scope-confirm')) { confirmPackages().catch((error) => choiceSay(error.message)); return; }
     // Tick all or Untick all, in one press. The list stays open.
     const all = event.target.closest('[data-scope-tick]');
     if (all && choice && aiReading) {
@@ -597,7 +662,7 @@
         const card = $(`scope-package-${index}`);
         if (card) card.classList.toggle('off', !choice.ticked.has(pack.name));
       });
-      $('scope-choice-error').textContent = '';
+      choiceSay('');
       $('scope-confirm').textContent = prepareButton();
       keepChoice();
       return;
