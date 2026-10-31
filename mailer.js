@@ -15,6 +15,7 @@
 // address stays MAIL_FROM, as a mail account sends only as itself; the From name still shows where the
 // mail server keeps it. Without any service, outside production, the message goes to the server log
 // so sign-in can be tried locally.
+const { isProduction } = require('./secret-keys');
 const nodemailer = require('nodemailer');
 
 let transport = null;
@@ -146,7 +147,9 @@ async function sendMail({ to, subject, text, from = null, replyTo = '', headers 
   if (capture) { await capture(message); return null; }
   const via = provider();
   if (!via) {
-    if (process.env.NODE_ENV === 'production') throw Object.assign(new Error('Email is not set up on this server.'), { status: 503, publicMessage: true });
+    if (isProduction()) throw Object.assign(new Error('Email is not set up on this server.'), { status: 503, publicMessage: true });
+    // Never log message bodies on Railway, even outside production (e.g. staging).
+    if (process.env.RAILWAY_ENVIRONMENT_NAME) return null;
     console.log(`Email to ${to}: ${subject}\n${text}`);
     return null;
   }
