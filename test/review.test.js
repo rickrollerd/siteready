@@ -200,7 +200,7 @@ test('the reviewer sees the revision exactly as saved, never who signed on or ho
   const { id, ref, signonPath } = await savedSwms('own3@business.example');
   // A worker signs on before the review.
   const signToken = new URL(signonPath, base).searchParams.get('t');
-  const signed = await call('POST', `/api/sign/${signToken}`, { body: { name: 'Wiremu Worker', company: 'Crew Co', signature: 'data:image/png;base64,iVBORw0KGgo=', confirmed: true, explained: true, supervisor: 'Sam Supervisor' } });
+  const signed = await call('POST', `/api/sign/${signToken}`, { body: { name: 'Wiremu Worker', company: 'Crew Co', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH', confirmed: true, explained: true, supervisor: 'Sam Supervisor' } });
   assert.equal(signed.status, 201);
   assert.equal((await call('GET', `/api/review/swms/${ref}`)).status, 401, 'the reference alone does not open the SWMS');
   const reviewer = await reviewerSignIn('reader@tierone.example', ref);

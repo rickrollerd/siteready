@@ -336,7 +336,7 @@ test('the worker\'s name and company on the sign-on sheet take their capitals (w
   assert.equal(done.status, 201, JSON.stringify(done.data));
   const [swms] = (await call('GET', '/api/swms', { session: c.office })).data.swms;
   const token = /t=([A-Za-z0-9_-]+)/.exec(swms.signonPath)[1];
-  const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+  const signature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
   const signed = await call('POST', `/api/sign/${token}`, { body: { name: 'anh truong', company: 'echidna spark', signature, confirmed: true, explained: true, supervisor: 'lachie brennock' } });
   assert.equal(signed.status, 201, JSON.stringify(signed.data));
   assert.match(signed.data.message, /Anh Truong/);

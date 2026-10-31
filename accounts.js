@@ -12,7 +12,9 @@ const { draftBody, textField } = require('./input');
 const { prepareDraft } = require('./draft');
 const { draftToDocx, draftedNote, revisionText, preparedFor } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
-const { readLogo } = require('./logo');
+const { readLogo, pngDecodes } = require('./logo');
+const { rateLimit } = require('express-rate-limit');
+const { SharedStore } = require('./rate-store');
 const { record } = require('./events');
 const signRead = require('./sign-read');
 const aiScope = require('./ai-scope');
@@ -930,10 +932,34 @@ router.get('/swms/:id/qr.svg', requireUser, route(async (req, res) => {
   res.send(svg);
 }));
 
+router.delete('/swms/:id/signons/:signonId', requireAccess, route(async (req, res) => {
+  const swms = await ownSwms(req, req.params.id);
+  const signon = await db.one('SELECT id FROM signons WHERE id = $1 AND swms_id = $2', [req.params.signonId, swms.id]);
+  if (!signon) throw fail(404, 'That sign-on was not found.');
+  await db.query('DELETE FROM signons WHERE id = $1', [signon.id]);
+  res.json({ ok: true });
+}));
+
 // ---- Worker sign-on (no account needed: the QR code carries the key) ----
 
 // Sign-ons one SWMS can take. A large crew over a long job stays well under it.
 const SIGNON_LIMIT = 500;
+
+function positiveNumber(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : fallback;
+}
+
+const signTokenWindowMs = positiveNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
+const signTokenLimit = rateLimit({
+  windowMs: signTokenWindowMs,
+  limit: positiveNumber(process.env.RATE_LIMIT_SIGN_TOKEN_REQUESTS, 30),
+  keyGenerator: (req) => `token:${req.params.token}`,
+  store: new SharedStore('sign-on-token'),
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { kind: 'error', message: `Too many requests. Try again in ${Math.ceil(signTokenWindowMs / 60000)} minutes.` },
+});
 
 // Workers read and sign the current revision as it was saved, the same as its PDF.
 async function signedDraft(row, company) {
@@ -995,7 +1021,7 @@ router.get('/sign/:token/translation', route(async (req, res) => {
   res.json(await signRead.translation(row, draft, req.query.lang, req.query.read));
 }));
 
-router.post('/sign/:token', route(async (req, res) => {
+router.post('/sign/:token', signTokenLimit, route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
   const body = req.body || {};
   // Sent again after the answer was lost: the sign-on is already saved, so it is not saved twice.
@@ -1011,6 +1037,8 @@ router.post('/sign/:token', route(async (req, res) => {
   const signature = String(body.signature || '');
   if (!name) throw fail(400, 'Enter your name.');
   if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature) || signature.length > MAX_SIGNATURE) throw fail(400, 'Sign in the box before submitting.');
+  const sigData = Buffer.from(signature.slice('data:image/png;base64,'.length), 'base64');
+  if (!pngDecodes(sigData)) throw fail(400, 'That signature image is not a valid PNG.');
   if (body.confirmed !== true) throw fail(400, 'Tick the box to confirm the SWMS has been explained to you.');
   const draft = await signedDraft(row, company);
   // A worker who cannot read the SWMS has it explained by their supervisor: no reading time or questions.

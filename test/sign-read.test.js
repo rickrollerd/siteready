@@ -67,7 +67,7 @@ const INPUT = ready({
   fallRisk: 'yes',
   facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
 });
-const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+const SIGNATURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
 
 // A saved SWMS and its sign-on key, for a fresh business.
 async function savedSwms(email, input = INPUT) {
