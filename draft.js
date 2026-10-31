@@ -5064,7 +5064,12 @@ const productsListed = (input) => Array.isArray(input && input.substances) && in
 // page, the answer went from the next draft and the file, with the products and "Not required" reasons it
 // named (messy round 8, run 3: the SWMS 1 file had no SDS answer and no sealant line, though the draft had
 // shown them, once a product was listed and the questions were asked again).
-const notSdsQuestion = (input) => (item) => !(item.id === 'safetyDataSheet' && productsListed(input) && !keptFact(input && input.facts && input.facts.safetyDataSheet));
+// Products listed from their SDS replace the SDS answer. A blank template is not kept (messy round 20).
+const notSdsQuestion = (input) => (item) => {
+  if (item.id !== 'safetyDataSheet' || !productsListed(input)) return true;
+  const text = keptFact(input && input.facts && input.facts.safetyDataSheet);
+  return Boolean(text) && !require('./blanks').hasBlank(text);
+};
 // The control lines an answer to the "Safety data sheet" question makes (controlsFor), as they print.
 function sdsAnswerLines(facts) {
   const sheet = keptFact(facts && facts.safetyDataSheet);
@@ -5268,7 +5273,7 @@ function buildDraft(input, screen) {
     const fromSite = highRiskMatches(riskText, pack.fallAnswer, state).map(labelOf).filter((label) => !own.has(label));
     if (fromSite.length) draft.highRisk = draft.highRisk.filter((label) => !fromSite.includes(label));
   }
-  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
+  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state).filter(notSdsQuestion(input)), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
   // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
   // reason (D311, round 6 content decision 2). It comes off the list wherever it is found, and prints as
@@ -7028,6 +7033,14 @@ function tradeFlags(task, facts, state) {
   const picked = new Set(state.kinds);
   const out = { ...flags };
   for (const id of KIND_IDS) out[id] = picked.has(id);
+  // Walls, doors, frames and trim named only as what is painted are not built, hung or glazed,
+  // even where a scope pick or the words found them (messy round 20, B run 5: glazing steps in a
+  // painting job whose scope named window reveals).
+  if ((out.painting || out.paintExternal) && PAINTED_ONLY_KINDS.some((id) => out[id])) {
+    const rest = String(task || '').replace(PAINTED_WORK, ' ');
+    const restFlags = /\w/.test(rest) ? workFlags(rest, facts, state.ownCrane, false, Boolean(state.allWords)) : {};
+    for (const id of PAINTED_ONLY_KINDS) if (out[id] && !restFlags[id]) out[id] = false;
+  }
   // Brazing the task's own words say is not done comes off, though a pick list ticked it (messy round 7:
   // "propress copper no brazing" kept "Braze and solder pipe joints (hot work)").
   if (state.noBrazing) out.hotWork = false;
@@ -7968,6 +7981,9 @@ function typedTitleFixes(out, task) {
   if (T(/\bnon-?structural\b/i) && T(/\bdemoli\w*/i)) out.stripOut = true;
   off(T(/\binsulated (?:sandwich )?(?:wall |ceiling )?panels?\b|\bsandwich panels?\b/i), 'wallPanels');
   off(T(/\btemporary (?:(?:diesel|standby|back-?up) )*generators?\b/i), 'generatorPlant');
+  // A portable or site generator for tools is not installing generator plant (messy round 20: roofing with
+  // "use a generator for power tools" beside "cranes by crane hire" brought Install the generators).
+  off(T(/\b(?:use|run|running|hire|hired)\b[^.]{0,30}\b(?:a |the )?(?:portable |site )?generators?\b|\b(?:portable |site )generators?\b|\bgenny\b|\bgenerators? for (?:the )?(?:power )?tools?\b/i) && !T(/\b(?:install\w*|supply and install|permanent|standby|emergency|backup|day tanks?)\b/i), 'generatorPlant');
   // A generator the electrical crew installs, named by its voltage, battery charger or changeover, is connected by that crew (messy
   // round 15, SiteLink: "Install 11kV containerised generator with day tank, exhaust and battery charger" had no connection step).
   if (out.generatorPlant && T(/\b(?:\d+(?:\.\d+)? ?kv|battery chargers?|change ?over (?:switch\w*|boards?)|transfer switch\w*|connect\w*|terminat\w*)\b/i) && !T(/\b(?:connect\w*|terminat\w*|electrical)\b[^.]{0,30}\bby (?:others|the electrician|an electrician)\b/i)) out.commissioning = true;

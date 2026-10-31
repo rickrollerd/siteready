@@ -398,7 +398,7 @@
   // supplied and applied by others" beside such a step). The step's name, or ''. Not the user's own
   // steps, nor the general steps at the start and end.
   const SILICA = 'Respirable crystalline silica (concrete, masonry, tile and stone dust)';
-  const CUTS_CONCRETE = /\b(?:cut\w*|saw\w*|drill\w*|core[- ]?drill\w*|coring|grind\w*|chas\w*|scabbl\w*|break\w*(?: out)?|jackhammer\w*)\b[^.\n]{0,40}\b(?:concrete|masonry|stone|slabs?|soffits?|blocks?|blockwork|bricks?|brickwork|pavers?|kerbs?)\b|^(?:Core drill|Saw cut)\b|\bgrind\w* (?:the )?(?:concrete )?floors?\b/i;
+  const CUTS_CONCRETE = /\b(?:cut\w*|saw\w*|drill\w*|core[- ]?drill\w*|coring|grind\w*|chas\w*|scabbl\w*|break\w*(?: out)?|jackhammer\w*)\b[^.\n]{0,40}\b(?:concrete|masonry|stone|slabs?|soffits?|blocks?|blockwork|bricks?|brickwork|pavers?|kerbs?|tile|tiling|tiles|tilers?)\b|^(?:Core drill|Saw cut)\b|\bgrind\w* (?:the )?(?:concrete )?floors?\b/i;
   // A line that names silica dust and the work that makes it ("Silica dust from drilling hanger anchors").
   const SILICA_WORK = /\bsilica\b[^.\n]*\b(?:cut\w*|saw\w*|drill\w*|cor(?:e|ing)\w*|grind\w*|chas\w*|break\w*|jackhammer\w*|rout\w*|rak\w*|split\w*|polish\w*|crush\w*|mix\w*)\b|\b(?:cut\w*|saw\w*|drill\w*|cor(?:e|ing)\w*|grind\w*|chas\w*|break\w*|rout\w*)\b[^.\n]*\bsilica\b/i;
   // A control line of SiteWrite's counts where it puts a dust control on that work ("Drill anchors with
