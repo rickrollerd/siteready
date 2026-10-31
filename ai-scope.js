@@ -817,6 +817,34 @@ function rowOut(row) {
 
 // Starts a reading, or returns the one already kept for this company and document.
 // The reading itself runs on after the request returns; the page asks for it by its id.
+function companyDailyReadings() {
+  const value = Number(process.env.AI_COMPANY_DAILY_READINGS);
+  return process.env.AI_COMPANY_DAILY_READINGS !== undefined && process.env.AI_COMPANY_DAILY_READINGS !== '' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 10;
+}
+
+function orgDailyReadings() {
+  const value = Number(process.env.AI_ORG_DAILY_READINGS);
+  return process.env.AI_ORG_DAILY_READINGS !== undefined && process.env.AI_ORG_DAILY_READINGS !== '' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 30;
+}
+
+function startOfUtcDay() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+}
+
+async function countCompanyReadingsToday(companyId, query = db) {
+  const row = await query.one("SELECT COUNT(*) AS n FROM ai_readings WHERE company_id = $1 AND org_id = '' AND status <> 'failed' AND created_at >= $2", [companyId, startOfUtcDay()]);
+  return Number((row && row.n) || 0);
+}
+
+async function countOrgReadingsToday(orgId, query = db) {
+  const row = await query.one("SELECT COUNT(*) AS n FROM ai_readings WHERE org_id = $1 AND company_id = '' AND status <> 'failed' AND created_at >= $2", [orgId, startOfUtcDay()]);
+  return Number((row && row.n) || 0);
+}
+
+const companyCapMessage = (limit) => `You have used today's ${limit} AI readings for this company. Try again tomorrow.`;
+const orgCapMessage = (limit) => `You have used today's ${limit} AI readings for this account. Try again tomorrow.`;
+
 async function startReading(company, text, stateName) {
   if (!enabled()) throw fail(503, 'The AI reading is not switched on. Try again later, or write the tasks in the Task box.');
   if (!company) throw fail(401, 'Sign in to have the AI read a scope.');
@@ -827,6 +855,10 @@ async function startReading(company, text, stateName) {
   const kept = await db.one("SELECT * FROM ai_readings WHERE company_id = $1 AND org_id = '' AND doc_hash = $2 AND brief_version = $3 AND status <> 'failed' ORDER BY created_at DESC LIMIT 1",
     [company.id, hash, BRIEF_VERSION]);
   if (kept) return { ...(await withHighRisk(rowOut(kept), stateName)), kept: true };
+  const companyLimit = companyDailyReadings();
+  if (await countCompanyReadingsToday(company.id) >= companyLimit) {
+    throw Object.assign(fail(402, companyCapMessage(companyLimit)), { limit: true });
+  }
   const id = crypto.randomUUID();
   const now = new Date();
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $8)',
@@ -923,6 +955,10 @@ async function startProjectReading({ org, project }, text, stateName, { clean = 
     const again = await keptFor(tx);
     if (again) return again;
     if (await projectReadingsUsed(project.id, tx) >= limit) throw Object.assign(fail(402, limitMessage(limit)), { limit: true });
+    const orgLimit = orgDailyReadings();
+    if (await countOrgReadingsToday(org.id, tx) >= orgLimit) {
+      throw Object.assign(fail(402, orgCapMessage(orgLimit)), { limit: true });
+    }
     await tx.query("INSERT INTO ai_readings (id, company_id, org_id, project_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, '', $2, $3, $4, $5, $6, $7, $8, $9, $10, $9)",
       [id, org.id, project.id, hash, BRIEF_VERSION, defaultModel(), 'reading', content.length, now, 'reading']);
     return null;
@@ -952,5 +988,5 @@ async function getReading(company, id, stateName) {
   return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, startProjectReading, getProjectReading, projectReadingsUsed, projectFreeReadings, limitMessage, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel };
+module.exports = { enabled, useClient, startReading, getReading, startProjectReading, getProjectReading, projectReadingsUsed, projectFreeReadings, limitMessage, companyDailyReadings, orgDailyReadings, countCompanyReadingsToday, countOrgReadingsToday, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel };
 Object.defineProperty(module.exports, 'MODEL', { get: defaultModel, enumerable: true });
