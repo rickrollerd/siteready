@@ -59,7 +59,7 @@ function abnFor(seed) {
 const LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 // A small PDF, as a design file.
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n');
-const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+const SIGNATURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
 // Every table in db.js, and the rows in it tied to one business. The de-identified tables are

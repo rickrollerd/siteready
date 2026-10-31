@@ -201,7 +201,7 @@ test('after a new revision, the owner sees no one has signed it, and who signed 
     const token = await signIn('resign@history.example');
     const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
     const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
-    const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+    const signature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
     const signOn = (name) => call('POST', `/api/sign/${key}`, { body: { name, company: 'Crew Co', signature, confirmed: true, explained: true, supervisor: 'Sam Lee' } });
     const listed = async () => (await (await call('GET', '/api/swms', { token })).json()).swms.find((item) => item.id === swms.id);
     const detail = async () => (await call('GET', `/api/swms/${swms.id}`, { token })).json();

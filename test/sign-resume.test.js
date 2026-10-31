@@ -54,7 +54,7 @@ const INPUT = ready({
   fallRisk: 'yes',
   facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
 });
-const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+const SIGNATURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
 const KEY = 'a1b2c3d4e5f60718293a4b5c6d7e8f90abcd';
 
 async function savedSwms(email) {

@@ -144,7 +144,7 @@ test('workers sign on with the QR link, and their signatures go on the SWMS', as
   // The worker has had the SWMS open long enough, and answers the check questions.
   await db.query('UPDATE sign_reads SET started_at = $1 WHERE id = $2', [new Date(Date.now() - 60 * 60 * 1000), view.readId]);
   const answers = await rightAnswers(swms.id, view.readId);
-  const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+  const signature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Jo Worker', signature, confirmed: true, readId: view.readId, answers } })).status, 201);
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'No Signature', confirmed: true } })).status, 400);
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'No Tick', signature } })).status, 400);
@@ -265,7 +265,7 @@ test('a business can export all its saved SWMS in one zip: every revision, its s
   await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) });
   // A worker signs revision 1, then revision 2 is saved and another worker signs it.
   const key = first.signonPath.split('t=')[1];
-  const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+  const signature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
   const sign = (name) => call('POST', `/api/sign/${key}`, { body: { name, company: 'Crew Co', signature, confirmed: true, explained: true, supervisor: 'Sam Lee' } });
   assert.equal((await sign('Rev One Worker')).status, 201);
   assert.equal((await call('PUT', `/api/swms/${first.id}`, { token, body: checked({ input: { ...INPUT, musterPoint: 'Rear gate' }, ...CONFIRM, reason: 'Muster point moved' }) })).status, 200);
@@ -370,7 +370,7 @@ test('a SWMS stops taking sign-ons at its limit', async () => {
     const token = await signIn('limit@signon.example');
     const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
     const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
-    const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+    const signature = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAABRB27rAAAADElEQVR4nGNgYGAAAAAEAAGnV0ytAAAAAElFTkTINXpH';
     const explained = { explained: true, supervisor: 'Sam Lead' };
     for (const name of ['One', 'Two']) assert.equal((await call('POST', `/api/sign/${key}`, { body: { name, signature, confirmed: true, ...explained } })).status, 201);
     const third = await call('POST', `/api/sign/${key}`, { body: { name: 'Three', signature, confirmed: true, ...explained } });

@@ -65,4 +65,4 @@ function fitLogo(logo, maxWidth = 300, maxHeight = 100) {
   return { width: Math.round(logo.width * scale), height: Math.round(logo.height * scale) };
 }
 
-module.exports = { readLogo, fitLogo, MAX_LOGO_BYTES };
+module.exports = { readLogo, fitLogo, MAX_LOGO_BYTES, pngDecodes };
