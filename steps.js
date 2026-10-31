@@ -141,7 +141,7 @@ function searchSteps(query, trade = '') {
   const named = results.filter((item) => item.name).sort(byScore);
   const others = results.filter((item) => !item.name).sort(byScore);
   // Kinds that only mention the words: the trade's own first, a few at most.
-  const shown = named.length >= 5 ? others.filter((item) => item.trade).slice(0, 3) : others.slice(0, 6);
+  const shown = named.length === 0 ? others : named.length >= 5 ? others.filter((item) => item.trade).slice(0, 3) : others.slice(0, 6);
   return [...named, ...shown].map((item) => item.id);
 }
 
