@@ -106,7 +106,7 @@ async function readDesign(company, fileId) {
     [id, company.id, hash, DESIGN_BRIEF_VERSION, fields.model || aiScope.MODEL, status, text.length, fields.reading || null, fields.checks || null, JSON.stringify(fields.usage || {}), aiScope.costOf(fields.usage || {}), fields.error || '', started, new Date()]);
   let answer;
   try {
-    answer = await aiScope.callModel({ system: DESIGN_BRIEF, content: `<document>\n${text}\n</document>`, schema: DESIGN_SCHEMA, effort: 'low' });
+    answer = await aiScope.callModel({ system: DESIGN_BRIEF, content: `<document>\n${text}\n</document>`, schema: DESIGN_SCHEMA, effort: 'low', reader: 'DESIGN' });
   } catch (error) {
     const message = aiScope.errorMessage(error);
     await save('failed', { error: message }).catch(() => {});

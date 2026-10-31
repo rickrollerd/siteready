@@ -29,7 +29,7 @@ test.before(async () => {
 
 test.after(() => {
   server.close();
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -235,7 +235,7 @@ async function keepACheck(key, token, companyId) {
     assert.equal(done.kept, true);
   } finally {
     delete process.env.KEEP_CHECKED_SWMS;
-    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
     aiScope.useClient(null);
   }
   const { swms_id: checkedId } = await db.one('SELECT swms_id FROM checked_swms_uploaders WHERE company_id = $1', [companyId]);

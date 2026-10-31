@@ -43,6 +43,7 @@ test.before(async () => {
 test.after(() => {
   aiScope.useClient(null);
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   server.close();
 });
 
@@ -491,6 +492,7 @@ test('a SWMS received outside SiteWrite is recorded against the list item; its B
   assert.equal(Buffer.compare(got.data, file), 0);
   // The check: off when the AI is off; with the stand-in, one reading, counted for the project.
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   assert.equal((await call('POST', `/api/hse/submissions/${r.data.id}/check`, { reviewer: c.lead })).status, 503);
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
   const calls = standIn();

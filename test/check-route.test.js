@@ -28,7 +28,7 @@ test.before(async () => {
 
 test.after(() => {
   server.close();
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -112,7 +112,7 @@ async function finished(id, session = token) {
 }
 
 test('a pasted SWMS is read by the AI when it is switched on', async () => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   const off = await post('/api/check', { text: 'SWMS text' }, token);
   assert.equal(off.status, 503);
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';

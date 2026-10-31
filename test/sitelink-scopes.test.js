@@ -74,6 +74,7 @@ test.before(async () => {
 test.after(() => {
   server.close();
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   delete process.env.PROJECT_FREE_READINGS;
   delete process.env.CONTROL_LEARNING;
   aiScope.useClient(null);

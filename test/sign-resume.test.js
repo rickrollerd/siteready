@@ -16,7 +16,7 @@ let server;
 let base;
 
 test.before(async () => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   await setupAccounts();
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));

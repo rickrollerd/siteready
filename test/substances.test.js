@@ -349,7 +349,7 @@ test.before(async () => {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
 });
 test.after(() => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -426,7 +426,7 @@ test('a scanned SDS, a photo or a file that is not an SDS is refused without a c
   await assert.rejects(sdsRead.readSds(company, drawing.id), { status: 422, message: sdsRead.NOT_SDS });
   await assert.rejects(sdsRead.readSds(company, 'df_notthereatallnotthere'), { status: 404 });
   assert.equal(model.calls.length, 0);
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   try {
     await assert.rejects(sdsRead.readSds(company, scan.id), { status: 503, message: sdsRead.OFF });
   } finally {

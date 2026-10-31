@@ -24,6 +24,10 @@
    - `APP_URL`: the public address, for example `https://sitewrite.com.au` (used in sign-in links, QR codes and Face ID)
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`: the mail account that sends sign-in links and review reminders (Gmail: `smtp.gmail.com`, port `465`, an app password)
    - `NODE_ENV=production`
+   - `OPENROUTER_API_KEY`: primary AI key (OpenRouter). If set, AI readings and translations go through OpenRouter.
+   - `ANTHROPIC_API_KEY`: fallback AI key (Anthropic). Used when `OPENROUTER_API_KEY` is not set.
+   - `AI_MODEL`: default model (`anthropic/claude-opus-5.5` on OpenRouter, `claude-opus-5-5` on Anthropic). Optional per-reader overrides: `AI_SCOPE_MODEL`, `AI_SDS_MODEL`, `AI_DESIGN_MODEL`, `AI_METHOD_MODEL`, `AI_CHECK_MODEL`, `AI_SIGN_MODEL`.
+   - `AI_SCOPE=off` to disable AI readings and translations.
    - `INDUSTRY_KEY`: a long random value (at least 32 characters) for the keyed business code in the industry data. Without it, production keeps no industry records and the log says so.
    - `CONTROL_LEARNING_KEY`: another long random value (at least 32 characters), set before `CONTROL_LEARNING=on`. Without it, control learning stays off in production and the log says so.
    - Design files (the engineer's or temporary works designs users attach to a SWMS, owner decision D215): add a Railway **Bucket** to the project, then set these as references to the bucket's Credentials: `DESIGN_FILES_BUCKET` (BUCKET), `DESIGN_FILES_BUCKET_KEY_ID` (ACCESS_KEY_ID), `DESIGN_FILES_BUCKET_SECRET` (SECRET_ACCESS_KEY), `DESIGN_FILES_BUCKET_REGION` (REGION) and `DESIGN_FILES_BUCKET_ENDPOINT` (ENDPOINT), and `DESIGN_FILES_BUCKET_PATH_STYLE=on` if the Credentials tab says the bucket uses path-style addresses. Without them, production takes no design files (the design's reference still prints) and the log says so. Locally and in tests the files go in the database.

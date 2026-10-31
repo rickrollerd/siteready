@@ -112,6 +112,10 @@ See `.env.example`.
 | `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. Every worker shares one rate limit count, kept in the memory of the primary process. A number higher than the memory holds (about 512 MB a worker) is cut back, and the log says so. |
 | `APP_URL` | none | The public https address, for example `https://sitewrite.com.au`, with no path. In production (a Railway environment named production, or `NODE_ENV=production` outside Railway) sign-in, reviewer and list links use only this; without a valid https address none are sent and the log says so at start. Elsewhere the request's own address is used when it is not set. |
 | `DATABASE_CA` | none | The database's certificate authority, as PEM text (line breaks may be written as `\n`). When set, the database's certificate is checked against it. When not set, the connection is still encrypted but the certificate is not checked, as before, and the log says so once at start. Not used for a local database or with `DATABASE_SSL=off`. An `sslmode` in `DATABASE_URL` overrides both. |
+| `OPENROUTER_API_KEY` | none | Primary AI key (OpenRouter). If set, AI readings and translations go through OpenRouter. |
+| `ANTHROPIC_API_KEY` | none | Fallback AI key (Anthropic). Used only when `OPENROUTER_API_KEY` is not set. |
+| `AI_MODEL` | `anthropic/claude-opus-5.5` (OpenRouter) or `claude-opus-5-5` (Anthropic) | Default model. Per-reader overrides: `AI_SCOPE_MODEL`, `AI_SDS_MODEL`, `AI_DESIGN_MODEL`, `AI_METHOD_MODEL`, `AI_CHECK_MODEL`, `AI_SIGN_MODEL`. |
+| `AI_SCOPE` | on | Set `off` to disable AI readings and translations. |
 
 The tables are set up once at start, before the server takes requests: by the primary process before it starts the workers. If that fails, the server stops with the reason in the log. `/api/health` answers 503 until the tables are ready.
 

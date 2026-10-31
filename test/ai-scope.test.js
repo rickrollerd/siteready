@@ -55,10 +55,12 @@ const company = { id: 'company-ai-1', name: 'Test Mechanical', abn: '33102417000
 test.before(async () => {
   await setupAccounts();
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
+  delete process.env.OPENROUTER_API_KEY;
 });
 
 test.after(() => {
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -163,10 +165,13 @@ test('a refusal, a cut-off answer or a malformed answer fails the reading with a
 
 test('the AI reading is off without an API key, and a long document is refused, never cut short', async () => {
   const key = process.env.ANTHROPIC_API_KEY;
+  const orKey = process.env.OPENROUTER_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   assert.equal(aiScope.enabled(), false);
   await assert.rejects(aiScope.startReading(company, SCOPE), /not switched on/);
   process.env.ANTHROPIC_API_KEY = key;
+  if (orKey) process.env.OPENROUTER_API_KEY = orKey;
   await assert.rejects(aiScope.startReading(company, 'x'.repeat(2500001)), /too long/);
 });
 
