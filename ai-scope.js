@@ -22,7 +22,9 @@ const { readSlang } = require('./slang');
 const { expectedSeconds } = require('./public/read-progress');
 const { plantFromWords, packWords, packageTitles } = require('./handover');
 
-const MODEL = 'claude-opus-5-5';
+const ANTHROPIC_MODEL = 'claude-opus-5-5';
+const OPENROUTER_MODEL = 'anthropic/claude-opus-5.5';
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // US dollars per million tokens for Claude Opus 5.5, to show what each reading cost.
 const PRICE = { input: 4, output: 20, cacheWrite: 5, cacheRead: 0.2 };
 // About 1M tokens of context; a document longer than this is refused, never cut short.
@@ -34,7 +36,23 @@ const STALE_MINUTES = 30;
 let client = null;
 
 function enabled() {
-  return Boolean(process.env.ANTHROPIC_API_KEY) && process.env.AI_SCOPE !== 'off';
+  return Boolean(process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY) && process.env.AI_SCOPE !== 'off';
+}
+
+function defaultModel() {
+  if (process.env.AI_SCOPE_MODEL) return process.env.AI_SCOPE_MODEL;
+  if (process.env.AI_MODEL) return process.env.AI_MODEL;
+  // Injected stand-ins and the Anthropic SDK path use the Anthropic model id.
+  if (client || !process.env.OPENROUTER_API_KEY) return ANTHROPIC_MODEL;
+  return OPENROUTER_MODEL;
+}
+
+function resolveModel(reader) {
+  const explicit = reader ? process.env[`AI_${reader}_MODEL`] : undefined;
+  if (explicit) return explicit;
+  if (process.env.AI_MODEL) return process.env.AI_MODEL;
+  if (client || !process.env.OPENROUTER_API_KEY) return ANTHROPIC_MODEL;
+  return OPENROUTER_MODEL;
 }
 
 // Tests pass in a stand-in with the same messages interface.
@@ -119,6 +137,9 @@ function validReading(value) {
 }
 
 function costOf(usage = {}) {
+  if (usage.cost != null) {
+    return Math.round(usage.cost * 10000) / 10000;
+  }
   const dollars = ((usage.input_tokens || 0) * PRICE.input
     + (usage.output_tokens || 0) * PRICE.output
     + (usage.cache_creation_input_tokens || 0) * PRICE.cacheWrite
@@ -126,13 +147,9 @@ function costOf(usage = {}) {
   return Math.round(dollars * 10000) / 10000;
 }
 
-// One call to the model: the brief as the system prompt (the same for every document, so it
-// is cached), the whole document as the message, and the answer in the brief's JSON shape.
-// One streamed call with structured output. The system prompt is the same for every document,
-// so it is cached; a safety decline is re-run on a fallback model rather than lost.
-async function callModel({ system, content, schema, effort }) {
+async function callAnthropic({ system, content, schema, effort, model }) {
   const stream = getClient().beta.messages.stream({
-    model: MODEL,
+    model,
     max_tokens: 128000,
     thinking: { type: 'adaptive' },
     output_config: { effort, format: { type: 'json_schema', schema } },
@@ -146,15 +163,98 @@ async function callModel({ system, content, schema, effort }) {
   if (message.stop_reason === 'max_tokens') throw fail(422, 'This document has more work in it than the AI can list in one reading. Split it into parts and read each one.');
   const answer = message.content.filter((block) => block.type === 'text').map((block) => block.text).join('');
   try {
-    return { value: JSON.parse(answer), usage: message.usage || {}, model: message.model || MODEL };
+    return { value: JSON.parse(answer), usage: message.usage || {}, model: message.model || model };
   } catch {
     throw fail(502, 'The AI\'s answer could not be read. Try again.');
   }
 }
 
+async function callOpenRouter({ system, content, schema, model }) {
+  const body = {
+    model,
+    max_tokens: 128000,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content },
+    ],
+  };
+  if (schema) {
+    body.response_format = {
+      type: 'json_schema',
+      json_schema: { name: 'response', strict: true, schema },
+    };
+  }
+  let res;
+  try {
+    res = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw Object.assign(new Error('The AI could not be reached. Try again.'), { status: 502, publicMessage: true, isNetwork: true });
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    const message = data?.error?.message || `OpenRouter returned ${res.status}`;
+    throw Object.assign(new Error(message), { status: res.status, publicMessage: true });
+  }
+  const choice = data.choices && data.choices[0];
+  if (!choice) throw fail(502, 'The AI\'s answer could not be read. Try again.');
+  const finishReason = choice.finish_reason;
+  if (finishReason === 'content_filter' || finishReason === 'refusal') {
+    throw fail(422, 'The AI could not read this document. Try again later.');
+  }
+  if (finishReason === 'length') {
+    throw fail(422, 'This document has more work in it than the AI can list in one reading. Split it into parts and read each one.');
+  }
+  const answerText = typeof choice.message?.content === 'string' ? choice.message.content : '';
+  let value;
+  try {
+    value = JSON.parse(answerText);
+  } catch {
+    throw fail(502, 'The AI\'s answer could not be read. Try again.');
+  }
+  const usage = data.usage || {};
+  const mapped = {
+    input_tokens: usage.prompt_tokens || 0,
+    output_tokens: usage.completion_tokens || 0,
+  };
+  if (usage.cache_creation_input_tokens != null) mapped.cache_creation_input_tokens = usage.cache_creation_input_tokens;
+  if (usage.cache_read_input_tokens != null) mapped.cache_read_input_tokens = usage.cache_read_input_tokens;
+  if (usage.cost != null) mapped.cost = usage.cost;
+  return { value, usage: mapped, model: data.model || model };
+}
+
+// One call to the model: the brief as the system prompt (the same for every document, so it
+// is cached), the whole document as the message, and the answer in the brief's JSON shape.
+// One streamed call with structured output. The system prompt is the same for every document,
+// so it is cached; a safety decline is re-run on a fallback model rather than lost.
+async function callModel({ system, content, schema, effort, model: modelArg, reader }) {
+  const model = modelArg || resolveModel(reader);
+  if (client) {
+    return callAnthropic({ system, content, schema, effort, model });
+  }
+  if (process.env.OPENROUTER_API_KEY) {
+    return callOpenRouter({ system, content, schema, model });
+  }
+  if (process.env.ANTHROPIC_API_KEY) {
+    return callAnthropic({ system, content, schema, effort, model });
+  }
+  throw fail(503, 'The AI reading is not switched on.');
+}
+
 // One call to read the document with the brief: the whole document, nothing trimmed.
 async function askModel(text) {
-  const { value: reading, usage, model } = await callModel({ system: BRIEF, content: `<document>\n${text}\n</document>`, schema: SCHEMA, effort: 'high' });
+  const { value: reading, usage, model } = await callModel({ system: BRIEF, content: `<document>\n${text}\n</document>`, schema: SCHEMA, effort: 'high', reader: 'SCOPE' });
   if (!validReading(reading)) throw fail(502, 'The AI\'s answer was not in the expected form. Try again.');
   return { reading, usage, model };
 }
@@ -175,7 +275,7 @@ function stepCatalogue() {
 
 // The second, smaller call: the job step groups that cover each work package with site work.
 // Ids not in the library are dropped, so a made-up id can never reach a SWMS.
-async function mapSteps(reading) {
+async function mapSteps(reading, { reader } = {}) {
   const packages = new Map();
   for (const row of reading.activities) {
     if (row.type === 'Duty') continue;
@@ -185,7 +285,7 @@ async function mapSteps(reading) {
   if (!packages.size) return { packages: [], usage: {} };
   const { ids, steps, text } = stepCatalogue();
   const listed = [...packages].map(([name, rows]) => `Work package: ${name}\n${rows.map((row) => `- ${row.activity}${row.plant ? ` | plant: ${row.plant}` : ''}${row.conditions ? ` | conditions: ${row.conditions}` : ''}${row.where ? ` | where: ${row.where}` : ''}`).join('\n')}`).join('\n\n');
-  const { value, usage } = await callModel({ system: `${STEPS_BRIEF}\n\n<library>\n${text}\n</library>`, content: listed, schema: STEPS_SCHEMA, effort: 'medium' });
+  const { value, usage } = await callModel({ system: `${STEPS_BRIEF}\n\n<library>\n${text}\n</library>`, content: listed, schema: STEPS_SCHEMA, effort: 'medium', reader: reader || 'SCOPE' });
   const chosen = new Map((Array.isArray(value && value.packages) ? value.packages : []).map((item) => [item.package, item]));
   return {
     packages: [...packages.keys()].map((name) => {
@@ -216,10 +316,12 @@ function failureLine(error) {
   const type = typeof body.type === 'string' && body.type !== 'error' ? body.type : '';
   const message = typeof body.message === 'string' ? body.message : String((error && error.message) || error || '');
   let line = ['AI reading failed:', (error && error.constructor && error.constructor.name) || 'Error', error && error.status, type, message,
-    error && error.requestID ? `request ${error.requestID}` : '', `(model ${MODEL})`].filter(Boolean).join(' ').replace(/\s+/g, ' ');
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (key) line = line.split(key).join('[key]');
-  return line.replace(/\bsk-ant-[A-Za-z0-9_-]+/g, '[key]').slice(0, 600);
+    error && error.requestID ? `request ${error.requestID}` : '', `(model ${defaultModel()})`].filter(Boolean).join(' ').replace(/\s+/g, ' ');
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (anthropicKey) line = line.split(anthropicKey).join('[key]');
+  const openrouterKey = process.env.OPENROUTER_API_KEY;
+  if (openrouterKey) line = line.split(openrouterKey).join('[key]');
+  return line.replace(/\bsk-or-[A-Za-z0-9_-]+/g, '[key]').replace(/\bsk-ant-[A-Za-z0-9_-]+/g, '[key]').slice(0, 600);
 }
 let logFailure = (line) => console.error(line);
 // Tests read the line here instead of the log.
@@ -234,6 +336,9 @@ function errorMessage(error) {
   if (error instanceof Anthropic.RateLimitError) return 'The AI is busy. Try again in a few minutes.';
   if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) return 'The AI reading is not set up on this server.';
   if (error instanceof Anthropic.APIConnectionError) return 'The AI could not be reached. Try again.';
+  if (error.status === 429) return 'The AI is busy. Try again in a few minutes.';
+  if (error.status === 401 || error.status === 403) return 'The AI reading is not set up on this server.';
+  if (error.isNetwork) return 'The AI could not be reached. Try again.';
   return 'The AI reading failed. Try again later.';
 }
 
@@ -725,7 +830,7 @@ async function startReading(company, text, stateName) {
   const id = crypto.randomUUID();
   const now = new Date();
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $8)',
-    [id, company.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, now, 'reading']);
+    [id, company.id, hash, BRIEF_VERSION, defaultModel(), 'reading', content.length, now, 'reading']);
   return { id, status: 'reading', kept: false, progress: progressOf({ status: 'reading', stage: 'reading', created_at: now, characters: content.length }), done: runReading(id, content) };
 }
 
@@ -819,7 +924,7 @@ async function startProjectReading({ org, project }, text, stateName, { clean = 
     if (again) return again;
     if (await projectReadingsUsed(project.id, tx) >= limit) throw Object.assign(fail(402, limitMessage(limit)), { limit: true });
     await tx.query("INSERT INTO ai_readings (id, company_id, org_id, project_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, '', $2, $3, $4, $5, $6, $7, $8, $9, $10, $9)",
-      [id, org.id, project.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, now, 'reading']);
+      [id, org.id, project.id, hash, BRIEF_VERSION, defaultModel(), 'reading', content.length, now, 'reading']);
     return null;
   }));
   if (kept) return { ...(await withHighRisk(rowOut(kept), stateName)), kept: true };
@@ -847,4 +952,5 @@ async function getReading(company, id, stateName) {
   return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, startProjectReading, getProjectReading, projectReadingsUsed, projectFreeReadings, limitMessage, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, startProjectReading, getProjectReading, projectReadingsUsed, projectFreeReadings, limitMessage, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel };
+Object.defineProperty(module.exports, 'MODEL', { get: defaultModel, enumerable: true });

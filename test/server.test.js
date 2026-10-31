@@ -224,7 +224,7 @@ test('a SiteWrite reference can be verified by anyone, and a wrong one is not fo
 
 test('the AI scope reading says whether it is on, and needs a signed-in account', async () => {
   const status = await (await fetch(`${base}/api/scope/ai`)).json();
-  assert.equal(status.enabled, Boolean(process.env.ANTHROPIC_API_KEY));
+  assert.equal(status.enabled, Boolean(process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY));
   const anonymous = await post('/api/scope/ai', { text: 'Install ductwork in the ceilings.' });
   assert.equal(anonymous.status, 401);
 });

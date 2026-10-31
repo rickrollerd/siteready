@@ -77,6 +77,7 @@ async function translateDraft(draft, code) {
           content: `Translate this SWMS into ${language.name}.\n<swms>\n${JSON.stringify(english)}\n</swms>`,
           schema: SCHEMA,
           effort: 'medium',
+          reader: 'SCOPE',
         });
       } catch {
         throw fail(502, 'The translation could not be made just now. Try again.');

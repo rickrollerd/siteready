@@ -47,7 +47,7 @@ test.before(async () => {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
 });
 test.after(() => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -106,7 +106,7 @@ test('a scan or a photo has no typed words: not read, with the plain message', a
 });
 
 test('off without the API key, with a plain message', async () => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   try {
     await assert.rejects(designRead.readDesign(company, 'df_x'), /Reading the drawing is not switched on here\. Type its details\./);
   } finally {

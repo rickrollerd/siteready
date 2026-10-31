@@ -206,7 +206,7 @@ function asPackages(steps) {
 // The steps left out are not matched to the library. Returns the reading as used, the AI's answer as
 // given (for the check against the brief) and what was left out.
 async function readMethod(text, id) {
-  const { value, usage, model } = await aiScope.callModel({ system: METHOD_BRIEF, content: `<document>\n${text}\n</document>`, schema: METHOD_SCHEMA, effort: 'high' });
+  const { value, usage, model } = await aiScope.callModel({ system: METHOD_BRIEF, content: `<document>\n${text}\n</document>`, schema: METHOD_SCHEMA, effort: 'high', reader: 'METHOD' });
   if (!validMethodReading(value)) throw fail(502, 'The AI\'s answer was not in the expected form. Try again.');
   const given = value.isMethodology ? value.steps : [];
   const { steps, dropped } = keptSteps({ steps: given }, text);
@@ -215,7 +215,7 @@ async function readMethod(text, id) {
   if (!steps.length) return { ...out, reading: { ...value, steps, groups: [], dropped: counts }, usage };
   // The first call's cost is kept with the error when the second fails.
   if (id) await aiScope.markStage(id, 'steps');
-  const mapped = await aiScope.mapSteps(asPackages(steps)).catch((error) => { throw Object.assign(error, { usage }); });
+  const mapped = await aiScope.mapSteps(asPackages(steps), { reader: 'METHOD' }).catch((error) => { throw Object.assign(error, { usage }); });
   const byName = new Map(mapped.packages.map((item) => [item.package, item]));
   const groups = steps.map((row, index) => (byName.get(stepPackage(row, index)) || { groups: [] }).groups);
   const unknown = mapped.packages.flatMap((item) => item.unknown);

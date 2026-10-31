@@ -77,7 +77,7 @@ test.before(async () => {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
 });
 test.after(() => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 

@@ -15,6 +15,7 @@ let client = null;
 
 test.before(async () => {
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   await setupAccounts();
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
@@ -24,6 +25,7 @@ test.before(async () => {
 test.after(() => {
   server.close();
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -131,6 +133,7 @@ test('a draft is translated for signed-in users only, kept, and the English stay
     assert.equal(client.calls.length, 5);
   } finally {
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
     aiScope.useClient(null);
   }
 });

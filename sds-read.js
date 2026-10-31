@@ -121,7 +121,7 @@ async function readSds(company, fileId) {
     [id, company.id, hash, SDS_BRIEF_VERSION, fields.model || aiScope.MODEL, status, text.length, fields.reading || null, fields.checks || null, JSON.stringify(fields.usage || {}), aiScope.costOf(fields.usage || {}), fields.error || '', started, new Date()]);
   let answer;
   try {
-    answer = await aiScope.callModel({ system: SDS_BRIEF, content: `<document>\n${text}\n</document>`, schema: SDS_SCHEMA, effort: 'low' });
+    answer = await aiScope.callModel({ system: SDS_BRIEF, content: `<document>\n${text}\n</document>`, schema: SDS_SCHEMA, effort: 'low', reader: 'SDS' });
   } catch (error) {
     const message = aiScope.errorMessage(error);
     await save('failed', { error: message }).catch(() => {});

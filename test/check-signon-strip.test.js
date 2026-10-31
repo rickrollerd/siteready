@@ -217,6 +217,7 @@ function setUp(t) {
   useStripLog((entry) => logged.push(entry));
   t.after(() => {
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
     aiScope.useClient(null);
     useStripLog(null);
   });

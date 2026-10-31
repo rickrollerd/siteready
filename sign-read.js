@@ -505,6 +505,7 @@ async function translation(row, draft, code, readId) {
           content: `Translate this SWMS into ${language.name}.\n<swms>\n${JSON.stringify(english)}\n</swms>`,
           schema: TRANSLATE_SCHEMA,
           effort: 'medium',
+          reader: 'SIGN',
         });
       } catch (error) {
         if (error.publicMessage && error.status < 500) throw fail(502, 'The translation could not be made. Read the SWMS in English, or ask your supervisor to explain it.');

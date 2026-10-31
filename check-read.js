@@ -106,7 +106,7 @@ async function readSwms(documentText) {
   if (content.length > MAX_CHARACTERS) throw fail(413, 'This document is too long to check. Check one SWMS at a time.');
   let answer;
   try {
-    answer = await aiScope.callModel({ system: CHECK_BRIEF, content: `<document>\n${content}\n</document>`, schema: CHECK_SCHEMA, effort: 'medium' });
+    answer = await aiScope.callModel({ system: CHECK_BRIEF, content: `<document>\n${content}\n</document>`, schema: CHECK_SCHEMA, effort: 'medium', reader: 'CHECK' });
   } catch (error) {
     // The scope reader's own messages talk about a scope, so they are not passed on.
     if (error.status === 422) throw fail(422, 'The AI could not read this SWMS. Check it by hand.');

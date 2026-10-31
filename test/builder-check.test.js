@@ -292,7 +292,7 @@ test('the check brief extracts and quotes, and its schema is strict', () => {
 
 test('an uploaded SWMS is read into the form, lines not in the document are flagged, and it is scored', async (t) => {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
-  t.after(() => { delete process.env.ANTHROPIC_API_KEY; aiScope.useClient(null); });
+  t.after(() => { delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY; aiScope.useClient(null); });
   const model = standIn(READ);
   aiScope.useClient(model);
   const read = await readSwms(DOCUMENT);
@@ -313,10 +313,13 @@ test('an uploaded SWMS is read into the form, lines not in the document are flag
 });
 
 test('the AI reading is refused when switched off, and a malformed answer is not used', async (t) => {
+  const orKey = process.env.OPENROUTER_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   await assert.rejects(readSwms(DOCUMENT), (error) => error.status === 503);
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
-  t.after(() => { delete process.env.ANTHROPIC_API_KEY; aiScope.useClient(null); });
+  if (orKey) process.env.OPENROUTER_API_KEY = orKey;
+  t.after(() => { delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY; aiScope.useClient(null); });
   aiScope.useClient(standIn({ task: 'x' }));
   await assert.rejects(readSwms(DOCUMENT), (error) => error.status === 502);
 });

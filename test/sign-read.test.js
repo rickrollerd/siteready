@@ -18,7 +18,7 @@ let server;
 let base;
 
 test.before(async () => {
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   await setupAccounts();
   server = app.listen(0);
   // As in production (server.js): the pool test below holds the process for seconds, and a
@@ -33,7 +33,7 @@ test.before(async () => {
 
 test.after(() => {
   server.close();
-  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -558,7 +558,7 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
     assert.equal(row.language, 'vi');
     assert.equal(signRead.signOnNote(row), '', 'the language read in is kept, not printed');
   } finally {
-    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY; delete process.env.OPENROUTER_API_KEY;
     aiScope.useClient(null);
   }
 });

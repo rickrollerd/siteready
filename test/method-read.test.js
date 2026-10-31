@@ -46,9 +46,11 @@ const base64 = (buffer) => Buffer.from(buffer).toString('base64');
 test.before(async () => {
   await setupAccounts();
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
+  delete process.env.OPENROUTER_API_KEY;
 });
 test.after(() => {
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   aiScope.useClient(null);
 });
 
@@ -280,9 +282,12 @@ test('a document that is not a methodology gets no suggestions and no step match
 });
 
 test('reading is off without the API key, with a plain message; a long methodology is refused, never cut short', async () => {
+  const orKey = process.env.OPENROUTER_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
   await assert.rejects(methodRead.startReading(company, { text: JUMP_LIFT.join('\n') }), /Reading a methodology is not switched on here\. The methodology can still be attached\. Make the job steps match it yourself\./);
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
+  if (orKey) process.env.OPENROUTER_API_KEY = orKey;
   await assert.rejects(methodRead.startReading(company, { text: 'x '.repeat(1250001) }), /too long for one reading/);
 });
 
