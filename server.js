@@ -425,7 +425,7 @@ app.post('/api/substances/read', sdsReadLimit, auth.requireAccess, async (req, r
 // page asking whether it is ready does not.
 const checkLimit = limiter('check', positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
 app.use('/api/check', (req, res, next) => (req.method === 'POST' ? checkLimit(req, res, next) : next()));
-app.post('/api/check', auth.requireUser, async (req, res, next) => {
+app.post('/api/check', auth.requireAccess, async (req, res, next) => {
   try {
     const checkRead = require('./check-read');
     const body = req.body || {};
@@ -508,7 +508,7 @@ app.post('/api/draft/check', (req, res) => {
 app.get('/api/draft/translation', (_req, res) => {
   res.json({ enabled: draftTranslate.enabled(), languages: draftTranslate.languages() });
 });
-app.post('/api/draft/translation', auth.requireUser, async (req, res, next) => {
+app.post('/api/draft/translation', auth.requireAccess, async (req, res, next) => {
   try {
     const body = req.body || {};
     const result = prepareDraft(draftBody(body.input && typeof body.input === 'object' ? body.input : {}));
