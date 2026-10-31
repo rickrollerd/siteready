@@ -39,6 +39,9 @@
 const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
+// After the user lists a hazardous product from its safety data sheet, the safetyDataSheet blank is not
+// needed: the listed products replace it (draft.js notSdsQuestion / productsListed).
+const productsListed = (input) => Array.isArray(input && input.substances) && input.substances.some((row) => row && /^sub-\d{1,2}$/.test(String(row.id || '')) && String(row.product || '').trim());
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
 const { clean, heldIn, answerNeed, notAnswer, licenceNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST, SITE_KIND, ownLineProblem, phoneNumber, fieldWeak } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
@@ -154,7 +157,7 @@ function publicExample(words) {
 }
 function liveSupplyHazard(draft) {
   for (const step of draft.jobSteps || []) {
-    const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
+    const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*\.?$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
     if (hazard) return { step: step.step, hazard };
   }
   return null;
@@ -346,7 +349,10 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // boxes. An answer the SWMS does not print leaves no blank in it.
   const facts = input.facts && typeof input.facts === 'object' ? input.facts : {};
   const printed = printedTexts(draft);
-  const blankFacts = Object.entries(facts).filter(([, value]) => typeof value === 'string' && hasBlank(value) && printed.some((text) => fromAnswer(text, [value])));
+  const blankFacts = Object.entries(facts).filter(([id, value]) => {
+    if (id === 'safetyDataSheet' && productsListed(input)) return false;
+    return typeof value === 'string' && hasBlank(value) && printed.some((text) => fromAnswer(text, [value]));
+  });
   const labels = blankFacts.length ? factLabels(input) : new Map();
   for (const [id, value] of blankFacts) {
     judged({ id: `fact.${id}`, kind: 'fact', field: `fact-${id}`, label: labels.get(id) || 'Your answer to a question' }, { ask: 'Your answer still has a blank (____). Fill it in, or take out the part that does not apply.', blank: true }, value);

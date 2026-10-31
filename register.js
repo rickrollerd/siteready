@@ -933,7 +933,7 @@ function registersFor(draft, input = {}) {
   const named = plantFor(`${useText}\n${usedInControls.join('\n')}`).map((item) => item.item);
   const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: whereUsed(item.licence) }));
   // A generator being installed or load tested is the building's plant, not a portable site generator.
-  const buildingGenerator = steps.some((step) => ['Install generators and fuel systems', 'Run and load test generators'].includes(step.step));
+  const buildingGenerator = steps.some((step) => ['Install the generators', 'Install the fuel tanks and fuel lines', 'Run and load test generators'].includes(step.step));
   const fromAccess = accessLines.flatMap((line) => { const found = plantFor(line); return found.length > 1 || /\sor\s|\bwhere one is used\b/i.test(line) ? found.map((item) => ({ ...item, licence: whereUsed(item.licence) })) : found; });
   // Plant a line names as the way to do the work, "such as water carts" (messy round 5: no water cart for
   // dust control on civil work): listed as not sure, for the user to tick where it is used.

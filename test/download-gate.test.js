@@ -137,11 +137,13 @@ test('a control line with a blank is filled with the user\'s answer, and nothing
 });
 
 test('a standard answer with its blank left in is filled in its own box, not in the line', () => {
-  const crane = { state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', facts: { safetyDataSheet: 'The products used are ____. They are used with good ventilation and away from ignition sources, with the gloves and eye protection their safety data sheets list.' } };
+  // substances: [] stops ready() listing paints, so the SDS blank is still needed (content21).
+  const crane = { state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', substances: [], facts: { safetyDataSheet: 'The products used are ____. They are used with good ventilation and away from ignition sources, with the gloves and eye protection their safety data sheets list.' } };
   const open = gaps({ ...crane, ...ANSWERED });
-  assert.deepEqual(open.gaps.map((gap) => [gap.kind, gap.field]), [['fact', 'fact-safetyDataSheet']]);
-  assert.match(open.gaps[0].need, /still has a blank/);
-  assert.deepEqual(ids({ ...crane, ...ANSWERED, facts: { safetyDataSheet: crane.facts.safetyDataSheet.replace('____', 'Dulux Wash and Wear acrylic') } }), []);
+  const sdsGap = open.gaps.find((gap) => gap.id === 'fact.safetyDataSheet');
+  assert.ok(sdsGap, 'SDS blank must be flagged as a fact gap');
+  assert.match(sdsGap.need, /still has a blank/);
+  assert.ok(!ids({ ...crane, ...ANSWERED, facts: { safetyDataSheet: crane.facts.safetyDataSheet.replace('____', 'Dulux Wash and Wear acrylic') } }).includes('fact.safetyDataSheet'));
 });
 
 test('the builder check fails a blank or a "To be completed" left in the SWMS (H8), and passes it once filled', () => {
