@@ -388,6 +388,7 @@ const ACTIVITIES = [
     when: 'power',
     steps: [{
       step: 'Plan the work near overhead power lines',
+      hazardTags: ['existing-services'],
       hazards: ['Plant, a load or a tool contacts or comes close to the lines, causing electrocution.'],
       controls: [
         { fact: 'electricalSafety' },
@@ -691,6 +692,7 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Locate underground services',
+        hazardTags: ['existing-services'],
         hazards: ['Striking underground electrical, gas, water or communications services.'],
         controls: [
           src('Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it.', WHS('s 304')),
@@ -1361,6 +1363,7 @@ const ACTIVITIES = [
       {
         unless: 'noDeck',
         step: 'Finish concrete',
+        hazardTags: ['silica'],
         // A beam, wall or capping poured with no slab is not power trowelled or saw cut, and has no penetrations to cover (messy round
         // 17, B run 7: a bridge capping beam got a power trowel, a concrete saw and the penetration cover lines).
         hazards: ['Cement burns to the skin and eyes.', { unless: 'noSlabFinish', text: 'Power trowel injuries.' }, 'Back strain.', 'Chemicals in curing compounds.', 'Silica dust from grinding and patching concrete.', 'Noise from vibrators, trowels, pumps and generators.', 'Silica dust and noise from saw cutting joints.'],
@@ -1553,6 +1556,7 @@ const ACTIVITIES = [
     when: 'containment',
     steps: [{
       step: 'Install cable tray and containment',
+      hazardTags: ['silica'],
       hazards: ['A fall from a ladder, platform or elevating work platform.', 'A fall into an open riser or shaft.', 'Dropped tools and materials.', 'Contact with energised parts nearby.'],
       controls: [
         src('Use non-conductive ladders for electrical work.', NSWC('NSW Electrical risks', 's 8.2')),
@@ -1771,6 +1775,7 @@ const ACTIVITIES = [
     when: 'sewerConnection',
     steps: [{
       step: 'Connect to the live sewer',
+      hazardTags: ['existing-services'],
       hazards: ['Sewer gases such as hydrogen sulphide.', 'Infection from sewage.', 'Entry into a manhole or sewer, a confined space.', { only: 'road', text: 'Traffic at the connection in the street.' }],
       controls: [
         'Work to the sewer authority\'s approval and connection requirements.',
@@ -3765,6 +3770,7 @@ const ACTIVITIES = [
     when: 'ceilingGrid',
     steps: [{
       step: 'Install suspended grid ceilings',
+      hazardTags: ['silica'],
       hazards: ['A fall from the mobile scaffold, EWP or platform ladder.', 'Silica dust and noise drilling hanger anchors into the slab.', 'Cutting a post-tensioning tendon or a service when drilling.', 'Neck and shoulder strain from overhead work.', 'Dust and fibres from cutting ceiling tiles.', 'Contact with cables in the ceiling space.'],
       controls: [
         { fact: 'fallControl' },
@@ -4088,6 +4094,7 @@ const ACTIVITIES = [
     when: 'concreteRepair',
     steps: [{
       step: 'Break out damaged concrete',
+      hazardTags: ['silica'],
       hazards: ['Silica dust and noise from breaking out and grinding concrete.', 'Vibration from breakers and grinders.', { unless: 'slabGround', text: 'Concrete pieces fall onto people below.' }],
       controls: [
         { fact: 'silicaControls' },
@@ -4296,6 +4303,7 @@ const ACTIVITIES = [
     when: 'rockBreak',
     steps: [{
       step: 'Break rock with a hydraulic hammer',
+      hazardTags: ['silica'],
       hazards: ['Flying rock and chips strike people.', 'Silica dust from breaking rock.', 'Noise and vibration.', 'Plant overturns at an excavation edge.'],
       controls: [
         'An exclusion zone is kept around the hammer, and only the operator is inside it.',
@@ -4468,6 +4476,7 @@ const ACTIVITIES = [
     when: 'vehicleHoist',
     steps: [{
       step: 'Install the vehicle hoist',
+      hazardTags: ['silica'],
       hazards: ['Hoist columns or arms fall while they are stood or moved.', 'The hoist pulls out of a slab that cannot carry it.', 'Electric shock or hydraulic fluid injection when connecting and testing.', 'A person is crushed under a raised hoist or vehicle.'],
       controls: [
         src('A vehicle hoist is plant whose design is registered. The design registration number is sighted before it is installed.', WHS('s 243, s 260, schedule 5')),
@@ -5051,6 +5060,7 @@ const ACTIVITIES = [
     when: 'splitInstall',
     steps: [{
       step: 'Install split system indoor and outdoor units',
+      hazardTags: ['silica'],
       hazards: ['A fall from a balcony, roof or ladder while fitting outdoor units or wall brackets.', 'Strain lifting outdoor units.', 'Drilling into hidden wiring, pipes or reinforcement.', 'Silica dust from core drilling walls.'],
       controls: [
         { fact: 'fallControl' },
@@ -5483,6 +5493,7 @@ const ACTIVITIES = [
     when: 'crackInjection',
     steps: [{
       step: 'Seal and inject cracks',
+      hazardTags: ['silica'],
       hazards: ['Skin and eye contact with epoxy or polyurethane resins.', 'Resin sprays out under injection pressure.', 'Dust when grinding the crack surface.'],
       controls: [
         { fact: 'safetyDataSheet' },
@@ -5643,6 +5654,7 @@ const ACTIVITIES = [
       // Not where the old frames come out of an opening that is not in brickwork (draft.js noLintelCut).
       unless: 'noLintelCut',
       step: 'Cut the lintel bearings',
+      hazardTags: ['silica'],
       hazards: ['Masonry above the opening drops before the lintel is in.', 'Silica dust from cutting brickwork.'],
       controls: [
         'The brickwork above the opening is supported by the temporary support before any brick is cut out for the lintel bearings.',
@@ -5782,6 +5794,7 @@ const ACTIVITIES = [
     when: 'outdoorKitchen',
     steps: [{
       step: 'Build the outdoor kitchen',
+      hazardTags: ['silica'],
       hazards: ['Strain or crush handling heavy benchtops, cabinets and blocks.', 'Silica dust from cutting stone, tiles or blocks.', 'Cuts and kickback from saws.'],
       controls: [
         'Engineered stone benchtops, panels and slabs are banned and are not installed or processed.',
@@ -5893,6 +5906,7 @@ const ACTIVITIES = [
     when: 'lintelReplace',
     steps: [{
       step: 'Cut out the old lintel',
+      hazardTags: ['silica'],
       hazards: ['Brickwork above drops before it is supported.', 'Silica dust from cutting and breaking brickwork.', 'Noise.', 'Falling bricks and debris.'],
       controls: [
         src('The masonry above is propped or needled before the old lintel is cut out, so the structure stays stable.', QCODE('Demolition', 's 4.1')),
@@ -5955,6 +5969,7 @@ const ACTIVITIES = [
     when: 'fireCollar',
     steps: [{
       step: 'Fix fire collars to the slab',
+      hazardTags: ['silica'],
       hazards: ['A fall from a ladder or platform working overhead.', 'Silica dust drilling anchors into the slab soffit.', 'Dust and debris falling into the eyes.'],
       controls: [
         src('Collars on the slab soffit are fixed from a platform ladder or mobile scaffold, not from the top of a stepladder.', QCODE('Managing the risk of falls', 's 9.1')),
@@ -8965,6 +8980,7 @@ const ACTIVITIES = [
     replaces: ['pressureTest'],
     steps: [{
       step: 'Test and connect to live medical gas services',
+      hazardTags: ['existing-services'],
       hazards: ['A release of gas under pressure.', 'Oxygen leaks enrich the air and greatly increase the fire risk.', 'Nitrous oxide or nitrogen in the air.', 'Patients lose their gas supply.'],
       controls: [
         { fact: 'serviceShutdown' },
@@ -10032,6 +10048,7 @@ addAfter('sewerConnection', {
   when: 'waterConnection',
   steps: [{
     step: 'Connect to the water supply',
+    hazardTags: ['existing-services'],
     hazards: ['Water under pressure when a live main or supply is cut into.', 'Flooding.', 'Contaminating the drinking water supply.'],
     controls: [
       { unless: 'fromMeter', text: 'Connections to the water authority\'s main are made only with its approval, and by it where it requires.' },
@@ -12511,10 +12528,12 @@ function jobStepsFor(rawFlags, factText, fallback) {
     step: step.step === 'Set up the concrete pump and placing boom' && flags.noBoom ? 'Set up the concrete pump' : step.step === 'Lift reo onto the deck' && flags.reoNoCrane ? 'Load reo onto the deck' : step.step === 'Cut and fix plasterboard' && (flags.plasterSheets || flags.plasterCeiling) ? 'Cut plasterboard' : step.step === 'Fit fly screens' && flags.securityScreens ? (flags.flyScreenNamed ? 'Fit fly and security screens' : 'Fit security screens') : step.step === 'Sand timber floors' && flags.deckRefinish ? 'Strip and sand the deck' : step.step === 'Coat timber floors' && flags.deckRefinish ? 'Oil or stain the deck' : step.step === 'Install windows' && flags.singleWindow ? 'Replace the window frame' : step.step === 'Paint the outside of the structure at height' ? 'Set up access to the outside of the structure' : step.step === 'Install windows' && flags.shopfront ? 'Install the shopfront frames' : step.step === 'Install doors' && flags.shopfront ? 'Hang the shopfront doors' : step.step === 'Install the external cladding' && flags.cladReplace ? 'Replace the cladding boards' : step.step === 'Run the processing plant' && flags.batchOnly ? 'Run the batching plant' : step.step === 'Run the processing plant' ? 'Run the crushing and screening plant' : step.step === 'Maintain the processing plant' && flags.batchOnly ? 'Maintain the batching plant' : step.step === 'Maintain the processing plant' ? 'Maintain the crushing and screening plant' : step.step === 'Install the door' && flags.rollerDoorOnly ? 'Install the roller door' : step.step === 'Hang the doors' && flags.autoDoorsOnly ? 'Install and commission the automatic doors' : step.step === 'Erect and dismantle the temporary grandstand' && flags.standDismantle ? 'Dismantle the temporary grandstand' : step.step === 'Lift and set the modules' && flags.podOnly ? 'Lift and set the bathroom pods' : step.step === 'Backfill the trench' && flags.treePits ? 'Backfill the tree pits' : step.step === 'Replace the sleepers and ballast' && flags.tampOnly ? 'Tamp and regulate the ballast' : step.step === 'Replace the sleepers and ballast' && flags.trackLaying ? 'Lay the new track' : step.step === 'Operate forklifts' && flags.telehandlerOnly ? 'Operate the telehandler' : step.step === 'Move the load with transporters or a launching system' && flags.skidMove ? 'Jack and skid the load into place' : step.step === 'Move the load with transporters or a launching system' && flags.launchOnly ? 'Launch the girders' : step.step === 'Move the load with transporters or a launching system' && flags.spmtMove ? 'Move the load with the transporters' : step.step === 'Bore under the road or ground with a directional drill' && flags.waterCrossing ? 'Bore under the waterway with the directional drill' : step.step === 'Demolish the structure' && flags.bridgeDemo ? 'Demolish the bridge' : step.step === 'Build the retaining wall' && (flags.concreteWall || flags.masonryLay) ? 'Excavate and set out the retaining wall' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip the roof tiles' && flags.slateRoof ? 'Strip the slates' : step.step === 'Lay the roof tiles' && flags.slateRoof ? 'Lay the slates' : step.step === 'Install rooftop antennas and equipment' && flags.antennaMaintain ? (flags.towerWork ? 'Maintain antennas and equipment on the tower' : 'Maintain rooftop antennas and equipment') : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings'  : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Butt fuse polyethylene pipe' && flags.electrofusionOnly ? 'Join polyethylene pipe by electrofusion' : step.step === 'Label pipes, ducts and equipment' && flags.cableLabels ? 'Label cables and equipment' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Install signs and screens' && flags.signNoScreen ? 'Install the signs' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Lay the pipe or cable' && flags.cableOnlyTrench ? 'Lay the cable' : step.step === 'Lay the pipe or cable' && flags.outdoorFixture ? 'Lay the pipes' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Prepare the ground' && flags.crossover ? 'Box out the crossover' : step.step === 'Remove and replace damaged timbers' && flags.boardsOnly ? 'Remove and replace the deck boards' : step.step === 'Fix the roof' && flags.shadeFabric ? 'Fix the shade fabric' : step.step === 'Sand and fill surfaces' && flags.steelPaint ? 'Prepare the steel surfaces' : step.step === 'Install security devices' && flags.doorStrikes ? 'Install the security devices and door strikes' : step.step === 'Pull cables and handle cable drums' && flags.newMainBoard ? 'Pull in and terminate the cables' : step.step === 'Cut in and install the skylight' && flags.skylightRepair ? (flags.skylightsPlural ? 'Remove and replace the damaged skylights' : 'Remove and replace the damaged skylight') : step.step === 'Install the pump and pipework' && flags.sewerPumpSwap ? 'Lower in and connect the new pump' : step.step === 'Dig footing holes' && flags.solarLights ? 'Dig and pour the footings' : step.step === 'Lay tiles' && flags.wallTiling ? 'Fix the wall tiles' : step.step === 'Erect the frame' && flags.roofOverDeck ? 'Erect the posts, beams and rafters' : step.step === 'Paint' && flags.roofOnlyPaint ? 'Paint the roof' : step.step === 'Erect the frame' && flags.cubbyHouse ? 'Build the cubby house' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Fix the fascia' && flags.fasciaReplace ? 'Replace the fascia boards' : step.step === 'Get soil and plants to the podium' && flags.greenRoof ? 'Get soil and plants to the roof' : step.step === 'Install water meters and backflow devices' && flags.backflowOnly ? 'Install the backflow device' : step.step === 'Jack the house and replace stumps' && flags.houseRaise ? 'Jack and raise the house' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Plumbing fit-off' && flags.eyewashOnly ? 'Install, connect and test the eyewash station' : step.step === 'Weld steel' && flags.aluminiumWeld ? 'Weld aluminium' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
     hazards: step.hazards.filter((item) => typeof item === 'string' || ((!item.only || flags[item.only]) && !anyFlag(flags, item.unless))).map((item) => (typeof item === 'string' ? item : item.text)).map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
     controls: onceEach(step.controls.filter((item) => (!item.only || flags[item.only]) && !anyFlag(flags, item.unless)).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean)),
+    ...(Array.isArray(step.hazardTags) && step.hazardTags.length ? { hazardTags: [...step.hazardTags] } : {}),
   })).map((step) => {
     // A step that drills, cuts or grinds a silica material with a power tool is processing it,
     // so it carries the written assessment and the high risk rules, where it does not already.
-    if (!step.hazards.some((line) => /\bsilica\b/i.test(line)) || !step.controls.some((line) => SILICA_TOOL.test(line))) return step;
+    const silicaByTag = Array.isArray(step.hazardTags) && step.hazardTags.includes('silica');
+    if ((!step.hazards.some((line) => /\bsilica\b/i.test(line)) && !silicaByTag) || !step.controls.some((line) => SILICA_TOOL.test(line))) return step;
     // Any state's wording of the assessment counts (the ACT's water feed rule, Victoria's high risk silica work).
     if (step.controls.some((line) => SAID_ONCE.some(([key, re]) => key === 'assess' && re.test(line)) || /\b(?:processing is high risk|high risk crystalline silica|continuous water feed)\b/i.test(line))) return step;
     return { ...step, controls: [...step.controls, ...SILICA_FOLLOW_UP.slice(0, 2).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean)] };
@@ -12566,7 +12585,7 @@ function onceEach(lines) {
 // Lines that say a silica material is drilled, cut or ground with a power tool.
 const SILICA_TOOL = /\b(on-tool extraction|drill\w*|saws?|sawn|grind\w*|grinders?|core drill\w*|chas(?:e|ed|ing)|jackhammers?|breakers?|demolition hammers?|power tools?)\b/i;
 // A step that processes silica: its hazards name silica dust and its controls a power tool.
-const processesSilica = (step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) && step.controls.some((line) => SILICA_TOOL.test(line));
+const processesSilica = (step) => (step.hazards.some((line) => /\bsilica\b/i.test(line)) || (Array.isArray(step.hazardTags) && step.hazardTags.includes('silica'))) && step.controls.some((line) => SILICA_TOOL.test(line));
 // A line that says how dust is cleaned up: by vacuum or wet methods, or not by dry sweeping.
 const SILICA_CLEAN_UP = /\b(vacuum\w*|wet (?:clean\w*|wip\w*|mop\w*|sweep\w*)|dry sweep\w*)\b/i;
 
