@@ -5,7 +5,7 @@ const { splitPpe, withStepPpeLines, agreePpe, wornSaid, ALL_WORK_ONLY } = requir
 // Lines are read for their words without the state's own code references, so a code's title does not
 // count as the line's wording (scenarios/state-codes.json; the line itself in Queensland and NSW).
 const { localControl, withoutStateCodes } = require('./citations');
-const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
+const { tradeIds, allowedKinds, limitToTrades, deriveTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 // Names typed in lower case print with their capitals (messy round 10). Required when used, as
@@ -5658,6 +5658,8 @@ function confirmedPlantSteps(input, flags, task = '') {
   if (/\bmobile scaffolds?\b|\bscaffold towers?\b|\baluminium towers?\b/i.test(names)) out.mobileScaffold = true;
   const painting = ['painting', 'paintExternal', 'paintAccess', 'paintSolvent', 'steelPaint'].some((id) => flags[id]);
   if (painting && /\b(airless|spray(?:ers?| rigs?| units?| guns?| equipment))\b/i.test(names)) out.paintSpray = true;
+  // A generator ticked in the plant list brings generatorUse, not generatorPlant install, unless the task already names an install.
+  if (/\bgenerators?\b/i.test(names) && !flags.generatorPlant && !flags.generatorConnect && !flags.generatorTest) out.generatorUse = true;
   // Carpentry and joinery tools the user confirmed bring the power tools step (messy round 5: a drop saw
   // and nail gun confirmed for joinery, with no power tools step and no hearing protection).
   const joinery = ['carpJoinery', 'carpFraming', 'carpLoad', 'carpentryWork'].some((id) => flags[id]);
@@ -7193,7 +7195,9 @@ function suggestedFlags(task, facts, state) {
   // excavation permit into the plant room inside building 3). The access and power line answers below
   // still count.
   const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: state.ownSite } : facts;
-  const flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  const wf = workFlags(task, own, state.ownCrane, false, Boolean(state.allWords));
+  const trades = state.trades && state.trades.length ? state.trades : deriveTrades(task, wf);
+  const flags = limitToTrades(wf, trades, KIND_IDS);
   // A depth given once for the whole project still says how deep this SWMS's own trenches go: the trench steps then do not say
   // the trench is kept shallower than 1.5 m beside a trench over 1.5 m listed as high risk work (messy round 17, A run 2: the
   // Ground answer "upto 1.8m", given once on the project page).
@@ -9232,8 +9236,10 @@ function settleFlags(flags, task, facts = {}) {
   // Refrigerant is recovered only when a system is emptied, repaired or taken out.
   out.refrigerantRecover = REFRIGERANT.test(task) && /\b(recover\w*|decant\w*|decommission\w*|de-?gas\w*|remov\w*|replac\w*|repair\w*|leaks?)\b/i.test(task);
   out.refrigerantRecoverOnly = out.refrigerantRecover && !/\b(charg\w*|evacuat\w*|install\w*|commission\w*|re-?gas\w*|top(?:ping)? up)\b/i.test(task);
-  // Asphalt is saw cut in its own step, unless the saw cut concrete step makes the cut or a pothole is patched without one.
-  out.asphaltCut = Boolean(out.asphalt && !out.sawCut && (!out.potholeRepair || /\bcut\w*\b/i.test(task)));
+  // Asphalt is saw cut in its own step only where the task names cutting, patching or pothole repair.
+  out.asphaltCut = Boolean(out.asphalt && !out.sawCut && (out.potholeRepair || /\b(?:cut\w*|saw\w*|patch\w*|repair\w*|break\w* out|remov\w*|replac\w*)\b/i.test(task)));
+  // Reinstate asphalt only where reinstatement, repair, cutting or trench work is named.
+  out.asphaltReinstate = Boolean(out.asphalt && (out.trench || out.inTrench || out.layInExcavation || out.potholeRepair || out.asphaltCut || /\b(?:reinstat\w*|patch\w*|repair\w*|saw\w* cut|cut\w* and reinstat\w*|break\w* out|remov\w*|replac\w*)\b/i.test(task)));
   // Pipes, pits and conduits laid in a trench are each their own step, named by the task.
   // Pits lifted in by the tank and pit step are not set again here; pipes come when nothing is named.
   const trenchPipesNamed = /\b(pipes?|pipework|pipelines?|piping|(?<!consumer |electrical |power )mains?|(?:drains?|drainage|sewers?|sewerage|stormwater)(?! (?:pits?|manholes?|maintenance holes?|grates?))|culverts?|water (?:lines?|services?)|gas lines?|irrigation|ag lines?|subsoil)\b/i.test(task) || Boolean(out.sewerRepair);
@@ -9866,6 +9872,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // round 19, A run 2: "Install generator control panel and modify existing generator master control system" read as installing
     // generators with fuel tanks and fuel lines, and the package was listed as fuel line work).
     generatorPlant: (/\b(?:install\w*|supply and install|new|place\w*|set|crane|craning|craned|lift\w*)\b[^.]{0,40}\b(?:generators?(?!\s+(?:master\s+|main\s+)?(?:control\w*|panels?|switch\w*|monitor\w*|alarms?|interfaces?|cabl\w*|wiring|circuit breakers?))|day tanks?)\b|\bgenerators?\b[^.]{0,30}\binstall\w*/i.test(task.replace(/[^.]+\.?/g, (sentence) => (/\b(test\w*|commission\w*|load banks?|load shed\w*)\b/i.test(sentence) && !PLANT_WORK.test(sentence) ? ' ' : sentence))) || /\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b/i.test(task) && /\bgenerators?\b/i.test(task)),
+    // Using or running a portable or site generator, not installing a permanent one or connecting it.
+    generatorUse: /\b(?:use|run|running|hire|hired)\b[^.]{0,30}\b(?:a |the )?(?:portable |site )?generators?\b|\b(?:portable |site )generators?\b|\bgenny\b|\bgenerators? for (?:the )?(?:power )?tools?\b/i.test(task) || (/\bgenerators?\b/i.test(task) && /\b(?:fuel|exhaust|leads?|extension leads?)\b/i.test(task))) && !/\b(?:install\w*|supply and install|permanent|standby|emergency|backup|day tanks?|connect\w*|hook\w* up|tie\w* in|terminat\w*)\b/i.test(task) && !/\b(?:test\w*|commission\w*|load banks?|load shed\w*)\b/i.test(task),
     // Boilers being installed, not boilers named only as what a supply connects to.
     boilerPlant: /\b(?:install\w*|commission\w*|set\w*|lift\w*|replac\w*|supply and install)\b[^.]{0,40}\b(?:boilers?|pressure vessels?|calorifiers?|steam plant)\b|\b(?:boilers?|pressure vessels?|calorifiers?)\b[^.]{0,30}\b(?:install\w*|commission\w*)\b/i.test(task),
     cleaningStands: (CLEANING.test(task) || /\bclean\w* (?:the |all )?(?:[\w-]+ )?(?:stands?|grandstands?|seats?|tiers?|aisles?)\b/i.test(task)) && /\b(stands?|seats?|tiers?|grandstands?|aisles?)\b/i.test(task),

@@ -51,7 +51,7 @@ const COMMON = new Set([
   'safetyScreens', 'tempStairs', 'workshopFab', 'floodTest', 'drainageCell', 'acousticMat', 'earthStakes', 'caulking', 'trestleUse', 'pdtFixing', 'peFusion', 'wasteRemoval', 'defectsVisit',
   'joineryShop', 'switchboardShop', 'powderCoat', 'precastCastIn', 'pebbleFinish', 'hvPoleRemove',
   // Brought in only where the task's words name the work (owner decisions, 6 October 2026).
-  'generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines',
+  'generatorConnect', 'generatorUse', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines',
   // Gap job steps (10 October 2026), each only where the task's words name the work.
   'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
   // The owner's pick list review, part 1 (11 October 2026), each only where the words name the work.
@@ -69,6 +69,22 @@ const BY_ID = new Map(TRADES.map((trade) => [trade.id, trade]));
 // The known trade ids in a list such as "painting" or "electrical, communications".
 function tradeIds(value) {
   return String(value || '').split(/[\s,]+/).filter((id) => BY_ID.has(id));
+}
+
+// Derive candidate trade ids from the task text when no trade is set.
+// Each trade's signal is either a flag name (already computed in flags) or a RegExp tested on the task.
+function deriveTrades(task, flags) {
+  const ids = [];
+  const text = String(task || '');
+  for (const trade of TRADES) {
+    if (!trade.signal) continue;
+    if (typeof trade.signal === 'string') {
+      if (flags[trade.signal]) ids.push(trade.id);
+    } else if (trade.signal instanceof RegExp) {
+      if (trade.signal.test(text)) ids.push(trade.id);
+    }
+  }
+  return ids;
 }
 
 // The kinds of work the trades can do, or null when no trade is known.
@@ -93,4 +109,4 @@ function limitToTrades(flags, trades, kinds) {
   return out;
 }
 
-module.exports = { TRADES, COMMON, tradeIds, allowedKinds, limitToTrades };
+module.exports = { TRADES, COMMON, tradeIds, allowedKinds, limitToTrades, deriveTrades };
