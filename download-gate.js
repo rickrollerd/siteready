@@ -157,8 +157,10 @@ function publicExample(words) {
 }
 function liveSupplyHazard(draft) {
   for (const step of draft.jobSteps || []) {
-    const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line) && LIVE_SUPPLY.test(line) && !/\b(?:leads?|extension|tools?|wet cutting|water)\b[^.]*\.?$/i.test(line.replace(/\b(?:supply|switch ?boards?|mains)\b.*$/i, '')));
-    if (hazard) return { step: step.step, hazard };
+    if (!step || !Array.isArray(step.hazardTags) || !step.hazardTags.includes('existing-services')) continue;
+    if (/\(Does not apply to this job\)$/.test(String(step.step || ''))) continue;
+    const hazard = (step.hazards || []).find((line) => typeof line === 'string' && !/\(Does not apply to this job\)$/.test(line));
+    return { step: step.step, hazard: hazard || 'Existing site services at the work.' };
   }
   return null;
 }
@@ -370,6 +372,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     const rule = { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id), ...(SITE_KIND[field.id] ? { kind: SITE_KIND[field.id] } : {}) };
     if (field.id === 'liveServices' && live) {
       rule.noneRefused = `The step "${live.step}" has the hazard "${live.hazard.replace(/[.]+$/, '')}", so there are live services at the work.`;
+      rule.noneChecked = true;
       rule.ask = 'Name them and where they are, for example "Live 400 V supply to the lift controller in the machine room".';
     }
     const buried = field.id === 'liveServices' && !live ? buriedServices(draft) : null;
