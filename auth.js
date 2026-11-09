@@ -11,7 +11,8 @@ const { sendMail } = require('./mailer');
 const { record } = require('./events');
 const { isProduction } = require('./secret-keys');
 
-const TRIAL_DAYS = 14;
+// Free trial length in days: the founding-member beta is 30 days, no card (TRIAL_DAYS overrides).
+const TRIAL_DAYS = Math.max(1, Math.round(Number(process.env.TRIAL_DAYS) || 30));
 const LINK_MINUTES = 20;
 const SESSION_DAYS = 60;
 const CHALLENGE_MINUTES = 5;
