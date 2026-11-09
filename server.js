@@ -16,6 +16,7 @@ const { readLogo } = require('./logo');
 const { draftToPdf } = require('./pdf-draft');
 const db = require('./db');
 const auth = require('./auth');
+const { userDailyCap } = require('./ai-user-cap');
 const accounts = require('./accounts');
 const libraryNotices = require('./library-notices');
 const billing = require('./billing');
@@ -329,7 +330,7 @@ app.post(SCOPE_ROUTE, async (req, res, next) => {
 const aiScopeLimit = limiter('ai-scope', positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
 app.use('/api/scope/ai', (req, res, next) => (req.method === 'POST' ? aiScopeLimit(req, res, next) : next()));
 app.get('/api/scope/ai', (req, res) => res.json({ enabled: aiScope.enabled() }));
-app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
+app.post('/api/scope/ai', auth.requireAccess, userDailyCap, async (req, res, next) => {
   try {
     const text = await scopeText(req.body || {});
     const started = await aiScope.startReading(req.company, text, req.body && req.body.state);
@@ -370,7 +371,7 @@ const methodRead = require('./method-read');
 const methodReadLimit = limiter('methodology-read', positiveNumber(process.env.RATE_LIMIT_METHOD_READ_REQUESTS, 20));
 app.use('/api/methodology/read', (req, res, next) => (req.method === 'POST' ? methodReadLimit(req, res, next) : next()));
 app.get('/api/methodology/read', (req, res) => res.json({ enabled: aiScope.enabled() }));
-app.post('/api/methodology/read', auth.requireAccess, async (req, res, next) => {
+app.post('/api/methodology/read', auth.requireAccess, userDailyCap, async (req, res, next) => {
   try {
     const text = await methodRead.methodText(req.body || {}, req.company);
     const started = await methodRead.startReading(req.company, text);
@@ -393,7 +394,7 @@ app.get('/api/methodology/read/:id', auth.requireUser, async (req, res, next) =>
 // typed words only, never the drawing image. Signed-in accounts only, with its own limit.
 const designRead = require('./design-read');
 const designReadLimit = limiter('design-read', positiveNumber(process.env.RATE_LIMIT_DESIGN_READ_REQUESTS, 60));
-app.post('/api/designs/read', designReadLimit, auth.requireAccess, async (req, res, next) => {
+app.post('/api/designs/read', designReadLimit, auth.requireAccess, userDailyCap, async (req, res, next) => {
   try {
     const result = await designRead.readDesign(req.company, req.body && req.body.fileId);
     record(result.kept ? 'design_read_kept' : 'design_read', req.company && req.company.id);
@@ -407,7 +408,7 @@ app.post('/api/designs/read', designReadLimit, auth.requireAccess, async (req, r
 // words only, never an image. Signed-in accounts only, with its own limit.
 const sdsRead = require('./sds-read');
 const sdsReadLimit = limiter('sds-read', positiveNumber(process.env.RATE_LIMIT_SDS_READ_REQUESTS, 60));
-app.post('/api/substances/read', sdsReadLimit, auth.requireAccess, async (req, res, next) => {
+app.post('/api/substances/read', sdsReadLimit, auth.requireAccess, userDailyCap, async (req, res, next) => {
   try {
     const result = await sdsRead.readSds(req.company, req.body && req.body.fileId);
     record(result.kept ? 'sds_read_kept' : 'sds_read', req.company && req.company.id);
@@ -425,7 +426,7 @@ app.post('/api/substances/read', sdsReadLimit, auth.requireAccess, async (req, r
 // page asking whether it is ready does not.
 const checkLimit = limiter('check', positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
 app.use('/api/check', (req, res, next) => (req.method === 'POST' ? checkLimit(req, res, next) : next()));
-app.post('/api/check', auth.requireAccess, async (req, res, next) => {
+app.post('/api/check', auth.requireAccess, userDailyCap, async (req, res, next) => {
   try {
     const checkRead = require('./check-read');
     const body = req.body || {};

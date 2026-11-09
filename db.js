@@ -670,6 +670,13 @@ const SCHEMA = [
   "ALTER TABLE ai_readings ADD COLUMN IF NOT EXISTS project_id TEXT NOT NULL DEFAULT ''",
   'CREATE INDEX IF NOT EXISTS ai_readings_org_doc ON ai_readings (org_id, doc_hash, brief_version)',
   'CREATE INDEX IF NOT EXISTS ai_readings_project ON ai_readings (project_id)',
+  // A per-user daily count of AI requests (ai-user-cap.js, D323). day is the UTC date, YYYY-MM-DD.
+  `CREATE TABLE IF NOT EXISTS ai_user_daily (
+    user_id TEXT NOT NULL,
+    day TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, day)
+  )`,
   // A subcontract on a project: the company's name as typed, its trade, a contact email (sending is
   // stage 5) and the reading of its scope. list_reading_id is the reading its SWMS list was made from;
   // list_rev counts each change to the list. A removed subcontract keeps its row (removed_at).
