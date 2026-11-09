@@ -177,6 +177,9 @@ async function callOpenRouter({ system, content, schema, model }) {
       { role: 'system', content: system },
       { role: 'user', content },
     ],
+    // Only providers that do not collect (train on or store) prompts (owner decision D327). No
+    // fallback to one that does: without such a provider the request fails.
+    provider: { data_collection: 'deny' },
   };
   if (schema) {
     body.response_format = {
