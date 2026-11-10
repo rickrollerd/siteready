@@ -13,11 +13,11 @@ test('an overhead power line in Live services asks Electrical safety arrangement
   assert.ok(!ids(questionsFor(input()).required).includes('electricalSafety'));
 });
 
-test('the first Prepare has the power-line step, and the answer prints with it', () => {
+test('the first Prepare holds for Electrical safety arrangement, then has the power-line step', () => {
   const body = input({ site: LINE });
   const first = prepareDraft(body);
-  assert.equal(first.kind, 'draft', JSON.stringify(first.missing));
-  assert.ok(first.jobSteps.some((step) => step.step === 'Plan the work near overhead power lines'), first.jobSteps.map((step) => step.step).join(' | '));
+  assert.equal(first.kind, 'stand-down');
+  assert.ok(first.missing.includes('Electrical safety arrangement'), JSON.stringify(first.missing));
   const answered = prepareDraft({ ...body, facts: { ...(body.facts || {}), electricalSafety: 'The network operator isolates the line and issues an access permit before work starts.' } });
   assert.equal(answered.kind, 'draft');
   assert.ok(answered.jobSteps.some((step) => step.step === 'Plan the work near overhead power lines'));

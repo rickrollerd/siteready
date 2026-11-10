@@ -3119,7 +3119,7 @@ function askedFallFacts(facts, answer) {
   return rest;
 }
 function missingFacts(task, facts, answer, state, ppeIds = []) {
-  return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
+  return withHarness(requiredFactsFor(task, answer, state, facts), facts, ppeIds)
     .map((item) => ({ ...item, state: factState(item, task, facts, state) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -5284,7 +5284,7 @@ function buildDraft(input, screen) {
     const fromSite = highRiskMatches(riskText, pack.fallAnswer, state).map(labelOf).filter((label) => !own.has(label));
     if (fromSite.length) draft.highRisk = draft.highRisk.filter((label) => !fromSite.includes(label));
   }
-  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state).filter(notSdsQuestion(input)), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
+  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state, facts).filter(notSdsQuestion(input)), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
   // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
   // reason (D311, round 6 content decision 2). It comes off the list wherever it is found, and prints as

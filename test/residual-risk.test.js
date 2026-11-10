@@ -151,8 +151,8 @@ test('a step rated with controls printed once in an earlier step names that step
 
 // The ward ceiling job from the goal 2 review, with its own site answers.
 const WARD = 'Install cable trays and pull cables through the ward ceilings and risers from scissor lifts, inside the hospital building.';
-const ward = (site, task = WARD) => prepareDraft({ state: 'qld', fallRisk: 'yes', residential: 'no', task, site, ...SITE,
-  facts: { fallControl: 'Work is done from the scissor lift with its guardrails and gate closed.', harnessSystem: 'In the boom lift, the harness is clipped to the basket anchor point.' } });
+const ward = (site, task = WARD, more = {}) => prepareDraft({ state: 'qld', fallRisk: 'yes', residential: 'no', task, site, ...SITE,
+  facts: { fallControl: 'Work is done from the scissor lift with its guardrails and gate closed.', harnessSystem: 'In the boom lift, the harness is clipped to the basket anchor point.', ...more } });
 const lines = (draft) => draft.jobSteps.flatMap((step) => step.controls);
 const has = (draft, pattern) => lines(draft).some((line) => pattern.test(line));
 const OUTDOOR = [/^Outdoors, stop in winds/, /^When lightning is within 10 km/, /^Wind is monitored on site/];
@@ -169,7 +169,9 @@ test('indoor scissor lift work leaves out the wind, lightning, traffic, power li
 });
 
 test('in doubt, the lines stay: power lines named in the answers, outdoor work, or a platform other than a scissor lift', () => {
-  const nearLines = ward({ liveServices: 'Overhead power lines run along the street.' });
+  // Power lines named only in Live services hold Prepare for Electrical safety arrangement (D339).
+  assert.equal(ward({ liveServices: 'Overhead power lines run along the street.' }).kind, 'stand-down');
+  const nearLines = ward({ liveServices: 'Overhead power lines run along the street.' }, WARD, { electricalSafety: 'The network operator isolates the line and issues an access permit before work starts.' });
   for (const pattern of LINES) assert.ok(has(nearLines, pattern), pattern.source);
   for (const pattern of OUTDOOR) assert.ok(!has(nearLines, pattern), pattern.source);
   const outside = ward({}, 'Install cable trays on the external walls from an EWP.');
