@@ -2283,7 +2283,7 @@ const DENIAL_RULE = /\b(?:without|unless|until|except|before|after|other than|ou
 // noun ("Lift installation by others", "Line marking by others") is someone else's work in full.
 // Words that are as often nouns ("lift", "line", "plant", "pump") lead own work only when a
 // determiner, a particle or a plural follows ("Lift the panels", "Seal penetrations").
-const OWN_LEAD = /^(?:(?:supply|we|then|also|and then|our crew)\s+(?:and\s+)?)?/i;
+const OWN_LEAD = /^(?:(?:\d+(?:\.\s*|\)\s*))?\s*the subcontractor\s+(?:shall|will|must|is to|to)\s+)?(?:(?:supply|we|then|also|and then|our crew)\s+(?:and\s+)?)?/i;
 const PLAIN_VERB = /^(?:core[- ]?fill|core[- ]?drill|saw[- ]?cut|road saw|wall saw|wire saw|install|erect|construct|excavate|remove|demolish|connect|terminate|commission|apply|replace|repair|lay|fix|build|dig|strip|hang|fit|polish|glaze|compact|backfill|reinstate|relocate|isolate|disconnect|attend|prepare|inspect|maintain|position|assemble|dismantle|encapsulate|refurbish|upgrade|modernise|renew|resleeper|tamp|stabilise|underpin|splice|certify|evacuate|recover|braze|purge|flush|disinfect|chlorinate|reseal|repoint|regrout|reline|re-?sheet|re-?roof|reprop|backprop|climb|alter|insulate|waterproof|operate|deliver|provide|move|unload|make|carry|stitch|rake|place|erect|mount|pull|haul|grind|weld|hoist)\b/i;
 const NOUN_AFTER = /^\s+(?:installation|works?|repairs?|of|by|removal|replacement|connections?|protection|operation|testing|commissioning|fixing|placement|pours?|erection|cleaning|painting|sealing|stressing|laying|supply|installed|supplied|provided|completed|done|built)\b/i;
 const EITHER_VERB = /^(?:lift|line|plant|form|pump|frame|seal|tank|core|crane|dog|sheet|membrane|mark|level|coat|cap|tag|spray|stress|profile|lead|charge|tile|grout|paint|test|run|set|cut|land|load|work|use|service|survey|cover|drill|saw|wash|blast|clean|patch|render|brace|stand|rig|bolt|anchor|scan|screed|finish|hammer|turf|stake|label|pour|power|deck|roof|fence|pipe|light|wire|board|floor|wall|track|rail|plaster|cart|stockpile|split|flash|jet|clear|take|put|sand|wrap|program|lag|trim|tie|jack|drive|bore|rip|slash|mulch|irrigate|float|chase|stand|shotcrete|dowel|hammer|chip|scabble|prime|caulk|glue|bed|point|rebate|notch|dress)\b/i;
@@ -2337,17 +2337,18 @@ function othersAndDenials(text) {
   for (let i = 0; i < parts.length; i += 2) {
     const raw = parts[i];
     const part = raw.trim();
+    const stripped = part.replace(OWN_LEAD, '');
     const newSentence = i === 0 || /[.;:!?\n]/.test(parts[i - 1]);
-    if (!CONTINUES.test(part) || newSentence) own = ownVerb(part);
+    if (!CONTINUES.test(part) || newSentence) own = ownVerb(stripped);
     if (newSentence) listStart = -1;
     let other = raw;
     let deny = raw;
-    if (DENIED_WHOLE.test(raw) && !ownVerb(part)) deny = ' ';
+    if (DENIED_WHOLE.test(raw) && !ownVerb(stripped)) deny = ' ';
     else if (DENIAL.test(raw) && !DENIAL_RULE.test(raw.replace(/^.*?\b(?:no|nil)\s/i, ''))) deny = raw.replace(DENIAL, ' ');
     if (deny !== ' ') deny = deny.replace(AWAY_FROM, ' ');
     let dropped = false;
-    if (!OTHERS_DO.test(part) && !own && HANDLED_BY.test(part) && !EXCLUDED.test(part)) other = raw.replace(HANDLED_BY, ' ');
-    else if ((OTHERS_DO.test(part) && !ownVerb(part)) || ((EXCLUDED.test(part) || ALREADY_DONE.test(part.replace(DONE_WHEN, ' ').replace(/\b(?:until|after|once|when|while)\b.*$/i, ' ').trim()) || EXISTING_STAYS.test(part) || BY_OTHERS.test(part) || FOR_OTHERS.test(part)) && !own)) {
+    if (!OTHERS_DO.test(stripped) && !own && HANDLED_BY.test(part) && !EXCLUDED.test(part)) other = raw.replace(HANDLED_BY, ' ');
+    else if ((OTHERS_DO.test(stripped) && !ownVerb(stripped)) || ((EXCLUDED.test(part) || ALREADY_DONE.test(part.replace(DONE_WHEN, ' ').replace(/\b(?:until|after|once|when|while)\b.*$/i, ' ').trim()) || EXISTING_STAYS.test(part) || BY_OTHERS.test(part) || FOR_OTHERS.test(part)) && !own)) {
       other = ' ';
       dropped = true;
     } else {
