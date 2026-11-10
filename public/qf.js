@@ -128,6 +128,8 @@
     if (removeAt) {
       const [gone] = sheets.splice(Number(removeAt.dataset.remove), 1);
       if (gone && gone.key === state.sentKey) {
+        // The removed drawing is not kept again on the way to the next one.
+        state.sentKey = '';
         if (sheets.length) open(sheets[sheets.length - 1]);
         else {
           Object.assign(state, { file: null, sentKey: '', page: null, bill: null, view: null, questions: [], answers: {}, picked: '' });
