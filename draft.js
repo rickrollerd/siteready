@@ -3933,7 +3933,7 @@ function askQuestions(input) {
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
-    steps: withPlantSteps(stepPicks(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
+    steps: withAccessSteps(withPlantSteps(stepPicks(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
   };
 }
 
@@ -5647,6 +5647,37 @@ function withPlantSteps(steps, input, task, facts, state) {
   if (!add.length) return steps;
   return { ...steps, suggested: [...steps.suggested, ...add.filter((id) => !steps.suggested.includes(id))], chosen: [...steps.chosen, ...add], plant: add };
 }
+// The way up the fall access answer brings, less any the user unticked by hand under Job steps.
+function accessStepsKept(input, task, facts, state) {
+  const flags = fallAccessFlags(task, facts, state, fallAnswer(input.fallRisk));
+  const off = new Set(Array.isArray(input && input.kindsOff) ? input.kindsOff : []);
+  const result = {};
+  let hadKind = false;
+  let keptKind = false;
+  for (const [key, value] of Object.entries(flags)) {
+    if (KIND_SET.has(key)) {
+      hadKind = true;
+      if (!off.has(key)) {
+        result[key] = value;
+        keptKind = true;
+      }
+    } else {
+      result[key] = value;
+    }
+  }
+  if (hadKind && !keptKind) {
+    delete result.fallAccess;
+    delete result.accessRestraint;
+  }
+  return result;
+}
+// The steps the fall access answer brings, in the step list: ticked, and named as the fall answer's, so they can be unticked there.
+function withAccessSteps(steps, input, task, facts, state) {
+  const access = Object.entries(accessStepsKept(input, task, facts, state)).filter(([id, on]) => on && KIND_SET.has(id)).map(([id]) => id);
+  const add = access.filter((id) => !steps.chosen.includes(id));
+  if (!add.length) return steps;
+  return { ...steps, suggested: [...steps.suggested, ...add.filter((id) => !steps.suggested.includes(id))], chosen: [...steps.chosen, ...add], access: add };
+}
 
 // The steps for plant the user confirmed using: an EWP, a mobile scaffold, and an airless sprayer for painting.
 function confirmedPlantSteps(input, flags, task = '') {
@@ -5730,7 +5761,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // The way up to work at height the user chose, where no job step of the task stops a fall.
   // Plant the user confirmed brings the steps for using it (messy round 4: painting from a confirmed EWP
   // and mobile scaffold, with an airless sprayer added, had no height step and no spray step).
-  const access = { ...fallAccessFlags(task, facts, state, fallAnswer(input.fallRisk)), ...plantStepsKept(input, tradeFlags(task, facts, state), task) };
+  const access = { ...accessStepsKept(input, task, facts, state), ...plantStepsKept(input, tradeFlags(task, facts, state), task) };
   const found = jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']), ...access }, setting);
   let jobSteps = withoutEdgeWork(found, input);
   const userLeftOut = new Set(Array.isArray(input.leaveOut) ? input.leaveOut : []);
