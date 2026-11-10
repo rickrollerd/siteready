@@ -1,4 +1,52 @@
+import groovy.json.JsonSlurper
+
 apply plugin: 'com.android.application'
+
+// The app version is package.json's; versionCode rises with it (1.2.3 -> 10203), so a store upload always goes up.
+
+def packageJsonFile = file("../../package.json")
+def packageJson = new JsonSlurper().parseText(packageJsonFile.text)
+def appVersion = String.valueOf(packageJson.version)
+
+def versionParts = appVersion.split("\\.")
+if (versionParts.size() != 3) {
+    throw new GradleException("package.json version must be three whole numbers separated by dots, got: ${appVersion}")
+}
+
+def major, minor, patch
+try {
+    major = versionParts[0].toInteger()
+    minor = versionParts[1].toInteger()
+    patch = versionParts[2].toInteger()
+} catch (NumberFormatException e) {
+    throw new GradleException("package.json version must be three whole numbers separated by dots, got: ${appVersion}")
+}
+
+if (minor > 99 || patch > 99) {
+    throw new GradleException("package.json version minor and patch must be 99 or less, got: ${appVersion}")
+}
+
+def computedVersionCode = major * 10000 + minor * 100 + patch
+
+// Release signing, only when a keystore kept outside the repo is given (env, or a properties file named in env).
+// Without one the release build is unsigned, as before. Passwords are never printed or committed.
+def keystorePath = System.getenv("SITEWRITE_KEYSTORE_PATH")
+def keystorePassword = System.getenv("SITEWRITE_KEYSTORE_PASSWORD")
+def signingAlias = System.getenv("SITEWRITE_KEY_ALIAS")
+def signingKeyPassword = System.getenv("SITEWRITE_KEY_PASSWORD")
+
+def propertiesPath = System.getenv("SITEWRITE_KEYSTORE_PROPERTIES")
+if (!keystorePath && propertiesPath) {
+    def propsFile = file(propertiesPath)
+    if (propsFile.exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(propsFile))
+        keystorePath = props['storeFile']
+        keystorePassword = props['storePassword']
+        signingAlias = props['keyAlias']
+        signingKeyPassword = props['keyPassword']
+    }
+}
 
 android {
     namespace = "com.sitewrite.app"
@@ -7,8 +55,8 @@ android {
         applicationId "com.sitewrite.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode computedVersionCode
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +64,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
+    if (keystorePath && keystorePassword && signingAlias && signingKeyPassword) {
+        signingConfigs {
+            release {
+                storeFile file(keystorePath)
+                storePassword keystorePassword
+                keyAlias signingAlias
+                keyPassword signingKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (keystorePath && keystorePassword && signingAlias && signingKeyPassword) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
