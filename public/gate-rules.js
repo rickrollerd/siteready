@@ -729,7 +729,42 @@
     return out;
   }
 
-  const api = { whoFillNeed, siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, rescueFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
+  // A crane lift whose heaviest load is more than the crane's rated capacity (content22, messy round 20: "Rated capacity
+  // from the crane chart: 60 t at 12 m radius. Heaviest gross load ... is 70 t at 12 m radius" was accepted and printed).
+  // Each load figure is read with the words since the figure before it: "heaviest", "gross", "load", "weighs" or "lift"
+  // name the load lifted; "rated", "capacity", "chart", "SWL" or "WLL" the crane's. The rated capacity at a longer radius
+  // than the load's says nothing of the capacity at the load's radius, so that is not judged. Returns the figures, or null.
+  const LOAD_FIGURE = /(\d+(?:\.\d+)?)\s*(t|tonnes?|kg)\b(?:\s*(?:at|@)\s*(?:a\s+)?(?:radius of\s+)?(\d+(?:\.\d+)?)\s*m(?:etres?)?\b)?/gi;
+  const LOAD_SAID = /\b(?:heaviest|gross|loads?|weighs?|weight|lift(?:ed|ing|s)?|picks?)\b/i;
+  const RATED_SAID = /\b(?:rated|capacity|chart|swl|wll|safe working load|working load limit)\b/i;
+  function craneOverCapacity(text) {
+    const source = String(text || '');
+    let rated = null;
+    let load = null;
+    let from = 0;
+    const figures = [...source.matchAll(LOAD_FIGURE)];
+    figures.forEach((match, i) => {
+      const before = source.slice(from, match.index);
+      from = match.index + match[0].length;
+      // A figure with nothing said before it is the crane's where the words after it say so ("4.2 t at 22 m radius from
+      // the crane chart, heaviest unit 1.6 t").
+      const after = source.slice(from, i + 1 < figures.length ? figures[i + 1].index : source.length);
+      const tonnes = Number(match[1]) / (/^kg$/i.test(match[2]) ? 1000 : 1);
+      const figure = { tonnes, radius: match[3] ? Number(match[3]) : null, said: match[0].trim() };
+      // "Heaviest gross load" before a figure names the load, though "lifting gear" or "capacity" may follow it.
+      if (/\b(?:heaviest|gross)\b/i.test(before) || (LOAD_SAID.test(before) && !RATED_SAID.test(before))) { if (!load) load = figure; }
+      else if (RATED_SAID.test(before) || (!before.trim() && RATED_SAID.test(after.replace(/\b(?:heaviest|gross)\b[\s\S]*$/i, '')))) { if (!rated) rated = figure; }
+    });
+    if (!rated || !load || !(load.tonnes > rated.tonnes)) return null;
+    if (rated.radius !== null && load.radius !== null && load.radius < rated.radius) return null;
+    return { rated: rated.said, load: load.said };
+  }
+  const craneOverWhy = (text) => {
+    const over = craneOverCapacity(text);
+    return over ? `The heaviest load (${over.load}) is more than the crane's rated capacity (${over.rated}). The lift cannot go ahead as written: use a crane rated for the load at that radius, a shorter radius or a lighter load, and give the chart figures for that.` : '';
+  };
+
+  const api = { craneOverCapacity, craneOverWhy, whoFillNeed, siteNeed, personNameNeed, heldIn, blankFillNeed, templateFills, presetFillNeed, checkerNameNeed, checkerRoleNeed, careNote, answerFits, workFits, rescueFits, ACROSS_WORK_IDS, acrossFor, hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, phoneNumber, licenceNeed, sameNameWarning, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, SITE_KIND, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN, ownLineProblem };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteWriteGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);
