@@ -2556,10 +2556,10 @@ function factPrompt(item, state, task = '') {
 // A hospital, health or aged care setting, or medical gases.
 const HEALTHCARE_WORDS = /\b(hospitals?|medical gas\w*|patients?|wards?|clinic\w*|theatres?|aged care|nursing homes?|health (?:campus|centres?|facilit\w*))\b/i;
 
-function requiredFactsFor(fullTask, answer, state) {
+function requiredFactsFor(fullTask, answer, state, site) {
   // The questions that exist only for high risk work the user marked "Does not apply" are not asked (D311).
   const offFacts = new Set([...((state && state.offIds) || [])].flatMap((id) => (NOT_APPLY_PARTS[id] && NOT_APPLY_PARTS[id].facts) || []));
-  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state) && (item.id !== 'trenchSupport' || digStepsOn(state)));
+  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state, site)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state) && (item.id !== 'trenchSupport' || digStepsOn(state)));
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
@@ -2623,14 +2623,22 @@ function titleKinds(fullTask) {
   }
   return TITLE_KINDS_SEEN.get(fullTask);
 }
-function pickedStepFacts(fullTask, answer, state) {
+function pickedStepFacts(fullTask, answer, state, site) {
   const titled = titleKinds(fullTask).filter((id) => !state || !state.kinds || state.kinds.includes(id));
   // Silica controls are asked wherever the tile cutting step is chosen, whether its words or the picks brought it (messy
   // round 13, A run 1: asked in one of three tiling SWMS, though all three cut tiles).
   const silica = silicaStepFact(fullTask, answer, state);
-  if ((!state || !state.kinds) && !titled.length) return silica;
+  // A step the site answers bring ("Overhead power line at the bypass tie-in" in Live services) asks its question too, unless
+  // unticked, as a picked step does (messy round 20, B run 8: the power-line step came, but not Electrical safety arrangement).
+  const siteText = site && site.siteConditions ? (state && state.siteShared ? state.ownSite : site.siteConditions) : '';
+  let brought = [];
+  if (siteText && state && state.loaded) {
+    const withoutSite = suggestedKinds(fullTask, {}, { ...state, kinds: null });
+    brought = suggestedKinds(fullTask, { siteConditions: siteText }, { ...state, kinds: null }).filter((id) => !withoutSite.includes(id) && (!Array.isArray(state.kinds) || state.kinds.includes(id)));
+  }
+  if ((!state || !state.kinds) && !titled.length && !brought.length) return silica;
   const picked = state && state.kinds ? state.kinds.filter((id) => !suggestedKinds(fullTask, {}, { ...state, kinds: null }).includes(id)) : [];
-  const added = [...new Set([...picked, ...titled])];
+  const added = [...new Set([...picked, ...titled, ...brought])];
   const asked = new Set(allRequiredFacts(fullTask, answer, state).map((item) => item.id));
   const extra = [];
   if (!asked.has('asbestosArrangement') && state && pickedDisturbsBuilding(fullTask, state.kinds)) extra.push({ id: 'asbestosArrangement', label: 'Asbestos arrangement', prompt: 'How asbestos was identified before the work (asbestos register or inspection), and what happens if any is found.' });
@@ -3930,7 +3938,7 @@ function askQuestions(input) {
     // It names the crane in the person's own words ("hiab"), as the query above the draft does (messy round 18, A run 1: one
     // copy said "vehicle loading crane", read from the slang, and the other "hiab").
     ...(craneCheck(spelling.text, input.crane, input.craneNoKept === true, scopeCraneOf(input)) ? { crane: craneCheck(spelling.text, input.crane, input.craneNoKept === true, scopeCraneOf(input)) } : {}),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
+    required: withHarness(requiredFactsFor(task, answer, state, { siteConditions: readSite(input) }), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
