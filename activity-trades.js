@@ -6,6 +6,8 @@
 // Each list starts with the trades.js trades whose kinds include the work, then the trades that have it
 // as an extra, then the trades that also do it. 'any' is work any trade does (access equipment, plant,
 // site conditions). OTHER_TRADES are specialist trades that trades.js has no gate trade for yet.
+const { TRADES } = require('./trades');
+
 const ANY = 'any';
 const OTHER_TRADES = {
   demolition: 'Demolition and strip-out',
@@ -543,4 +545,33 @@ function tradesFor(kind) {
   return Object.prototype.hasOwnProperty.call(ACTIVITY_TRADES, kind) ? [...ACTIVITY_TRADES[kind]] : null;
 }
 
-module.exports = { ANY, OTHER_TRADES, ACTIVITY_TRADES, tradesFor };
+// The trades a user can give as "Your trade" for typed text (D344): the gate trades, then the specialist ones.
+const STATED_TRADES = [
+  ...TRADES.map((trade) => ({ id: trade.id, label: trade.name })),
+  ...Object.entries(OTHER_TRADES).map(([id, label]) => ({ id, label })),
+];
+
+// The kinds of work outside the stated trade, and other trades' general flags (their licensing lines), turned off,
+// as limitToTrades does for a scope's trade. Work any trade does, and kinds with no record, stay.
+function gateToTrade(flags, trade, kinds) {
+  const statedIds = new Set(STATED_TRADES.map((t) => t.id));
+  if (!statedIds.has(trade)) return flags;
+  const out = { ...flags };
+  for (const kind of kinds) {
+    if (out[kind]) {
+      const tf = tradesFor(kind);
+      if (Array.isArray(tf) && !tf.includes('any') && !tf.includes(trade)) {
+        out[kind] = false;
+      }
+    }
+  }
+  const allowed = new Set(kinds.filter((id) => out[id]));
+  for (const t of TRADES) {
+    if (t.id !== trade && typeof t.signal === 'string' && !allowed.has(t.signal)) {
+      out[t.signal] = false;
+    }
+  }
+  return out;
+}
+
+module.exports = { ANY, OTHER_TRADES, ACTIVITY_TRADES, tradesFor, STATED_TRADES, gateToTrade };

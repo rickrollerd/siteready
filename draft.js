@@ -6,6 +6,7 @@ const { splitPpe, withStepPpeLines, agreePpe, wornSaid, ALL_WORK_ONLY } = requir
 // count as the line's wording (scenarios/state-codes.json; the line itself in Queensland and NSW).
 const { localControl, withoutStateCodes } = require('./citations');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
+const { STATED_TRADES, gateToTrade, tradesFor } = require('./activity-trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 // Names typed in lower case print with their capitals (messy round 10). Required when used, as
@@ -2560,6 +2561,13 @@ function requiredFactsFor(fullTask, answer, state) {
   // The questions that exist only for high risk work the user marked "Does not apply" are not asked (D311).
   const offFacts = new Set([...((state && state.offIds) || [])].flatMap((id) => (NOT_APPLY_PARTS[id] && NOT_APPLY_PARTS[id].facts) || []));
   const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state) && (item.id !== 'trenchSupport' || digStepsOn(state)));
+  // A stated trade (D344) drops the questions only other trades' work asks, as a scope's trade does.
+  if (state && state.statedTrade && !(state.trades && state.trades.length)) {
+    return facts.filter((item) => {
+      const kinds = FACT_KINDS.get(item.id);
+      return !kinds || kinds.some((when) => { const who = tradesFor(when); return !who || who.includes('any') || who.includes(state.statedTrade); });
+    });
+  }
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
@@ -2701,7 +2709,7 @@ const ACCESS_SEEN = new Map();
 // tiler's ticks dropped the question, so its answer went, and "Work at edges" went with it).
 function fallAccessNeeded(fullTask, answer, state) {
   if (!state || !state.id || !fallRiskFor(fullTask, answer)) return false;
-  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane, Boolean(state.craneKept), Boolean(state.fallAccessChosen)]);
+  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.statedTrade, state.ownCrane, state.noCrane, Boolean(state.craneKept), Boolean(state.fallAccessChosen)]);
   if (!ACCESS_SEEN.has(key)) {
     if (ACCESS_SEEN.size > 500) ACCESS_SEEN.clear();
     const found = fallStepsControlled(fullTask, {}, state);
@@ -3747,7 +3755,7 @@ function stateFor(input) {
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
   // A way of working at height the user chose keeps its question and its step through a change of steps (messy round
   // 13, A run 1: ticking a step whose lines stop a fall dropped "Working at height" and its "Work at edges" step).
-  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', craneKept: craneAnswer(input.crane) === 'none' && input.craneNoKept === true, craneCompany: Boolean(String(input.crane || '').trim()) && craneAnswer(input.crane) === 'company', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
+  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', craneKept: craneAnswer(input.crane) === 'none' && input.craneNoKept === true, craneCompany: Boolean(String(input.crane || '').trim()) && craneAnswer(input.crane) === 'company', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), statedTrade: (STATED_TRADES.some((t) => t.id === input.yourTrade) && !tradeIds(input.trade).length) ? input.yourTrade : '', kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
   if (state.noBrazing && state.kinds) state.kinds = state.kinds.filter((id) => id !== 'hotWork');
   // No crane kept: a crane step ticked before is not this job's work.
   if (state.craneKept && state.kinds) state.kinds = state.kinds.filter((id) => !CRANE_KINDS.has(id));
@@ -7230,6 +7238,7 @@ function suggestedFlags(task, facts, state) {
   // still count.
   const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: state.ownSite } : facts;
   let flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  if (state.statedTrade) flags = gateToTrade(flags, state.statedTrade, KIND_IDS);
   // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
   // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
   // generator near the shed").

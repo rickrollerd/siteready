@@ -172,6 +172,8 @@ app.use('/api', limiter('api', positiveNumber(process.env.RATE_LIMIT_MAX_REQUEST
 app.use(auth.readSession);
 
 const { draftBody } = require('./input');
+// The trades a user can give as "Your trade" (D344).
+const { STATED_TRADES } = require('./activity-trades');
 
 // Job address suggestions. Each one is a paid Google request, so it has its own limit.
 app.use('/api/address', limiter('address', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
@@ -245,7 +247,7 @@ app.get('/api/states', (_req, res) => {
 
 app.get('/api/presets', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
-  res.json({ groups: GROUPS, trades: PICK_TRADES });
+  res.json({ groups: GROUPS, trades: PICK_TRADES, yourTrades: STATED_TRADES });
 });
 
 // Job steps whose name, hazards or controls match the words searched.
