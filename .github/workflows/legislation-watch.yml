@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # pinned: Playwright 1.56 cannot install browser deps on ubuntu-latest (26.04)
     # Pages behind a bot check are read in a real browser, one at a time, which takes a few minutes.
     timeout-minutes: 25
     steps:

@@ -9,7 +9,7 @@
   let session = read(SESSION_KEY);
   let me = null;
   let sites = [];
-  let config = { accounts: false, trialDays: 14 };
+  let config = { accounts: false, trialDays: 30 };
   const $ = (id) => document.getElementById(id);
 
   function read(key) {

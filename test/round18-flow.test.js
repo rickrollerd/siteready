@@ -120,7 +120,8 @@ test('"none" for live services is refused where a step locates buried services o
   const draft = prepareDraft(draftBody(input));
   const refused = need(draft, input, 'site.liveServices');
   assert.ok(refused, 'refused');
-  assert.match(refused.need, /The step "(?:Locate underground services" finds the services in the ground before digging|Connect to the live sewer" connects to a live service)/);
+  // D321: Locate underground services carries existing-services, so liveSupplyHazard may refuse before buriedServices.
+  assert.match(refused.need, /The step "(?:Locate underground services)" (?:has the hazard |finds the services in the ground before digging)|The step "Connect to the live sewer" connects to a live service/);
   assert.equal(gate.answerNeed(refused.rule, 'None found: the Before You Dig plans and the locator show none in the dig area.'), '');
   assert.equal(gate.answerNeed(refused.rule, 'Live sewer main at the manhole, gas and power marked along the nature strip.'), '');
   assert.notEqual(gate.answerNeed(refused.rule, 'none'), '');

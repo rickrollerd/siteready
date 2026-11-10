@@ -73,6 +73,7 @@ const TIED = {
   passkeys: ['SELECT id FROM passkeys WHERE user_id IN (SELECT id FROM users WHERE company_id = $1)', ID],
   challenges: ['SELECT id FROM challenges WHERE user_id IN (SELECT id FROM users WHERE company_id = $1)', ID],
   signins: ['SELECT id FROM signins WHERE user_id IN (SELECT id FROM users WHERE company_id = $1)', ID],
+  ai_user_daily: ['SELECT user_id FROM ai_user_daily WHERE user_id IN (SELECT id FROM users WHERE company_id = $1)', ID],
   sites: ['SELECT id FROM sites WHERE company_id = $1', ID],
   swms: ['SELECT id FROM swms WHERE company_id = $1', ID],
   swms_revisions: ['SELECT id FROM swms_revisions WHERE swms_id = $1', (b) => [b.swmsId]],
@@ -150,6 +151,7 @@ async function seedBusiness(key) {
   await call('POST', '/api/auth/passkey/register/options', { token });
   const userId = (await db.one('SELECT id FROM users WHERE email = $1', [admin])).id;
   await db.query('INSERT INTO passkeys (id, user_id, public_key, created_at) VALUES ($1, $2, $3, $4)', [`pk-${key}`, userId, 'key', new Date()]);
+  await db.query('INSERT INTO ai_user_daily (user_id, day, n) VALUES ($1, $2, $3)', [userId, '2026-11-10', 1]);
   const { data: { site } } = await json('POST', '/api/sites', { token, body: { name: `${key} site`, workplace: `9 ${key} Road, Toowong QLD 4066`, principalContractor: 'ABC Builders Pty Ltd' } });
   // A design file attached on the page, named by the saved SWMS (designs.js).
   const upload = await fetch(`${base}/api/designs/files`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(`${key} hangers.pdf`) }, body: PDF });

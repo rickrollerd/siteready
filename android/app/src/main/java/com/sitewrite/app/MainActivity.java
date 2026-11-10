@@ -1,4 +1,4 @@
-package com.siteready.app;
+package com.sitewrite.app;
 
 import com.getcapacitor.BridgeActivity;
 

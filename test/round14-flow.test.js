@@ -226,16 +226,16 @@ test('a person the site must find is named in full: one name, a nickname or a fi
 });
 
 test('"n/a" for Live services beside a step whose hazard is a live supply is refused', () => {
-  // B run 5: "n/a" printed "Not applicable" beside "Electric shock from the lift supply".
+  // B run 5 used to refuse "n/a" beside "Electric shock from the lift supply". D321: liveSupplyHazard
+  // reads existing-services tags only, so an installer's own supply hazard no longer forces Live services.
   const task = 'Install the lift rails, car and machine in the lift shaft, and connect the controller to the lift supply.';
   const base = answered({ state: 'sa', task, fallRisk: 'yes', crane: 'none', ...ANSWERED, facts: { fallControl: 'Work in the shaft is done from the installer\'s platform with guardrails.' } });
   const draft = prepareDraft(draftBody(base));
-  const live = draft.jobSteps.flatMap((step) => step.hazards).find((line) => /Electric shock/.test(line) && /supply|controller|connect/.test(line));
-  assert.ok(live, 'the lift steps carry the supply hazard');
+  assert.ok(!(draft.jobSteps || []).some((step) => Array.isArray(step.hazardTags) && step.hazardTags.includes('existing-services')), 'lift install is not existing site services');
   for (const none of ['n/a', 'None', 'nil']) {
     const input = { ...base, site: { ...base.site, liveServices: none } };
     const gap = downloadGaps(draftBody(input), prepareDraft(draftBody(input))).find((item) => item.id === 'site.liveServices');
-    assert.ok(gap && /so there are live services at the work/.test(gap.need), `${none}: ${JSON.stringify(gap)}`);
+    assert.equal(gap, undefined, `${none} must pass for lift supply alone: ${JSON.stringify(gap)}`);
   }
   const named = { ...base, site: { ...base.site, liveServices: 'Live 400 V supply to the lift controller in the machine room.' } };
   assert.ok(!downloadGaps(draftBody(named), prepareDraft(draftBody(named))).some((item) => item.id === 'site.liveServices'));
@@ -243,6 +243,10 @@ test('"n/a" for Live services beside a step whose hazard is a live supply is ref
   const tiling = answered({ state: 'act', task: 'Cut and lay porcelain floor tiles in the bathrooms with a wet saw, and grout them.', fallRisk: 'no', crane: 'none', ...ANSWERED });
   assert.ok(prepareDraft(draftBody(tiling)).jobSteps.flatMap((step) => step.hazards).some((line) => /Electric shock from tools used with water/.test(line)));
   assert.ok(!downloadGaps(draftBody(tiling), prepareDraft(draftBody(tiling))).some((item) => item.id === 'site.liveServices'));
+  // An existing-services tagged step still refuses None (mechanism covers the old B run 5 class of fault).
+  const tagged = { ...draft, jobSteps: [...(draft.jobSteps || []), { step: 'Locate underground services', hazardTags: ['existing-services'], hazards: ['Striking underground electrical, gas, water or communications services.'], controls: ['x'] }] };
+  const refused = downloadGaps(draftBody({ ...base, site: { ...base.site, liveServices: 'None' } }), tagged).find((item) => item.id === 'site.liveServices');
+  assert.ok(refused && /so there are live services at the work/.test(refused.need), JSON.stringify(refused));
 });
 
 test('"n/a" for the principal contractor is refused where the job has one', () => {

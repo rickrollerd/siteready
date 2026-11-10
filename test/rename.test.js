@@ -75,6 +75,7 @@ test('the app is named SiteWrite, its icons say SW, and new references start SW-
   assert.equal(manifest.short_name, 'SiteWrite');
   assert.match(read('index.html'), /<title>[^<]*SiteWrite/);
   assert.equal(JSON.parse(fs.readFileSync(path.join(__dirname, '../capacitor.config.json'), 'utf8')).appName, 'SiteWrite');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(__dirname, '../capacitor.config.json'), 'utf8')).appId, 'com.sitewrite.app');
   const { newRef, REF_PATTERN } = require('../refs');
   for (let i = 0; i < 20; i += 1) assert.match(newRef(), /^SW-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/);
   assert.ok(REF_PATTERN.test('SR-ABCD-2345'), 'an old reference is still a reference');

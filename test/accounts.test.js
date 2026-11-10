@@ -72,7 +72,7 @@ async function rightAnswers(swmsId, readId) {
   return Object.fromEntries(checkQuestions(row.id, readId, prepareDraft(withCompany(row.input, company))).map((q) => [q.id, q.answer]));
 }
 
-test('an email link signs in once, and the first sign-in starts a 14 day trial', async () => {
+test('an email link signs in once, and the first sign-in starts a 30 day trial', async () => {
   await call('POST', '/api/auth/email', { body: { email: 'Alex@Example.com ' } });
   const token = lastLinkToken('alex@example.com');
   assert.ok(token, 'the link was emailed');
@@ -86,7 +86,7 @@ test('an email link signs in once, and the first sign-in starts a 14 day trial',
   assert.equal(me.company.planStatus, 'trial');
   assert.equal(me.company.hasAccess, true);
   const days = (new Date(me.company.trialEndsAt) - Date.now()) / 86400000;
-  assert.ok(days > 13.9 && days <= 14, `trial is 14 days (${days})`);
+  assert.ok(days > 29.9 && days <= 30, `trial is 30 days (${days})`);
   assert.equal((await call('GET', '/api/me')).status, 401);
   assert.equal((await call('POST', '/api/auth/email', { body: { email: 'not an email' } })).status, 400);
 });

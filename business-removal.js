@@ -68,6 +68,7 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   await run('challenges', `DELETE FROM challenges WHERE user_id IN (${USERS})`);
   await run('passkeys', `DELETE FROM passkeys WHERE user_id IN (${USERS})`);
   await run('signins', `DELETE FROM signins WHERE user_id IN (${USERS})`);
+  await run('ai_user_daily', `DELETE FROM ai_user_daily WHERE user_id IN (${USERS})`);
   await run('login_tokens', `DELETE FROM login_tokens WHERE company_id = $1 OR email IN (SELECT email FROM users WHERE company_id = $1)`);
 
   // The owner's look-ups of this business: its account, its references, searches that found it.
