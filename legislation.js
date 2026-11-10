@@ -390,14 +390,17 @@ const NORTHERN_TERRITORY = {
 };
 
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017
-// (Vic), S.R. No. 22/2017, authorised version 017 incorporating amendments as at 29 July 2026.
+// (Vic), S.R. No. 22/2017, authorised version 018 incorporating amendments as at 20 October 2026.
+// Version 018 changed no regulation: its only change from version 017 is the endnote on sunsetting (now
+// 24 April 2028, Subordinate Legislation (Occupational Health and Safety Regulations 2017) Extension
+// Regulations 2026, S.R. No. 166/2026), found by comparing the full text of both authorised PDFs (issue #263).
 // Victoria is not a model WHS state: its list is regulation 322 and differs from section 291.
 const VICTORIA = {
   id: 'vic',
   name: 'Victoria',
   loaded: true,
   instrument: 'Occupational Health and Safety Regulations 2017 (Vic)',
-  compilation: '29 July 2026',
+  compilation: '20 October 2026',
   versionLabel: 'authorised version 017, as at 29 July 2026',
   section: '327',
   sectionRef: 'regulation 327',
