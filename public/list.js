@@ -4,6 +4,10 @@
 // person can sign in to SiteWrite, or start an account, and take up the list for their company (D308).
 // /list.html?stop={link} is the "stop these emails" page.
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   // The same sign-in as the SiteWrite app (account.js), so signing in here signs in there too.
@@ -31,7 +35,7 @@
   async function call(method, route, body, { signedIn = false } = {}) {
     let response;
     try {
-      response = await fetch(route, {
+      response = await fetch(apiUrl(route), {
         method,
         headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(signedIn && session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
         body: body ? JSON.stringify(body) : undefined,
@@ -126,7 +130,7 @@
       if (file.size > MAX_MB * 1024 * 1024) { fileError(itemId, `The file is larger than ${MAX_MB} MB. Upload a smaller copy of the SWMS.`); return; }
       await busy(up, 'Uploading...', async () => {
         try {
-          const response = await fetch(`/api/list/${encodeURIComponent(token)}/items/${encodeURIComponent(itemId)}/upload`, {
+          const response = await fetch(apiUrl(`/api/list/${encodeURIComponent(token)}/items/${encodeURIComponent(itemId)}/upload`), {
             method: 'POST',
             headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name), ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
             body: file,

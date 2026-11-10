@@ -5,13 +5,12 @@
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const zlib = require('node:zlib');
 const JSZip = require('jszip');
 const { app } = require('../server');
 const { prepareDraft } = require('../draft');
 const { draftToDocx } = require('../docx-draft');
 const { draftToPdf } = require('../pdf-draft');
-const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked, pdfStreams } = require('./helpers');
 const { loadPage, settle, FakeEvent, checkAll } = require('./fake-dom');
 
 const FACTS = { safetyDataSheet: 'The diesel safety data sheet is kept at the work area.' };
@@ -76,12 +75,8 @@ test('a scope reading lists the rows the reader matched to no job steps', () => 
 
 // The text drawn in a PDF: each compressed page stream inflated, and its hex strings read.
 function pdfText(buffer) {
-  const raw = buffer.toString('latin1');
   const out = [];
-  const streams = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
-  for (let match = streams.exec(raw); match; match = streams.exec(raw)) {
-    let body;
-    try { body = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1'); } catch { continue; }
+  for (const body of pdfStreams(buffer)) {
     for (const array of body.match(/\[[^\]]*\]\s*TJ/g) || []) {
       out.push((array.match(/<([0-9a-fA-F]*)>/g) || []).map((hex) => Buffer.from(hex.slice(1, -1), 'hex').toString('latin1')).join(''));
     }

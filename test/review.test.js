@@ -17,6 +17,7 @@ const { draftBody } = require('../input');
 const { answersFor } = require('../presets');
 const { checkSwms, fromDraft } = require('../builder-check');
 const { removeExpired, validAbn } = require('../accounts');
+const { controlLearningKey } = require('../secret-keys');
 const reviews = require('../reviews');
 const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked } = require('./helpers');
 
@@ -516,8 +517,18 @@ test('conditions are kept de-identified for learning only when control learning 
   assert.equal(row.state, 'qld');
   assert.equal(row.revision, 1);
   assert.notEqual(row.swms_key, id, 'the SWMS is known only by a keyed fingerprint');
+  // The two fingerprint columns are pinned exactly: the keyed fingerprint of the SWMS id, and the hash
+  // of that, the revision and the response id. Each is 64 random-looking hex characters, so a short
+  // run of digits such as 0412 turns up in one by chance about 1 run in 500; the words below are
+  // looked for in every other column.
+  const key = crypto.createHmac('sha256', controlLearningKey()).update(String(id)).digest('hex');
+  assert.equal(row.swms_key, key, 'swms_key is only the keyed fingerprint of the SWMS id');
+  const [review] = await db.query('SELECT id FROM swms_reviews WHERE swms_id = $1 AND response = $2', [id, 'changes']);
+  assert.equal(row.id, crypto.createHash('sha256').update(`${key}:1:${review.id}`).digest('hex'), 'the row id is only a hash of the fingerprint, revision and response id');
   assert.match(row.text, /before the gate is lifted/);
-  const stored = JSON.stringify(row);
+  const { id: rowId, swms_key: rowKey, ...rest } = row;
+  assert.ok(rowId && rowKey);
+  const stored = JSON.stringify(rest);
   for (const word of ['Jo', 'Bloggs', '0412', 'Tier One', 'tierone', 'own9', 'Business own9', id, ref]) assert.ok(!stored.includes(word), `the learning row does not keep ${word}`);
 });
 

@@ -13457,4 +13457,9 @@ for (const name of ['Set up the concrete pump and placing boom', 'Pump and place
   step.hazards = step.hazards.map((item) => (/\bpump\b/i.test(typeof item === 'string' ? item : item.text || '') ? item : mark(item)));
 }
 
+// Who does each kind of work, recorded on every activity for the typed-text trade gate (D316 item 2).
+// Recorded only: job steps are still chosen as before (activity-trades.js).
+const { tradesFor } = require('./activity-trades');
+for (const activity of ACTIVITIES) activity.trades = tradesFor(activity.when);
+
 module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, OLD_PPE, currentPpeIds, ACTIVITIES, CITE, BEFORE, BEFORE_EXTRA, FINISH };

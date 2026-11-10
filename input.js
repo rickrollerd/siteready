@@ -1,5 +1,6 @@
 // Cleans what the browser sends before it is drafted or saved.
 const { currentPpeIds } = require('./activities');
+const { STATED_TRADES } = require('./activity-trades');
 // Control characters, often pasted in from Word or email, are not allowed in a
 // Word file and would make it fail to open.
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
@@ -356,6 +357,8 @@ function draftFields(body) {
     // D258: with a crane company, who slings the loads and directs the crane ('crane' or 'ours').
     slinging: ['crane', 'ours'].includes(body.slinging) ? body.slinging : '',
     trade: field(body.trade, 100),
+    // The trade the user says they are ("Your trade"), for typed text: kept only when it is a known trade (D344).
+    ...(STATED_TRADES.some((t) => t.id === field(body.yourTrade, 100)) ? { yourTrade: field(body.yourTrade, 100) } : {}),
     company: field(body.company || body.companyName, 200),
     companyAbn: field(body.companyAbn, 40),
     companyAddress: field(body.companyAddress, 300),

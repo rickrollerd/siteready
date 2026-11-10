@@ -92,7 +92,7 @@
     .step-list .step-names { display: block; font-size: 13px; font-weight: 400; color: #5c6773; margin-top: 2px; }
     .step-list .tag { font-size: 12px; font-weight: 400; color: #5c6773; margin-left: 6px; }
     .step-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .step-add input, .step-add select { flex: 1 1 220px; min-width: 0; }
+    .step-add input, .step-add select { flex: 1 1 220px; min-width: 0; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; }
     .ppe-group legend { font-size: 14px; font-weight: 600; margin-bottom: 4px; padding: 0; }
     .ppe-group label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0 16px 6px 0; }
     .ppe-head { font-size: 15px; font-weight: 600; margin: 14px 0 8px; }
@@ -942,6 +942,12 @@
         <textarea id="task" required spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
         <p id="spelling-note" class="meta hidden" aria-live="polite"></p>
         <input type="hidden" id="task-trade">
+      </div>
+      <div class="field">
+        <label for="your-trade">Your trade
+          <span class="hint">Optional. For a task you write, job steps for other trades' work are not suggested. You can still add them.</span>
+        </label>
+        <select id="your-trade"><option value="">Not given</option></select>
       </div>
       <fieldset class="field choice hidden" id="residential-question">
         <legend id="residential-legend"></legend>

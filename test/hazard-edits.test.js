@@ -3,7 +3,7 @@
 // with an optional reason; the Who column can be changed. Word, PDF and the sign-on page print them.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const zlib = require('node:zlib');
+const { pdfStreams } = require('./helpers');
 const JSZip = require('jszip');
 const { prepareDraft, HAZARD_MARK, NOT_APPLICABLE } = require('../draft');
 const { draftBody } = require('../input');
@@ -70,9 +70,7 @@ test('the Word file and PDF print the user\'s hazards and Who', async () => {
   assert.match(xml, /Jo Smith, leading hand/);
   const raw = (await draftToPdf(draft)).toString('latin1');
   const text = [];
-  for (const match of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
-    let body;
-    try { body = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1'); } catch { continue; }
+  for (const body of pdfStreams(raw)) {
     for (const array of body.match(/\[[^\]]*\]\s*TJ/g) || []) text.push((array.match(/<([0-9a-fA-F]*)>/g) || []).map((hex) => Buffer.from(hex.slice(1, -1), 'hex').toString('latin1')).join(''));
   }
   assert.match(text.join(' '), /Jo Smith,\s+leading hand/);

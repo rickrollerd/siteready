@@ -169,7 +169,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
   // One answer: the item comes off the list and the count drops at once, with no new draft.
   const drafts = () => p.calls.filter((call) => call.route === '/api/draft').length;
   const before = drafts();
-  type(p, 'principal', 'Corbel Build Pty Ltd');
+  type(p, 'principal', 'Specimen Build Pty Ltd');
   assert.equal(listCount(p), first - 1);
   assert.match(topLine(p), new RegExp(`${first - 1} items need`));
   assert.doesNotMatch(p.document.getElementById('result-gate').innerHTML, /Principal contractor</);
@@ -182,7 +182,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
   assert.match(p.document.getElementById('result-gate').innerHTML, /&quot;N\/A&quot; is not an answer here/);
 
   // Everything answered: the list goes and the buttons work, still with no new draft.
-  type(p, 'principal', 'Corbel Build Pty Ltd');
+  type(p, 'principal', 'Specimen Build Pty Ltd');
   for (const [id, value] of [['workplace', '14 Ferndale Street, Herston QLD 4006'], ['compliance-responsible', 'Larry Lead, supervisor'], ['reviewer', 'Wendy Works'], ['first-aider', 'Fiona Aid'], ['muster-point', 'Gate 2 car park'], ['hospital', 'Royal Brisbane and Women\'s Hospital'], ['works-manager', 'Wendy Works'], ['works-manager-phone', '0412 345 678']]) type(p, id, value);
   for (const gap of draft.gate.filter((item) => item.kind === 'emergency')) type(p, gap.field, `${gap.label} answer for this site, by the trained crew at the work area.`, { selector: '[data-emergency]', dataset: { emergency: gap.id.slice(10) } });
   for (const gap of draft.gate.filter((item) => item.kind === 'line')) {
@@ -205,7 +205,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
   p.document.getElementById('new-docx').click();
   await settle();
   const sent = p.calls.find((call) => call.route === '/api/draft.docx').body;
-  assert.equal(sent.principalContractor, 'Corbel Build Pty Ltd');
+  assert.equal(sent.principalContractor, 'Specimen Build Pty Ltd');
   assert.equal(sent.musterPoint, 'Gate 2 car park');
   assert.ok(Object.values(sent.emergency).every((answer) => /answer for this site/.test(answer)));
   assert.ok(Object.values(sent.fills).every((answers) => answers.every((answer) => answer === 'Electrical supervisor')));
