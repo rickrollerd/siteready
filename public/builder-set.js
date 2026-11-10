@@ -104,7 +104,7 @@
     return `This was set by ${builder}. They asked all contractors to use: "${String(set).replace(/\n/g, '; ')}". ${builder} will see this change when you submit.`;
   }
 
-  // A name with its possessive: "Marlowe Ridge Builders'" for a name ending in s, else "Corbel's" (messy
+  // A name with its possessive: "Marlowe Ridge Builders'" for a name ending in s, else "Example Build's" (messy
   // round 7: "Marlowe Ridge Builders's list").
   const possessive = (name) => { const text = String(name || '').trim(); return /s$/i.test(text) ? `${text}'` : `${text}'s`; };
 
