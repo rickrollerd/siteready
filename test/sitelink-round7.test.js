@@ -229,7 +229,7 @@ test('the first aider is a person with a phone, never a role, and lower-case det
 
 test('a name ending in s takes an apostrophe only', () => {
   assert.equal(builderSet.possessive('Ironbark Hill Builders'), 'Ironbark Hill Builders\'');
-  assert.equal(builderSet.possessive('Corbel Build'), 'Corbel Build\'s');
+  assert.equal(builderSet.possessive('Specimen Build'), 'Specimen Build\'s');
 });
 
 // ---- The server ----

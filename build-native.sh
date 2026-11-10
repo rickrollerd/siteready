@@ -132,5 +132,5 @@ echo "4. Start beta testing program"
 echo "5. Prepare app store assets"
 
 echo ""
-echo "The native app calls the server named in <meta name=\"sitewrite-api\"> in public/index.html."
+echo "The native app calls the server named in <meta name=\"sitewrite-api\"> in each page in public/ (see README)."
 echo "Set it to the deployed server address before a release build."

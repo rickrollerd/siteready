@@ -8,7 +8,7 @@ const { answersFor } = require('../presets');
 const { checkSwms } = require('../builder-check');
 const gate = require('../public/gate-rules');
 
-const SITE = { residential: 'no', company: 'Test', workplace: '12 Wattle Road, Hamilton', principalContractor: 'Corbel Build Pty Ltd', hospital: 'Northside General Hospital', firstAider: 'Jo Smith', musterPoint: 'Front gate', worksManager: 'Sam Lee', worksManagerPhone: '0400 118 552', complianceResponsible: 'Sam Lee', reviewer: 'Sam Lee', date: '10 November 2026' };
+const SITE = { residential: 'no', company: 'Test', workplace: '12 Wattle Road, Hamilton', principalContractor: 'Specimen Build Pty Ltd', hospital: 'Northside General Hospital', firstAider: 'Jo Smith', musterPoint: 'Front gate', worksManager: 'Sam Lee', worksManagerPhone: '0400 118 552', complianceResponsible: 'Sam Lee', reviewer: 'Sam Lee', date: '10 November 2026' };
 function answered(input, given) {
   const facts = { ...(input.facts || {}), ...given };
   for (let round = 0; round < 8; round += 1) {
@@ -72,7 +72,7 @@ const SWMS = Object.freeze({
   responsiblePerson: 'Sam Lee, site supervisor',
   consultation: 'The crew were consulted at the prestart.',
   signatures: [{ name: 'Jo Smith' }],
-  principalContractor: 'Corbel Build Pty Ltd',
+  principalContractor: 'Specimen Build Pty Ltd',
   date: '2026-11-10',
   reviewDate: '2027-11-10',
 });

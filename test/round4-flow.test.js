@@ -146,9 +146,12 @@ test('the harness question is asked only where a harness is used or a fall is po
   assert.ok(!(draft.missing || []).includes('Harness and anchors'), (draft.missing || []).join('; '));
 });
 
-const STEEL = { state: 'nsw', fallRisk: 'yes', residential: 'no', crane: 'company', slinging: 'ours', task: 'Erect structural steel columns and beams with a mobile crane.', ...ANSWERED, facts: { fallControl: 'Work from a boom lift with a harness clipped to the basket anchor.', harnessSystem: 'Full body harness with a 2 m shock-absorbing lanyard to rated anchors installed by the roofer; users trained by the supplier.', erectionSequence: 'Erection sequence and bracing to drawing S-501 rev C; the leading hand checks each frame is braced before the crane releases it.' }, site: { ...ANSWERED.site, liveServices: 'Overhead power lines along the street frontage.' } };
+const STEEL = { state: 'nsw', fallRisk: 'yes', residential: 'no', crane: 'company', slinging: 'ours', task: 'Erect structural steel columns and beams with a mobile crane.', ...ANSWERED, facts: { fallControl: 'Work from a boom lift with a harness clipped to the basket anchor.', harnessSystem: 'Full body harness with a 2 m shock-absorbing lanyard to rated anchors installed by the roofer; users trained by the supplier.', erectionSequence: 'Erection sequence and bracing to drawing S-501 rev C; the leading hand checks each frame is braced before the crane releases it.', electricalSafety: 'The network operator isolates the line and issues an access permit before work starts.' }, site: { ...ANSWERED.site, liveServices: 'Overhead power lines along the street frontage.' } };
 
 test('electrical rescue is asked for electrical work, not for overhead lines near other work', () => {
+  // Power lines named only in Live services hold Prepare for Electrical safety arrangement (D339).
+  const { electricalSafety: _unanswered, ...unanswered } = STEEL.facts;
+  assert.equal(prepareDraft(draftBody({ ...STEEL, facts: unanswered })).kind, 'stand-down');
   const steel = prepareDraft(draftBody(STEEL));
   assert.equal(steel.kind, 'draft', (steel.missing || []).join('; '));
   assert.ok(steel.highRisk.some((item) => /energised electrical/i.test(item)));

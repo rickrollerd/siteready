@@ -236,7 +236,8 @@ test('no site answer given once for every SWMS brings high risk work, steps or p
     ground: 'open trenches 2 m deep along the boundary',
   };
   for (const [field, text] of Object.entries(answers)) {
-    const base = { ...ANSWERED, state: 'nsw', task, fallRisk: 'no', residential: 'no', crane: 'none', site: { ...ANSWERED.site, [field]: text } };
+    // Power lines named only in Live services hold Prepare for Electrical safety arrangement, so that answer is given (D339).
+    const base = { ...ANSWERED, state: 'nsw', task, fallRisk: 'no', residential: 'no', crane: 'none', site: { ...ANSWERED.site, [field]: text }, ...(field === 'liveServices' ? { facts: { ...(ANSWERED.facts || {}), electricalSafety: 'The network operator isolates the line and issues an access permit before work starts.' } } : {}) };
     const own = prepareDraft(draftBody(ready(base)));
     assert.ok(Object.values(own.highRiskFrom || {}).some((where) => /answer$/.test(where)), `${field}: its own answer still counts`);
     const shared = prepareDraft(draftBody(ready({ ...base, siteShared: true })));
