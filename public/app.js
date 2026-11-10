@@ -606,6 +606,10 @@ function payload() {
     ppeOff: ppeUnticked(),
     // The job steps picked, or none to use the ones SiteWrite finds in the task, less those the user unticked by hand.
     kinds: stepPicks || undefined,
+    // The steps the server found for this task when the list the picks were made on was drawn (steps.found). With it, the
+    // server reads the picks as changes against that list and keeps one step list from the words, the answers, the plant
+    // and those changes (step list part 2, D316, input.js fromFound): kindsSeen, answersSeen and kindsBrought are not read.
+    kindsFound: stepPicks && foundNow() ? foundNow() : undefined,
     // Kept with the work, on this device and in a saved SWMS, so a step unticked by hand stays unticked after a
     // reload or sign-in and the task is then reworded (messy round 12, B run 8 and A run 2).
     kindsOff: stepsOff.size ? [...stepsOff] : undefined,
@@ -1094,6 +1098,8 @@ document.getElementById('start').addEventListener('submit', (event) => {
       leaveOut = picked.leaveOut && picked.leaveOut.length ? [...picked.leaveOut] : null;
     }
     pickGaps = picked && picked.gaps && picked.gaps.length ? [...picked.gaps] : null;
+    // Steps found for other words are no list to send changes against.
+    stepsFound = null;
     // The scope reading's or pick list's own steps are ticked, as they were before any untick by hand.
     if (stepPicks) stepPicks.forEach((id) => stepsOff.delete(id));
     // The steps added by hand stay with the new words (messy round 19, A run 4).
@@ -1117,6 +1123,12 @@ document.addEventListener('click', (event) => {
 
 // Job steps: null follows the steps SiteWrite finds in the task; a list is the user's own picks.
 let stepPicks = null;
+// The steps the server found for the task when the list was last drawn (steps.found: words, answers and plant, before any
+// pick of the user's own), for the task they were found for. The picks are sent as changes against it (step list part 2).
+let stepsFound = null;
+const taskNow = () => ((document.getElementById('task') || {}).value || '').trim();
+// The steps found, while they are for the task as it is now; null before the server has listed them.
+const foundNow = () => (stepsFound && stepsFound.task === taskNow() ? [...stepsFound.ids] : null);
 // The steps the list suggested when it was last drawn. A Recommended step found after it (from a site answer) is
 // not in it, so the server ticks it with the picks: the user never saw it to untick (messy round 15, A run 4).
 let stepsSeen = null;
@@ -1404,6 +1416,7 @@ function renderSteps(steps) {
   const plant = new Set(steps.plant || []);
   stepsAround = [...around];
   stepsSeen = [...(steps.suggested || [])];
+  stepsFound = Array.isArray(steps.found) ? { task: taskNow(), ids: steps.found.filter((id) => typeof id === 'string') } : null;
   // Suggested steps keep their place when unticked; added steps follow them. A step unticked by hand stays in the
   // list to tick again, and an id the step library does not hold is not shown (messy round 12, run 3: "no").
   const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || []), ...stepsOff])].filter((id) => !stepById.size || stepById.has(id));
@@ -2061,7 +2074,7 @@ async function askOnce() {
     const { response, data } = await postJson('/api/draft/questions', payload());
     if (!response.ok || seq !== askSeq) return;
     if (seq !== askSeq || !Array.isArray(data.required)) return;
-    questions = { ...questions, required: data.required, weak: data.weak || [], standDown: data.standDown, notCovered: data.notCovered, notCoveredLeft: data.notCoveredLeft };
+    questions = { ...questions, required: data.required, weak: data.weak || [], standDown: data.standDown, notCovered: data.notCovered, notCoveredLeft: data.notCoveredLeft, scaffoldSupervisor: data.scaffoldSupervisor === true };
     showStandDown(data);
     weakNotes = weakMap(data.weak);
     drawRequired(data.required);
@@ -2644,7 +2657,7 @@ function scaffoldEarly() {
 function showScaffoldField() {
   const field = document.getElementById('scaffold-supervisor-field');
   if (!field) return;
-  field.classList.toggle('hidden', !(shownChecks.some((check) => check.id === 'scaffoldSupervisor') || scaffoldEarly()));
+  field.classList.toggle('hidden', !(shownChecks.some((check) => check.id === 'scaffoldSupervisor') || (questions && questions.scaffoldSupervisor === true) || scaffoldEarly()));
 }
 document.addEventListener('input', () => showScaffoldField());
 document.addEventListener('change', () => showScaffoldField());

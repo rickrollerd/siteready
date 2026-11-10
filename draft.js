@@ -3823,7 +3823,7 @@ function questionsForWords(input) {
   // So do the items a printed line says are worn, which the PPE table lists whatever is ticked.
   const own = suggested && Array.isArray(suggested.ppe) ? [...(Array.isArray(input.ppe) ? [] : tickedPpe(suggested.ppe)), ...(suggested.worn || [])] : [];
   const required = own.length ? withHarness(shown.required || [], {}, own) : shown.required;
-  const asked = { ...shown, required, weak };
+  const asked = { ...shown, required, weak, ...(scaffoldNamed(input, shown.steps) ? { scaffoldSupervisor: true } : {}) };
   const reason = buildDraft(input, 'steps');
   if (!reason || !reason.noSteps) return asked;
   // Steps for where the work is done (the rail corridor, the road, work above traffic) are not ticked
@@ -3933,8 +3933,38 @@ function askQuestions(input) {
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
-    steps: withAccessSteps(withPlantSteps(stepPicks(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state),
+    steps: withFound(withAccessSteps(withPlantSteps(stepPicks(task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task, { ...(input.facts || {}), siteConditions: readSite(input) }, state), input, task),
   };
+}
+
+// The scaffold supervisor's box is shown on the questions page as soon as a scaffold is involved, from the server's list
+// (code review D, step list part 2): the task, the fall answer, a job step in use or the plant confirmed names one, a
+// mobile scaffold too, as the page's own check (scaffoldEarly) does. "No scaffold" and "not using scaffolds" do not count.
+// Whether it must be filled in is still the download gate's rule (a scaffold put up for the work).
+const NO_SCAFFOLD_SAID = /\b(?:no|not|nil|none|never|without)\b[^.;,\n]{0,30}\bscaffold\w*/gi;
+const scaffoldSaid = (text) => /\bscaffold(?:s|ing)?\b/i.test(String(text || '').replace(NO_SCAFFOLD_SAID, ' '));
+function scaffoldNamed(input, steps) {
+  const chosen = new Set((steps && steps.chosen) || []);
+  const names = ACTIVITIES.filter((activity) => chosen.has(activity.when)).flatMap((activity) => (activity.steps || []).map((step) => step.step));
+  const plant = input.plantChoice && typeof input.plantChoice === 'object' ? [...(input.plantChoice.used || []), ...(input.plantChoice.added || []).map((item) => item && item.item)] : [];
+  return [input.task, input.jobDescription, input.facts && input.facts.fallControl, ...chosen, ...names, ...plant].some((text) => typeof text === 'string' && scaffoldSaid(text));
+}
+
+// One step list, worked out on the server (code review E, D316, step list part 2): the steps the task's words, the
+// answers (crane, fall access) and the plant confirmed bring, before any pick or untick of the user's own. The page sends
+// its picks as changes against this list (kindsOff, kindsAdded), so a step an answer or the plant brings later is in the
+// draft unless the user unticked it, and adding a step never takes another out.
+function foundStepList(input, task) {
+  const bare = { ...input, kinds: undefined, kindsOff: undefined, kindsAdded: undefined, kindsSeen: undefined, kindsBrought: undefined, answersSeen: undefined };
+  const state = stateFor(bare);
+  if (!state || !state.loaded) return [];
+  const facts = { ...(bare.facts || {}), siteConditions: readSite(bare) };
+  return withAccessSteps(withPlantSteps(stepPicks(task, facts, state), bare, task, facts, state), bare, task, facts, state).chosen;
+}
+function withFound(steps, input, task) {
+  let found = null;
+  try { found = foundStepList(input, task); } catch { found = null; }
+  return Array.isArray(found) ? { ...steps, found } : steps;
 }
 
 // "Other fall controls considered" is not asked once the fall control given is a guardrail, a scaffold or an
