@@ -116,7 +116,7 @@ const ITEMS = [['Boundary fence repairs', 'Replace a 3m length of timber fence a
 async function builder(prefix, { abn = '', subName = 'Tallow Interiors Pty Ltd', position } = {}) {
   const leadEmail = `dana@${prefix}.example`;
   const lead = await leadSignIn(leadEmail, position);
-  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: nextAbn() } });
+  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Specimen Build Pty Ltd', abn: nextAbn() } });
   assert.equal(org.status, 201, JSON.stringify(org.data));
   await db.query("UPDATE orgs SET abn_check = 'verified', abn_verified_at = $1 WHERE id = $2", [new Date(), org.data.org.id]);
   const project = await call('POST', `/api/hse/orgs/${org.data.org.id}/projects`, { reviewer: lead, body: { name: 'Northgate Health Hub', workplace: WORKPLACE, state: 'qld' } });
@@ -147,7 +147,7 @@ async function claimed(prefix) {
   return { ...b, office, list };
 }
 function swmsFor(item, extra = {}, who = { name: 'Ben Hollis', role: 'Foreman' }) {
-  const input = ready({ ...ANSWERED, state: 'qld', task: item.task, fallRisk: 'no', residential: 'no', workplace: WORKPLACE, principalContractor: 'Corbel Build Pty Ltd', ...DETAILS, ...extra });
+  const input = ready({ ...ANSWERED, state: 'qld', task: item.task, fallRisk: 'no', residential: 'no', workplace: WORKPLACE, principalContractor: 'Specimen Build Pty Ltd', ...DETAILS, ...extra });
   return { ...checked(input, null, who), swmsTitle: item.title };
 }
 const submitItems = (c, entries) => call('POST', `/api/from-builders/${c.subId}/submit`, { session: c.office, body: { items: entries } });
@@ -470,7 +470,7 @@ test('a list whose builder left SiteLink says it was withdrawn, not to contact i
   await db.query('DELETE FROM subcontracts WHERE id = $1', [c.subId]);
   const r = await call('GET', `/api/from-builders/${c.subId}`, { session: c.office });
   assert.equal(r.status, 410);
-  assert.equal(r.data.message, 'Corbel Build Pty Ltd has withdrawn this list, and no longer uses SiteLink. Your own copies in My SWMS stay.');
+  assert.equal(r.data.message, 'Specimen Build Pty Ltd has withdrawn this list, and no longer uses SiteLink. Your own copies in My SWMS stay.');
 });
 
 // ---- Smaller faults ----

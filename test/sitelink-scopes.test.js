@@ -128,7 +128,7 @@ async function finished(lead, subId) {
 const MONEY_LEFT = /\$|\bAUD\b|\b\d{1,3}(?:,\d{3})+\.\d{2}\b|\b95\.00\b|\blump sum\b|\bGST\b|\blabour rate\b|\/hr\b/i;
 
 test('a subcontract is added, its scope read once on the project, and its packages become the SWMS list', async () => {
-  const { lead, projectId } = await leadWithProject('lead@corbel4.example', 'Corbel Four Pty Ltd');
+  const { lead, projectId } = await leadWithProject('lead@specimen4.example', 'Specimen Four Pty Ltd');
   const before = asked.readings;
   // The company name and trade are needed; the email is optional, and checked when given.
   assert.equal((await call('POST', `/api/hse/projects/${projectId}/subcontracts`, { reviewer: lead, body: { name: '', trade: 'Formwork' } })).data.field, 'name');
