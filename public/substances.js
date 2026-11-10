@@ -114,8 +114,9 @@
     const id = esc(row.id);
     const server = fromServer(row.id);
     const legend = row.product || `New product${row.type ? `: ${R.promptName(row.type)}` : ''}`;
+    const tickLabel = row.file ? 'These match the SDS' : 'I have the current SDS for this product on site';
     const read = readFields(row).length && !row.confirmed
-      ? '<p class="warning sub-read-note">Read from the safety data sheet: check each line matches it, change what does not, then tick "These match the SDS".</p>' : '';
+      ? `<p class="warning sub-read-note">Read from the safety data sheet: check each line matches it, change what does not, then tick "${tickLabel}".</p>` : '';
     const old = R.sdsOld(row.sdsDate) ? `<p class="warning sub-old">${esc(R.OLD_NOTE)}</p>` : '';
     const future = R.sdsFuture(row.sdsDate) ? '<p class="warning sub-old">This date is after today. Check the issue date on the SDS.</p>' : '';
     // Before the draft is updated with it, the card says what it still needs; after, the list of what
@@ -139,7 +140,7 @@
       ${area(row, 'firstAid', 'First aid (section 4)', 'Optional. One a line.')}
       ${area(row, 'storage', 'Storage and spills (sections 6 and 7)', 'Optional. One a line.')}
       ${stepChoice(row)}
-      <label class="check"><input type="checkbox" data-sub-confirm="${id}"${row.confirmed ? ' checked' : ''}><span>These match the SDS <span class="meta">Tick once you have checked every line against the product's safety data sheet.</span></span></label>
+      <label class="check"><input type="checkbox" data-sub-confirm="${id}"${row.confirmed ? ' checked' : ''}><span>${row.file ? 'These match the SDS' : 'I have the current SDS for this product on site'} <span class="meta">${row.file ? 'Tick once you have checked every line against the product\'s safety data sheet.' : 'Tick once you have checked every line against it.'}</span></span></label>
       ${own ? `<p class="method-need sub-need" role="status">${esc(own)}</p>` : ''}
       ${remove}
     </fieldset>`;
@@ -156,7 +157,7 @@
     const cells = (row) => [
       [row.product, row.type, row.supplier ? `Supplier: ${row.supplier}` : '', row.quantity ? `Quantity: ${row.quantity}` : ''].filter(Boolean).join('\n'),
       or(row.hazards, 'section 2'), or(row.controls, 'section 8'), or(row.firstAid, 'section 4'), or(row.storage, 'sections 6 and 7'),
-      [dated(row.sdsDate), row.file ? `A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''].filter(Boolean).join('\n'),
+      [dated(row.sdsDate), row.file ? `A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : 'SDS held on site, not attached.'].filter(Boolean).join('\n'),
     ];
     const cell = (value, i) => `<td data-label="${esc(head[i])}">${esc(value).replace(/\n/g, '<br>')}</td>`;
     return `<p class="meta">Each product used, with the controls from its own safety data sheet (SDS). Keep each product's current SDS at the work area, and label every container, including anything decanted.</p>
@@ -274,7 +275,7 @@
       if (tick) tick.checked = false;
       let note = cardEl.querySelector('.sub-untick');
       if (!note && tick) { note = document.createElement('p'); note.className = 'meta sub-untick'; note.setAttribute('role', 'status'); tick.closest('label').after(note); }
-      if (note) note.textContent = 'You changed a line, so "These match the SDS" is ticked off. Check the lines against the safety data sheet and tick it again.';
+      if (note) note.textContent = `You changed a line, so "${row.file ? 'These match the SDS' : 'I have the current SDS for this product on site'}" is ticked off. Check the lines against the safety data sheet and tick it again.`;
     }
     const own = cardEl.querySelector('.sub-need');
     if (own) own.textContent = R.substanceNeed(row, stepNow(row));
