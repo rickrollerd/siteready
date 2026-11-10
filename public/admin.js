@@ -26,6 +26,8 @@
   const { ok, status, data } = await api('/api/admin/stats');
   if (!ok) {
     $('error').textContent = status === 401 ? 'Sign in on the main page first.' : (data.message || 'Not available.');
+    // Someone who is not the owner sees only the message, not the owner's tools (the server refuses them anyway).
+    document.querySelectorAll('.panel, #tiles').forEach((el) => { el.hidden = true; el.style.display = 'none'; });
     return;
   }
   const tile = (n, label) => `<div class="tile"><div class="n">${esc(n)}</div><div class="l">${esc(label)}</div></div>`;
