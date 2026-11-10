@@ -1394,7 +1394,10 @@ function renderSteps(steps) {
   // A step the user unticked by hand is drawn unticked, whatever the server last said.
   const chosen = new Set((steps.chosen || []).filter((id) => !stepsOff.has(id)));
   // A step a changed answer brought is Recommended too, while it is suggested.
-  const brought = new Set([...stepsBrought].filter((id) => (steps.suggested || []).includes(id) && !(steps.locked || []).includes(id)));
+  const brought = new Set([
+    ...[...stepsBrought].filter((id) => (steps.suggested || []).includes(id) && !(steps.locked || []).includes(id)),
+    ...(steps.access || [])
+  ]);
   const locked = new Set([...(steps.locked || []), ...brought]);
   const around = new Set(steps.around || []);
   // Steps the plant confirmed brought, named as such so they can be unticked here (messy round 16, A run 4).
@@ -1616,9 +1619,14 @@ document.getElementById('ppe-block').addEventListener('click', (event) => {
   if (['harness', 'lifeJacket'].includes(id)) ppeQuestions();
 });
 
+// The steps the fall access answer brings (steps.access) follow the answer on the server, so they are not kept as picks:
+// changing the answer then changes the step, and unticking one sends it in kindsOff (code review E, D330).
+const answerStepIds = () => new Set((questions && questions.steps && questions.steps.access) || []);
+const ownPicks = (ids) => { const brought = answerStepIds(); return ids.filter((id) => !brought.has(id)); };
+
 document.getElementById('steps-block').addEventListener('change', (event) => {
   if (!event.target.matches('[data-step]')) return;
-  stepPicks = tickedSteps();
+  stepPicks = ownPicks(tickedSteps());
   if (event.target.checked) stepsOff.delete(event.target.value);
   else stepsOff.add(event.target.value);
   refreshSteps();
@@ -1628,7 +1636,7 @@ document.getElementById('step-add').addEventListener('change', (event) => {
   const id = event.target.value;
   if (!id) return;
   // The steps for the work around it come back with the first step added for the work itself.
-  const current = stepPicks || tickedSteps().concat(stepsAround);
+  const current = ownPicks(stepPicks || tickedSteps().concat(stepsAround));
   stepPicks = [...new Set([...current, id])];
   stepsOff.delete(id);
   stepsAdded.add(id);
