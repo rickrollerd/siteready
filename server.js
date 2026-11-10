@@ -97,11 +97,18 @@ const projectJson = express.json({ limit: '5mb' });
 const HSE_SCOPE = /^\/api\/hse\/subcontracts\/[^/]+\/scope$/;
 // A subcontractor's work on a builder's list (stage 6) is the whole project page, like the project zip.
 const LIST_PROGRESS = /^\/api\/from-builders\/[^/]+\/(?:progress|submit)$/;
-app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' || LIST_PROGRESS.test(req.path) ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+// The QuantityForge tab sends the whole bill back with each change (quantityforge.js).
+const QF_BILL = /^\/api\/qf\/(?:provenance|override|rate|profile|export\.csv)$/;
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' || LIST_PROGRESS.test(req.path) || QF_BILL.test(req.path) ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 // SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
 app.get(['/sitelink', '/sitelink/'], (req, res, next) => {
   req.url = `/hse.html${req.url.slice(req.path.length)}`;
+  next();
+});
+// The QuantityForge tab (quantityforge.js), at its own address like SiteLink.
+app.get(['/quantityforge', '/quantityforge/'], (req, res, next) => {
+  req.url = `/qf.html${req.url.slice(req.path.length)}`;
   next();
 });
 app.use(delivery.staticFiles(path.join(__dirname, 'public')));
@@ -289,6 +296,9 @@ function designsAsked(input) {
 }
 
 // Attaching design files has its own limit: each is up to 10 MB.
+// Measuring a sheet is slow work on QuantityForge, so it has its own, lower limit.
+const qfMeasureLimit = limiter('qf-measure', positiveNumber(process.env.RATE_LIMIT_QF_MEASURE_REQUESTS, 30));
+app.use('/api/qf/measure', (req, res, next) => (req.method === 'POST' ? qfMeasureLimit(req, res, next) : next()));
 const designFileLimit = limiter('design-files', positiveNumber(process.env.RATE_LIMIT_DESIGN_FILE_REQUESTS, 60));
 app.use('/api/designs/files', (req, res, next) => (req.method === 'POST' ? designFileLimit(req, res, next) : next()));
 
@@ -731,6 +741,8 @@ app.use('/api', require('./sitelink-send').publicRouter);
 app.use('/api', require('./sitelink-subbie').router);
 // Stage 7: submitting a SWMS on a builder's list, and the company's side of conditions.
 app.use('/api', require('./sitelink-submit').router);
+// The QuantityForge tab: off unless QF_TAB_ENABLED, QF_API_URL and QF_API_TOKEN are set.
+app.use('/api', require('./quantityforge').router());
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {

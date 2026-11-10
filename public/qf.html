@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>QuantityForge by SiteWrite</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; overflow-wrap: anywhere; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px 48px; }
+    .tabs { display: flex; gap: 6px; padding-top: 10px; border-bottom: 1px solid #c5cdd6; flex-wrap: wrap; }
+    .tabs a { display: block; min-height: 44px; padding: 7px 14px 6px; border: 1px solid #c5cdd6; border-bottom: 0; border-radius: 8px 8px 0 0; background: #e3e8ee; color: #1c2430; text-decoration: none; font-weight: 700; line-height: 1.2; margin-bottom: -1px; }
+    .tabs a span { display: block; font-weight: 400; font-size: 13px; color: #5c6773; }
+    .tabs a[aria-current="page"] { background: #fff; border-top: 3px solid #1f4e3d; color: #1f4e3d; }
+    h1 { font-size: 26px; margin: 18px 0 4px; color: #1f4e3d; }
+    h2 { font-size: 19px; margin: 0 0 8px; }
+    .lede { margin: 0 0 8px; color: #44505c; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
+    label .hint { display: block; font-weight: 400; color: #5c6773; margin-top: 2px; }
+    input[type="text"], input[type="number"], select { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 9px 10px; font: inherit; background: #fff; color: inherit; }
+    input[type="file"] { font: inherit; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row > div { flex: 1 1 160px; }
+    button { display: inline-block; border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 10px 14px; min-height: 44px; font: inherit; font-weight: 600; cursor: pointer; }
+    button.light { background: #fff; color: #1f4e3d; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    .ok, .bad, .warn, .note { border-radius: 8px; padding: 10px 14px; margin-top: 12px; }
+    .ok { background: #e8f3ee; border: 1px solid #9cc9b3; }
+    .bad { background: #fbeaea; border: 1px solid #e3a3a3; }
+    .warn { background: #fff4dc; border: 1px solid #e6c77a; }
+    .note { background: #f4f6f8; border: 1px solid #d5dbe3; }
+    .hidden { display: none !important; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 14px; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .sheet { position: relative; border: 1px solid #c5cdd6; background: #fff; overflow: auto; max-height: 80vh; }
+    .sheet .canvas { position: relative; min-width: 100%; }
+    .sheet img { display: block; width: 100%; height: auto; }
+    .zoom { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; }
+    .zoom button { min-width: 44px; padding: 6px 10px; }
+    #sheets-list { list-style: none; margin: 6px 0 0; padding: 0; }
+    #sheets-list li { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #e1e6ec; }
+    #sheets-list li.open { font-weight: 700; }
+    button.link { background: none; border: 0; color: #1f4e3d; text-decoration: underline; padding: 0; min-height: 0; font-weight: inherit; text-align: left; }
+    button.link.remove { color: #8a1f1f; margin-left: auto; font-weight: 400; }
+    .sheet .mark { position: absolute; border: 3px solid #d0021b; background: rgba(208, 2, 27, 0.12); pointer-events: none; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; vertical-align: top; padding: 7px 6px; border-bottom: 1px solid #e1e6ec; }
+    th { font-size: 13px; color: #5c6773; }
+    td.num, th.num { text-align: right; white-space: nowrap; }
+    td.ref, td.unit { white-space: nowrap; overflow-wrap: normal; }
+    td input[type="number"] { width: 6.5em; padding: 6px 7px; text-align: right; }
+    tr.line { cursor: pointer; }
+    tr.line:hover { background: #f4f7f5; }
+    tr.line.picked { background: #e8f3ee; }
+    .flag { display: block; font-size: 13px; color: #7a4d00; }
+    .total td { font-weight: 700; border-bottom: 0; }
+    .question { border-top: 1px solid #e1e6ec; padding-top: 4px; }
+    .question .items { font-weight: 400; color: #5c6773; }
+    .choices label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin: 4px 14px 4px 0; }
+    ul.plain { margin: 6px 0 0; padding-left: 20px; }
+    .muted { color: #5c6773; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="tabs" aria-label="SiteWrite, SiteLink and QuantityForge">
+      <a href="/">SiteWrite<span>For subcontractors</span></a>
+      <a href="/sitelink">SiteLink<span>For builders</span></a>
+      <a href="/quantityforge" aria-current="page">QuantityForge<span>Quantities from drawings</span></a>
+    </nav>
+    <h1>QuantityForge</h1>
+    <p class="lede">Upload one drawing sheet as a PDF and get its bill of quantities. Check every quantity against the drawing before you price or order from it.</p>
+
+    <div id="view-loading" class="panel"><p>Loading…</p></div>
+    <div id="view-off" class="panel hidden"><p>The QuantityForge tab is not switched on yet.</p></div>
+    <div id="view-signin" class="panel hidden"><p>Sign in on the <a href="/">SiteWrite tab</a> first, then come back to this tab.</p></div>
+
+    <div id="view-tab" class="hidden">
+      <form id="sheet-form" class="panel">
+        <h2>1. The sheet</h2>
+        <label for="qf-file">Drawing PDF<span class="hint">Up to 50 MB. It is sent to QuantityForge to measure and is not kept.</span></label>
+        <input type="file" id="qf-file" accept="application/pdf,.pdf" required>
+        <div class="row">
+          <div>
+            <label for="qf-page">Page number</label>
+            <input type="number" id="qf-page" min="1" step="1" value="1" required>
+          </div>
+          <div>
+            <label for="qf-type">Kind of sheet</label>
+            <select id="qf-type">
+              <option value="slab_plan">Slab plan</option>
+              <option value="foundation_plan">Footing plan</option>
+            </select>
+          </div>
+          <div>
+            <label for="qf-scale">Scale 1: <span class="hint">Leave empty to read it from the sheet.</span></label>
+            <input type="number" id="qf-scale" min="1" step="1" placeholder="For example 100">
+          </div>
+        </div>
+        <div class="actions"><button type="submit" id="qf-measure">Measure</button><span id="qf-busy" class="muted"></span></div>
+        <div id="qf-message"></div>
+      </form>
+
+      <div id="sheets" class="panel hidden">
+        <h2>Drawings measured</h2>
+        <p class="muted">Kept on this page until you close it. To add another drawing, choose its PDF and page above and press Measure.</p>
+        <ul id="sheets-list"></ul>
+      </div>
+
+      <form id="questions" class="panel hidden">
+        <h2>2. What QuantityForge needs to know</h2>
+        <p id="questions-why" class="muted"></p>
+        <div id="questions-list"></div>
+        <div class="actions"><button type="submit" id="qf-again">Measure again with these answers</button></div>
+      </form>
+
+      <div id="result" class="hidden">
+        <div class="layout">
+          <div class="panel">
+            <h2>The drawing</h2>
+            <div class="zoom" role="group" aria-label="Zoom the drawing">
+              <button type="button" class="light" id="zoom-out" aria-label="Zoom out">−</button>
+              <span id="zoom-level" class="muted">100%</span>
+              <button type="button" class="light" id="zoom-in" aria-label="Zoom in">+</button>
+              <button type="button" class="light" id="zoom-fit">Fit</button>
+            </div>
+            <div id="sheet" class="sheet"></div>
+            <div id="line-detail"></div>
+          </div>
+          <div class="panel">
+            <h2>3. The bill</h2>
+            <div class="row">
+              <div>
+                <label for="qf-trade">Trade</label>
+                <select id="qf-trade"></select>
+              </div>
+            </div>
+            <p class="muted">Click a line to see it on the drawing. Change a quantity or enter your rate (AUD, excluding GST) and press Enter.</p>
+            <div id="bill"></div>
+            <div class="actions"><button type="button" class="light" id="qf-export">Download the bill (CSV)</button></div>
+            <div id="extras"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/net.js"></script>
+  <script src="/qf.js"></script>
+</body>
+</html>

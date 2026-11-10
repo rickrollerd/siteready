@@ -58,7 +58,7 @@ async function leadSignIn(email, name = 'Dana Whitfield') {
   return data.token;
 }
 
-async function builder(prefix, orgName = 'Corbel Build Pty Ltd', { abn = '', email = `office@${prefix}-sub.example`, verified = true } = {}) {
+async function builder(prefix, orgName = 'Specimen Build Pty Ltd', { abn = '', email = `office@${prefix}-sub.example`, verified = true } = {}) {
   const leadEmail = `dana@${prefix}.example`;
   const lead = await leadSignIn(leadEmail);
   const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: orgName, abn: nextAbn() } });
@@ -161,7 +161,7 @@ test('an answer given after the list is sent marks the list changed and sends an
   const first = linkOf([...mailbox].reverse().find((item) => item.to === 'office@sl17late-sub.example'));
   const before = await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead });
   assert.equal(before.data.sending.changes, null, JSON.stringify(page.sending && page.sending.changes));
-  const answered = await call('PUT', `/api/hse/subcontracts/${b.subId}/points/${pointId}`, { reviewer: b.lead, body: { answer: 'Corbel Build supplies the props.' } });
+  const answered = await call('PUT', `/api/hse/subcontracts/${b.subId}/points/${pointId}`, { reviewer: b.lead, body: { answer: 'Specimen Build supplies the props.' } });
   assert.equal(answered.status, 200, JSON.stringify(answered.data));
   assert.match(answered.data.message, /The list has changed since it was sent/);
   const after = await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead });
@@ -179,7 +179,7 @@ test('a link kept before points were stored counts only answers given after it w
   const b = await builder('sl17old');
   const pointId = require('../auth').newId();
   await db.query('INSERT INTO subcontract_points (id, subcontract_id, position, activity, clause, question, answer, answered_by, answered_by_name, answered_at) VALUES ($1, $2, 0, $3, $4, $5, $6, $7, $8, $9)',
-    [pointId, b.subId, 'Formwork to suspended slabs', '2.1', 'Who supplies the props?', 'Corbel Build supplies the props.', 'x', 'Dana Whitfield', new Date(Date.now() - 60000)]);
+    [pointId, b.subId, 'Formwork to suspended slabs', '2.1', 'Who supplies the props?', 'Specimen Build supplies the props.', 'x', 'Dana Whitfield', new Date(Date.now() - 60000)]);
   await sendList(b);
   await db.query("UPDATE list_links SET points = '[]' WHERE subcontract_id = $1", [b.subId]);
   assert.equal((await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead })).data.sending.changes, null);

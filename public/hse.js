@@ -4,6 +4,10 @@
 // change to the site details is a new version. Pages are reached by the address after #, so Back
 // and reload work. Site details typed but not saved are kept on this device until saved or cancelled.
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   // The same key as the review page, so one sign-in serves both.
@@ -51,7 +55,7 @@
     let response;
     for (let attempt = 1; ; attempt += 1) {
       try {
-        response = await fetch(route, {
+        response = await fetch(apiUrl(route), {
           method,
           headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { 'X-Reviewer-Token': token } : {}) },
           body: body ? JSON.stringify(body) : undefined,
@@ -609,7 +613,7 @@
     const lookUp = async (text) => {
       const mine = ++seq;
       try {
-        const response = await fetch(`/api/address?q=${encodeURIComponent(text)}`);
+        const response = await fetch(apiUrl(`/api/address?q=${encodeURIComponent(text)}`));
         if (!response.ok) return;
         const data = await response.json();
         if (mine !== seq || input.value !== text) return;
@@ -1314,7 +1318,7 @@
           const input = $(`outside-file-${itemId}`);
           const file = input && input.files && input.files[0];
           if (!file) { fieldError(`outside-file-${itemId}`, 'Choose the SWMS file first.'); button.disabled = false; return; }
-          const response = await fetch(`/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/items/${encodeURIComponent(itemId)}/outside`, {
+          const response = await fetch(apiUrl(`/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/items/${encodeURIComponent(itemId)}/outside`), {
             method: 'POST',
             headers: { 'Content-Type': 'application/octet-stream', 'X-Reviewer-Token': token, 'X-File-Name': encodeURIComponent(file.name), 'X-Note': encodeURIComponent(($(`outside-note-${itemId}`) || {}).value || '') },
             body: file,
@@ -1640,7 +1644,7 @@
     const isPdf = /\.pdf$/i.test(button.dataset.uploadName || '');
     const tab = isPdf ? window.open('', '_blank') : null;
     try {
-      const response = await fetch(`/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/uploads/${encodeURIComponent(button.dataset.uploadOpen)}`, { headers: { 'X-Reviewer-Token': token } });
+      const response = await fetch(apiUrl(`/api/hse/subcontracts/${encodeURIComponent(sub.subcontract.id)}/uploads/${encodeURIComponent(button.dataset.uploadOpen)}`), { headers: { 'X-Reviewer-Token': token } });
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'The file could not be opened. Try again.');
       const url = URL.createObjectURL(await response.blob());
       // A browser with no PDF viewer (Android) saves the PDF under its own name instead, as account.js does.

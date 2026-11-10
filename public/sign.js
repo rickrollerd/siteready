@@ -4,11 +4,15 @@
 // What the worker has read and typed is kept on the phone until they sign on (sign-keep.js), so
 // a reload or lost signal carries on where they were (goal 7).
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const $ = (id) => document.getElementById(id);
   const token = new URLSearchParams(window.location.search).get('t') || '';
   const esc = (value) => String(value || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const show = (id, text) => { $(id).textContent = text; $(id).classList.remove('hidden'); };
-  const api = `/api/sign/${encodeURIComponent(token)}`;
+  const api = apiUrl(`/api/sign/${encodeURIComponent(token)}`);
 
   let data = null;
   let translated = null;
