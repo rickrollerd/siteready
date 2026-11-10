@@ -184,8 +184,8 @@ function companyKey(name) {
   return String(name || '').toLowerCase().replace(/&/g, ' and ').replace(/\bproprietary\b/g, 'pty').replace(/\blimited\b/g, 'ltd')
     .replace(/[^a-z0-9]+/g, ' ').split(' ').filter((word) => word && !['pty', 'ltd', 'the'].includes(word)).join(' ');
 }
-// The register writes most names in capitals. Offered as an account name, "CORBEL BUILD PTY LTD"
-// reads as "Corbel Build Pty Ltd"; a short word with no vowel ("NSW") stays in capitals.
+// The register writes most names in capitals. Offered as an account name, "EXAMPLE BUILD PTY LTD"
+// reads as "Example Build Pty Ltd"; a short word with no vowel ("NSW") stays in capitals.
 function readableCompany(name) {
   const value = String(name || '').trim();
   if (/[a-z]/.test(value)) return value;
