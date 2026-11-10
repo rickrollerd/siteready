@@ -38,7 +38,15 @@
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 14px; align-items: start; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
     .sheet { position: relative; border: 1px solid #c5cdd6; background: #fff; overflow: auto; max-height: 80vh; }
+    .sheet .canvas { position: relative; min-width: 100%; }
     .sheet img { display: block; width: 100%; height: auto; }
+    .zoom { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; }
+    .zoom button { min-width: 44px; padding: 6px 10px; }
+    #sheets-list { list-style: none; margin: 6px 0 0; padding: 0; }
+    #sheets-list li { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #e1e6ec; }
+    #sheets-list li.open { font-weight: 700; }
+    button.link { background: none; border: 0; color: #1f4e3d; text-decoration: underline; padding: 0; min-height: 0; font-weight: inherit; text-align: left; }
+    button.link.remove { color: #8a1f1f; margin-left: auto; font-weight: 400; }
     .sheet .mark { position: absolute; border: 3px solid #d0021b; background: rgba(208, 2, 27, 0.12); pointer-events: none; }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; vertical-align: top; padding: 7px 6px; border-bottom: 1px solid #e1e6ec; }
@@ -98,6 +106,12 @@
         <div id="qf-message"></div>
       </form>
 
+      <div id="sheets" class="panel hidden">
+        <h2>Drawings measured</h2>
+        <p class="muted">Kept on this page until you close it. To add another drawing, choose its PDF and page above and press Measure.</p>
+        <ul id="sheets-list"></ul>
+      </div>
+
       <form id="questions" class="panel hidden">
         <h2>2. What QuantityForge needs to know</h2>
         <p id="questions-why" class="muted"></p>
@@ -109,6 +123,12 @@
         <div class="layout">
           <div class="panel">
             <h2>The drawing</h2>
+            <div class="zoom" role="group" aria-label="Zoom the drawing">
+              <button type="button" class="light" id="zoom-out" aria-label="Zoom out">−</button>
+              <span id="zoom-level" class="muted">100%</span>
+              <button type="button" class="light" id="zoom-in" aria-label="Zoom in">+</button>
+              <button type="button" class="light" id="zoom-fit">Fit</button>
+            </div>
             <div id="sheet" class="sheet"></div>
             <div id="line-detail"></div>
           </div>
@@ -122,6 +142,7 @@
             </div>
             <p class="muted">Click a line to see it on the drawing. Change a quantity or enter your rate (AUD, excluding GST) and press Enter.</p>
             <div id="bill"></div>
+            <div class="actions"><button type="button" class="light" id="qf-export">Download the bill (CSV)</button></div>
             <div id="extras"></div>
           </div>
         </div>

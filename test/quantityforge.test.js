@@ -267,3 +267,22 @@ test('clicking a line gives where it sits on the page and how it was measured', 
     assert.deepEqual(l2.parameters, [{ name: 'thickness_mm', value: 75, source: 'supplied' }], 'taken from the bill line when provenance leaves them out');
   } finally { await app.close(); }
 }));
+
+test('the bill downloads as a CSV file for the trade picked, named for the sheet', withEnv(ON, async () => {
+  const qf = fakeQf();
+  const app = await serve(qf);
+  try {
+    const r = await post(app.base, 'export.csv', { bill: BILL, profile: 'concrete', sheet: 'Level 1 slab.pdf page 3' });
+    assert.equal(r.status, 200);
+    assert.match(r.headers.get('content-type'), /^text\/csv/);
+    assert.equal(r.headers.get('content-disposition'), 'attachment; filename="Level-1-slab-page-3-quantities.csv"');
+    const csv = await r.text();
+    assert.match(csv, /Sheet,Level 1 slab.pdf page 3/);
+    assert.match(csv, /6\.1\/001,Line 6\.1\/001,103,m²/);
+    assert.ok(!csv.includes('9/001'), 'only the trade picked');
+    assert.equal(qf.calls.at(-1).path, '/v1/bill/profile');
+    const all = await (await post(app.base, 'export.csv', { bill: BILL })).text();
+    assert.ok(all.includes('9/001'));
+    assert.equal((await post(app.base, 'export.csv', {})).status, 400);
+  } finally { await app.close(); }
+}));
