@@ -315,6 +315,9 @@ function listItems(reading) {
   // goes out under the reading's package name (messy round 10, SiteLink blocker 7: "Trade installation:
   // discharge and intake points", moved onto the list, went out in the list email).
   retitle(out, work, { all: true, folded: true });
+  const inGroundServices = out.find((item) => !item.removedWhy && item.title === 'In-ground services');
+  const inGroundTarget = inGroundServices && out.find((item) => !item.removedWhy && item !== inGroundServices && /^In-ground\b.+\bservices$/i.test(item.title));
+  if (inGroundServices && inGroundTarget) fold(inGroundServices, inGroundTarget);
   const named = readingNames(safe);
   return out.map(({ kind, ownHighRisk: own, ...item }) => readingWords(item, named));
 }
@@ -330,12 +333,23 @@ function readingNames(reading) {
   const text = [...(reading.activities || []).flatMap((row) => [row.package, row.activity, row.where]), ...(reading.packages || []).map((item) => item.package)].filter((one) => typeof one === 'string').join('\n');
   try { return require('./sitelink-answers').scopeNames(text); } catch { return new Map(); }
 }
+function plainBore(text) {
+  return String(text || '').replace(/\bNB\s?(\d{1,4})(\s*mm)?\b/g, '$1 mm nominal bore').replace(/\bDN\s?(\d{1,4})\b/g, '$1 mm nominal bore');
+}
 function readingWords(item, names) {
-  const words = (text) => (names && names.size ? String(text).replace(/\b[a-z]{4,}\b/g, (word) => names.get(word) || word) : String(text));
+  const words = (text) => plainBore(names && names.size ? String(text).replace(/\b[a-z]{4,}\b/g, (word) => names.get(word) || word) : String(text));
   const out = { ...item, title: words(withoutScopeCode(item.title)) };
   if (item.listTitle) out.listTitle = words(withoutScopeCode(item.listTitle));
   if (typeof item.task === 'string') out.task = words(item.task);
   if (item.scopeTask && typeof item.scopeTask.plain === 'string') out.scopeTask = { ...item.scopeTask, plain: words(item.scopeTask.plain) };
+  if (Array.isArray(item.activities)) {
+    out.activities = item.activities.map((row) => {
+      if (typeof row === 'string') return words(row);
+      const out = { ...row };
+      for (const key of ['activity', 'clause', 'where']) if (typeof row[key] === 'string') out[key] = words(row[key]);
+      return out;
+    });
+  }
   return out;
 }
 
@@ -806,10 +820,14 @@ function withoutConflictRefs(text) {
 const OPEN_SAID = /\b(?:(?:is|are|was|were|remains?) (?:not (?:stated|said|clear|specified|defined|confirmed|given|known|shown|nominated)|unclear|open|unknown|to be (?:confirmed|determined|advised|agreed))|not stated|unclear|to be confirmed)\b/i;
 function asQuestion(text) {
   const line = String(text || '').trim();
-  const body = line.replace(/[.\s]+$/, '');
+  const body = line.replace(/[.\s]+$/, '').replace(/\bmust be confirmed\b.*$/i, '').trim();
   if (!body || /[?]$/.test(body) || /[.!?;]\s/.test(body) || OPEN_SAID.test(body)) return line;
   const whether = /^whether\s+(?!or not\b)(.+?)\s+(is|are|was|were|will|would|can|could|should|must|has|have|does|do)\s+(.+)$/i.exec(body);
-  if (whether) return `${whether[2].charAt(0).toUpperCase()}${whether[2].slice(1).toLowerCase()} ${whether[1]} ${whether[3]}?`;
+  if (whether) {
+    const verb = whether[2].toLowerCase();
+    if (verb === 'does' || verb === 'do') return `${verb === 'does' ? 'Does' : 'Do'} ${whether[1]} do ${whether[3]}?`;
+    return `${whether[2].charAt(0).toUpperCase()}${whether[2].slice(1).toLowerCase()} ${whether[1]} ${whether[3]}?`;
+  }
   if (/^(?:who|what|which|when|where|how)\b/i.test(body)) return `${body}?`;
   return line;
 }
@@ -1221,4 +1239,4 @@ function subcontractorView({ project, org, subcontract, items, points, siteDetai
   };
 }
 
-module.exports = { handsOnTesting, withSettled, workOf, notesOf, pointSentence, withoutConflictRefs, packageTitles, clausesOf, activityNamed, foldedNamed, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };
+module.exports = { asQuestion, plainBore, readingWords, handsOnTesting, withSettled, workOf, notesOf, pointSentence, withoutConflictRefs, packageTitles, clausesOf, activityNamed, foldedNamed, MONEY, COMMERCIAL_STRICT, COMMERCIAL_QUOTE, hasMoney, hasPrice, quotePriced, quoteWithoutPrices, wordsWithoutPrices, nameWithoutPrices, scrubReading, scrubChecks, listItems, listPoints, splitPoint, draftNotes, packWords, REMOVED_WHY, foldedWhy, highRiskOf, plantFromWords, clauseList, pointItem, pointInPlay, sentence, subcontractorView, riskOf, riskJoined, withFolded, asksWho, DEFECTS_PACKAGE, noJobSteps, draftKinds };
