@@ -17,6 +17,7 @@
     /* The tabs at the top of every page (D303): SiteWrite for subcontractors, SiteLink for builders. */
     .tabs { display: flex; gap: 6px; padding-top: 10px; border-bottom: 1px solid #c5cdd6; }
     .tabs a { display: block; min-height: 44px; padding: 7px 14px 6px; border: 1px solid #c5cdd6; border-bottom: 0; border-radius: 8px 8px 0 0; background: #e3e8ee; color: #1c2430; text-decoration: none; font-weight: 700; line-height: 1.2; margin-bottom: -1px; }
+    .tabs a[hidden] { display: none; }
     .tabs a span { display: block; font-weight: 400; font-size: 13px; color: #5c6773; }
     .tabs a[aria-current="page"] { background: #fff; border-top: 3px solid #1f4e3d; color: #1f4e3d; }
     .tag.unverified { background: #fff4dc; color: #7a4d00; border: 1px solid #e6c77a; }
@@ -227,6 +228,7 @@
     <nav class="tabs" aria-label="SiteWrite and SiteLink">
       <a href="/">SiteWrite<span>For subcontractors</span></a>
       <a href="/sitelink" aria-current="page">SiteLink<span>For builders</span></a>
+      <a href="/quantityforge" id="qf-tab" hidden>QuantityForge<span>Quantities from drawings</span></a>
     </nav>
     <div class="top">
       <span class="brand">SiteLink <span class="by">by SiteWrite</span></span>
@@ -497,6 +499,7 @@
     </section>
   </div>
   <script src="/old-keys.js"></script>
+  <script src="/qf-tab.js"></script>
   <script src="/net.js" data-message="No signal. What you have typed stays on this page. Try again when you have signal."></script>
   <script src="/address.js"></script>
   <script src="/read-progress.js"></script>
