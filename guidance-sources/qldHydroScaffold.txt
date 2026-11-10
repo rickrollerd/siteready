@@ -1,0 +1,137 @@
+Queensland Hydro scaffold guideline HS-GUI-0008
+https://qldhydro.com.au/
+
+Scaffold Guideline
+This Guideline has been developed to support, and should be read in conjunction with Queensland Hydro’s Plant
+and Work Equipment Procedure (HS-PRO-0019).
+
+The Queensland Work Health and Safety Regulation 2011 (s 225 and s 306P – 306Q) requires the implementation
+of specific control measures for managing certain risks associated with scaffold. These have been summarised in
+this Guideline.
+
+   General
+
+   All scaffold purchased, hired or otherwise acquired by Queensland Hydro (including where supplied and erected
+   by a licensed external scaffolding company) must be subject to a Plant and Work Equipment Risk
+   Assessment (HS-FRM-0011).
+
+   Licensing and Competency
+
+   Scaffolding must only be erected and dismantled by persons holding the appropriate class of High Risk Work
+   Licence to undertake the work, as follows:
+
+   Persons holding a Basic Scaffolding high risk work licence may complete the following scaffolding work:
+    • Modular or prefabricated scaffolds;
+    • Cantilevered materials hoists with a maximum working load of 500kg;
+    • Ropes;
+    • Gin wheels;
+    • Safety nets and static lines;
+    • Bracket scaffolds (tank and formwork); but
+    • Excluding any aspects of Intermediate and Advanced Scaffolding.
+   Persons holding an Intermediate Scaffolding high risk work licence may complete all aspects of Basic
+   Scaffolding, plus the following additional scaffolding work:
+
+    •   Cantilevered crane loading platforms;
+    •   Cantilevered scaffolds;
+    •   Spur scaffolds;
+    •   Barrow ramps and sloping platforms;
+    •   Scaffolding associated with perimeter safety screens and shutters;
+    •   Mast climbing work platforms;
+    •   Tube and coupler scaffolds (including tube and coupler covered ways and gantries); but
+    •   Excluding any aspects of Advanced Scaffolding.
+   Persons holding an Advanced Scaffolding high risk work licence may complete all aspects of Basic and
+   Intermediate Scaffolding, plus the following additional scaffolding work:
+
+    • Cantilevered hoists;
+    • Hung scaffolds, including scaffolds hung from tubes, wire ropes or chains; and
+    • Suspended scaffolds.
+
+
+
+ Document ID: HS-GUI-0008              Title: Scaffold Guideline
+
+ Author:          Kelly Palmer         Head of Health and Safety      Version Date:     23/05/2023
+
+ Approver:        Greg Tonks           Acting EGM, Corporate          Revision ID:      B
+                                                                                                                    Scaffold Guideline
+
+
+
+
+Access, Inspection and Use
+
+Scaffold must be designed, erected, used, inspected, maintained and dismantled in accordance with the
+Scaffolding Code of Practice 2021 (Qld).
+
+Use of scaffold is often high risk construction work for which a documented Safe Work Method Statement
+(SWMS) must be prepared. Refer to the HS Risk Management Procedure (HS-PRO-0007) for assistance in
+determining whether a SWMS is required.
+
+Scaffold includes suspended scaffold, cantilevered scaffold, spur scaffold, hung scaffold and any other scaffold
+from which a person or thing could fall more than 4m.
+
+Unauthorised access to the scaffold must be prevented while the scaffold is incomplete or unattended.
+
+Scaffold must not be used unless written confirmation is received from a competent person that construction of
+the scaffold has been completed.
+
+The scaffold and its supporting structure must be inspected by a competent person:
+
+ • When newly established at a site;
+ • Each day before the scaffold is used;
+ • Before use of the scaffold is resumed after an incident occurs that may reasonably be expected to affect
+   the stability of the scaffold;
+ • Before use of the scaffold is resumed after repairs; and
+ • At least every 30 days;
+If an inspection indicates that scaffold or its supporting structure creates a Health and Safety (HS) risk, any
+necessary repairs, alterations or additions must be made, and the scaffold and its supporting structure
+inspected again by a competent person before use of the scaffold is resumed.
+
+Where practicable and appropriate to control risks associated with falls, Queensland Hydro also requires these
+control measures to be implemented for scaffold under 4m.
+
+Queensland Hydro’s Work at Height Procedure (HS-PRO-0020) provides further guidance about work
+activities where scaffold may be used as a control.
+
+Erecting and Dismantling
+
+Scaffolding must not be erected where there is a risk to the persons erecting it of falling 2 metres, unless the
+risk of falling is prevented by:
+
+ • Using a control measure; or
+ • Using a fall arrest harness system; or
+ • After enough components of the scaffold have been installed, including:
+        •    A platform at least 450mm wide along the full length of the section of scaffolding; and
+        •    Edge protection; and
+        •    A means of access to the level the scaffolding has reached; and
+ • Before the next level of the scaffolding is erected, a platform below the level at a distance of not more than
+   2 metres. Such a platform must cover the full length and width of the section of scaffolding designed to
+   support the platform at the level at which it is installed (other than a part of the section required to raise
+   planks or other components of the scaffolding between levels).
+Scaffolding must not be dismantled where there is a risk to the persons dismantling it of falling 2 metres, unless
+the risk of falling is prevented by:
+
+ • Using a control measure; or
+ • Using a fall arrest harness system; or
+ • Each of the following is complied with:
+
+
+                                                                Uncontrolled in hard copy | © Queensland Hydro Pty Ltd 2022 | 2
+                                                                                                           Scaffold Guideline
+
+
+
+•   Any edge protection for the scaffold and means of access to the level that the dismantling has
+    reach are kept in place while practicable;
+•   A platform at least 450mm wide is in place at the level the dismantling has reached while
+    practicable; and
+•   There is in place a platform at the lower level (below the level the dismantling has reached) at a
+    distance of not more than 2 metres. Such a platform must cover the full length and width of the
+    section of scaffolding designed to support the platform at the lower level (other than a part of the
+    section required to raise planks or other components of the scaffolding between levels).
+
+
+
+
+                                                       Uncontrolled in hard copy | © Queensland Hydro Pty Ltd 2022 | 3
+
