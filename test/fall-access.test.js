@@ -12,7 +12,7 @@ const HOIST = 'Install, climb and dismantle the builders hoist: base, mast secti
 const STRESS = 'Stress the post-tensioned slab tendons, grout the ducts and cut the tails.';
 const PIPEWORK = 'Install chilled water and heating water pipework in the plant room, risers and ceilings: hangers, steel pipe, roll grooving and valves.';
 const HIERARCHY = 'Work from the ground, a platform or a scaffold. Where a person could still fall, prevent it with edge protection or work platforms before using fall arrest.';
-const SITE = { workplace: '14 Ferndale Street, Herston QLD 4006', principalContractor: 'Corbel Build', complianceResponsible: 'Larry Leadinghand', site: { access: 'Gate 2.' } };
+const SITE = { workplace: '14 Ferndale Street, Herston QLD 4006', principalContractor: 'Specimen Build', complianceResponsible: 'Larry Leadinghand', site: { access: 'Gate 2.' } };
 const asked = (task, fallRisk, extra = {}) => questionsFor({ state: 'qld', task, fallRisk, residential: 'no', ...extra }).required.find((item) => item.id === 'fallAccess');
 const draft = (task, facts, extra = {}) => prepareDraft({ state: 'qld', task, fallRisk: 'yes', residential: 'no', ...SITE, ...extra, facts: { controlsConsidered: 'An EWP cannot reach the mast ties.', harnessSystem: 'Full body harness on a 15 kN anchor approved by the engineer.', stressingProcedure: 'Stressing procedure SP-04 from the PT designer.', ...facts } });
 const hard = (result) => checkSwms(fromDraft(result, { state: 'qld' }), { state: 'qld' }).findings.filter((item) => ['H2', 'H3'].includes(item.rule) && !item.pass).map((item) => item.rule);
