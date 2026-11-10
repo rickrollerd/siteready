@@ -1486,6 +1486,7 @@
     if (changes.added.length) parts.push(`added ${changes.added.join(', ')}`);
     if (changes.removed.length) parts.push(`removed ${changes.removed.join(', ')}`);
     if (changes.changed.length) parts.push(`changed the work for ${changes.changed.join(', ')}`);
+    if (changes.pointsChanged) parts.push('answered questions on the list');
     return parts.join('; ');
   }
   function renderSend() {

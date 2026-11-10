@@ -56,10 +56,13 @@ function compose({ kind, person, builder, project, items, due, changes = null, d
     lines.push(`${who} has reviewed your scope of works for ${projectName} and has confirmed they require the following SWMS, which are ready for you to review in SiteWrite:`);
   } else if (kind === 'list_changed') {
     const listMoved = Boolean(changes && ((changes.added || []).length || (changes.removed || []).length || (changes.changed || []).length));
+    const pointsOnly = !listMoved && !dueWas && changes && changes.pointsChanged;
     subject = `Updated: SWMS required for ${projectName} by ${shortDue(due)}`;
-    lines.push(listMoved
-      ? `${who} has changed the SWMS they require for ${projectName}. They now require the following SWMS, which are ready for you to review in SiteWrite:`
-      : `${who} has changed the submission due date for ${projectName}. They require the following SWMS, which are ready for you to review in SiteWrite:`);
+    lines.push(pointsOnly
+      ? `${who} has answered questions on the SWMS list for ${projectName}. They require the following SWMS, which are ready for you to review in SiteWrite:`
+      : listMoved
+        ? `${who} has changed the SWMS they require for ${projectName}. They now require the following SWMS, which are ready for you to review in SiteWrite:`
+        : `${who} has changed the submission due date for ${projectName}. They require the following SWMS, which are ready for you to review in SiteWrite:`);
   } else {
     subject = `Reminder: SWMS required for ${projectName} by ${shortDue(due)}`;
     lines.push(`${who} is reminding you that they require the following SWMS for ${projectName}, which are ready for you to review in SiteWrite:`);

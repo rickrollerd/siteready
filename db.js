@@ -804,6 +804,7 @@ const SCHEMA = [
     list_rev INTEGER NOT NULL,
     due_date TEXT NOT NULL DEFAULT '',
     items JSONB NOT NULL,
+    points TEXT NOT NULL DEFAULT '[]',
     sent_by TEXT NOT NULL DEFAULT '',
     sent_by_name TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL,
@@ -812,6 +813,7 @@ const SCHEMA = [
     revoked_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS list_links_subcontract ON list_links (subcontract_id, created_at)',
+  "ALTER TABLE list_links ADD COLUMN IF NOT EXISTS points TEXT NOT NULL DEFAULT '[]'",
   // Every email SiteLink sends about a project, with the template and its version, so it is known
   // which wording went out. The body is kept with the link's token taken out.
   `CREATE TABLE IF NOT EXISTS mail_messages (
