@@ -4,7 +4,7 @@
 // matching fault.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const zlib = require('node:zlib');
+const { pdfStreams } = require('./helpers');
 const JSZip = require('jszip');
 const { checkSwms: check, fromDraft } = require('../builder-check');
 const { CHECK_SCHEMA, validSwms } = require('../check-read');
@@ -106,9 +106,7 @@ const REO = { state: 'qld', fallRisk: 'no', residential: 'no', task: 'Lift reo b
 const pdfText = async (draft) => {
   const raw = (await draftToPdf(draft)).toString('latin1');
   const text = [];
-  for (const match of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
-    let body;
-    try { body = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1'); } catch { continue; }
+  for (const body of pdfStreams(raw)) {
     for (const array of body.match(/\[[^\]]*\]\s*TJ/g) || []) text.push((array.match(/<([0-9a-fA-F]*)>/g) || []).map((hex) => Buffer.from(hex.slice(1, -1), 'hex').toString('latin1')).join(''));
   }
   return text.join(' ').replace(/\s+/g, ' ');
