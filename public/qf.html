@@ -58,6 +58,16 @@
     tr.line:hover { background: #f4f7f5; }
     tr.line.picked { background: #e8f3ee; }
     .flag { display: block; font-size: 13px; color: #7a4d00; }
+    .sheet .mark.accepted { border-color: #1b7f3b; background: rgba(27, 127, 59, 0.12); }
+    .sheet .mark.rejected { border-color: #6b6b6b; border-style: dashed; background: rgba(107, 107, 107, 0.10); }
+    .sheet .mark.reclassified { border-color: #1f5fbf; border-style: dashed; background: rgba(31, 95, 191, 0.10); }
+    tr.line.accepted td.ref { box-shadow: inset 4px 0 0 #1b7f3b; }
+    tr.line.rejected td, tr.line.reclassified td { color: #6b6b6b; }
+    tr.line.rejected td.ref, tr.line.reclassified td.ref { box-shadow: inset 4px 0 0 #6b6b6b; }
+    .review { margin-top: 10px; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; }
+    .review.accepted { border-color: #1b7f3b; }
+    .review button, .review label { margin: 4px 8px 4px 0; }
+    .review .move { margin-top: 6px; }
     .total td { font-weight: 700; border-bottom: 0; }
     .question { border-top: 1px solid #e1e6ec; padding-top: 4px; }
     .question .items { font-weight: 400; color: #5c6773; }

@@ -113,11 +113,13 @@ const profileFrom = (body) => {
 
 // What the page shows: the whole bill is kept (a change on one trade's view is a change to the bill),
 // and the lines shown are the picked trade's.
-async function shown(bill, profile, email, fetchImpl) {
+// The decisions on each line (reviews) come back with it, less any for lines no longer in the bill.
+async function shown(bill, profile, email, fetchImpl, reviews = {}) {
   const filtered = profile && profile !== 'all'
     ? await qfCall('/bill/profile', { method: 'POST', json: { bill, profile }, email, fetchImpl })
     : bill;
-  return { bill, profile: profile || 'all', view: view.billView(filtered), questions: view.questionsView(bill) };
+  const kept = view.reviewsFrom(reviews, bill);
+  return { bill, profile: profile || 'all', view: view.withReviews(view.billView(filtered), kept), questions: view.questionsView(bill), reviews: kept };
 }
 
 function router({ fetchImpl } = {}) {
@@ -183,6 +185,11 @@ function router({ fetchImpl } = {}) {
       const billed = bill.lines.find((l) => l && l.item_ref === itemRef);
       line.parameters = view.provenanceView({ contributions: billed && billed.contributions }, 1, 1).parameters;
     }
+    // Each change to the quantity, as QuantityForge recorded it on the line (who, from what, why), and its override.
+    const billedLine = bill.lines.find((l) => l && l.item_ref === itemRef) || {};
+    line.changes = (Array.isArray(billedLine.reasons) ? billedLine.reasons : []).filter((r) => typeof r === 'string' && /^quantity overridden by /.test(r)).map((r) => r.slice(0, 300));
+    const o = prov && prov.override && typeof prov.override === 'object' ? prov.override : null;
+    line.override = o ? { from: typeof o.qty_original === 'number' ? o.qty_original : null, by: String(o.overridden_by || '').slice(0, 200), at: String(o.overridden_at || '').slice(0, 40) } : null;
     res.json({ line });
   }));
 
@@ -193,7 +200,64 @@ function router({ fetchImpl } = {}) {
     if (req.body.quantity === '' || req.body.quantity === null || !Number.isFinite(quantity) || quantity < 0) throw fail(400, 'Give the quantity as a number, 0 or more.');
     const reason = String(req.body.reason || '').trim().slice(0, 200) || 'Changed in SiteWrite';
     const updated = await call('/bill/override', { method: 'POST', json: { bill, item_ref: itemRef, quantity, reason }, email: req.user.email });
-    res.json(await shown(updated, profileFrom(req.body), req.user.email, fetchImpl || fetch));
+    // A quantity typed in replaces what was decided on that line.
+    const reviews = view.reviewsFrom(req.body.reviews, bill);
+    delete reviews[itemRef];
+    res.json(await shown(updated, profileFrom(req.body), req.user.email, fetchImpl || fetch, reviews));
+  }));
+
+  // Accept, reject, move to another line (reclassify) or reset one line. Accept is kept by SiteWrite only (an
+  // override would mark the line low confidence); reject and move change quantities through /v1/bill/override, so
+  // QuantityForge records who changed them. The decisions ride beside the bill (view.reviewsFrom).
+  r.post('/qf/review', requireUser, handle(async (req, res) => {
+    let bill = billFrom(req.body);
+    const itemRef = itemRefFrom(req.body);
+    const reviews = view.reviewsFrom(req.body.reviews, bill);
+    const email = req.user.email;
+    const lineOf = (b, ref) => b.lines.find((l) => l && l.item_ref === ref);
+    const source = lineOf(bill, itemRef);
+    if (!source) throw fail(404, 'Pick a line in the bill.');
+    const qtyOf = (l) => (typeof l.qty_billed === 'number' && Number.isFinite(l.qty_billed) ? l.qty_billed : 0);
+    const override = async (b, ref, quantity, reason) => call('/bill/override', { method: 'POST', json: { bill: b, item_ref: ref, quantity, reason }, email });
+    const before = reviews[itemRef];
+    const stamp = { by: String(email || ''), at: new Date().toISOString() };
+    const action = String(req.body.action || '');
+    if (action === 'accept') {
+      if (before && before.state !== 'accepted') throw fail(400, 'Reset this line first.');
+      reviews[itemRef] = { state: 'accepted', ...stamp };
+    } else if (action === 'reject') {
+      if (before && before.state !== 'accepted') throw fail(400, 'Reset this line first.');
+      const qty = qtyOf(source);
+      const reason = String(req.body.reason || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+      if (qty > 0) bill = await override(bill, itemRef, 0, `Rejected in SiteWrite${reason ? `: ${reason}` : ''}`);
+      reviews[itemRef] = { state: 'rejected', ...stamp, qty };
+    } else if (action === 'reclassify') {
+      if (before && before.state !== 'accepted') throw fail(400, 'Reset this line first.');
+      const toRef = typeof req.body.toRef === 'string' ? req.body.toRef.trim() : '';
+      const target = toRef && toRef !== itemRef ? lineOf(bill, toRef) : null;
+      if (!target) throw fail(400, 'Pick the line to move it to.');
+      if (String(target.unit || '') !== String(source.unit || '')) throw fail(400, 'That line is in a different unit.');
+      const qty = qtyOf(source);
+      bill = await override(bill, itemRef, 0, `Moved to ${toRef} in SiteWrite`);
+      const moved = lineOf(bill, toRef);
+      if (!moved) throw fail(502, 'QuantityForge could not change this just now. Try again in a moment.');
+      bill = await override(bill, toRef, qtyOf(moved) + qty, `Moved from ${itemRef} in SiteWrite`);
+      delete reviews[toRef];
+      reviews[itemRef] = { state: 'reclassified', ...stamp, to: toRef, qty };
+    } else if (action === 'reset') {
+      if (before && before.state === 'rejected') {
+        bill = await override(bill, itemRef, before.qty, 'Reject undone in SiteWrite');
+      } else if (before && before.state === 'reclassified') {
+        const target = lineOf(bill, before.to);
+        if (target) bill = await override(bill, before.to, Math.max(0, qtyOf(target) - before.qty), 'Move undone in SiteWrite');
+        bill = await override(bill, itemRef, before.qty, 'Move undone in SiteWrite');
+      }
+      delete reviews[itemRef];
+    } else {
+      throw fail(400, 'Pick accept, reject, move or reset.');
+    }
+    if (!bill || !Array.isArray(bill.lines)) throw fail(502, 'QuantityForge could not change this just now. Try again in a moment.');
+    res.json(await shown(bill, profileFrom(req.body), email, fetchImpl || fetch, reviews));
   }));
 
   r.post('/qf/rate', requireUser, handle(async (req, res) => {
@@ -203,7 +267,7 @@ function router({ fetchImpl } = {}) {
     const rate = blank ? null : Number(req.body.rate);
     if (!blank && (!Number.isFinite(rate) || rate < 0)) throw fail(400, 'Give the rate in dollars, 0 or more, or leave it empty.');
     const updated = await call('/bill/rate', { method: 'POST', json: { bill, item_ref: itemRef, rate }, email: req.user.email });
-    res.json(await shown(updated, profileFrom(req.body), req.user.email, fetchImpl || fetch));
+    res.json(await shown(updated, profileFrom(req.body), req.user.email, fetchImpl || fetch, view.reviewsFrom(req.body.reviews, bill)));
   }));
 
   // The bill as a CSV file: the lines of the trade picked, as the page shows them.
@@ -219,7 +283,8 @@ function router({ fetchImpl } = {}) {
   }));
 
   r.post('/qf/profile', requireUser, handle(async (req, res) => {
-    res.json(await shown(billFrom(req.body), profileFrom(req.body), req.user.email, fetchImpl || fetch));
+    const bill = billFrom(req.body);
+    res.json(await shown(bill, profileFrom(req.body), req.user.email, fetchImpl || fetch, view.reviewsFrom(req.body.reviews, bill)));
   }));
 
   return r;
