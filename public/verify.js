@@ -1,12 +1,16 @@
 // Checks a SiteWrite reference. The reference can also come in the address: /verify.html?ref=SW-ABCD-2345
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const input = document.getElementById('ref');
   const result = document.getElementById('result');
   async function check(ref) {
     result.innerHTML = '';
     try {
-      const response = await fetch(`/api/verify/${encodeURIComponent(ref.trim().toUpperCase())}`);
+      const response = await fetch(apiUrl(`/api/verify/${encodeURIComponent(ref.trim().toUpperCase())}`));
       const data = await response.json();
       if (!data.found) {
         result.innerHTML = `<div class="bad"><strong>Not found.</strong> ${esc(data.message || '')}</div>`;

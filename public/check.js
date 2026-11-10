@@ -2,6 +2,10 @@
 // A SWMS is uploaded or pasted, or a SiteWrite draft is checked, and the page shows the score,
 // the findings and the email to copy. Signed-in users only; the session is the main page's.
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   let session = '';
@@ -19,7 +23,7 @@
   $('tabUpload').addEventListener('click', () => setMode('upload'));
   $('tabDraft').addEventListener('click', () => setMode('draft'));
 
-  fetch('/api/states').then((response) => response.json()).then((data) => {
+  fetch(apiUrl('/api/states')).then((response) => response.json()).then((data) => {
     // Blank by default, so an uploaded SWMS is checked under the state it states, not Queensland's.
     // A state chosen here overrides the document's.
     $('state').innerHTML = `<option value="">As stated in the SWMS</option>${data.states.filter((state) => state.loaded).map((state) => `<option value="${esc(state.id)}">${esc(state.name)}</option>`).join('')}`;
@@ -28,7 +32,7 @@
   // While SiteWrite keeps checked SWMS (KEEP_CHECKED_SWMS), the user is told at upload and can choose
   // not to have this one kept. Otherwise the page says the file is not kept, as before.
   let keeping = false;
-  fetch('/api/check/keeping').then((response) => response.json()).then((data) => {
+  fetch(apiUrl('/api/check/keeping')).then((response) => response.json()).then((data) => {
     if (!data || !data.keeping) return;
     keeping = true;
     $('notKept').classList.add('hidden');
@@ -105,7 +109,7 @@
       while (check.status === 'checking') {
         if (Date.now() - begun > 20 * 60 * 1000) throw new Error('The check is taking too long. Try again later.');
         await wait(3000);
-        check = await answer(await fetch(`/api/check/${encodeURIComponent(check.id)}`, { headers: headers() }));
+        check = await answer(await fetch(apiUrl(`/api/check/${encodeURIComponent(check.id)}`), { headers: headers() }));
       }
       if (check.status !== 'done') throw new Error(check.error || 'The SWMS could not be checked. Try again.');
       return check;
@@ -122,7 +126,7 @@
     $('go').disabled = true;
     $('go').textContent = 'Checking...';
     try {
-      const data = await answer(await fetch('/api/check', { method: 'POST', headers: headers(), body: JSON.stringify(await body()) }));
+      const data = await answer(await fetch(apiUrl('/api/check'), { method: 'POST', headers: headers(), body: JSON.stringify(await body()) }));
       show(data.status === 'checking' ? await waitForCheck(data) : data);
     } catch (error) {
       $('error').innerHTML = `<div class="bad">${esc(error.message)}</div>`;
