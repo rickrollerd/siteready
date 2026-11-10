@@ -104,6 +104,9 @@
     'Plaster, jointing and setting compounds': /^(?:Set the joints|Set and sand\b|Skim\b|Patch\b)/i,
     // The refrigerant is charged in the charging step, not the pipe run that names it (messy round 14, A run 1).
     'Refrigerants': /^(?:Evacuate and charge|Charge|Recover)\b/i,
+    // Bitumen and asphalt are used where they are laid, sprayed or reinstated, not where the old seal is sawn (messy round 20, B run 8:
+    // the bitumen went to "Saw cut asphalt", not "Lay and roll asphalt").
+    'Bitumen and asphalt': /^(?:Lay and roll asphalt|Spray seal the road|Reinstate asphalt)$/i,
   };
   // Keeping people apart from the plant is not running it.
   // Planting ("Plant") is not plant. A truck or crane step comes last: a delivery truck or a hiab is often not ours to fuel, and the

@@ -2,12 +2,16 @@
 // lets the owner delete a business on request and see which are due for removal.
 // Uses the session from the main page.
 (async () => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   let token = '';
   try { token = localStorage.getItem('sitewrite.session') || ''; } catch { /* none */ }
   const api = async (path, body) => {
     const headers = { ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) };
-    const response = await fetch(path, body ? { method: 'POST', headers, body: JSON.stringify(body) } : { headers });
+    const response = await fetch(apiUrl(path), body ? { method: 'POST', headers, body: JSON.stringify(body) } : { headers });
     return { ok: response.ok, status: response.status, data: await response.json().catch(() => ({})) };
   };
   const $ = (id) => document.getElementById(id);
@@ -26,6 +30,8 @@
   const { ok, status, data } = await api('/api/admin/stats');
   if (!ok) {
     $('error').textContent = status === 401 ? 'Sign in on the main page first.' : (data.message || 'Not available.');
+    // Someone who is not the owner sees only the message, not the owner's tools (the server refuses them anyway).
+    document.querySelectorAll('.panel, #tiles').forEach((el) => { el.hidden = true; el.style.display = 'none'; });
     return;
   }
   const tile = (n, label) => `<div class="tile"><div class="n">${esc(n)}</div><div class="l">${esc(label)}</div></div>`;
@@ -188,7 +194,7 @@
       'Nothing kept yet.');
   }
   async function downloadOriginal(id) {
-    const response = await fetch(`/api/admin/checked-swms/${encodeURIComponent(id)}/original`, { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
+    const response = await fetch(apiUrl(`/api/admin/checked-swms/${encodeURIComponent(id)}/original`), { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
     loadAccessLog();
     if (!response.ok) { $('checked-result').innerHTML = `<span class="error">${esc((await response.json().catch(() => ({}))).message || 'Not available.')}</span>`; return; }
     const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'swms';
@@ -344,7 +350,7 @@
   // The month's report as a text file to keep.
   $('learning-download').addEventListener('click', async () => {
     const month = $('learning-month').value.trim();
-    const response = await fetch(`/api/admin/control-learning/report.md${month ? `?month=${encodeURIComponent(month)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
+    const response = await fetch(apiUrl(`/api/admin/control-learning/report.md${month ? `?month=${encodeURIComponent(month)}` : ''}`), { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
     if (!response.ok) { $('learning').insertAdjacentHTML('afterbegin', `<p class="error">${esc((await response.json().catch(() => ({}))).message || 'Not available.')}</p>`); return; }
     const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'sitewrite-learning.md';
     const link = document.createElement('a');

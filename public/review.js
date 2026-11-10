@@ -8,6 +8,10 @@
 // each condition, which the lead confirms once the subcontractor marks it done. The name and company
 // come from SiteLink. A SWMS received outside SiteWrite is a file, with an optional Builder check.
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const KEY = 'sitewrite.reviewer';
@@ -37,7 +41,7 @@
     for (let attempt = 1; ; attempt += 1) {
       let response;
       try {
-        response = await fetch(route, {
+        response = await fetch(apiUrl(route), {
           method,
           headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { 'X-Reviewer-Token': token } : {}) },
           body: body ? JSON.stringify(body) : undefined,
@@ -145,7 +149,7 @@
     if (!button) return;
     const win = window.open('', '_blank');
     try {
-      const response = await fetch(button.dataset.file === '__outside' ? `${base()}/file` : `${base()}/files/${encodeURIComponent(button.dataset.file)}`, { headers: { 'X-Reviewer-Token': token } });
+      const response = await fetch(apiUrl(button.dataset.file === '__outside' ? `${base()}/file` : `${base()}/files/${encodeURIComponent(button.dataset.file)}`), { headers: { 'X-Reviewer-Token': token } });
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'That file could not be opened.');
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -229,7 +233,7 @@
     let found;
     let shape = false;
     try {
-      const response = await fetch(`/api/verify/${encodeURIComponent(ref)}`);
+      const response = await fetch(apiUrl(`/api/verify/${encodeURIComponent(ref)}`));
       shape = response.status === 400;
       found = await response.json();
     } catch (error) {

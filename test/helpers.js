@@ -102,4 +102,30 @@ function checked(body = {}, input = null, { name = '', role = 'Supervisor' } = {
   return { ...rest, check: { parts: Object.fromEntries(IDS.map((id) => [id, true])), partHashes: partHashes(draft), name: name || reviewedBy || 'Alex Chen', role, ack: true } };
 }
 
-module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, LIVE_SERVICES, ready, checked };
+// The compressed content streams of a PDF, inflated. Each stream is read by its /Length, not by
+// searching for "endstream": a compressed stream can end with a carriage return byte, which a
+// /stream\r?\n...\r?\nendstream/ search takes as part of the line end, cutting the stream short so
+// that it no longer inflates (about 1 stream in 320, so a page of text went missing in some runs).
+// A stream that does not end where its /Length says, or a FlateDecode stream that does not inflate,
+// is an error, never skipped.
+function pdfStreams(buffer) {
+  const zlib = require('node:zlib');
+  const raw = Buffer.isBuffer(buffer) ? buffer.toString('latin1') : String(buffer);
+  const bodies = [];
+  const starts = /\bstream\r?\n/g;
+  for (let match = starts.exec(raw); match; match = starts.exec(raw)) {
+    const objStart = raw.lastIndexOf(' obj', match.index);
+    const dict = raw.slice(objStart, match.index);
+    const length = /\/Length (\d+)/.exec(dict);
+    if (!length) throw new Error(`PDF stream at byte ${match.index} has no /Length`);
+    const dataStart = match.index + match[0].length;
+    const dataEnd = dataStart + Number(length[1]);
+    if (!/^\r?\nendstream/.test(raw.slice(dataEnd, dataEnd + 12))) throw new Error(`PDF stream at byte ${match.index} does not end where its /Length says`);
+    starts.lastIndex = dataEnd;
+    if (!/\/FlateDecode/.test(dict)) continue;
+    bodies.push(zlib.inflateSync(Buffer.from(raw.slice(dataStart, dataEnd), 'latin1')).toString('latin1'));
+  }
+  return bodies;
+}
+
+module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, LIVE_SERVICES, ready, checked, pdfStreams };
