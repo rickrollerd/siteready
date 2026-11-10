@@ -11,7 +11,11 @@
   const money = (n) => (n === null || n === undefined || n === '' ? '' : new Intl.NumberFormat('en-AU', { style: 'currency', currency: state.view && state.view.currency ? state.view.currency : 'AUD' }).format(Number(n)));
   const qty = (n) => (n === null || n === undefined ? '' : new Intl.NumberFormat('en-AU', { maximumFractionDigits: 3 }).format(Number(n)));
 
-  const state = { file: null, sentKey: '', page: null, bill: null, view: null, questions: [], answers: {}, profile: 'all', picked: '' };
+  const state = { file: null, name: '', pageNo: 1, sheetType: 'slab_plan', sentKey: '', page: null, bill: null, view: null, questions: [], answers: {}, profile: 'all', picked: '', zoom: 1 };
+  // The drawings measured on this page, newest last. Kept only while the page is open: QuantityForge
+  // keeps nothing and SiteWrite does not keep the PDFs.
+  const sheets = [];
+  const ZOOMS = [1, 1.5, 2, 3, 4, 6];
   const VIEWS = ['loading', 'off', 'signin', 'tab'];
   const show = (name) => VIEWS.forEach((id) => $(`view-${id}`).classList.toggle('hidden', id !== name));
   const message = (html, kind = 'bad') => { $('qf-message').innerHTML = html ? `<div class="${kind}">${html}</div>` : ''; };
@@ -33,25 +37,31 @@
   }
 
   // ---- Measuring ----
-  async function measure() {
-    const file = $('qf-file').files[0];
+  // again: measure the drawing open now with the answers given; otherwise the file and page in the form.
+  async function measure({ again = false } = {}) {
+    const file = again ? state.file : $('qf-file').files[0];
     if (!file) return message('Choose the PDF of the sheet to measure.');
-    const page = Math.max(1, Math.floor(Number($('qf-page').value) || 1));
+    const page = again ? state.pageNo : Math.max(1, Math.floor(Number($('qf-page').value) || 1));
     const key = `${file.name}|${file.size}|${file.lastModified}|${page}`;
+    const known = sheets.find((s) => s.key === key);
+    if (!again && known && key !== state.sentKey) open(known);
     const query = new URLSearchParams({ page: String(page), sheetType: $('qf-type').value, profile: state.profile });
     if ($('qf-scale').value) query.set('scale', String(Math.floor(Number($('qf-scale').value))));
     // A new sheet or page also needs its picture; answers for another sheet do not apply to it.
-    if (key !== state.sentKey) { query.set('image', '1'); if (state.sentKey) state.answers = {}; }
+    const fresh = key !== state.sentKey;
+    if (fresh) query.set('image', '1');
+    const answers = fresh ? {} : state.answers;
     message('');
     busy(true, 'Measuring the sheet. This can take a minute.');
     try {
       const data = await api(`measure?${query}`, {
         method: 'POST',
         body: file,
-        headers: { 'Content-Type': 'application/pdf', 'X-QF-Answers': encodeURIComponent(JSON.stringify(state.answers)) },
+        headers: { 'Content-Type': 'application/pdf', 'X-QF-Answers': encodeURIComponent(JSON.stringify(answers)) },
       });
+      if (fresh) { remember(); state.answers = {}; state.zoom = 1; }
       if (data.page !== undefined) state.page = data.page;
-      state.sentKey = key;
+      Object.assign(state, { file, name: file.name, pageNo: page, sheetType: query.get('sheetType'), sentKey: key });
       state.picked = '';
       take(data);
       if (data.scaleStatus && data.scaleStatus !== 'verified') message('QuantityForge could not check the scale on this sheet. Check one dimension on the drawing against the bill before you use it.', 'warn');
@@ -68,11 +78,68 @@
     state.view = data.view;
     state.questions = data.questions || [];
     state.profile = data.profile || 'all';
+    remember();
     renderQuestions();
     renderSheet();
     renderBill();
+    renderSheets();
     $('result').classList.remove('hidden');
   }
+
+  // ---- The drawings list ----
+  const KEPT = ['file', 'name', 'pageNo', 'sheetType', 'sentKey', 'page', 'bill', 'view', 'questions', 'answers', 'profile', 'zoom'];
+  function remember() {
+    if (!state.sentKey) return;
+    let entry = sheets.find((s) => s.key === state.sentKey);
+    if (!entry) { entry = { key: state.sentKey }; sheets.push(entry); }
+    for (const k of KEPT) entry[k] = k === 'answers' ? { ...state.answers } : state[k];
+  }
+  function open(entry) {
+    remember();
+    for (const k of KEPT) state[k] = k === 'answers' ? { ...entry.answers } : entry[k];
+    state.picked = '';
+    $('line-detail').innerHTML = '';
+    $('qf-page').value = String(entry.pageNo);
+    $('qf-type').value = entry.sheetType;
+    message('');
+    renderQuestions();
+    renderSheet();
+    renderBill();
+    renderSheets();
+  }
+  function sheetSummary(entry) {
+    const v = entry.view || { lines: [], total: null };
+    const billed = v.lines.length ? `${v.lines.length} ${v.lines.length === 1 ? 'line' : 'lines'}` : 'not billed yet';
+    const priced = v.total !== null && v.total !== undefined ? `, ${money(v.total)}` : '';
+    const asks = (entry.questions || []).filter((q) => q.input !== 'confirm').length;
+    return `${billed}${priced}${asks ? `, ${asks} ${asks === 1 ? 'question' : 'questions'}` : ''}`;
+  }
+  function renderSheets() {
+    $('sheets').classList.toggle('hidden', !sheets.length);
+    $('sheets-list').innerHTML = sheets.map((entry, i) => `<li${entry.key === state.sentKey ? ' class="open"' : ''}>
+      <button type="button" class="link" data-open="${i}"${entry.key === state.sentKey ? ' aria-current="true"' : ''}>${esc(entry.name)}, page ${esc(entry.pageNo)}</button>
+      <span class="muted">${esc(sheetSummary(entry))}</span>
+      <button type="button" class="link remove" data-remove="${i}" aria-label="Remove ${esc(entry.name)}, page ${esc(entry.pageNo)} from the list">Remove</button></li>`).join('');
+  }
+  $('sheets-list').addEventListener('click', (event) => {
+    const openAt = event.target.closest('[data-open]');
+    const removeAt = event.target.closest('[data-remove]');
+    if (openAt) open(sheets[Number(openAt.dataset.open)]);
+    if (removeAt) {
+      const [gone] = sheets.splice(Number(removeAt.dataset.remove), 1);
+      if (gone && gone.key === state.sentKey) {
+        // The removed drawing is not kept again on the way to the next one.
+        state.sentKey = '';
+        if (sheets.length) open(sheets[sheets.length - 1]);
+        else {
+          Object.assign(state, { file: null, sentKey: '', page: null, bill: null, view: null, questions: [], answers: {}, picked: '' });
+          $('result').classList.add('hidden');
+          $('questions').classList.add('hidden');
+          renderSheets();
+        }
+      } else renderSheets();
+    }
+  });
 
   // ---- Questions ----
   function renderQuestions() {
@@ -113,14 +180,21 @@
       $('sheet').innerHTML = '<p class="note">The sheet could not be shown as a picture here. The bill is still measured from it.</p>';
       return;
     }
+    state.boxes = boxes;
     const marks = boxes.map((b) => `<div class="mark" style="left:${b.left * 100}%;top:${b.top * 100}%;width:${b.width * 100}%;height:${b.height * 100}%"></div>`).join('');
-    $('sheet').innerHTML = `<img src="${page.image}" alt="The drawing sheet">${marks}`;
+    $('sheet').innerHTML = `<div class="canvas" style="width:${state.zoom * 100}%"><img src="${page.image}" alt="The drawing sheet">${marks}</div>`;
+    $('zoom-level').textContent = `${Math.round(state.zoom * 100)}%`;
+    $('zoom-out').disabled = state.zoom <= ZOOMS[0];
+    $('zoom-in').disabled = state.zoom >= ZOOMS[ZOOMS.length - 1];
     // Bring the box into view inside the drawing only, not the whole page.
     const first = $('sheet').querySelector('.mark');
     if (first) {
       const sheet = $('sheet');
       const img = sheet.querySelector('img');
-      const place = () => { sheet.scrollTop = Math.max(0, first.offsetTop - sheet.clientHeight / 3); };
+      const place = () => {
+        sheet.scrollTop = Math.max(0, first.offsetTop + first.offsetHeight / 2 - sheet.clientHeight / 2);
+        sheet.scrollLeft = Math.max(0, first.offsetLeft + first.offsetWidth / 2 - sheet.clientWidth / 2);
+      };
       if (img.complete) place(); else img.addEventListener('load', place, { once: true });
     }
   }
@@ -201,8 +275,56 @@
     try { take(await api('profile', { method: 'POST', json: { bill: state.bill, profile: state.profile } })); } catch (error) { message(esc(error.message)); }
   });
 
+  // Zoom keeps the middle of what is in view in the middle.
+  function zoomTo(next) {
+    const sheet = $('sheet');
+    const cx = (sheet.scrollLeft + sheet.clientWidth / 2) / (sheet.scrollWidth || 1);
+    const cy = (sheet.scrollTop + sheet.clientHeight / 2) / (sheet.scrollHeight || 1);
+    state.zoom = next;
+    const keep = state.boxes || [];
+    const canvas = sheet.querySelector('.canvas');
+    if (canvas) canvas.style.width = `${next * 100}%`;
+    else renderSheet(keep);
+    $('zoom-level').textContent = `${Math.round(next * 100)}%`;
+    $('zoom-out').disabled = next <= ZOOMS[0];
+    $('zoom-in').disabled = next >= ZOOMS[ZOOMS.length - 1];
+    sheet.scrollLeft = cx * sheet.scrollWidth - sheet.clientWidth / 2;
+    sheet.scrollTop = cy * sheet.scrollHeight - sheet.clientHeight / 2;
+    remember();
+  }
+  $('zoom-in').addEventListener('click', () => zoomTo(ZOOMS.find((z) => z > state.zoom) || state.zoom));
+  $('zoom-out').addEventListener('click', () => zoomTo([...ZOOMS].reverse().find((z) => z < state.zoom) || state.zoom));
+  $('zoom-fit').addEventListener('click', () => zoomTo(1));
+
+  // The bill as a CSV file, for the trade picked.
+  $('qf-export').addEventListener('click', async () => {
+    if (!state.bill) return;
+    $('qf-export').disabled = true;
+    try {
+      const response = await fetch('/api/qf/export.csv', {
+        method: 'POST',
+        headers: { ...auth(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bill: state.bill, profile: state.profile, sheet: `${state.name} page ${state.pageNo}` }),
+      });
+      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'The file could not be made. Try again.');
+      const blob = await response.blob();
+      const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'quantities.csv';
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+    } catch (error) {
+      message(esc(error.message));
+    } finally {
+      $('qf-export').disabled = false;
+    }
+  });
+
   $('sheet-form').addEventListener('submit', (event) => { event.preventDefault(); measure(); });
-  $('questions').addEventListener('submit', (event) => { event.preventDefault(); measure(); });
+  $('questions').addEventListener('submit', (event) => { event.preventDefault(); measure({ again: true }); });
 
   // ---- Start ----
   (async () => {

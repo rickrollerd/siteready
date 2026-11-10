@@ -123,3 +123,25 @@ test('a line detail lists its boxes, reasons, measures and what was taken as ans
   assert.deepEqual(view.parameters, [{ name: 'edge_height_mm', value: 75, source: 'supplied' }]);
   assert.deepEqual(v.provenanceView(undefined, 1, 1).boxes, []);
 });
+
+test('the bill as a CSV file: the lines with their flags, the total, held-back items, and no formulas', () => {
+  const csv = v.billCsv({
+    currency: 'AUD', total: 1030, profile_id: 'concrete', held_back: ['pad_footing#1', 'pad_footing#2'], cross_checks: [{ outcome: 'warn', message: 'Outline 2.3% off.' }],
+    lines: [
+      { item_ref: '4.1/001', description: 'Surface preparation to slab bed', unit: 'm2', qty_billed: 103, qty_raw: 102.312, confidence: 0.9, rate: 10, amount: 1030 },
+      { item_ref: '7.1/001', description: '=cmd|"/c calc"!A1, edge', unit: 'm', qty_billed: 41, qty_raw: 40.46, confidence: 0.5, rate: null, amount: null },
+      { item_ref: '9/001', description: '-ve allowance', unit: 'nr', qty_billed: -1, confidence: 0.9 },
+    ],
+  }, { sheet: 'Ground floor page 2' });
+  assert.ok(csv.startsWith('\ufeff'), 'byte order mark, so m² opens right');
+  const rows = csv.slice(1).split('\r\n');
+  assert.deepEqual(rows.slice(0, 5), ['Sheet,Ground floor page 2', 'Trade,concrete', 'Currency,"AUD, excluding GST"', '', 'Item,Description,Quantity,Unit,Rate,Amount,Measured (before rounding),Check']);
+  assert.equal(rows[5], '4.1/001,Surface preparation to slab bed,103,m²,10,1030,102.312,');
+  assert.equal(rows[6], `7.1/001,"'=cmd|""/c calc""!A1, edge",41,m,,,40.46,Low confidence: check this quantity on the drawing.`);
+  assert.equal(rows[7], "9/001,'-ve allowance,-1,each,,,,", 'a number stays a number; text that starts like a formula does not');
+  assert.equal(rows[8], ',Total of priced lines,,,,1030');
+  assert.equal(rows[10], 'Found but not billed yet,Pad footings (2)');
+  assert.equal(rows[11], 'Check,Outline 2.3% off.');
+  assert.equal(v.billCsv({ lines: [] }).includes('Total'), false);
+  assert.deepEqual([v.csvCell(null), v.csvCell('@x'), v.csvCell('a\nb'), v.csvCell(3)], ['', "'@x", '"a\nb"', '3']);
+});
