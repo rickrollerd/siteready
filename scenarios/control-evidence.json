@@ -4218,6 +4218,7 @@
   "The heater plate is kept in its stand when not in use, never touched, and left to cool before it is packed away.": {"kind":"none"},
   "Hands are kept clear of the clamps and pipe ends while the machine closes, and the hydraulic pressure is released before hands go near the clamps.": {"kind":"none"},
   "The generator and leads are tested and tagged, the supply is RCD protected, and leads are kept out of water.": {"kind":"code"},
+  "The generator is tested and tagged, its supply is RCD protected, and its cables are kept out of water.": {"kind":"code"},
   "The operator stays out of the fumes from the heater plate and the joint.": {"kind":"practice","orgs":1},
   "Pipe is lifted into the machine with roller stands or mechanical aids. Team lifts are an interim control only.": {"kind":"code"},
   "Joints are made at the surface and lowered in, or in a trench only where it is supported or battered and the machine is set back from the edge.": {"kind":"practice","orgs":2},

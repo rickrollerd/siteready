@@ -9876,7 +9876,6 @@ addAfter('trench', {
     ],
   }, {
     step: 'Reinstate asphalt',
-    only: 'asphaltReinstate',
     hazards: ['Burns from hot asphalt.', 'Fumes from hot asphalt and bitumen.', 'Traffic and plant near the work.'],
     controls: [
       'Hot asphalt is handled with long sleeves, gloves and boots, and kept away from other workers. Workers stand upwind of the fumes, and anyone whose task puts them downwind is rotated off that position during the shift.',
@@ -11823,13 +11822,13 @@ addAfter('generatorConnect', {
   when: 'generatorUse',
   steps: [{
     step: 'Use a portable generator',
-    hazards: ['Carbon monoxide from exhaust in enclosed or partly enclosed spaces.', 'Electric shock from damaged leads or wet connections.', 'Fire or explosion from fuel.', 'Noise.', 'Struck by vehicles or plant near the generator.'],
+    hazards: ['Carbon monoxide from exhaust in enclosed or partly enclosed spaces.', 'Electric shock from damaged cables or wet connections.', 'Fire or explosion from fuel.', 'Noise.', 'Struck by vehicles or plant near the generator.'],
     controls: [
       'Generators are set up outdoors on level ground, earthed as the supplier requires, fenced off from the public, and refuelled only when stopped and cool, with a spill kit and fire extinguisher at hand.',
       'The generator stands in a bund or has a built-in bund, and its cables run in a barricaded or ramped route clear of vehicles and walkways.',
       'Generators run only with exhaust discharged outside and away from air intakes. No one works in an enclosed generator room while engines run unless it is ventilated.',
-      'Leads and plugs are inspected before use, kept off wet ground, and not run through doorways or windows where they could be crushed or damaged.',
-      'Hearing protection in signposted areas around the generator.',
+      'The generator is tested and tagged, its supply is RCD protected, and its cables are kept out of water.',
+      'Hearing protection is worn near running generators, with signposted hearing protector areas.',
     ],
   }],
   ppe: ['earMuffs', 'gloveGeneral'],

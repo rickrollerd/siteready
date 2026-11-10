@@ -5,7 +5,7 @@ const { splitPpe, withStepPpeLines, agreePpe, wornSaid, ALL_WORK_ONLY } = requir
 // Lines are read for their words without the state's own code references, so a code's title does not
 // count as the line's wording (scenarios/state-codes.json; the line itself in Queensland and NSW).
 const { localControl, withoutStateCodes } = require('./citations');
-const { tradeIds, allowedKinds, limitToTrades, deriveTrades } = require('./trades');
+const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 // Names typed in lower case print with their capitals (messy round 10). Required when used, as
@@ -7195,9 +7195,13 @@ function suggestedFlags(task, facts, state) {
   // excavation permit into the plant room inside building 3). The access and power line answers below
   // still count.
   const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: state.ownSite } : facts;
-  const wf = workFlags(task, own, state.ownCrane, false, Boolean(state.allWords));
-  const trades = state.trades && state.trades.length ? state.trades : deriveTrades(task, wf);
-  const flags = limitToTrades(wf, trades, KIND_IDS);
+  let flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
+  // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
+  // generator near the shed").
+  if (!(state.trades && state.trades.length) && flags.generatorPlant && !flags.electricalWork && !/\b(?:install\w*|supply|permanent|standby|emergency|backup|new|day tanks?|fuel (?:lines?|tanks?|systems?)|switch\w*|control\w*|panels?)\b/i.test(String(task || ''))) {
+    flags = { ...flags, generatorPlant: false, generatorUse: true };
+  }
   // A depth given once for the whole project still says how deep this SWMS's own trenches go: the trench steps then do not say
   // the trench is kept shallower than 1.5 m beside a trench over 1.5 m listed as high risk work (messy round 17, A run 2: the
   // Ground answer "upto 1.8m", given once on the project page).
@@ -9236,10 +9240,8 @@ function settleFlags(flags, task, facts = {}) {
   // Refrigerant is recovered only when a system is emptied, repaired or taken out.
   out.refrigerantRecover = REFRIGERANT.test(task) && /\b(recover\w*|decant\w*|decommission\w*|de-?gas\w*|remov\w*|replac\w*|repair\w*|leaks?)\b/i.test(task);
   out.refrigerantRecoverOnly = out.refrigerantRecover && !/\b(charg\w*|evacuat\w*|install\w*|commission\w*|re-?gas\w*|top(?:ping)? up)\b/i.test(task);
-  // Asphalt is saw cut in its own step only where the task names cutting, patching or pothole repair.
-  out.asphaltCut = Boolean(out.asphalt && !out.sawCut && (out.potholeRepair || /\b(?:cut\w*|saw\w*|patch\w*|repair\w*|break\w* out|remov\w*|replac\w*)\b/i.test(task)));
-  // Reinstate asphalt only where reinstatement, repair, cutting or trench work is named.
-  out.asphaltReinstate = Boolean(out.asphalt && (out.trench || out.inTrench || out.layInExcavation || out.potholeRepair || out.asphaltCut || /\b(?:reinstat\w*|patch\w*|repair\w*|saw\w* cut|cut\w* and reinstat\w*|break\w* out|remov\w*|replac\w*)\b/i.test(task)));
+  // Asphalt is saw cut in its own step, unless the saw cut concrete step makes the cut or a pothole is patched without one.
+  out.asphaltCut = Boolean(out.asphalt && !out.sawCut && (!out.potholeRepair || /\bcut\w*\b/i.test(task)));
   // Pipes, pits and conduits laid in a trench are each their own step, named by the task.
   // Pits lifted in by the tank and pit step are not set again here; pipes come when nothing is named.
   const trenchPipesNamed = /\b(pipes?|pipework|pipelines?|piping|(?<!consumer |electrical |power )mains?|(?:drains?|drainage|sewers?|sewerage|stormwater)(?! (?:pits?|manholes?|maintenance holes?|grates?))|culverts?|water (?:lines?|services?)|gas lines?|irrigation|ag lines?|subsoil)\b/i.test(task) || Boolean(out.sewerRepair);

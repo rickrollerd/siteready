@@ -71,22 +71,6 @@ function tradeIds(value) {
   return String(value || '').split(/[\s,]+/).filter((id) => BY_ID.has(id));
 }
 
-// Derive candidate trade ids from the task text when no trade is set.
-// Each trade's signal is either a flag name (already computed in flags) or a RegExp tested on the task.
-function deriveTrades(task, flags) {
-  const ids = [];
-  const text = String(task || '');
-  for (const trade of TRADES) {
-    if (!trade.signal) continue;
-    if (typeof trade.signal === 'string') {
-      if (flags[trade.signal]) ids.push(trade.id);
-    } else if (trade.signal instanceof RegExp) {
-      if (trade.signal.test(text)) ids.push(trade.id);
-    }
-  }
-  return ids;
-}
-
 // The kinds of work the trades can do, or null when no trade is known.
 function allowedKinds(trades) {
   const ids = tradeIds(Array.isArray(trades) ? trades.join(',') : trades);
@@ -109,4 +93,4 @@ function limitToTrades(flags, trades, kinds) {
   return out;
 }
 
-module.exports = { TRADES, COMMON, tradeIds, allowedKinds, limitToTrades, deriveTrades };
+module.exports = { TRADES, COMMON, tradeIds, allowedKinds, limitToTrades };
