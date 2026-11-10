@@ -644,6 +644,7 @@
       storage: linesOf(item.storage),
       step: clean(item.step),
       confirmed: item.confirmed === true,
+      ...(item.file ? { file: item.file } : {}),
     };
   }
 
@@ -777,8 +778,9 @@
     const lists = [['hazards', 'hazard statements'], ['firstAid', 'first aid'], ['storage', 'storage and spills']].filter(([key]) => item[key].some(isOpen)).map(([, words]) => words);
     if (lists.length) missing.push(`a line in ${joinWords(lists)} that is not an answer yet (take it out or fill it in)`);
     if (item.supplier && isOpen(item.supplier)) missing.push('its supplier (or leave the supplier empty)');
-    if (missing.length) return `For ${name}, give ${joinWords(missing)}.${item.confirmed ? '' : ' Then tick "These match the SDS".'}`;
-    if (!item.confirmed) return `Check ${name} against its safety data sheet and tick "These match the SDS".`;
+    const tickText = item.file ? 'These match the SDS' : 'I have the current SDS for this product on site';
+    if (missing.length) return `For ${name}, give ${joinWords(missing)}.${item.confirmed ? '' : ` Then tick "${tickText}".`}`;
+    if (!item.confirmed) return `Check ${name} against its safety data sheet and tick "${tickText}".`;
     return '';
   }
 

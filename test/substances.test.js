@@ -107,7 +107,7 @@ test('each product prints in the table with its Controls, and its step gets one 
     'Wear chemical resistant gloves (nitrile).\nWear safety glasses with side shields or goggles.',
     'Skin: wash with plenty of soap and water.',
     'Store in a cool, well ventilated place.\nContain spills with sand or earth.',
-    'Issued 12 March 2024.',
+    'Issued 12 March 2024.\nSDS held on site, not attached.',
   ]]);
   const word = await wordText(d);
   for (const text of ['Hazardous substances', 'Controls', 'Storage and spills', 'CureCoat 40', 'Wear safety glasses with side shields or goggles.', 'Issued 12 March 2024.', CURE_LINE]) assert.ok(word.includes(text), text);
@@ -169,7 +169,7 @@ test('confirm needed: the download waits until each product is complete and tick
   const input = draftBody({ ...base(POUR), substances: [{ ...CURE, confirmed: false }] });
   const d = prepareDraft(input);
   const gaps = downloadGaps(input, d).filter((gap) => gap.kind === 'substance');
-  assert.deepEqual(gaps, [{ id: 'substance.sub-1', kind: 'substance', field: 'substance-sub-1', label: 'Hazardous substance: CureCoat 40', substance: 'sub-1', need: 'Check CureCoat 40 against its safety data sheet and tick "These match the SDS".' }]);
+  assert.deepEqual(gaps, [{ id: 'substance.sub-1', kind: 'substance', field: 'substance-sub-1', label: 'Hazardous substance: CureCoat 40', substance: 'sub-1', need: 'Check CureCoat 40 against its safety data sheet and tick "I have the current SDS for this product on site".' }]);
   assert.match(gateMessage(downloadGaps(input, d)), /each hazardous product is listed and checked against its safety data sheet and no blank is left in it\..*Hazardous substance: CureCoat 40/);
   const ticked = draftBody({ ...base(POUR), substances: [CURE] });
   assert.deepEqual(downloadGaps(ticked, prepareDraft(ticked)).filter((gap) => gap.kind === 'substance'), []);
@@ -243,7 +243,7 @@ test('D277, D282: the "Safety data sheet" question is dropped once a product is 
 
 test('what a product still needs, in plain words: name, controls, issue date, step, and no placeholder', () => {
   const need = (row, step = 'Cure the concrete') => R.substanceNeed(row, step);
-  assert.equal(need({ type: 'Cement, concrete, grout and mortar' }, ''), 'For this cement product, give its product name, the PPE and controls its safety data sheet sets out, one a line, the issue date on its safety data sheet and the job step that uses it. Then tick "These match the SDS".');
+  assert.equal(need({ type: 'Cement, concrete, grout and mortar' }, ''), 'For this cement product, give its product name, the PPE and controls its safety data sheet sets out, one a line, the issue date on its safety data sheet and the job step that uses it. Then tick "I have the current SDS for this product on site".');
   assert.equal(need({ product: 'TBC', controls: ['Wear gloves.'], sdsDate: '2024-01-01', confirmed: true }), 'For this product, give its product name.');
   assert.equal(need({ product: 'CureCoat 40', controls: ['To be confirmed'], sdsDate: '2024-01-01', confirmed: true }), 'For CureCoat 40, give the PPE and controls its safety data sheet sets out, one a line.');
   assert.equal(need({ product: 'CureCoat 40', controls: ['Wear gloves.'], sdsDate: 'March 2024', confirmed: true }), 'For CureCoat 40, give the issue date on its safety data sheet.');
@@ -477,7 +477,7 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   const withCard = p.window.SiteWrite.render(plain, { movable: true });
   assert.match(withCard, /<legend>CureCoat 40<\/legend>/);
   assert.match(withCard, /Read from the safety data sheet: check each line matches it/);
-  assert.match(withCard, /These match the SDS/);
+  assert.match(withCard, /I have the current SDS for this product on site/);
   assert.match(withCard, /SiteWrite&#39;s match: Cure the concrete/);
   assert.match(withCard, /accept="\.pdf,application\/pdf"/);
   assert.match(withCard, /It does not read a scanned SDS or a photo: type the details from it instead\./);
@@ -486,7 +486,7 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   assert.deepEqual(sent[0].controls, CURE.controls);
   // The gate item is judged from the card as it is now.
   const check = { kind: 'substance', substance: 'sub-1', field: 'substance-sub-1', need: 'from the server' };
-  assert.equal(p.run(`liveNeed(${JSON.stringify(check)})`), 'Check CureCoat 40 against its safety data sheet and tick "These match the SDS".');
+  assert.equal(p.run(`liveNeed(${JSON.stringify(check)})`), 'Check CureCoat 40 against its safety data sheet and tick "I have the current SDS for this product on site".');
   S.load([{ ...CURE }]);
   assert.equal(p.run(`liveNeed(${JSON.stringify(check)})`), '');
   // In the draft: the table, and the product's line without tools to change it there.
