@@ -239,4 +239,49 @@ function billCsv(bill, { sheet = '' } = {}) {
   return `\ufeff${rows.map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
 
-module.exports = { unitLabel, heldBackLabel, billView, questionsView, paramsFromAnswers, boxOnPage, provenanceView, billCsv, csvCell };
+
+// ---- Review of each line (accept, reject, move) ----
+// QuantityForge keeps changed quantities (/v1/bill/override) but has no accept or move of its own, and drops
+// fields it does not know, so the tab keeps what was decided on each line beside the bill.
+const REVIEW_STATES = new Set(['accepted', 'rejected', 'reclassified']);
+const shortText = (value) => (typeof value === 'string' ? value.slice(0, 200) : '');
+function reviewsFrom(raw, bill) {
+  const refs = new Set(list(bill && bill.lines).map((l) => l && l.item_ref).filter((r) => typeof r === 'string'));
+  const out = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (const [ref, item] of Object.entries(raw)) {
+    if (UNSAFE.has(ref) || !refs.has(ref) || !item || typeof item !== 'object' || !REVIEW_STATES.has(item.state)) continue;
+    const review = { state: item.state, by: shortText(item.by), at: shortText(item.at) };
+    if (item.state === 'reclassified') {
+      if (typeof item.to !== 'string' || !refs.has(item.to) || item.to === ref) continue;
+      review.to = item.to;
+    }
+    if (item.state !== 'accepted') {
+      const qty = Number(item.qty);
+      if (item.qty === null || item.qty === '' || !Number.isFinite(qty) || qty < 0) continue;
+      review.qty = qty;
+    }
+    out[ref] = review;
+  }
+  return out;
+}
+function reviewFlag(review) {
+  const by = review.by ? ` by ${review.by}` : '';
+  if (review.state === 'accepted') return `Accepted${by}.`;
+  if (review.state === 'rejected') return `Rejected${by}.`;
+  return `Moved to ${review.to}${by}.`;
+}
+function withReviews(billed, reviews) {
+  const all = reviews || {};
+  return {
+    ...billed,
+    lines: list(billed && billed.lines).map((l) => {
+      const review = Object.prototype.hasOwnProperty.call(all, l.itemRef) ? all[l.itemRef] : null;
+      if (!review) return { ...l, review: null };
+      // An override caps QuantityForge's confidence, so a line someone has decided on is not called low confidence.
+      return { ...l, review, flags: [...l.flags.filter((f) => !/^Low confidence/.test(f)), reviewFlag(review)] };
+    }),
+  };
+}
+
+module.exports = { reviewsFrom, withReviews, unitLabel, heldBackLabel, billView, questionsView, paramsFromAnswers, boxOnPage, provenanceView, billCsv, csvCell };
