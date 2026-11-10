@@ -11818,6 +11818,22 @@ addAfter('generatorPlant', {
   ppe: ['earMuffs', 'gloveGeneral'],
 });
 
+addAfter('generatorConnect', {
+  when: 'generatorUse',
+  steps: [{
+    step: 'Use a portable generator',
+    hazards: ['Carbon monoxide from exhaust in enclosed or partly enclosed spaces.', 'Electric shock from damaged cables or wet connections.', 'Fire or explosion from fuel.', 'Noise.', 'Struck by vehicles or plant near the generator.'],
+    controls: [
+      'Generators are set up outdoors on level ground, earthed as the supplier requires, fenced off from the public, and refuelled only when stopped and cool, with a spill kit and fire extinguisher at hand.',
+      'The generator stands in a bund or has a built-in bund, and its cables run in a barricaded or ramped route clear of vehicles and walkways.',
+      'Generators run only with exhaust discharged outside and away from air intakes. No one works in an enclosed generator room while engines run unless it is ventilated.',
+      'The generator is tested and tagged, its supply is RCD protected, and its cables are kept out of water.',
+      'Hearing protection is worn near running generators, with signposted hearing protector areas.',
+    ],
+  }],
+  ppe: ['earMuffs', 'gloveGeneral'],
+});
+
 addAfter('landscape', {
   when: 'blowerTruck',
   steps: [{

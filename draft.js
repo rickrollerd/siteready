@@ -5658,6 +5658,8 @@ function confirmedPlantSteps(input, flags, task = '') {
   if (/\bmobile scaffolds?\b|\bscaffold towers?\b|\baluminium towers?\b/i.test(names)) out.mobileScaffold = true;
   const painting = ['painting', 'paintExternal', 'paintAccess', 'paintSolvent', 'steelPaint'].some((id) => flags[id]);
   if (painting && /\b(airless|spray(?:ers?| rigs?| units?| guns?| equipment))\b/i.test(names)) out.paintSpray = true;
+  // A generator ticked in the plant list brings generatorUse, not generatorPlant install, unless the task already names an install.
+  if (/\bgenerators?\b/i.test(names) && !flags.generatorPlant && !flags.generatorConnect && !flags.generatorTest) out.generatorUse = true;
   // Carpentry and joinery tools the user confirmed bring the power tools step (messy round 5: a drop saw
   // and nail gun confirmed for joinery, with no power tools step and no hearing protection).
   const joinery = ['carpJoinery', 'carpFraming', 'carpLoad', 'carpentryWork'].some((id) => flags[id]);
@@ -7193,7 +7195,13 @@ function suggestedFlags(task, facts, state) {
   // excavation permit into the plant room inside building 3). The access and power line answers below
   // still count.
   const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: state.ownSite } : facts;
-  const flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  let flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
+  // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
+  // generator near the shed").
+  if (!(state.trades && state.trades.length) && flags.generatorPlant && !flags.electricalWork && !/\b(?:install\w*|supply|permanent|standby|emergency|backup|new|day tanks?|fuel (?:lines?|tanks?|systems?)|switch\w*|control\w*|panels?)\b/i.test(String(task || ''))) {
+    flags = { ...flags, generatorPlant: false, generatorUse: true };
+  }
   // A depth given once for the whole project still says how deep this SWMS's own trenches go: the trench steps then do not say
   // the trench is kept shallower than 1.5 m beside a trench over 1.5 m listed as high risk work (messy round 17, A run 2: the
   // Ground answer "upto 1.8m", given once on the project page).
@@ -9866,6 +9874,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // round 19, A run 2: "Install generator control panel and modify existing generator master control system" read as installing
     // generators with fuel tanks and fuel lines, and the package was listed as fuel line work).
     generatorPlant: (/\b(?:install\w*|supply and install|new|place\w*|set|crane|craning|craned|lift\w*)\b[^.]{0,40}\b(?:generators?(?!\s+(?:master\s+|main\s+)?(?:control\w*|panels?|switch\w*|monitor\w*|alarms?|interfaces?|cabl\w*|wiring|circuit breakers?))|day tanks?)\b|\bgenerators?\b[^.]{0,30}\binstall\w*/i.test(task.replace(/[^.]+\.?/g, (sentence) => (/\b(test\w*|commission\w*|load banks?|load shed\w*)\b/i.test(sentence) && !PLANT_WORK.test(sentence) ? ' ' : sentence))) || /\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b/i.test(task) && /\bgenerators?\b/i.test(task)),
+    // Using or running a portable or site generator, not installing a permanent one or connecting it.
+    generatorUse: (/\b(?:use|run|running|hire|hired)\b[^.]{0,30}\b(?:a |the )?(?:portable |site )?generators?\b|\b(?:portable |site )generators?\b|\bgenny\b|\bgenerators? for (?:the )?(?:power )?tools?\b/i.test(task) || (/\bgenerators?\b/i.test(task) && /\b(?:fuel|exhaust|leads?|extension leads?)\b/i.test(task))) && !/\b(?:install\w*|supply and install|permanent|standby|emergency|backup|day tanks?|connect\w*|hook\w* up|tie\w* in|terminat\w*)\b/i.test(task) && !/\b(?:test\w*|commission\w*|load banks?|load shed\w*)\b/i.test(task),
     // Boilers being installed, not boilers named only as what a supply connects to.
     boilerPlant: /\b(?:install\w*|commission\w*|set\w*|lift\w*|replac\w*|supply and install)\b[^.]{0,40}\b(?:boilers?|pressure vessels?|calorifiers?|steam plant)\b|\b(?:boilers?|pressure vessels?|calorifiers?)\b[^.]{0,30}\b(?:install\w*|commission\w*)\b/i.test(task),
     cleaningStands: (CLEANING.test(task) || /\bclean\w* (?:the |all )?(?:[\w-]+ )?(?:stands?|grandstands?|seats?|tiers?|aisles?)\b/i.test(task)) && /\b(stands?|seats?|tiers?|grandstands?|aisles?)\b/i.test(task),

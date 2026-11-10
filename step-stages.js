@@ -48,7 +48,7 @@ const BY_NAME = {
   'Work at open lift shafts and landing doors': 10, 'Plan the heavy lift': 10, 'Plan the dual lift': 10, 'Inspect, test and tag electrical equipment': 10,
   'Erect or dismantle the tower crane': 12, 'Assemble or dismantle the crawler crane': 12, 'Erect the safety screens': 12, 'Erect the temporary stair': 12,
   'Inspect and hand over the temporary stair': 13, 'Install, climb and dismantle the mast climbing work platform': 12, 'Install and use safety nets': 12,
-  'Build the temporary bridge': 12, 'Install temporary event power and generators': 12, 'Set up the traffic switch and message signs': 10,
+  'Build the temporary bridge': 12, 'Install temporary event power and generators': 12, 'Use a portable generator': 12, 'Set up the traffic switch and message signs': 10,
   'Install temporary support': 18, 'Set up the crossover work area': 10, 'Build the vehicle crossover': 10, 'Prepare the piling working platform': 12,
   'Cover the damaged roof with tarps': 12, 'Work in hot conditions': 'trail',
   // Deliveries, unloading and moving materials and plant into place.
