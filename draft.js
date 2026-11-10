@@ -7238,6 +7238,8 @@ function suggestedFlags(task, facts, state) {
   // still count.
   const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: state.ownSite } : facts;
   let flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  // D345: gate the typed-text suggestions to the stated trade, but keep the ungated set for silica logic.
+  const ungated = flags;
   if (state.statedTrade) flags = gateToTrade(flags, state.statedTrade, KIND_IDS);
   // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
   // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
@@ -7310,9 +7312,9 @@ function suggestedFlags(task, facts, state) {
   // An old joint saw cut and broken out is cutting out concrete, not cutting new control joints (messy round 13, B run 7: "saw
   // cut n jackhammer out old expansion joint" got no step and was not listed).
   if (jointsOnly && flags.sawCut && sentencesWith(task, /\b(?:saw\w*|cut\w*)\b/i).every((sentence) => /\b(control|contraction|expansion|construction) joints?\b/i.test(sentence) && !/\b(openings?|penetrations?|demoli\w*)\b/i.test(sentence) && !OLD_JOINT_OUT.test(sentence))) flags.sawCut = false;
-  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id]) && !jointsOnly && !(flags.floorCoating && /\bgrind\w*\b/i.test(task) && !/\b(drill\w*|cut\w*|cor(?:e|ing)|chas\w*|saw\w*)\b/i.test(task))) flags.silicaDrill = true;
+  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id] || ungated[id]) && !jointsOnly && !(flags.floorCoating && /\bgrind\w*\b/i.test(task) && !/\b(drill\w*|cut\w*|cor(?:e|ing)|chas\w*|saw\w*)\b/i.test(task))) flags.silicaDrill = true;
   // Bollards, stops and humps are fixed by drilling the slab or pavement.
-  if (flags.bollards && !OWN_CUTTING.some((id) => flags[id])) flags.silicaDrill = true;
+  if (flags.bollards && !OWN_CUTTING.some((id) => flags[id] || ungated[id])) flags.silicaDrill = true;
   // A floor is ground or blasted before it is coated.
   // Stair treads are prepared by hand, not with a floor grinder.
   if (flags.floorCoating && !/\b(new|freshly poured)\b/i.test(task) && !(/\bgrind\w*/i.test(task) && !/\bgrind\w*/i.test(othersAndDenials(task).others)) && !(/\b(stairs?|treads?)\b/i.test(task) && !/\bgrind\w*\b/i.test(task))) flags.floorGrind = true;
