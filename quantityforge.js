@@ -15,7 +15,8 @@ const { requireUser } = require('./auth');
 const view = require('./qf-view');
 
 const MAX_BYTES = 50 * 1024 * 1024; // QuantityForge's own limit for a sheet.
-const IMAGE_WIDTH = 1600;
+// Wide enough to zoom into a dimension on an A1 sheet; about 1 MB as a picture.
+const IMAGE_WIDTH = 2400;
 const fail = (status, message) => Object.assign(new Error(message), { status, publicMessage: true });
 
 const baseUrl = () => String(process.env.QF_API_URL || '').trim().replace(/\/+$/, '');
@@ -203,6 +204,18 @@ function router({ fetchImpl } = {}) {
     if (!blank && (!Number.isFinite(rate) || rate < 0)) throw fail(400, 'Give the rate in dollars, 0 or more, or leave it empty.');
     const updated = await call('/bill/rate', { method: 'POST', json: { bill, item_ref: itemRef, rate }, email: req.user.email });
     res.json(await shown(updated, profileFrom(req.body), req.user.email, fetchImpl || fetch));
+  }));
+
+  // The bill as a CSV file: the lines of the trade picked, as the page shows them.
+  r.post('/qf/export.csv', requireUser, handle(async (req, res) => {
+    const bill = billFrom(req.body);
+    const profile = profileFrom(req.body);
+    const filtered = profile !== 'all' ? await call('/bill/profile', { method: 'POST', json: { bill, profile }, email: req.user.email }) : bill;
+    const sheet = String(req.body.sheet || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 120);
+    const stem = (sheet || 'bill').replace(/\.pdf\b/gi, '').replace(/[^A-Za-z0-9 ._-]+/g, '').trim().replace(/\s+/g, '-').slice(0, 60) || 'bill';
+    res.set('Content-Type', 'text/csv; charset=utf-8');
+    res.set('Content-Disposition', `attachment; filename="${stem}-quantities.csv"`);
+    res.send(view.billCsv(filtered, { sheet }));
   }));
 
   r.post('/qf/profile', requireUser, handle(async (req, res) => {

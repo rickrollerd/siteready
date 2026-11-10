@@ -211,4 +211,32 @@ function provenanceView(prov, pageWidthPt, pageHeightPt) {
   };
 }
 
-module.exports = { unitLabel, heldBackLabel, billView, questionsView, paramsFromAnswers, boxOnPage, provenanceView };
+// The bill as a CSV file for a spreadsheet: the lines shown, their flags, and the total of priced lines.
+// A cell that starts like a formula (=, +, -, @, tab or return) is written as text, so a description
+// from a drawing cannot run as a formula when the file is opened.
+function csvCell(value) {
+  if (value === null || value === undefined) return '';
+  let text = String(value);
+  if (typeof value !== 'number' && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+function billCsv(bill, { sheet = '' } = {}) {
+  const v = billView(bill);
+  const rows = [];
+  if (sheet) rows.push(['Sheet', sheet]);
+  rows.push(['Trade', v.profileId === 'all' ? 'All trades' : v.profileId]);
+  rows.push(['Currency', `${v.currency}, excluding GST`]);
+  rows.push([]);
+  rows.push(['Item', 'Description', 'Quantity', 'Unit', 'Rate', 'Amount', 'Measured (before rounding)', 'Check']);
+  for (const l of v.lines) rows.push([l.itemRef, l.description, l.qty, l.unitLabel, l.rate, l.amount, l.qtyRaw, l.flags.join(' ')]);
+  if (v.lines.some((l) => l.rate !== null)) rows.push(['', 'Total of priced lines', '', '', '', v.total]);
+  if (v.heldBackGroups.length) {
+    rows.push([]);
+    rows.push(['Found but not billed yet', v.heldBackGroups.map((g) => (g.count > 1 ? `${g.label} (${g.count})` : g.label)).join(', ')]);
+  }
+  for (const w of v.warnings) rows.push(['Check', w]);
+  // A spreadsheet opens UTF-8 (m², m³) correctly with the byte order mark.
+  return `\ufeff${rows.map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
+}
+
+module.exports = { unitLabel, heldBackLabel, billView, questionsView, paramsFromAnswers, boxOnPage, provenanceView, billCsv, csvCell };

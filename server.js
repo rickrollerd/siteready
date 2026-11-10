@@ -98,7 +98,7 @@ const HSE_SCOPE = /^\/api\/hse\/subcontracts\/[^/]+\/scope$/;
 // A subcontractor's work on a builder's list (stage 6) is the whole project page, like the project zip.
 const LIST_PROGRESS = /^\/api\/from-builders\/[^/]+\/(?:progress|submit)$/;
 // The QuantityForge tab sends the whole bill back with each change (quantityforge.js).
-const QF_BILL = /^\/api\/qf\/(?:provenance|override|rate|profile)$/;
+const QF_BILL = /^\/api\/qf\/(?:provenance|override|rate|profile|export\.csv)$/;
 app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' || LIST_PROGRESS.test(req.path) || QF_BILL.test(req.path) ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 // SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
