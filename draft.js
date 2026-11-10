@@ -2986,11 +2986,13 @@ const HARNESS_SAYS = [
 // What a stood-down SWMS says of one answer it still needs. A box with "na", "none" or "TBC" typed in it
 // is not "Not answered yet": it says why the words typed are not an answer (messy round 11, run 3: "na"
 // was called "Not answered yet").
+// Why a crane chart answer is refused when its heaviest load is over the crane's rated capacity (content22).
+const craneChartWhy = (id, typed) => (id === 'craneChart' ? require('./public/gate-rules').craneOverWhy(typed) : '');
 function missingHelpItem(item, facts, where) {
   const typed = cleanLine((facts || {})[item.id]);
   const placeholder = item.state === 'missing' && typed && !keptFact(typed);
   const state = placeholder ? 'vague' : item.state;
-  const why = state === 'vague' ? (notApplicableWhy(item.id, typed) || presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
+  const why = state === 'vague' ? (notApplicableWhy(item.id, typed) || craneChartWhy(item.id, typed) || presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
   return { id: item.id, label: item.label, state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
 }
 
@@ -3012,7 +3014,8 @@ function presetFillWhy(id, value, state) {
 function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
-  if (id === 'craneChart') return statesChartValues(value);
+  // A heaviest load over the rated capacity is not an answer to fix later: the lift cannot go ahead as written (content22).
+  if (id === 'craneChart') return statesChartValues(value) && !require('./public/gate-rules').craneOverCapacity(value);
   if (id === 'groundBearing' && !GROUND_CONFIRMED.test(value) && !GROUND_CONFIRMED_BY.test(value)) return false;
   // A harness clipped to a fixed anchor says who rated or installed it, or how it is checked (messy round 18, B run 5: "harness n
   // retractable to the anchor in the machine room" passed with a soft finding). An EWP's, a tower's or a maker's own anchor
@@ -3153,7 +3156,7 @@ function weakAnswers(input) {
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
       const typed = cleanLine(facts[item.id]);
-      const why = notApplicableWhy(item.id, typed) || presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
+      const why = notApplicableWhy(item.id, typed) || craneChartWhy(item.id, typed) || presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
         || (item.id === 'safetyDataSheet' && sdsNamesOnly(typed) ? `"${typed}" names the products but not how they are handled. Say how, and where their safety data sheets are kept, for example "Adhesive and primer: nitrile gloves and good airflow, safety data sheets in the site folder".` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });

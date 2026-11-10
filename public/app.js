@@ -5543,7 +5543,7 @@ function goToFirstNeed() {
 
 // Where each must-fix item of SiteWrite's check is fixed on the page, with a "Go to" that opens it
 // (messy round 5: "Fix it on the page" said nothing of where, and the page had no way to add a high
-// risk item). Every must-fix rule of the check (builder-check.js H1 to H9) has its place here; any
+// risk item). Every must-fix rule of the check (builder-check.js H1 to H10) has its place here; any
 // other goes to the job steps. On a saved SWMS, the place is Change, which opens it to fix.
 function stepRowFor(item) {
   const steps = (shownDraft && shownDraft.jobSteps) || [];
@@ -5566,6 +5566,7 @@ function mustFixPlace(prefix, item) {
     case 'H4': return /No site address/.test(item.message || '') ? { label: 'Go to Job address', target: byId('workplace') } : { label: 'Go to the site questions', target: () => document.querySelector('#site-block textarea') };
     case 'H6':
     case 'H7': return { label: 'Go to Person who makes sure the SWMS is followed', target: byId('compliance-responsible') };
+    case 'H10': return document.getElementById('fact-craneChart') ? { label: 'Go to the crane chart answer', target: () => answerTarget(document.getElementById('fact-craneChart')) } : steps;
     case 'H8': return { label: 'Go to the first blank', target: () => resultEl.querySelector('.blank-input') || document.querySelector('textarea.has-blank') || document.getElementById('steps-head') };
     case 'H2':
     case 'H5':

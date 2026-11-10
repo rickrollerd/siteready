@@ -86,7 +86,7 @@ test('each item SiteWrite listed says where it was found, a site answer included
 
 test('every must-fix rule of SiteWrite\'s check has a place on the page with a Go to', () => {
   const rules = [...fs.readFileSync(path.join(__dirname, '../builder-check.js'), 'utf8').matchAll(/add\('(H\d+)'/g)].map((match) => match[1]);
-  assert.deepEqual([...new Set(rules)], ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9']);
+  assert.deepEqual([...new Set(rules)], ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10']);
   const app = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
   const place = app.slice(app.indexOf('function mustFixPlace('), app.indexOf('function stepTarget('));
   for (const rule of rules) assert.match(place, new RegExp(`case '${rule}'`), rule);
