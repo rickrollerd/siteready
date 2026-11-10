@@ -401,7 +401,7 @@ const VICTORIA = {
   loaded: true,
   instrument: 'Occupational Health and Safety Regulations 2017 (Vic)',
   compilation: '20 October 2026',
-  versionLabel: 'authorised version 017, as at 29 July 2026',
+  versionLabel: 'authorised version 018, as at 20 October 2026',
   section: '327',
   sectionRef: 'regulation 327',
   sectionTitle: 'Safe work method statement required for high risk construction work',
