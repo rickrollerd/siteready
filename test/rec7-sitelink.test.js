@@ -61,7 +61,7 @@ function inDays(days) {
 
 // An account (Unverified: the register is not set up here), a project with site details, and a
 // subcontract with one SWMS on its list.
-async function builder(leadEmail, subEmail, orgName = 'Corbel Build Pty Ltd') {
+async function builder(leadEmail, subEmail, orgName = 'Specimen Build Pty Ltd') {
   const lead = await signIn(leadEmail);
   const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: orgName, abn: nextAbn() } });
   assert.equal(org.status, 201, JSON.stringify(org.data));
@@ -82,7 +82,7 @@ test('an Unverified account cannot send or remind: the card says why and links t
   const blocked = b.added.sending.blocked;
   assert.ok(blocked, 'the send card is blocked');
   assert.equal(blocked.orgId, b.orgId);
-  assert.equal(blocked.message, 'Corbel Build Pty Ltd shows Unverified, so SiteLink cannot send its lists yet. Only an account whose ABN matches the ABN register can email subcontractors. The lead can check the register again in Account settings, or contact SiteWrite at sitereadyaus@gmail.com.');
+  assert.equal(blocked.message, 'Specimen Build Pty Ltd shows Unverified, so SiteLink cannot send its lists yet. Only an account whose ABN matches the ABN register can email subcontractors. The lead can check the register again in Account settings, or contact SiteWrite at sitereadyaus@gmail.com.');
   // Checking or sending the email is refused by the server too, and nothing goes.
   const before = mailbox.length;
   const preview = await call('POST', `/api/hse/subcontracts/${b.subId}/send/preview`, { reviewer: b.lead, body: { due: inDays(14) } });
@@ -96,7 +96,7 @@ test('an Unverified account cannot send or remind: the card says why and links t
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM list_links WHERE subcontract_id = $1', [b.subId])).n), 0);
   // Verified by the register: the card is open, and the list goes.
   const abn = (await db.one('SELECT abn FROM orgs WHERE id = $1', [b.orgId])).abn;
-  register.set(abn, listed('CORBEL BUILD PTY LTD'));
+  register.set(abn, listed('SPECIMEN BUILD PTY LTD'));
   const checked = await call('POST', `/api/hse/orgs/${b.orgId}/abn-check`, { reviewer: b.lead });
   assert.equal(checked.data.org.verified, true);
   const page = await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead });
@@ -107,7 +107,7 @@ test('an Unverified account cannot send or remind: the card says why and links t
   assert.equal(done.status, 200, JSON.stringify(done.data));
   assert.ok(mailbox.some((item) => item.to === 'office@unverified-sub.example' && /SWMS required for Northgate Health Hub/.test(item.subject)));
   // An account that later shows Unverified again (a new name not on the register) stops sending.
-  await call('PUT', `/api/hse/orgs/${b.orgId}`, { reviewer: b.lead, body: { name: 'Corbel Group' } });
+  await call('PUT', `/api/hse/orgs/${b.orgId}`, { reviewer: b.lead, body: { name: 'Specimen Group' } });
   const again = await call('POST', `/api/hse/subcontracts/${b.subId}/remind/preview`, { reviewer: b.lead });
   assert.equal(again.status, 403);
   // The list page still says the builder is Unverified.
@@ -144,13 +144,13 @@ test('at set-up, a register name that differs is said with the contact address, 
   const lead = await signIn('dana@register-name.example');
   const abn = nextAbn();
   register.set(abn, listed('MARLIN CONSTRUCTIONS PTY LTD'));
-  const asked = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn } });
+  const asked = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Specimen Build Pty Ltd', abn } });
   assert.equal(asked.status, 409);
-  assert.equal(asked.data.message, `The ABN register lists ABN ${abn.slice(0, 2)} ${abn.slice(2, 5)} ${abn.slice(5, 8)} ${abn.slice(8)} under Marlin Constructions Pty Ltd, not Corbel Build Pty Ltd. Check the ABN. If this account is for Marlin Constructions Pty Ltd, contact SiteWrite at sitereadyaus@gmail.com to have it checked.`);
+  assert.equal(asked.data.message, `The ABN register lists ABN ${abn.slice(0, 2)} ${abn.slice(2, 5)} ${abn.slice(5, 8)} ${abn.slice(8)} under Marlin Constructions Pty Ltd, not Specimen Build Pty Ltd. Check the ABN. If this account is for Marlin Constructions Pty Ltd, contact SiteWrite at sitereadyaus@gmail.com to have it checked.`);
   assert.equal(asked.data.support, 'sitereadyaus@gmail.com');
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM orgs WHERE abn = $1', [abn])).n), 0, 'nothing is set up');
   // Keeping their own name sets it up Unverified.
-  const kept = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn, keepName: true } });
+  const kept = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Specimen Build Pty Ltd', abn, keepName: true } });
   assert.equal(kept.status, 201);
   assert.equal(kept.data.org.verified, false);
   // The page offers no "Use {name}" button at set-up any more.

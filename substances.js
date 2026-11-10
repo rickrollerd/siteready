@@ -137,7 +137,7 @@ function tableRows(draft) {
     orSection(row.controls, 'section 8'),
     orSection(row.firstAid, 'section 4'),
     orSection(row.storage, 'sections 6 and 7'),
-    [rules.dateOf(row.sdsDate) ? `Issued ${dateText(row.sdsDate)}.` : '', row.file ? `A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : ''].filter(Boolean).join('\n'),
+    [rules.dateOf(row.sdsDate) ? `Issued ${dateText(row.sdsDate)}.` : '', row.file ? `A copy is attached to this SWMS in SiteWrite (${row.file.name || 'file'}).` : 'SDS held on site, not attached.'].filter(Boolean).join('\n'),
   ]);
 }
 

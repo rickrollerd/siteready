@@ -100,17 +100,31 @@ const allRows = (subId) => db.query('SELECT * FROM required_swms WHERE subcontra
 // The list as an email names it: each SWMS's id, title and work, with any price taken out (handover.js).
 const snapshot = (rows) => rows.filter((row) => !row.removed_at).map((row) => ({ id: row.id, title: handover.nameWithoutPrices(row.title), task: handover.wordsWithoutPrices(row.task) }));
 const itemsOf = (link) => (Array.isArray(link.items) ? link.items : (() => { try { return JSON.parse(link.items || '[]'); } catch { return []; } })());
+const jsonOf = (text) => { try { return JSON.parse(text || '[]'); } catch { return []; } };
+// The lead's answers to the points, as a sent list saw them (sl17: an answer given after the list went
+// did not mark it changed). A link from before list_links.points was kept has '[]': for it, only answers
+// given after it was sent count as changed.
+const answeredPoints = (subId) => db.query('SELECT activity, clause, question, answer, answered_at FROM subcontract_points WHERE subcontract_id = $1 AND answer IS NOT NULL AND answer <> \'\' ORDER BY position', [subId]);
+const pointView = (p) => ({ activity: p.activity, clause: p.clause, question: p.question, answer: p.answer });
+function pointsAgainst(link, rows) {
+  const kept = jsonOf(link.points || '[]');
+  const now = kept.length || !link.created_at ? rows : rows.filter((p) => p.answered_at && new Date(p.answered_at) > new Date(link.created_at));
+  return [kept, now.map(pointView)];
+}
+const changesSince = (link, items, rows) => changesFrom(itemsOf(link), items, ...pointsAgainst(link, rows));
 
-function changesFrom(before, now) {
+function changesFrom(before, now, beforePoints, nowPoints) {
   const was = new Map(before.map((item) => [item.id, item]));
   const is = new Map(now.map((item) => [item.id, item]));
   return {
     added: now.filter((item) => !was.has(item.id)).map((item) => item.title),
     removed: before.filter((item) => !is.has(item.id)).map((item) => item.title),
     changed: now.filter((item) => was.has(item.id) && (was.get(item.id).task !== item.task || was.get(item.id).title !== item.title)).map((item) => item.title),
+    // Only when it is so, so a list with no points reads as it did.
+    ...(JSON.stringify(beforePoints || []) !== JSON.stringify(nowPoints || []) ? { pointsChanged: true } : {}),
   };
 }
-const anyChange = (changes) => Boolean(changes && (changes.added.length || changes.removed.length || changes.changed.length));
+const anyChange = (changes) => Boolean(changes && (changes.added.length || changes.removed.length || changes.changed.length || changes.pointsChanged));
 
 // ---- The project log (both sides) ----
 
@@ -178,13 +192,14 @@ async function plan(ctx, req, body, { reminder = false, urls = { link: PREVIEW_L
   if (!versions.length) throw fail(400, 'Set the project\'s site details before sending the list. The subcontractor\'s list page shows them.');
   const links = await linksOf(sub.id);
   const items = snapshot(rows);
+  const pointRows = await answeredPoints(sub.id);
   const person = req.reviewer.name;
   const base = { person, builder: org.name, project: project.name, link: urls.link, stopLink: urls.stop, today: todayIn(project.state) };
   if (reminder) {
     const last = lastList(links);
     if (!last) throw fail(400, 'The list has not been sent yet. Send it first.');
     if (last.email !== to) throw fail(400, `The list was sent to ${last.email}, not ${to}. Send the list to ${to} first.`);
-    if (anyChange(changesFrom(itemsOf(last), items))) throw fail(409, 'The list has changed since it was sent. Send the updated list instead, so the subcontractor sees what changed.');
+    if (anyChange(changesSince(last, items, pointRows))) throw fail(409, 'The list has changed since it was sent. Send the updated list instead, so the subcontractor sees what changed.');
     const since = links.filter((link) => link.created_at >= last.created_at && link.kind === 'reminder' && link.email === to);
     if (since.length >= reminderMax()) throw fail(429, `${since.length} reminders have gone since the list was sent. SiteLink sends no more, so the subcontractor is not flooded. Ring them instead.`);
     const latest = links.filter((link) => link.email === to).pop();
@@ -202,7 +217,7 @@ async function plan(ctx, req, body, { reminder = false, urls = { link: PREVIEW_L
   let changes = null;
   let dueWas = '';
   if (before) {
-    changes = changesFrom(itemsOf(before), items);
+    changes = changesSince(before, items, pointRows);
     dueWas = before.due_date !== due ? before.due_date : '';
     if (!anyChange(changes) && !dueWas) {
       // Only an action that can be taken now is offered (messy round 7: "Use Remind" while Remind was greyed).
@@ -237,8 +252,9 @@ async function deliver(ctx, req, planned) {
   const who = sender(req);
   const linkId = auth.newId();
   const now = new Date();
-  await db.query('INSERT INTO list_links (id, subcontract_id, project_id, org_id, token_hash, stop_hash, email, kind, list_rev, due_date, items, sent_by, sent_by_name, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
-    [linkId, sub.id, project.id, org.id, auth.hash(token), auth.hash(stopToken), final.to, final.kind, Number(sub.list_rev || 0), final.due, JSON.stringify(final.items), who.id, who.name, now]);
+  const points = JSON.stringify((await answeredPoints(sub.id)).map(pointView));
+  await db.query('INSERT INTO list_links (id, subcontract_id, project_id, org_id, token_hash, stop_hash, email, kind, list_rev, due_date, items, points, sent_by, sent_by_name, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
+    [linkId, sub.id, project.id, org.id, auth.hash(token), auth.hash(stopToken), final.to, final.kind, Number(sub.list_rev || 0), final.due, JSON.stringify(final.items), points, who.id, who.name, now]);
   const message = {
     to: final.to,
     subject: final.email.subject,
@@ -329,7 +345,7 @@ async function sendingFor(ctx) {
   const links = await linksOf(sub.id);
   const last = lastList(links);
   const rows = await keptRows(sub.id);
-  const changes = last ? changesFrom(itemsOf(last), snapshot(rows)) : null;
+  const changes = last ? changesSince(last, snapshot(rows), await answeredPoints(sub.id)) : null;
   const stop = await stopOf(org.id, sub.contact_email);
   // Reminders: how many since the list was sent, and when the next can go.
   const remind = remindState(links, sub, project, changes);
@@ -566,6 +582,7 @@ async function listView(found, viewer = null) {
   const { link, sub, project, org, from } = found;
   const rows = await allRows(sub.id);
   const points = await db.query('SELECT * FROM subcontract_points WHERE subcontract_id = $1 ORDER BY position', [sub.id]);
+  const answered = points.filter((p) => p.answer);
   const versions = await shared.versionsOf(project.id);
   const siteDetails = shared.detailsView(versions[versions.length - 1], project.state);
   const view = handover.subcontractorView({ project, org, subcontract: sub, items: rows, points, siteDetails, fields: shared.FIELDS });
@@ -592,7 +609,7 @@ async function listView(found, viewer = null) {
     answers: view.answers,
     siteDetails: view.siteDetails,
     // An older email's link shows the list as it is now, and says the list has changed since.
-    changed: anyChange(changesFrom(itemsOf(link), snapshot(rows))),
+    changed: anyChange(changesSince(link, snapshot(rows), answered)),
     sentOn: when(link.created_at, project.state),
     abnSet: Boolean(sub.abn),
     claimed: Boolean(sub.claimed_at),

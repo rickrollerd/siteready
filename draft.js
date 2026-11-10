@@ -6,6 +6,7 @@ const { splitPpe, withStepPpeLines, agreePpe, wornSaid, ALL_WORK_ONLY } = requir
 // count as the line's wording (scenarios/state-codes.json; the line itself in Queensland and NSW).
 const { localControl, withoutStateCodes } = require('./citations');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
+const { STATED_TRADES, gateToTrade, tradesFor } = require('./activity-trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 // Names typed in lower case print with their capitals (messy round 10). Required when used, as
@@ -2283,7 +2284,7 @@ const DENIAL_RULE = /\b(?:without|unless|until|except|before|after|other than|ou
 // noun ("Lift installation by others", "Line marking by others") is someone else's work in full.
 // Words that are as often nouns ("lift", "line", "plant", "pump") lead own work only when a
 // determiner, a particle or a plural follows ("Lift the panels", "Seal penetrations").
-const OWN_LEAD = /^(?:(?:supply|we|then|also|and then|our crew)\s+(?:and\s+)?)?/i;
+const OWN_LEAD = /^(?:(?:\d+(?:\.\s*|\)\s*))?\s*the subcontractor\s+(?:shall|will|must|is to|to)\s+)?(?:(?:supply|we|then|also|and then|our crew)\s+(?:and\s+)?)?/i;
 const PLAIN_VERB = /^(?:core[- ]?fill|core[- ]?drill|saw[- ]?cut|road saw|wall saw|wire saw|install|erect|construct|excavate|remove|demolish|connect|terminate|commission|apply|replace|repair|lay|fix|build|dig|strip|hang|fit|polish|glaze|compact|backfill|reinstate|relocate|isolate|disconnect|attend|prepare|inspect|maintain|position|assemble|dismantle|encapsulate|refurbish|upgrade|modernise|renew|resleeper|tamp|stabilise|underpin|splice|certify|evacuate|recover|braze|purge|flush|disinfect|chlorinate|reseal|repoint|regrout|reline|re-?sheet|re-?roof|reprop|backprop|climb|alter|insulate|waterproof|operate|deliver|provide|move|unload|make|carry|stitch|rake|place|erect|mount|pull|haul|grind|weld|hoist)\b/i;
 const NOUN_AFTER = /^\s+(?:installation|works?|repairs?|of|by|removal|replacement|connections?|protection|operation|testing|commissioning|fixing|placement|pours?|erection|cleaning|painting|sealing|stressing|laying|supply|installed|supplied|provided|completed|done|built)\b/i;
 const EITHER_VERB = /^(?:lift|line|plant|form|pump|frame|seal|tank|core|crane|dog|sheet|membrane|mark|level|coat|cap|tag|spray|stress|profile|lead|charge|tile|grout|paint|test|run|set|cut|land|load|work|use|service|survey|cover|drill|saw|wash|blast|clean|patch|render|brace|stand|rig|bolt|anchor|scan|screed|finish|hammer|turf|stake|label|pour|power|deck|roof|fence|pipe|light|wire|board|floor|wall|track|rail|plaster|cart|stockpile|split|flash|jet|clear|take|put|sand|wrap|program|lag|trim|tie|jack|drive|bore|rip|slash|mulch|irrigate|float|chase|stand|shotcrete|dowel|hammer|chip|scabble|prime|caulk|glue|bed|point|rebate|notch|dress)\b/i;
@@ -2337,17 +2338,18 @@ function othersAndDenials(text) {
   for (let i = 0; i < parts.length; i += 2) {
     const raw = parts[i];
     const part = raw.trim();
+    const stripped = part.replace(OWN_LEAD, '');
     const newSentence = i === 0 || /[.;:!?\n]/.test(parts[i - 1]);
-    if (!CONTINUES.test(part) || newSentence) own = ownVerb(part);
+    if (!CONTINUES.test(part) || newSentence) own = ownVerb(stripped);
     if (newSentence) listStart = -1;
     let other = raw;
     let deny = raw;
-    if (DENIED_WHOLE.test(raw) && !ownVerb(part)) deny = ' ';
+    if (DENIED_WHOLE.test(raw) && !ownVerb(stripped)) deny = ' ';
     else if (DENIAL.test(raw) && !DENIAL_RULE.test(raw.replace(/^.*?\b(?:no|nil)\s/i, ''))) deny = raw.replace(DENIAL, ' ');
     if (deny !== ' ') deny = deny.replace(AWAY_FROM, ' ');
     let dropped = false;
-    if (!OTHERS_DO.test(part) && !own && HANDLED_BY.test(part) && !EXCLUDED.test(part)) other = raw.replace(HANDLED_BY, ' ');
-    else if ((OTHERS_DO.test(part) && !ownVerb(part)) || ((EXCLUDED.test(part) || ALREADY_DONE.test(part.replace(DONE_WHEN, ' ').replace(/\b(?:until|after|once|when|while)\b.*$/i, ' ').trim()) || EXISTING_STAYS.test(part) || BY_OTHERS.test(part) || FOR_OTHERS.test(part)) && !own)) {
+    if (!OTHERS_DO.test(stripped) && !own && HANDLED_BY.test(part) && !EXCLUDED.test(part)) other = raw.replace(HANDLED_BY, ' ');
+    else if ((OTHERS_DO.test(stripped) && !ownVerb(stripped)) || ((EXCLUDED.test(part) || ALREADY_DONE.test(part.replace(DONE_WHEN, ' ').replace(/\b(?:until|after|once|when|while)\b.*$/i, ' ').trim()) || EXISTING_STAYS.test(part) || BY_OTHERS.test(part) || FOR_OTHERS.test(part)) && !own)) {
       other = ' ';
       dropped = true;
     } else {
@@ -2556,10 +2558,17 @@ function factPrompt(item, state, task = '') {
 // A hospital, health or aged care setting, or medical gases.
 const HEALTHCARE_WORDS = /\b(hospitals?|medical gas\w*|patients?|wards?|clinic\w*|theatres?|aged care|nursing homes?|health (?:campus|centres?|facilit\w*))\b/i;
 
-function requiredFactsFor(fullTask, answer, state) {
+function requiredFactsFor(fullTask, answer, state, site) {
   // The questions that exist only for high risk work the user marked "Does not apply" are not asked (D311).
   const offFacts = new Set([...((state && state.offIds) || [])].flatMap((id) => (NOT_APPLY_PARTS[id] && NOT_APPLY_PARTS[id].facts) || []));
-  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state) && (item.id !== 'trenchSupport' || digStepsOn(state)));
+  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state, site)].filter((item) => printsSomewhere(item, fullTask, state) && !offFacts.has(item.id) && scaffoldTypeNeeded(item, state) && (item.id !== 'trenchSupport' || digStepsOn(state)));
+  // A stated trade (D345) drops the questions only other trades' work asks, as a scope's trade does.
+  if (state && state.statedTrade && !(state.trades && state.trades.length)) {
+    return facts.filter((item) => {
+      const kinds = FACT_KINDS.get(item.id);
+      return !kinds || kinds.some((when) => { const who = tradesFor(when); return !who || who.includes('any') || who.includes(state.statedTrade); });
+    });
+  }
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
@@ -2623,14 +2632,22 @@ function titleKinds(fullTask) {
   }
   return TITLE_KINDS_SEEN.get(fullTask);
 }
-function pickedStepFacts(fullTask, answer, state) {
+function pickedStepFacts(fullTask, answer, state, site) {
   const titled = titleKinds(fullTask).filter((id) => !state || !state.kinds || state.kinds.includes(id));
   // Silica controls are asked wherever the tile cutting step is chosen, whether its words or the picks brought it (messy
   // round 13, A run 1: asked in one of three tiling SWMS, though all three cut tiles).
   const silica = silicaStepFact(fullTask, answer, state);
-  if ((!state || !state.kinds) && !titled.length) return silica;
+  // A step the site answers bring ("Overhead power line at the bypass tie-in" in Live services) asks its question too, unless
+  // unticked, as a picked step does (messy round 20, B run 8: the power-line step came, but not Electrical safety arrangement).
+  const siteText = site && site.siteConditions ? (state && state.siteShared ? state.ownSite : site.siteConditions) : '';
+  let brought = [];
+  if (siteText && state && state.loaded) {
+    const withoutSite = suggestedKinds(fullTask, {}, { ...state, kinds: null });
+    brought = suggestedKinds(fullTask, { siteConditions: siteText }, { ...state, kinds: null }).filter((id) => !withoutSite.includes(id) && (!Array.isArray(state.kinds) || state.kinds.includes(id)));
+  }
+  if ((!state || !state.kinds) && !titled.length && !brought.length) return silica;
   const picked = state && state.kinds ? state.kinds.filter((id) => !suggestedKinds(fullTask, {}, { ...state, kinds: null }).includes(id)) : [];
-  const added = [...new Set([...picked, ...titled])];
+  const added = [...new Set([...picked, ...titled, ...brought])];
   const asked = new Set(allRequiredFacts(fullTask, answer, state).map((item) => item.id));
   const extra = [];
   if (!asked.has('asbestosArrangement') && state && pickedDisturbsBuilding(fullTask, state.kinds)) extra.push({ id: 'asbestosArrangement', label: 'Asbestos arrangement', prompt: 'How asbestos was identified before the work (asbestos register or inspection), and what happens if any is found.' });
@@ -2701,7 +2718,7 @@ const ACCESS_SEEN = new Map();
 // tiler's ticks dropped the question, so its answer went, and "Work at edges" went with it).
 function fallAccessNeeded(fullTask, answer, state) {
   if (!state || !state.id || !fallRiskFor(fullTask, answer)) return false;
-  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane, Boolean(state.craneKept), Boolean(state.fallAccessChosen)]);
+  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.statedTrade, state.ownCrane, state.noCrane, Boolean(state.craneKept), Boolean(state.fallAccessChosen)]);
   if (!ACCESS_SEEN.has(key)) {
     if (ACCESS_SEEN.size > 500) ACCESS_SEEN.clear();
     const found = fallStepsControlled(fullTask, {}, state);
@@ -2986,11 +3003,13 @@ const HARNESS_SAYS = [
 // What a stood-down SWMS says of one answer it still needs. A box with "na", "none" or "TBC" typed in it
 // is not "Not answered yet": it says why the words typed are not an answer (messy round 11, run 3: "na"
 // was called "Not answered yet").
+// Why a crane chart answer is refused when its heaviest load is over the crane's rated capacity (content22).
+const craneChartWhy = (id, typed) => (id === 'craneChart' ? require('./public/gate-rules').craneOverWhy(typed) : '');
 function missingHelpItem(item, facts, where) {
   const typed = cleanLine((facts || {})[item.id]);
   const placeholder = item.state === 'missing' && typed && !keptFact(typed);
   const state = placeholder ? 'vague' : item.state;
-  const why = state === 'vague' ? (notApplicableWhy(item.id, typed) || presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
+  const why = state === 'vague' ? (notApplicableWhy(item.id, typed) || craneChartWhy(item.id, typed) || presetFillWhy(item.id, typed, where) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (placeholder ? `"${typed}" is not an answer.` : '')) : '';
   return { id: item.id, label: item.label, state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
 }
 
@@ -3012,7 +3031,8 @@ function presetFillWhy(id, value, state) {
 function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
-  if (id === 'craneChart') return statesChartValues(value);
+  // A heaviest load over the rated capacity is not an answer to fix later: the lift cannot go ahead as written (content22).
+  if (id === 'craneChart') return statesChartValues(value) && !require('./public/gate-rules').craneOverCapacity(value);
   if (id === 'groundBearing' && !GROUND_CONFIRMED.test(value) && !GROUND_CONFIRMED_BY.test(value)) return false;
   // A harness clipped to a fixed anchor says who rated or installed it, or how it is checked (messy round 18, B run 5: "harness n
   // retractable to the anchor in the machine room" passed with a soft finding). An EWP's, a tower's or a maker's own anchor
@@ -3108,7 +3128,7 @@ function askedFallFacts(facts, answer) {
   return rest;
 }
 function missingFacts(task, facts, answer, state, ppeIds = []) {
-  return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
+  return withHarness(requiredFactsFor(task, answer, state, facts), facts, ppeIds)
     .map((item) => ({ ...item, state: factState(item, task, facts, state) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -3153,7 +3173,7 @@ function weakAnswers(input) {
     .map((item) => {
       // Said as the download check says it ("dont know" is not an answer yet), with what would do.
       const typed = cleanLine(facts[item.id]);
-      const why = notApplicableWhy(item.id, typed) || presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
+      const why = notApplicableWhy(item.id, typed) || craneChartWhy(item.id, typed) || presetFillWhy(item.id, typed, state) || require('./public/gate-rules').notAnswer(keptFact(facts[item.id]) || typed) || (typedOnly(item) ? `"${typed}" does not answer this question.` : '')
         || (item.id === 'safetyDataSheet' && sdsNamesOnly(typed) ? `"${typed}" names the products but not how they are handled. Say how, and where their safety data sheets are kept, for example "Adhesive and primer: nitrile gloves and good airflow, safety data sheets in the site folder".` : '');
       return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
     });
@@ -3744,7 +3764,7 @@ function stateFor(input) {
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
   // A way of working at height the user chose keeps its question and its step through a change of steps (messy round
   // 13, A run 1: ticking a step whose lines stop a fall dropped "Working at height" and its "Work at edges" step).
-  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', craneKept: craneAnswer(input.crane) === 'none' && input.craneNoKept === true, craneCompany: Boolean(String(input.crane || '').trim()) && craneAnswer(input.crane) === 'company', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
+  const state = { ...found, fallAccessChosen: Boolean(choiceAnswer('fallAccess', input.facts && input.facts.fallAccess)), ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', craneKept: craneAnswer(input.crane) === 'none' && input.craneNoKept === true, craneCompany: Boolean(String(input.crane || '').trim()) && craneAnswer(input.crane) === 'company', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), statedTrade: (STATED_TRADES.some((t) => t.id === input.yourTrade) && !tradeIds(input.trade).length) ? input.yourTrade : '', kinds: chosenKinds(input.kinds), offIds: highRiskOffIds(input), noBrazing: deniedBrazing(input), siteShared: sharedSite(input).shared, ownSite: sharedSite(input).own };
   if (state.noBrazing && state.kinds) state.kinds = state.kinds.filter((id) => id !== 'hotWork');
   // No crane kept: a crane step ticked before is not this job's work.
   if (state.craneKept && state.kinds) state.kinds = state.kinds.filter((id) => !CRANE_KINDS.has(id));
@@ -3927,7 +3947,7 @@ function askQuestions(input) {
     // It names the crane in the person's own words ("hiab"), as the query above the draft does (messy round 18, A run 1: one
     // copy said "vehicle loading crane", read from the slang, and the other "hiab").
     ...(craneCheck(spelling.text, input.crane, input.craneNoKept === true, scopeCraneOf(input)) ? { crane: craneCheck(spelling.text, input.crane, input.craneNoKept === true, scopeCraneOf(input)) } : {}),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
+    required: withHarness(requiredFactsFor(task, answer, state, { siteConditions: readSite(input) }), input.facts, ppeInUse(task, { ...askedFallFacts(input.facts, answer), siteConditions: readSite(input) }, state, input.ppe)).filter(notSdsQuestion(input)).filter(consideredNeeded(task, input.facts)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
@@ -5303,7 +5323,7 @@ function buildDraft(input, screen) {
     const fromSite = highRiskMatches(riskText, pack.fallAnswer, state).map(labelOf).filter((label) => !own.has(label));
     if (fromSite.length) draft.highRisk = draft.highRisk.filter((label) => !fromSite.includes(label));
   }
-  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state).filter(notSdsQuestion(input)), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
+  draft.jobSteps = withHarnessAnswer(withAskedFacts(draft.jobSteps || [], requiredFactsFor(task, pack.fallAnswer, state, facts).filter(notSdsQuestion(input)), facts, [...(draft.references || []), ...(draft.controls || [])]), facts, pack, combinedFacts(task, facts));
   draft.hazards = withStepHazards(draft.hazards, draft.jobSteps || [], task);
   // High risk construction work SiteWrite found that the user marks "Does not apply", with a short
   // reason (D311, round 6 content decision 2). It comes off the list wherever it is found, and prints as
@@ -7257,6 +7277,9 @@ function suggestedFlags(task, facts, state) {
   // still count.
   const own = state.siteShared && facts && facts.siteConditions ? { ...facts, siteConditions: state.ownSite } : facts;
   let flags = limitToTrades(workFlags(task, own, state.ownCrane, false, Boolean(state.allWords)), state.trades, KIND_IDS);
+  // D345: gate the typed-text suggestions to the stated trade, but keep the ungated set for silica logic.
+  const ungated = flags;
+  if (state.statedTrade) flags = gateToTrade(flags, state.statedTrade, KIND_IDS);
   // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
   // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
   // generator near the shed").
@@ -7328,9 +7351,9 @@ function suggestedFlags(task, facts, state) {
   // An old joint saw cut and broken out is cutting out concrete, not cutting new control joints (messy round 13, B run 7: "saw
   // cut n jackhammer out old expansion joint" got no step and was not listed).
   if (jointsOnly && flags.sawCut && sentencesWith(task, /\b(?:saw\w*|cut\w*)\b/i).every((sentence) => /\b(control|contraction|expansion|construction) joints?\b/i.test(sentence) && !/\b(openings?|penetrations?|demoli\w*)\b/i.test(sentence) && !OLD_JOINT_OUT.test(sentence))) flags.sawCut = false;
-  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id]) && !jointsOnly && !(flags.floorCoating && /\bgrind\w*\b/i.test(task) && !/\b(drill\w*|cut\w*|cor(?:e|ing)|chas\w*|saw\w*)\b/i.test(task))) flags.silicaDrill = true;
+  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id] || ungated[id]) && !jointsOnly && !(flags.floorCoating && /\bgrind\w*\b/i.test(task) && !/\b(drill\w*|cut\w*|cor(?:e|ing)|chas\w*|saw\w*)\b/i.test(task))) flags.silicaDrill = true;
   // Bollards, stops and humps are fixed by drilling the slab or pavement.
-  if (flags.bollards && !OWN_CUTTING.some((id) => flags[id])) flags.silicaDrill = true;
+  if (flags.bollards && !OWN_CUTTING.some((id) => flags[id] || ungated[id])) flags.silicaDrill = true;
   // A floor is ground or blasted before it is coated.
   // Stair treads are prepared by hand, not with a floor grinder.
   if (flags.floorCoating && !/\b(new|freshly poured)\b/i.test(task) && !(/\bgrind\w*/i.test(task) && !/\bgrind\w*/i.test(othersAndDenials(task).others)) && !(/\b(stairs?|treads?)\b/i.test(task) && !/\bgrind\w*\b/i.test(task))) flags.floorGrind = true;
@@ -7520,7 +7543,7 @@ function readWorkFlags(fullTask, facts = {}, ownCrane = false, nested = false, a
     groundChemicals: /\b(poison\w*|herbicides?|weed ?killers?|termite (?:treatment|barriers?)|termiticides?|treat\w* the ground)\b/i.test(task),
     waterConnection: /\b(water meters?|backflow (?:devices?|prevent\w*)|(?<!\b(?:lay\w*|install\w*|construct\w*|new|pe|pvc|ductile iron|di)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:pe\s+|pvc\s+)?)water mains?|town mains?|council (?:water )?mains?|incoming water suppl\w*|connect\w* (?:to |the )?(?:incoming |new )?water suppl\w*|water (?:supply )?connections?|(?:main|new) water services?)\b/i.test(task),
     liftCarWork: /\blift cars?\b/i.test(task) && !LIFT_WORK.test(task.replace(/\blift cars?\b/gi, '')),
-    asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix|potholes?|cold mix)\b/i.test(task),
+    asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix|potholes?|cold mix)\b/i.test(task) && (!/\b(?:lay\w*|place\w*|pav\w*)\b[^.]{0,30}\b(?:asphalt|hotmix|hot mix|bitumen)\b|\basphalt (?:laying|paving|resurfac\w*|overlay)\b/i.test(task) || /\b(?:saw\w*|cut\w*|patch\w*|reinstat\w*|potholes?|trench\w*|repair\w*|make good|cold mix|break\w* out|excavat\w*)\b/i.test(task)),
     insulation: (/\b(insulation|glasswool|glass wool|rockwool|batts|sisalation|(?:roof|insulation|foil) blankets?)\b/i.test(task) || /\b(?:lay|install|fix|run)\w* (?:the )?blankets?\b[^.]{0,30}\b(?:roofs?|sheets?|sheeting|purlins?)\b/i.test(task)) && !MECHANICAL_WORK.test(task) && !/\b(ductwork|pipework|lagging|membranes?|waterproof\w*)\b/i.test(task) && !/\b(roof sheet\w*|roofing)\b/i.test(othersAndDenials(task).others),
     // Pressed metal frames fixed into drywalls are door frames (messy round 19, B run 6: no step stood them).
     doorHang: /\b(door ?frames?|door ?sets?|pressed metal (?:door )?frames?|metal door frames?|hang\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fit|replac)\w* (?:an? |the )(?:[\w-]+ ){0,3}door(?! hardware| and window| protection| seals?| closers?| furniture| handles?))\b/i.test(task) && !/\b(garage|roller|security|screen|fly|landing|shower|glass sliding|sliding glass) doors?\b/i.test(task),

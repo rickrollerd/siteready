@@ -64,7 +64,7 @@ async function leadSignIn(email, name = 'Dana Whitfield') {
 }
 
 // A builder's account, a project with its site details, and a subcontract with two SWMS on its list.
-async function builder(prefix, orgName = 'Corbel Build Pty Ltd', { abn = '', email = `office@${prefix}-sub.example`, verified = true } = {}) {
+async function builder(prefix, orgName = 'Specimen Build Pty Ltd', { abn = '', email = `office@${prefix}-sub.example`, verified = true } = {}) {
   const leadEmail = `dana@${prefix}.example`;
   const lead = await leadSignIn(leadEmail);
   const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: orgName, abn: nextAbn() } });
@@ -120,12 +120,12 @@ test('Postmark sends with the From name, Reply-To and stop headers, plain text o
   mailer.captureMail(null);
   try {
     assert.equal(mailer.provider(), 'postmark');
-    const result = await mailer.sendMail({ to: 'office@tallow.example', subject: 'SWMS required', text: 'Line one\nLine two', from: { name: 'Dana Whitfield via SiteWrite', address: 'lists@sitewrite.com.au' }, replyTo: 'dana@corbel.example', headers: { 'List-Unsubscribe': '<https://x/stop>', 'Bad Header': 'dropped' } });
+    const result = await mailer.sendMail({ to: 'office@tallow.example', subject: 'SWMS required', text: 'Line one\nLine two', from: { name: 'Dana Whitfield via SiteWrite', address: 'lists@sitewrite.com.au' }, replyTo: 'dana@specimen.example', headers: { 'List-Unsubscribe': '<https://x/stop>', 'Bad Header': 'dropped' } });
     assert.deepEqual(result, { provider: 'postmark', id: 'pm-1' });
     assert.equal(seen[0].url, mailer.POSTMARK_URL);
     const body = JSON.parse(seen[0].options.body);
     assert.equal(body.From, '"Dana Whitfield via SiteWrite" <lists@sitewrite.com.au>');
-    assert.equal(body.ReplyTo, 'dana@corbel.example');
+    assert.equal(body.ReplyTo, 'dana@specimen.example');
     assert.equal(body.TrackOpens, false);
     assert.equal(body.TrackLinks, 'None');
     assert.equal(body.HtmlBody, undefined, 'no HTML, so no tracking image');
@@ -156,10 +156,10 @@ test('Postmark sends with the From name, Reply-To and stop headers, plain text o
 
 test('the email wording is the owner\'s, exactly, with the due date and nothing else', () => {
   assert.equal(listMail.longDue('2026-10-30'), 'Friday 30 October 2026');
-  const email = listMail.compose({ kind: 'list_sent', person: 'Dana Whitfield', builder: 'Corbel Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs', 'Edge protection to slab edges'], due: '2026-10-30', link: 'LINK', stopLink: 'STOP' });
+  const email = listMail.compose({ kind: 'list_sent', person: 'Dana Whitfield', builder: 'Specimen Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs', 'Edge protection to slab edges'], due: '2026-10-30', link: 'LINK', stopLink: 'STOP' });
   assert.equal(email.subject, 'SWMS required for Northgate Health Hub by 30 October 2026');
   assert.equal(email.text, [
-    'Dana Whitfield from Corbel Build Pty Ltd has reviewed your scope of works for Northgate Health Hub and has confirmed they require the following SWMS, which are ready for you to review in SiteWrite:',
+    'Dana Whitfield from Specimen Build Pty Ltd has reviewed your scope of works for Northgate Health Hub and has confirmed they require the following SWMS, which are ready for you to review in SiteWrite:',
     '',
     '\u2022 Formwork to suspended slabs',
     '\u2022 Edge protection to slab edges',
@@ -172,18 +172,18 @@ test('the email wording is the owner\'s, exactly, with the due date and nothing 
     'You do not need SiteWrite: you can reply to this email, or upload your SWMS on the same page, with no account.',
     '',
     '--',
-    'Sent through SiteWrite for Corbel Build Pty Ltd. To stop these emails from Corbel Build Pty Ltd: STOP',
+    'Sent through SiteWrite for Specimen Build Pty Ltd. To stop these emails from Specimen Build Pty Ltd: STOP',
   ].join('\n'));
   assert.equal(email.version, 2);
   assert.equal(listMail.fromName('Dana Whitfield'), 'Dana Whitfield via SiteWrite');
-  const changed = listMail.compose({ kind: 'list_changed', person: 'Dana Whitfield', builder: 'Corbel Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs', 'Perimeter screens'], due: '2026-11-02', dueWas: '2026-10-30', changes: { added: ['Perimeter screens'], removed: ['Edge protection to slab edges'], changed: ['Formwork to suspended slabs'] }, link: 'LINK', stopLink: 'STOP' });
+  const changed = listMail.compose({ kind: 'list_changed', person: 'Dana Whitfield', builder: 'Specimen Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs', 'Perimeter screens'], due: '2026-11-02', dueWas: '2026-10-30', changes: { added: ['Perimeter screens'], removed: ['Edge protection to slab edges'], changed: ['Formwork to suspended slabs'] }, link: 'LINK', stopLink: 'STOP' });
   assert.equal(changed.subject, 'Updated: SWMS required for Northgate Health Hub by 2 November 2026');
-  assert.match(changed.text, /^Dana Whitfield from Corbel Build Pty Ltd has changed the SWMS they require for Northgate Health Hub\. They now require the following SWMS, which are ready for you to review in SiteWrite:\n\n\u2022 Formwork to suspended slabs \(work changed\)\n\u2022 Perimeter screens \(new\)\n\nNo longer required:\n\u2022 Edge protection to slab edges\n\nSubmission due date: Monday 2 November 2026 \(was Friday 30 October 2026\)\n/);
-  const dueOnly = listMail.compose({ kind: 'list_changed', person: 'Dana Whitfield', builder: 'Corbel Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs'], due: '2026-11-02', dueWas: '2026-10-30', changes: { added: [], removed: [], changed: [] }, link: 'LINK', stopLink: 'STOP' });
-  assert.match(dueOnly.text, /^Dana Whitfield from Corbel Build Pty Ltd has changed the submission due date for Northgate Health Hub\. They require the following SWMS/);
-  const reminder = listMail.compose({ kind: 'reminder', person: 'Dana Whitfield', builder: 'Corbel Build Pty Ltd', project: 'Northgate Health Hub', items: ['Edge protection to slab edges'], due: '2026-10-30', today: '2026-11-01', link: 'LINK', stopLink: 'STOP' });
+  assert.match(changed.text, /^Dana Whitfield from Specimen Build Pty Ltd has changed the SWMS they require for Northgate Health Hub\. They now require the following SWMS, which are ready for you to review in SiteWrite:\n\n\u2022 Formwork to suspended slabs \(work changed\)\n\u2022 Perimeter screens \(new\)\n\nNo longer required:\n\u2022 Edge protection to slab edges\n\nSubmission due date: Monday 2 November 2026 \(was Friday 30 October 2026\)\n/);
+  const dueOnly = listMail.compose({ kind: 'list_changed', person: 'Dana Whitfield', builder: 'Specimen Build Pty Ltd', project: 'Northgate Health Hub', items: ['Formwork to suspended slabs'], due: '2026-11-02', dueWas: '2026-10-30', changes: { added: [], removed: [], changed: [] }, link: 'LINK', stopLink: 'STOP' });
+  assert.match(dueOnly.text, /^Dana Whitfield from Specimen Build Pty Ltd has changed the submission due date for Northgate Health Hub\. They require the following SWMS/);
+  const reminder = listMail.compose({ kind: 'reminder', person: 'Dana Whitfield', builder: 'Specimen Build Pty Ltd', project: 'Northgate Health Hub', items: ['Edge protection to slab edges'], due: '2026-10-30', today: '2026-11-01', link: 'LINK', stopLink: 'STOP' });
   assert.equal(reminder.subject, 'Reminder: SWMS required for Northgate Health Hub by 30 October 2026');
-  assert.match(reminder.text, /^Dana Whitfield from Corbel Build Pty Ltd is reminding you that they require the following SWMS for Northgate Health Hub, which are ready for you to review in SiteWrite:\n\n\u2022 Edge protection to slab edges\n\nThe submission due date was Friday 30 October 2026\.\n/);
+  assert.match(reminder.text, /^Dana Whitfield from Specimen Build Pty Ltd is reminding you that they require the following SWMS for Northgate Health Hub, which are ready for you to review in SiteWrite:\n\n\u2022 Edge protection to slab edges\n\nThe submission due date was Friday 30 October 2026\.\n/);
   // No em dashes, no pictures, no HTML in any of them.
   for (const one of [email, changed, dueOnly, reminder]) assert.doesNotMatch(`${one.subject}\n${one.text}`, /\u2014|<img|<html|https?:\/\/\S+\.(?:png|gif|jpg)/i);
 });
@@ -226,11 +226,11 @@ test('the lead checks the email, then sends it: From "{person} via SiteWrite", R
   // The email is exactly what the lead checked, with the two links in place of the stand-ins.
   assert.equal(message.text, p.email.text.replace(send.PREVIEW_LINK, `${base}/list.html?t=${token}`).replace(send.PREVIEW_STOP, `${base}/list.html?stop=${stop}`));
   assert.equal(message.text, [
-    'Dana Whitfield from Corbel Build Pty Ltd has reviewed your scope of works for Northgate Health Hub and has confirmed they require the following SWMS, which are ready for you to review in SiteWrite:',
+    'Dana Whitfield from Specimen Build Pty Ltd has reviewed your scope of works for Northgate Health Hub and has confirmed they require the following SWMS, which are ready for you to review in SiteWrite:',
     '', '\u2022 Formwork to suspended slabs', '\u2022 Edge protection to slab edges', '',
     `Submission due date: ${listMail.longDue(due)}`, '',
     'To review them, sign in to SiteWrite or start an account:', `${base}/list.html?t=${token}`, '', listMail.NO_ACCOUNT, '', '--',
-    `Sent through SiteWrite for Corbel Build Pty Ltd. To stop these emails from Corbel Build Pty Ltd: ${base}/list.html?stop=${stop}`,
+    `Sent through SiteWrite for Specimen Build Pty Ltd. To stop these emails from Specimen Build Pty Ltd: ${base}/list.html?stop=${stop}`,
   ].join('\n'));
   assert.equal(message.html, undefined);
   assert.equal(message.headers['List-Unsubscribe'], `<${base}/api/list/stop/${stop}>`);
@@ -264,7 +264,7 @@ test('the lead checks the email, then sends it: From "{person} via SiteWrite", R
 });
 
 test('sending needs a contact email, a SWMS on the list, the site details and the lead\'s name', async () => {
-  const b = await builder('send2', 'Corbel Build Pty Ltd', { email: '' });
+  const b = await builder('send2', 'Specimen Build Pty Ltd', { email: '' });
   const due = inDays(10);
   const noEmail = await call('POST', `/api/hse/subcontracts/${b.subId}/send/preview`, { reviewer: b.lead, body: { due } });
   assert.equal(noEmail.status, 400);
@@ -316,7 +316,7 @@ test('a list changed after sending goes again saying what changed, and an old li
 });
 
 test('a wrong email, then corrected: the list goes to the right address and the wrong address\'s link stops working', async () => {
-  const b = await builder('wrong1', 'Corbel Build Pty Ltd', { email: 'ofice@wrong1-sub.example' });
+  const b = await builder('wrong1', 'Specimen Build Pty Ltd', { email: 'ofice@wrong1-sub.example' });
   await sendList(b);
   const wrongLink = linkOf(mailTo('ofice@wrong1-sub.example').pop());
   assert.equal((await call('GET', `/api/list/${wrongLink}`)).status, 200);
@@ -330,7 +330,7 @@ test('a wrong email, then corrected: the list goes to the right address and the 
   assert.equal(sent.data.message, 'The list has been sent to office@wrong1-sub.example. The link sent to ofice@wrong1-sub.example no longer works.');
   const gone = await call('GET', `/api/list/${wrongLink}`);
   assert.equal(gone.status, 410);
-  assert.equal(gone.data.message, 'This link no longer works. Corbel Build Pty Ltd sent the list to another address. Ask Dana Whitfield at Corbel Build Pty Ltd (dana@wrong1.example) to send it to you.');
+  assert.equal(gone.data.message, 'This link no longer works. Specimen Build Pty Ltd sent the list to another address. Ask Dana Whitfield at Specimen Build Pty Ltd (dana@wrong1.example) to send it to you.');
   assert.equal((await call('GET', `/api/list/${linkOf(mailTo('office@wrong1-sub.example').pop())}`)).status, 200);
 });
 
@@ -350,7 +350,7 @@ test('the list page works with no account, shows only its own subcontract, and r
   assert.equal((await db.one('SELECT opened_at FROM subcontracts WHERE id = $1', [a.subId])).opened_at, null);
   const view = await call('GET', `/api/list/${token}`);
   assert.equal(view.status, 200);
-  assert.equal(view.data.builder.name, 'Corbel Build Pty Ltd');
+  assert.equal(view.data.builder.name, 'Specimen Build Pty Ltd');
   assert.equal(view.data.builder.verified, true);
   assert.equal(view.data.project.name, 'Northgate Health Hub');
   assert.deepEqual(view.data.swms.map((item) => item.title), ['Formwork to suspended slabs', 'Edge protection to slab edges']);
@@ -403,7 +403,7 @@ test('uploads: a PDF or Word file for one SWMS, logged and opened by the lead; o
   const [slab, edge] = list.swms;
   const pdf = await upload(token, slab.id, PDF, 'Tallow formwork SWMS.pdf');
   assert.equal(pdf.status, 201, JSON.stringify(pdf.data));
-  assert.equal(pdf.data.message, 'Tallow formwork SWMS.pdf is uploaded for Formwork to suspended slabs. Corbel Build Pty Ltd can see it.');
+  assert.equal(pdf.data.message, 'Tallow formwork SWMS.pdf is uploaded for Formwork to suspended slabs. Specimen Build Pty Ltd can see it.');
   // The Word file for the wrong SWMS, then taken off and put on the right one.
   const wrong = await upload(token, slab.id, DOCX, 'Edge screens SWMS.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   assert.equal(wrong.status, 201, JSON.stringify(wrong.data));
@@ -450,7 +450,7 @@ test('uploads: a PDF or Word file for one SWMS, logged and opened by the lead; o
 
 test('with an ABN on the subcontract, only a company with that ABN can claim the list; another is told to contact the builder', async () => {
   const subAbn = nextAbn();
-  const b = await builder('claim1', 'Corbel Build Pty Ltd', { abn: `${subAbn.slice(0, 2)} ${subAbn.slice(2)}` });
+  const b = await builder('claim1', 'Specimen Build Pty Ltd', { abn: `${subAbn.slice(0, 2)} ${subAbn.slice(2)}` });
   assert.equal((await db.one('SELECT abn FROM subcontracts WHERE id = $1', [b.subId])).abn, subAbn, 'kept as 11 digits');
   await sendList(b);
   const token = linkOf(mailTo('office@claim1-sub.example').pop());
@@ -460,7 +460,7 @@ test('with an ABN on the subcontract, only a company with that ABN can claim the
   const stranger = await subbie('foreman@elsewhere.example', 'Elsewhere Concrete Pty Ltd', nextAbn());
   const refused = await call('POST', `/api/list/${token}/claim`, { session: stranger });
   assert.equal(refused.status, 409);
-  assert.equal(refused.data.message, 'This list is for a company with a different ABN, so it has not been added to Elsewhere Concrete Pty Ltd. If the list should be yours, contact Dana Whitfield at Corbel Build Pty Ltd (dana@claim1.example).');
+  assert.equal(refused.data.message, 'This list is for a company with a different ABN, so it has not been added to Elsewhere Concrete Pty Ltd. If the list should be yours, contact Dana Whitfield at Specimen Build Pty Ltd (dana@claim1.example).');
   // On the page, signed in, that company is told the same before it presses anything.
   const seen = await call('GET', `/api/list/${token}`, { session: stranger });
   assert.equal(seen.data.refusal, refused.data.message);
@@ -478,7 +478,7 @@ test('with an ABN on the subcontract, only a company with that ABN can claim the
   const tallow = await subbie('admin@claim1-sub.example', 'Tallow Formwork Pty Ltd', subAbn);
   const claimed = await call('POST', `/api/list/${token}/claim`, { session: tallow });
   assert.equal(claimed.status, 200, JSON.stringify(claimed.data));
-  assert.equal(claimed.data.message, 'The list is now linked to Tallow Formwork Pty Ltd in SiteWrite. Corbel Build Pty Ltd can see that you have it.');
+  assert.equal(claimed.data.message, 'The list is now linked to Tallow Formwork Pty Ltd in SiteWrite. Specimen Build Pty Ltd can see that you have it.');
   assert.equal((await call('POST', `/api/list/${token}/claim`, { session: tallow })).data.already, true);
   assert.equal((await call('GET', `/api/list/${token}`, { session: tallow })).data.mine, true);
   sub = await db.one('SELECT * FROM subcontracts WHERE id = $1', [b.subId]);
@@ -508,7 +508,7 @@ test('with no ABN, the first company to claim gets the list and the lead sees wh
   assert.equal((await call('POST', `/api/list/${token}/claim`, { session: first })).status, 200);
   const refused = await call('POST', `/api/list/${token}/claim`, { session: second });
   assert.equal(refused.status, 409);
-  assert.equal(refused.data.message, 'Another company has already taken up this list in SiteWrite, so it has not been added to Other Formwork Pty Ltd. If the list should be yours, contact Dana Whitfield at Corbel Build Pty Ltd (dana@claim2.example).');
+  assert.equal(refused.data.message, 'Another company has already taken up this list in SiteWrite, so it has not been added to Other Formwork Pty Ltd. If the list should be yours, contact Dana Whitfield at Specimen Build Pty Ltd (dana@claim2.example).');
   const project = await call('GET', `/api/hse/projects/${b.projectId}`, { reviewer: b.lead });
   assert.equal(project.data.subcontracts[0].claimedName, 'Tallow Formwork Pty Ltd');
   // Deleting the business takes away its link to the list; the lead's record of who took it stays.
@@ -546,24 +546,24 @@ test('a contact who stops the emails gets nothing more from that builder, until 
   const message = mailTo('office@stop1-sub.example').pop();
   const stop = stopOf(message);
   const info = await call('GET', `/api/list/stop/${stop}`);
-  assert.deepEqual(info.data, { builder: 'Corbel Build Pty Ltd', email: 'office@stop1-sub.example', stopped: false });
+  assert.deepEqual(info.data, { builder: 'Specimen Build Pty Ltd', email: 'office@stop1-sub.example', stopped: false });
   // The one-press stop that mail programs offer.
   const pressed = await call('POST', `/api/list/stop/${stop}`, { raw: 'List-Unsubscribe=One-Click', headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
   assert.equal(pressed.status, 200);
-  assert.equal(pressed.data.message, 'office@stop1-sub.example will get no more list emails from Corbel Build Pty Ltd through SiteWrite.');
+  assert.equal(pressed.data.message, 'office@stop1-sub.example will get no more list emails from Specimen Build Pty Ltd through SiteWrite.');
   const count = mailTo('office@stop1-sub.example').length;
   // Neither the list again (changed) nor a reminder goes; the lead is told why.
   await call('POST', `/api/hse/subcontracts/${b.subId}/items`, { reviewer: b.lead, body: { title: 'Perimeter screens', task: 'Climb the perimeter screens at each level.' } });
   const again = await call('POST', `/api/hse/subcontracts/${b.subId}/send/preview`, { reviewer: b.lead, body: { due: inDays(20) } });
   assert.equal(again.status, 409);
-  assert.match(again.data.message, /^office@stop1-sub\.example asked on .+ for no more list emails from Corbel Build Pty Ltd\. SiteLink will not email them\. Contact them yourself, or change the contact email to another person\.$/);
+  assert.match(again.data.message, /^office@stop1-sub\.example asked on .+ for no more list emails from Specimen Build Pty Ltd\. SiteLink will not email them\. Contact them yourself, or change the contact email to another person\.$/);
   await db.query("UPDATE list_links SET created_at = $1 WHERE subcontract_id = $2", [new Date(Date.now() - 72 * 3600000), b.subId]);
   assert.equal((await call('POST', `/api/hse/subcontracts/${b.subId}/remind/preview`, { reviewer: b.lead })).status, 409);
   assert.equal((await call('POST', `/api/hse/subcontracts/${b.subId}/send`, { reviewer: b.lead, body: { due: inDays(20), check: 'x' } })).status, 409);
   assert.equal(mailTo('office@stop1-sub.example').length, count, 'nothing sent');
   const page = await call('GET', `/api/hse/subcontracts/${b.subId}`, { reviewer: b.lead });
   assert.equal(page.data.sending.stopped.email, 'office@stop1-sub.example');
-  assert.ok(page.data.sending.log.some((entry) => entry.text === 'office@stop1-sub.example asked for no more list emails from Corbel Build Pty Ltd. SiteLink will not email them.'));
+  assert.ok(page.data.sending.log.some((entry) => entry.text === 'office@stop1-sub.example asked for no more list emails from Specimen Build Pty Ltd. SiteLink will not email them.'));
   // Another builder's emails to the same address are not stopped.
   const other = await builder('stop2', 'Ridgeline Projects Pty Ltd', { email: 'office@stop1-sub.example' });
   await sendList(other);

@@ -619,7 +619,11 @@ function install(router, deps) {
     const answer = answers.leadWords(typed(req.body && req.body.answer, 1000, 'the answer', 'answer', { answer: true }), { ...(await leadNames(ctx)), scopeText: scopeWordsOf(await itemsOf(ctx.sub.id)), stop: true });
     await db.query('UPDATE subcontract_points SET answer = $1, answered_by = $2, answered_by_name = $3, answered_at = $4 WHERE id = $5',
       [answer, answer ? req.reviewer.id : '', answer ? personName(req.reviewer) : '', answer ? new Date() : null, row.id]);
-    res.json(await subcontractPage(ctx, { message: answer ? 'Your answer is saved. The subcontractor will see it with the list.' : 'The answer is taken off. The subcontractor will not see this point.' }));
+    if (answer && ctx.sub.sent_at) {
+      await log(ctx, req, `answered a point on the SWMS list for ${ctx.sub.name}.`);
+    }
+    const message = answer ? (ctx.sub.sent_at ? 'Your answer is saved. The list has changed since it was sent: send the updated list so the subcontractor sees the answer.' : 'Your answer is saved. The subcontractor will see it with the list.') : 'The answer is taken off. The subcontractor will not see this point.';
+    res.json(await subcontractPage(ctx, { message }));
   }));
 
   return { projectSubcontracts, subcontractFor, subcontractPage };

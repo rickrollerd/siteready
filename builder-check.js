@@ -112,6 +112,7 @@ const SOURCES = {
   H6: 'Model Code of Practice: Construction Work (how controls are implemented, monitored and reviewed)',
   H7: 'WHS Regulations s 299; WHSQ construction blitz 2023 ("involve workers")',
   H8: 'Tier 1 SWMS review checklists (no blanks, placeholders or leftover template text); goal 2 (owner, 7 October 2026): no SWMS is produced with blanks left in it',
+  H10: 'Crane chart: the heaviest gross load (load, lifting gear and rigging) must be within the rated capacity at the working radius (AS 2550.1; Model Code of Practice: Managing Risks of Plant in the Workplace)',
   H9: 'Contractor SWMS review checklist item 10 (a residual rating that is still High has a stated response: more controls, or the named person who accepts the risk before work starts); tier 1 SWMS standard and risk assessment requirement (a residual rating in the top band is not accepted); goal 3 (owner, 7 October 2026)',
   W1: 'Model Code of Practice: Construction Work (SWMS content); WHSQ construction blitz 2023 (task specific)',
   W2: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work',
@@ -1043,6 +1044,18 @@ function hardFails(swms, state, stage = 'review') {
   add('H9', 'Residual High risk has a response', !residual.length,
     residual.length ? `Steps are still rated High after the controls, with no further controls and no named person who accepts the risk: ${residual.slice(0, 4).map((step) => step.step || 'step').join('; ')}. Add controls that lower the rating, or name the person who accepts the risk before the work starts.`
       : 'No step is left High after its controls without a response.');
+  // A crane lift whose heaviest load is over the crane's rated capacity, as the SWMS's own figures say (content22). Only
+  // where the SWMS gives both figures: a SWMS with no crane chart figures is not failed here.
+  const { craneOverCapacity } = require('./public/gate-rules');
+  const lines = [
+    ...swms.steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls].map((line) => [step.step || 'step', line])),
+    ...[['controls', swms.controls], ['plant', swms.plant], ['site conditions', swms.siteWritten], ['fields', swms.otherFields]].flatMap(([where, list]) => (list || []).map((line) => [where, line])),
+  ].filter(([, line]) => typeof line === 'string');
+  const overLift = lines.map(([where, line]) => ({ where, line, over: craneOverCapacity(line) })).find((item) => item.over);
+  if (overLift) {
+    add('H10', 'Crane lift within the rated capacity', false,
+      `The heaviest load (${overLift.over.load}) is more than the crane's rated capacity (${overLift.over.rated}): "${overLift.line.slice(0, 200)}" (${overLift.where}). The lift cannot go ahead as written. Use a crane rated for the load at that radius, a shorter radius or a lighter load, and give the chart figures for that.`);
+  }
   return { out, implied, named, preStart: signed ? [] : ['Workers must sign on before work starts.'] };
 }
 

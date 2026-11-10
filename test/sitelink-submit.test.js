@@ -86,7 +86,7 @@ const ITEMS = [['Boundary fence repairs', 'Replace a 3m length of timber fence a
 // A builder's account with a project, its site details, a subcontract with two SWMS, and the list sent.
 async function builder(prefix, { abn = '' } = {}) {
   const lead = await leadSignIn(`dana@${prefix}.example`);
-  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: nextAbn() } });
+  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Specimen Build Pty Ltd', abn: nextAbn() } });
   assert.equal(org.status, 201, JSON.stringify(org.data));
   await db.query("UPDATE orgs SET abn_check = 'verified', abn_verified_at = $1 WHERE id = $2", [new Date(), org.data.org.id]);
   const project = await call('POST', `/api/hse/orgs/${org.data.org.id}/projects`, { reviewer: lead, body: { name: 'Northgate Health Hub', workplace: WORKPLACE, state: 'qld' } });
@@ -123,7 +123,7 @@ async function claimed(prefix) {
 // A SWMS for a list item as the one-go page sends it: the builder's details filled in, prepared,
 // SiteWrite's check passed and each part ticked by the foreman.
 function swmsFor(item, extra = {}, who = { name: 'Tom Beck', role: 'Foreman' }) {
-  const input = ready({ ...ANSWERED, state: 'qld', task: item.task, fallRisk: 'no', residential: 'no', workplace: WORKPLACE, principalContractor: 'Corbel Build Pty Ltd', ...DETAILS, ...extra });
+  const input = ready({ ...ANSWERED, state: 'qld', task: item.task, fallRisk: 'no', residential: 'no', workplace: WORKPLACE, principalContractor: 'Specimen Build Pty Ltd', ...DETAILS, ...extra });
   return { ...checked(input, null, who), swmsTitle: item.title };
 }
 const submitItems = (c, entries) => call('POST', `/api/from-builders/${c.subId}/submit`, { session: c.office, body: { items: entries } });
@@ -158,7 +158,7 @@ test('a SWMS submits only after SiteWrite\'s check and the part-by-part check; t
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.submitted.length, 1);
   assert.equal(r.data.submitted[0].revision, 1);
-  assert.equal(r.data.message, 'Boundary fence repairs is submitted to Corbel Build Pty Ltd, and Dana Whitfield has been emailed. That revision is what Corbel Build Pty Ltd reviews. If you change it now, submit it again.');
+  assert.equal(r.data.message, 'Boundary fence repairs is submitted to Specimen Build Pty Ltd, and Dana Whitfield has been emailed. That revision is what Specimen Build Pty Ltd reviews. If you change it now, submit it again.');
   const mine = (await call('GET', '/api/swms', { session: c.office })).data.swms;
   assert.equal(mine.length, 1, 'saved under My SWMS');
   const mail = mailbox.slice(before).filter((item) => item.to === c.leadEmail);
@@ -174,7 +174,7 @@ test('a SWMS submits only after SiteWrite\'s check and the part-by-part check; t
   const again = await submitItems(c, [one(fence)]);
   assert.equal(again.status, 200);
   assert.equal(again.data.submitted[0].repeated, true);
-  assert.equal(again.data.message, 'That revision was already submitted to Corbel Build Pty Ltd. Nothing has changed since.');
+  assert.equal(again.data.message, 'That revision was already submitted to Specimen Build Pty Ltd. Nothing has changed since.');
   assert.equal(mailbox.slice(before).filter((item) => item.to === c.leadEmail).length, 1);
   // Logged both sides: the lead's log and the company's.
   const leadLog = (await call('GET', `/api/hse/subcontracts/${c.subId}`, { reviewer: c.lead })).data.sending.log.map((entry) => entry.text);
@@ -263,11 +263,11 @@ test('"Set by" details changed are worked out again on submission, from the SWMS
   assert.deepEqual(row.overrides, [{ label: 'Muster point', set: DETAILS.musterPoint, now: 'Car park behind the site sheds', olderRev: 0 }]);
   assert.equal((await project(c)).subcontracts[0].stage7.overrides, 2);
   const log = (await call('GET', `/api/hse/subcontracts/${c.subId}`, { reviewer: c.lead })).data.sending.log.map((entry) => entry.text);
-  assert.ok(log.some((text) => text.endsWith('Checked by Tom Beck, Foreman. It changes details Corbel Build Pty Ltd set: muster point.')), log.join('\n'));
+  assert.ok(log.some((text) => text.endsWith('Checked by Tom Beck, Foreman. It changes details Specimen Build Pty Ltd set: muster point.')), log.join('\n'));
   const page = (await call('GET', `/api/hse/submissions/${r.data.submitted[0].id}`, { reviewer: c.lead })).data;
   assert.equal(page.submission.overrides[0].now, 'Car park behind the site sheds');
   // The words the company was warned with are now true: the builder sees the change on submission.
-  assert.match(require('../public/builder-set').changedWarning('Corbel Build Pty Ltd', 'x'), /will see this change when you submit\.$/);
+  assert.match(require('../public/builder-set').changedWarning('Specimen Build Pty Ltd', 'x'), /will see this change when you submit\.$/);
 });
 
 // ---- Reviewing from the project screen ----
@@ -293,13 +293,13 @@ test('review states: Not approved needs the changes; Approved with conditions ke
   r = await respond({ response: 'conditions', text: '1. Add the name of the spotter for the bobcat.\n- Show the exclusion zone on the site plan.' });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.review.label, 'Approved with conditions');
-  assert.equal(r.data.review.company, 'Corbel Build Pty Ltd');
+  assert.equal(r.data.review.company, 'Specimen Build Pty Ltd');
   assert.equal(r.data.review.name, 'Dana Whitfield');
   assert.deepEqual(r.data.review.conditions.map((item) => [item.text, item.status]), [['Add the name of the spotter for the bobcat.', 'outstanding'], ['Show the exclusion zone on the site plan.', 'outstanding']]);
   const mail = mailbox.slice(before).filter((item) => item.to === c.officeEmail);
   assert.equal(mail.length, 1);
   assert.equal(mail[0].subject, 'Your SWMS review is back');
-  assert.equal(mail[0].text, 'Your SWMS review is back.\n\nFrom Dana Whitfield, Corbel Build Pty Ltd.');
+  assert.equal(mail[0].text, 'Your SWMS review is back.\n\nFrom Dana Whitfield, Specimen Build Pty Ltd.');
   assert.equal(mail[0].from.name, 'Dana Whitfield via SiteWrite');
   assert.equal(mail[0].replyTo, c.leadEmail);
   assert.ok(await db.one("SELECT id FROM mail_messages WHERE subcontract_id = $1 AND template = 'review_back' AND template_version = 1", [c.subId]));
@@ -388,7 +388,7 @@ test('conditions: the company marks each done, the lead confirms it or sends it 
   assert.equal(early.data.message, 'Tallow Interiors Pty Ltd has not marked this condition done yet. Confirm it once they have.');
   const done = await call('POST', `/api/from-builders/${c.subId}/conditions/${a.id}/done`, { session: c.office, body: { note: 'Spotter is Lee Wong, added to step 2.' } });
   assert.equal(done.status, 200);
-  assert.equal(done.data.message, 'Marked done. Corbel Build Pty Ltd confirms it.');
+  assert.equal(done.data.message, 'Marked done. Specimen Build Pty Ltd confirms it.');
   assert.equal((await call('POST', `/api/from-builders/${c.subId}/conditions/${a.id}/done`, { session: c.office })).status, 409);
   await call('POST', `/api/from-builders/${c.subId}/conditions/${b.id}/done`, { session: c.office });
   let row = await rowOf(c, fence.title);

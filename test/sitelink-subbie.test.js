@@ -75,7 +75,7 @@ const DETAILS = {
 // point, and the list sent to the subcontractor.
 async function builder(prefix, { abn = '' } = {}) {
   const lead = await leadSignIn(`dana@${prefix}.example`);
-  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Corbel Build Pty Ltd', abn: nextAbn() } });
+  const org = await call('POST', '/api/hse/orgs', { reviewer: lead, body: { name: 'Specimen Build Pty Ltd', abn: nextAbn() } });
   assert.equal(org.status, 201, JSON.stringify(org.data));
   // The register is not reachable here; only a verified account sends list emails (D311), so the
   // account is marked verified, as the register would.
@@ -92,7 +92,7 @@ async function builder(prefix, { abn = '' } = {}) {
   }
   // An answered point, as stage 4 keeps them.
   await db.query('INSERT INTO subcontract_points (id, subcontract_id, position, activity, clause, question, answer, answered_by, answered_by_name, answered_at) VALUES ($1, $2, 0, $3, $4, $5, $6, $7, $8, $9)',
-    [`pt-${prefix}`, subId, 'Form up the slabs', '3.2', 'Confirm who supplies the edge screens.', 'Corbel supplies the screens. Tallow puts them up.', 'x', 'Dana Whitfield', new Date()]);
+    [`pt-${prefix}`, subId, 'Form up the slabs', '3.2', 'Confirm who supplies the edge screens.', 'Specimen supplies the screens. Tallow puts them up.', 'x', 'Dana Whitfield', new Date()]);
   const due = inDays(14);
   const preview = await call('POST', `/api/hse/subcontracts/${subId}/send/preview`, { reviewer: lead, body: { due } });
   assert.equal(preview.status, 200, JSON.stringify(preview.data));
@@ -136,24 +136,24 @@ function pageWork(list, page = {}, extra = {}) {
 // ---- The merge: company details always win, the builder's details follow the builder ----
 
 test('company details always come from the company, never the builder or the page', () => {
-  const set = builderSet.builderSetOf({ workplace: '12 Wattle Road, Hamilton QLD 4007', pcName: 'Corbel Build Pty Ltd' }, DETAILS);
+  const set = builderSet.builderSetOf({ workplace: '12 Wattle Road, Hamilton QLD 4007', pcName: 'Specimen Build Pty Ltd' }, DETAILS);
   const company = { name: 'Tallow Formwork Pty Ltd', abn: '51 824 753 556', address: '4 Tallow Lane', phone: '07 3555 0100', email: 'office@tallow.example' };
-  const merged = builderSet.mergePage({ company, builderSet: set, page: { company: 'Corbel Build Pty Ltd', companyAbn: '11 111 111 111', companyEmail: 'dana@corbel.example', subcontractor: 'Corbel' }, seen: null });
+  const merged = builderSet.mergePage({ company, builderSet: set, page: { company: 'Specimen Build Pty Ltd', companyAbn: '11 111 111 111', companyEmail: 'dana@specimen.example', subcontractor: 'Specimen' }, seen: null });
   assert.equal(merged.page.company, 'Tallow Formwork Pty Ltd');
   assert.equal(merged.page.companyAbn, '51 824 753 556');
   assert.equal(merged.page.companyEmail, 'office@tallow.example');
   assert.equal(merged.page.subcontractor, undefined);
   // The builder's details fill in, the principal contractor and the job address too.
   assert.equal(merged.page.musterPoint, DETAILS.musterPoint);
-  assert.equal(merged.page.principalContractor, 'Corbel Build Pty Ltd');
+  assert.equal(merged.page.principalContractor, 'Specimen Build Pty Ltd');
   assert.deepEqual(merged.page.siteRules, DETAILS.siteRules);
   // A company with no details yet gets empty ones, never the builder's.
-  assert.equal(builderSet.mergePage({ company: {}, builderSet: set, page: { company: 'Corbel Build Pty Ltd' } }).page.company, '');
+  assert.equal(builderSet.mergePage({ company: {}, builderSet: set, page: { company: 'Specimen Build Pty Ltd' } }).page.company, '');
   assert.deepEqual(builderSet.withoutCompany({ company: 'X', companyAbn: '1', task: 'Formwork' }), { task: 'Formwork' });
 });
 
 test('overrides are found correctly: a changed detail, an emptied one, never a detail changed back or only spaced differently', () => {
-  const set = builderSet.builderSetOf({ workplace: '12 Wattle Road, Hamilton QLD 4007', pcName: 'Corbel Build Pty Ltd' }, DETAILS);
+  const set = builderSet.builderSetOf({ workplace: '12 Wattle Road, Hamilton QLD 4007', pcName: 'Specimen Build Pty Ltd' }, DETAILS);
   const as = builderSet.mergePage({ company: {}, builderSet: set, page: {} }).page;
   assert.deepEqual(builderSet.overridesOf(set, as), []);
   // Changed, then back with other case, spacing and a full stop: no change.
@@ -164,14 +164,14 @@ test('overrides are found correctly: a changed detail, an emptied one, never a d
   // A detail the builder did not set is the company's to give.
   assert.deepEqual(builderSet.overridesOf(set, { ...as, scaffoldSupervisor: 'Pat Doyle' }), []);
   // The warning names the builder and what it asked for.
-  assert.equal(builderSet.changedWarning('Corbel Build Pty Ltd', DETAILS.musterPoint), 'This was set by Corbel Build Pty Ltd. They asked all contractors to use: "Assembly area A at the Wattle Road gate". Corbel Build Pty Ltd will see this change when you submit.');
+  assert.equal(builderSet.changedWarning('Specimen Build Pty Ltd', DETAILS.musterPoint), 'This was set by Specimen Build Pty Ltd. They asked all contractors to use: "Assembly area A at the Wattle Road gate". Specimen Build Pty Ltd will see this change when you submit.');
 });
 
 test('a detail the company did not change follows the builder\'s new version; one it changed stays as typed', () => {
-  const before = builderSet.builderSetOf({ workplace: '12 Wattle Road', pcName: 'Corbel' }, DETAILS);
+  const before = builderSet.builderSetOf({ workplace: '12 Wattle Road', pcName: 'Specimen' }, DETAILS);
   const first = builderSet.mergePage({ company: {}, builderSet: before, page: {} });
   const typed = { ...first.page, hospital: 'Northside Private Hospital, Emergency Department' };
-  const after = builderSet.builderSetOf({ workplace: '12 Wattle Road', pcName: 'Corbel' }, { ...DETAILS, musterPoint: 'Assembly area B at the Lutwyche Road gate', hospital: 'Royal Brisbane Hospital, Emergency Department', scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding, 0412 345 678' });
+  const after = builderSet.builderSetOf({ workplace: '12 Wattle Road', pcName: 'Specimen' }, { ...DETAILS, musterPoint: 'Assembly area B at the Lutwyche Road gate', hospital: 'Royal Brisbane Hospital, Emergency Department', scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding, 0412 345 678' });
   const next = builderSet.mergePage({ company: {}, builderSet: after, page: typed, seen: first.seen });
   assert.equal(next.page.musterPoint, 'Assembly area B at the Lutwyche Road gate', 'not changed by the company: the new version');
   assert.equal(next.page.hospital, 'Northside Private Hospital, Emergency Department', 'changed by the company: kept');
@@ -186,7 +186,7 @@ test('a list taken up opens with its SWMS, the builder\'s site details, answers 
   const lists = await call('GET', '/api/from-builders', { session: c.office });
   assert.equal(lists.status, 200);
   assert.equal(lists.data.lists.length, 1);
-  assert.equal(lists.data.lists[0].builder.name, 'Corbel Build Pty Ltd');
+  assert.equal(lists.data.lists[0].builder.name, 'Specimen Build Pty Ltd');
   assert.equal(lists.data.lists[0].progress.started, false);
   assert.equal(lists.data.lists[0].progress.total, 2);
   const opened = await call('GET', `/api/from-builders/${c.subId}`, { session: c.office });
@@ -197,11 +197,11 @@ test('a list taken up opens with its SWMS, the builder\'s site details, answers 
   assert.deepEqual(list.items[0].scopeTask, { plain: list.items[0].task, full: list.items[0].task, notes: '' }, 'a SWMS the lead wrote is read from the lead\'s words');
   assert.ok(list.items.every((item) => item.requiredId));
   assert.equal(list.builderSet.musterPoint.value, DETAILS.musterPoint);
-  assert.equal(list.builderSet.principalContractor.value, 'Corbel Build Pty Ltd');
+  assert.equal(list.builderSet.principalContractor.value, 'Specimen Build Pty Ltd');
   assert.equal(list.builderSet.workplace.value, '12 Wattle Road, Hamilton QLD 4007');
   assert.equal(list.siteDetails.rev, 1);
   assert.equal(list.siteDetails.setBy, 'Dana Whitfield');
-  assert.deepEqual(list.answers.map((answer) => answer.answer), ['Corbel supplies the screens. Tallow puts them up.']);
+  assert.deepEqual(list.answers.map((answer) => answer.answer), ['Specimen supplies the screens. Tallow puts them up.']);
   assert.equal(list.contact.email, 'dana@open1.example');
   assert.equal(list.due.date, inDays(14));
   // Nothing saved yet: the page is the builder's details with the company's own.
@@ -225,15 +225,15 @@ test('the office saves on a desktop and the foreman carries on on a phone; a sav
   const c = await claimed('prog1');
   const foreman = await teammate(c.office, `foreman@prog1-sub.example`);
   const { list } = (await call('GET', `/api/from-builders/${c.subId}`, { session: c.office })).data;
-  const work = pageWork(list, { worksManager: 'Sam Lee', musterPoint: 'Car park behind the site sheds', company: 'Corbel Build Pty Ltd', companyAbn: '99 999 999 999' });
+  const work = pageWork(list, { worksManager: 'Sam Lee', musterPoint: 'Car park behind the site sheds', company: 'Specimen Build Pty Ltd', companyAbn: '99 999 999 999' });
   // A SWMS body naming another company is kept without it.
-  work.project.items[0].body = { task: list.items[0].task, company: 'Corbel Build Pty Ltd', companyEmail: 'dana@corbel.example', facts: { pourMethod: 'Pump' } };
+  work.project.items[0].body = { task: list.items[0].task, company: 'Specimen Build Pty Ltd', companyEmail: 'dana@specimen.example', facts: { pourMethod: 'Pump' } };
   const saved = await call('PUT', `/api/from-builders/${c.subId}/progress`, { session: c.office, body: { baseVersion: 0, ...work } });
   assert.equal(saved.status, 200, JSON.stringify(saved.data));
   assert.equal(saved.data.version, 1);
   assert.deepEqual(saved.data.overrides.map((item) => item.key), ['musterPoint']);
   const row = await db.one('SELECT * FROM sub_progress WHERE subcontract_id = $1', [c.subId]);
-  assert.doesNotMatch(JSON.stringify(row.body), /Corbel Build Pty Ltd|99 999 999 999|dana@corbel/, 'no company details are kept with the work');
+  assert.doesNotMatch(JSON.stringify(row.body), /Specimen Build Pty Ltd|99 999 999 999|dana@specimen/, 'no company details are kept with the work');
   assert.deepEqual(row.overrides.map((item) => item.key), ['musterPoint']);
   // The foreman, in the same company, on another device, sees the work.
   const phone = await call('GET', `/api/from-builders/${c.subId}`, { session: foreman });
@@ -418,7 +418,7 @@ test('Release works only for the lead of that account; the released company lose
   const view = await call('GET', `/api/list/${c.token}`, { session: c.office });
   assert.equal(view.data.mine, false);
   assert.equal(view.data.listId, '');
-  assert.match(view.data.refusal, /^Corbel Build Pty Ltd released this list from Tallow Formwork Pty Ltd, so Tallow Formwork Pty Ltd cannot take it up again\. If the list should be yours, contact Dana Whitfield at Corbel Build Pty Ltd/);
+  assert.match(view.data.refusal, /^Specimen Build Pty Ltd released this list from Tallow Formwork Pty Ltd, so Tallow Formwork Pty Ltd cannot take it up again\. If the list should be yours, contact Dana Whitfield at Specimen Build Pty Ltd/);
   const again = await call('POST', `/api/list/${c.token}/claim`, { session: c.office });
   assert.equal(again.status, 409);
   assert.match(again.data.message, /released this list from Tallow Formwork Pty Ltd/);
@@ -447,7 +447,7 @@ test('a mismatched ABN on claim stays blocked with the plain message', async () 
   const wrong = await subbie('admin@abn1-other.example', 'Elsewhere Concrete Pty Ltd', nextAbn());
   const refused = await call('POST', `/api/list/${b.token}/claim`, { session: wrong });
   assert.equal(refused.status, 409);
-  assert.equal(refused.data.message, 'This list is for a company with a different ABN, so it has not been added to Elsewhere Concrete Pty Ltd. If the list should be yours, contact Dana Whitfield at Corbel Build Pty Ltd (dana@abn1.example).');
+  assert.equal(refused.data.message, 'This list is for a company with a different ABN, so it has not been added to Elsewhere Concrete Pty Ltd. If the list should be yours, contact Dana Whitfield at Specimen Build Pty Ltd (dana@abn1.example).');
   assert.deepEqual((await call('GET', '/api/from-builders', { session: wrong })).data.lists, []);
 });
 
