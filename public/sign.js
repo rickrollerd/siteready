@@ -237,6 +237,8 @@
 
   async function load() {
     try {
+      // No token: the link is incomplete, so say so without asking the server (no 404 in the console).
+      if (!token) throw new Error('This sign-on link is not valid.');
       // A kept read carries on where it was; a worker whose sign-on was saved is told so.
       const query = new URLSearchParams();
       if (saved && saved.readId) query.set('read', saved.readId);
