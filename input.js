@@ -261,7 +261,24 @@ function harnessAnswer(value) {
   return NO_HARNESS_WORD.test(String(value || '').trim()) ? 'No harness is used on this job.' : value;
 }
 
-function draftBody(body) {
+// Picks sent with the steps found they were made against (kindsFound, steps.found from the questions: code review E, D316,
+// step list part 2): they are read as changes against that list, unticked (kindsOff) and added (kindsAdded), and the steps
+// are worked out again from the words, the answers and the plant now, less and plus those changes. So a step an answer or
+// the plant brought after the list was drawn is in, unless unticked by hand, and adding a step never takes another out.
+// The older ways of keeping such steps (kindsSeen, answersSeen, kindsBrought) are not read then.
+const idList = (list, max) => (Array.isArray(list) ? [...new Set(list.filter((id) => typeof id === 'string').map((id) => id.slice(0, 40)))].slice(0, max) : []);
+function fromFound(body) {
+  if (!body || !Array.isArray(body.kindsFound) || !Array.isArray(body.kinds)) return body;
+  const found = idList(body.kindsFound, 200);
+  const picks = idList(body.kinds, 200);
+  const off = [...new Set([...found.filter((id) => !picks.includes(id)), ...idList(body.kindsOff, 80).filter((id) => !picks.includes(id))])].slice(0, 80);
+  const added = [...new Set([...picks.filter((id) => !found.includes(id)), ...idList(body.kindsAdded, 40)])].filter((id) => !off.includes(id)).slice(0, 40);
+  const { kinds: _kinds, kindsFound: _found, kindsSeen: _seen, answersSeen: _answers, kindsBrought: _brought, ...rest } = body;
+  return { ...rest, ...(off.length ? { kindsOff: off } : { kindsOff: undefined }), ...(added.length ? { kindsAdded: added } : { kindsAdded: undefined }) };
+}
+
+function draftBody(sent) {
+  const body = fromFound(sent);
   const out = draftFields(body);
   const picked = Array.isArray(out.kinds);
   // The job steps the user unticked by hand, sent while the steps follow the task's words (no picks of their own): the
