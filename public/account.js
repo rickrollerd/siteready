@@ -339,7 +339,10 @@
     event.preventDefault();
     status('signin-status', 'Sending…');
     try {
-      const data = await call('POST', '/api/auth/email', { email: $('signin-email').value });
+      const body = { email: $('signin-email').value };
+      const inviteField = $('signin-invite-field');
+      if (inviteField && !inviteField.classList.contains('hidden')) body.invite = $('signin-invite').value || '';
+      const data = await call('POST', '/api/auth/email', body);
       status('signin-status', `${data.message} Open it on this device.`);
     } catch (error) {
       status('signin-status', error.message, true);
@@ -1202,11 +1205,26 @@
     try {
       config = await (await fetch(api('/api/config'))).json();
     } catch {
-      config = { accounts: false };
+      config = { accounts: false, trialDays: 30, inviteOnly: false };
     }
     const params = new URLSearchParams(window.location.search);
     const login = params.get('login');
     const billingResult = params.get('billing');
+    const inviteField = $('signin-invite-field');
+    if (inviteField) {
+      const inviteHash = String(window.location.hash || '').match(/invite=([^&]+)/);
+      const inviteParam = params.get('invite') || (inviteHash && decodeURIComponent(inviteHash[1])) || '';
+      if (config.inviteOnly) {
+        inviteField.classList.remove('hidden');
+        if (inviteParam && $('signin-invite')) $('signin-invite').value = inviteParam;
+        const heading = $('signin-heading');
+        const lede = $('signin-lede');
+        if (heading) heading.textContent = 'Sign in';
+        if (lede) lede.textContent = `Enter your email and we will send you a sign-in link. No password. Existing accounts sign in as usual. A new account needs an invite code. Request an invite at ${config.supportEmail || 'sitereadyaus@gmail.com'}.`;
+      } else {
+        inviteField.classList.add('hidden');
+      }
+    }
     if (billingResult) {
       history.replaceState(null, '', window.location.pathname);
       const note = $('billing-status');

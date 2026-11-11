@@ -286,6 +286,11 @@
         <label for="setup-abn">ABN <span class="hint">The company's 11 digit ABN. It links this account to your company and cannot be changed later.</span></label>
         <input id="setup-abn" type="text" inputmode="numeric" maxlength="20">
         <p class="field-error hidden" id="setup-abn-error"></p>
+        <div class="field hidden" id="setup-invite-field">
+          <label for="setup-invite">Invite code <span class="hint">SiteWrite is invite-only right now.</span></label>
+          <input id="setup-invite" type="text" autocomplete="off" maxlength="64">
+          <p class="field-error hidden" id="setup-invite-error"></p>
+        </div>
         <div class="actions"><button type="submit" id="setup-go">Set up the account</button></div>
         <div id="setup-status" role="status"></div>
       </form>

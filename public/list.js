@@ -22,6 +22,7 @@
   let list = null;
   let me = null;
   let claimNote = null;
+  let config = { inviteOnly: false };
   const MAX_MB = 10;
   const ACCEPTED = /\.(pdf|docx)$/i;
 
@@ -180,6 +181,7 @@
     } else if (!me) {
       html += `<p>Sign in, or start an account, to take up this list. It is then linked to your company, and ${esc(l.builder.name)} can see that you have it.${abnLine}</p>
         <form id="signin" novalidate><label for="signin-email">Your work email</label><input id="signin-email" type="email" autocomplete="email" inputmode="email" maxlength="200">
+        ${config.inviteOnly || params.get('invite') ? `<label for="signin-invite">Invite code</label><input id="signin-invite" type="text" autocomplete="off" maxlength="64" value="${esc(params.get('invite') || '')}">` : ''}
         <p class="field-error hidden" id="signin-email-error"></p>
         <div class="actions"><button type="submit" id="signin-go">Email me a sign-in link</button></div></form>
         <div id="signin-status" role="status"></div>
@@ -277,7 +279,7 @@
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { mark('signin-email', 'Enter a valid email address.'); return; }
       await busy($('signin-go'), 'Sending...', async () => {
         try {
-          const data = await call('POST', `/api/list/${encodeURIComponent(token)}/sign-in`, { email });
+          const data = await call('POST', `/api/list/${encodeURIComponent(token)}/sign-in`, { email, invite: $('signin-invite') ? ($('signin-invite').value || '') : '' });
           box('signin-status', `<strong>${esc(data.message)}</strong>`, 'ok');
         } catch (error) {
           if (error.field === 'email') mark('signin-email', error.message);
@@ -362,6 +364,7 @@
   // ---- Start ----
 
   (async () => {
+    try { config = await (await fetch(apiUrl('/api/config'))).json(); } catch { /* keep defaults */ }
     const stop = params.get('stop');
     if (stop) { await showStop(stop); return; }
     if (!token) {

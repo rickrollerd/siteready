@@ -7,6 +7,7 @@ const {
   generateAuthenticationOptions, verifyAuthenticationResponse,
 } = require('@simplewebauthn/server');
 const db = require('./db');
+const invites = require('./invites');
 const { sendMail } = require('./mailer');
 const { record } = require('./events');
 const { isProduction } = require('./secret-keys');
@@ -78,15 +79,15 @@ function passkeySettings(req) {
   return { rpID: process.env.RP_ID || url.hostname, origin: url.origin };
 }
 
-async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
+async function sendLoginLink(req, email, companyId = null, invitedBy = '', inviteCode = '') {
   const base = linkUrl(req);
   const token = newToken();
   // A new link replaces any earlier unused link for the same email (and the same company invite),
   // so an old link left in an inbox stops working.
   if (companyId) await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id = $2 AND used_at IS NULL', [email, companyId]);
   else await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL AND purpose <> $2', [email, REVIEWER]);
-  await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at) VALUES ($1, $2, $3, $4)',
-    [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000)]);
+  await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, invite_code) VALUES ($1, $2, $3, $4, $5)',
+    [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000), String(inviteCode || '').trim()]);
   const link = `${base}/?login=${token}`;
   // An invitation reads as one, not as a sign-in the person asked for (messy round 7), as SiteLink's does.
   if (invitedBy) {
@@ -140,11 +141,14 @@ async function recordSignin(userId, req) {
 // joins the company that invited them. The person who makes the company is
 // its administrator.
 // A company started from a main contractor's list carries where it came from (D283, source).
-async function userForEmail(email, companyId, source = '') {
+async function userForEmail(email, companyId, source = '', inviteCode = '') {
   const existing = await db.one('SELECT * FROM users WHERE email = $1', [email]);
   if (existing) return existing;
   let company = companyId;
   const founder = !company;
+  if (founder && invites.enabled()) {
+    await invites.consume(String(inviteCode || '').trim(), email);
+  }
   if (!company) {
     company = newId();
     await db.query('INSERT INTO companies (id, email, trial_ends_at, created_at, source) VALUES ($1, $2, $3, $4, $5)',
@@ -166,19 +170,19 @@ async function finishLogin(token, req = null) {
   // A reviewer's link never opens an account (or starts a trial), and is left unused.
   const row = await useLink(token, false);
   if (!row) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
-  const user = await userForEmail(row.email, row.company_id, row.source || '');
+  const user = await userForEmail(row.email, row.company_id, row.source || '', row.invite_code || '');
   return createSession(user.id, req);
 }
 
 // The sign-in link from a main contractor's list page (Goal 12 stage 5, D308): the same as an account's
 // sign-in link, but it opens the list again, so the person can claim it once signed in. A first sign-in
 // starts the company's trial as usual, tagged with the project it came from.
-async function sendListLink(req, email, { listToken, source, builder }) {
+async function sendListLink(req, email, { listToken, source, builder, inviteCode = '' }) {
   const base = linkUrl(req);
   const token = newToken();
   await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL AND purpose <> $2', [email, REVIEWER]);
-  await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, source) VALUES ($1, $2, $3, $4, $5)',
-    [hash(token), email, null, later(LINK_MINUTES * 60 * 1000), String(source || '').slice(0, 120)]);
+  await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at, source, invite_code) VALUES ($1, $2, $3, $4, $5, $6)',
+    [hash(token), email, null, later(LINK_MINUTES * 60 * 1000), String(source || '').slice(0, 120), String(inviteCode || '').trim()]);
   const link = `${base}/list.html?t=${encodeURIComponent(listToken)}&login=${token}`;
   await sendMail({
     to: email,

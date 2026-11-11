@@ -125,7 +125,9 @@ const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessio
   // What was submitted to the main contractor, its responses' conditions and the files it received
   // outside SiteWrite (stage 7) are its record too: a submission loses its link to a deleted business
   // and its SWMS (sitelink-submit.test.js).
-  'submissions', 'submission_file_data', 'review_conditions'];
+  'submissions', 'submission_file_data', 'review_conditions',
+  // Founding-member invite codes, issued by the owner, not tied to a business.
+  'invites'];
 
 async function tiedCounts(business) {
   const out = {};

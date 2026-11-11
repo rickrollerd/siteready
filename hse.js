@@ -8,6 +8,7 @@
 const express = require('express');
 const db = require('./db');
 const auth = require('./auth');
+const invites = require('./invites');
 const { record } = require('./events');
 const { textField } = require('./input');
 const { validAbn } = require('./accounts');
@@ -437,6 +438,7 @@ router.post('/hse/orgs', route(async (req, res) => {
   const name = answers.tidyCompany(oneLine(body.name, 200));
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
   const checked = await newAbn(body, name, req.reviewer);
+  if (invites.enabled()) await invites.consume(invites.codeFrom(body), req.reviewer.email);
   const id = auth.newId();
   const now = new Date();
   try {
