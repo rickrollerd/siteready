@@ -372,7 +372,7 @@ function cleanProject(body, org) {
 router.post('/hse/email', route(async (req, res) => {
   const email = auth.cleanEmail(req.body && req.body.email);
   if (!email) throw Object.assign(fail(400, 'Enter a valid email address.'), { field: 'email' });
-  await auth.sendHseLink(req, email);
+  await auth.sendHseLink(req, email, { inviteCode: invites.codeFrom(req.body) });
   res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes.` });
 }));
 
@@ -438,22 +438,26 @@ router.post('/hse/orgs', route(async (req, res) => {
   const name = answers.tidyCompany(oneLine(body.name, 200));
   if (!name) throw Object.assign(fail(400, 'Enter your company name, as contractors know it.'), { field: 'name' });
   const checked = await newAbn(body, name, req.reviewer);
-  if (invites.enabled()) await invites.consume(invites.codeFrom(body), req.reviewer.email);
   const id = auth.newId();
   const now = new Date();
+  let org;
   try {
-    await db.query('INSERT INTO orgs (id, name, abn, created_by, source, created_at, abn_check, abn_names, abn_checked_at, abn_verified_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-      [id, name, checked.abn, req.reviewer.id, 'hse-page', now, ...checkColumns(checked, null, now)]);
+    org = await db.transaction(async (tx) => {
+      if (invites.enabled()) await invites.consume(invites.codeFrom(body), req.reviewer.email, tx);
+      await tx.query('INSERT INTO orgs (id, name, abn, created_by, source, created_at, abn_check, abn_names, abn_checked_at, abn_verified_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+        [id, name, checked.abn, req.reviewer.id, 'hse-page', now, ...checkColumns(checked, null, now)]);
+      await tx.query('INSERT INTO org_members (id, org_id, email, reviewer_id, role, invited_by, invited_at, joined_at, lead_of) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $2)',
+        [auth.newId(), id, req.reviewer.email, req.reviewer.id, 'lead', req.reviewer.id, now]);
+      return tx.one('SELECT * FROM orgs WHERE id = $1', [id]);
+    });
   } catch (error) {
-    // Two people set up the same ABN at the same moment: the first is kept.
+    // Two people set up the same ABN at the same moment: the first is kept. The invite is not used.
     if (duplicateKey(error)) throw takenError();
     throw error;
   }
-  await db.query('INSERT INTO org_members (id, org_id, email, reviewer_id, role, invited_by, invited_at, joined_at, lead_of) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $2)',
-    [auth.newId(), id, req.reviewer.email, req.reviewer.id, 'lead', req.reviewer.id, now]);
   record('org_created', null);
   res.status(201).json({
-    org: orgView(await db.one('SELECT * FROM orgs WHERE id = $1', [id]), 'lead'),
+    org: orgView(org, 'lead'),
     message: `Your account is set up. ${checkMessage(checked.check)} ${SET_UP_NEXT}`,
   });
 }));

@@ -1018,6 +1018,8 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS invites (
     id TEXT PRIMARY KEY,
     code TEXT NOT NULL UNIQUE,
+    code_hash TEXT,
+    code_hint TEXT NOT NULL DEFAULT '',
     note TEXT NOT NULL DEFAULT '',
     created_by TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
@@ -1025,11 +1027,16 @@ const SCHEMA = [
     use_count INTEGER NOT NULL DEFAULT 0,
     expires_at TIMESTAMPTZ,
     last_used_at TIMESTAMPTZ,
-    last_used_by TEXT NOT NULL DEFAULT ''
+    last_used_by TEXT NOT NULL DEFAULT '',
+    revoked_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS invites_code ON invites (code)',
   // Additive: the invite used to start a sign-in, consumed when the company is created.
   "ALTER TABLE login_tokens ADD COLUMN IF NOT EXISTS invite_code TEXT NOT NULL DEFAULT ''",
+  // Additive: hashed invite codes, a short hint for the owner list, and revocation (review finding 8).
+  "ALTER TABLE invites ADD COLUMN IF NOT EXISTS code_hash TEXT",
+  "ALTER TABLE invites ADD COLUMN IF NOT EXISTS code_hint TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE invites ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ",
 ];
 
 // Whether the tables are set up: 'waiting' until migrate() has run, then 'ready' or 'failed'. The
@@ -1076,7 +1083,26 @@ async function runMigrations() {
     registered.add(abn);
     await query('INSERT INTO trial_abns (abn, company_id, created_at) VALUES ($1, $2, $3)', [abn, row.id, new Date()]);
   }
+  await query('CREATE UNIQUE INDEX IF NOT EXISTS invites_code_hash ON invites (code_hash)');
+  await backfillInviteHashes();
   await inviteEarlierReviewers();
+}
+
+// Existing plaintext invite codes are hashed once so they are no longer stored in the clear.
+// Already-hashed rows (code is 64 hex chars, or code_hash is set) are left alone, so this is repeat-safe.
+async function backfillInviteHashes() {
+  const rows = await query('SELECT id, code, code_hash, code_hint FROM invites');
+  for (const row of rows) {
+    const code = String(row.code || '');
+    if (row.code_hash || !code) continue;
+    if (/^[0-9a-f]{64}$/.test(code)) {
+      await query('UPDATE invites SET code_hash = $1 WHERE id = $2', [code, row.id]);
+      continue;
+    }
+    const hashed = crypto.createHash('sha256').update(code, 'utf8').digest('hex');
+    const hint = String(row.code_hint || '') || code.slice(-4);
+    await query('UPDATE invites SET code_hash = $1, code_hint = $2, code = $1 WHERE id = $3', [hashed, hint, row.id]);
+  }
 }
 
 // Reviewers by invitation (D313): each reviewer who had already responded on a SWMS by its reference is

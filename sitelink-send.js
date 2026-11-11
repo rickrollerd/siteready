@@ -700,11 +700,14 @@ publicRouter.post('/list/:token/sign-in', route(async (req, res) => {
     const existing = await db.one('SELECT id FROM users WHERE email = $1', [email]);
     if (!existing) {
       inviteCode = invites.codeFrom(req.body);
-      if (!await invites.peek(inviteCode)) throw fail(403, invites.refusal());
+      if (!await invites.peek(inviteCode)) {
+        await auth.sendInviteNeededMail(email);
+        return res.json({ ok: true, message: auth.signInMailSentMessage() });
+      }
     }
   }
   await auth.sendListLink(req, email, { listToken: req.params.token, source: `project-invite:${found.project.id}`, builder: found.org.name, inviteCode });
-  res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes. Open it on this device to take up the list.` });
+  res.json({ ok: true, message: invites.enabled() ? auth.signInMailSentMessage() : `A sign-in link has been sent to ${email}. It expires in 20 minutes. Open it on this device to take up the list.` });
 }));
 
 // "No, it is not ours" on a list with no ABN given (messy round 8, blocker 5: the No was not logged). The

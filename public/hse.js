@@ -23,6 +23,21 @@
     get: (key) => { try { return localStorage.getItem(key) || ''; } catch { return ''; } },
     set: (key, value) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key); } catch { /* not kept */ } },
   };
+  // A founding-member invite on /sitelink?invite=... is kept across the email sign-in, including when
+  // the one-time login param is taken out of the address.
+  const INVITE_KEY = 'sitelink.invite';
+  function readInvite() {
+    try {
+      const fromUrl = (new URLSearchParams(location.search).get('invite') || '').trim();
+      if (fromUrl) {
+        sessionStorage.setItem(INVITE_KEY, fromUrl);
+        return fromUrl;
+      }
+      return sessionStorage.getItem(INVITE_KEY) || '';
+    } catch {
+      return (new URLSearchParams(location.search).get('invite') || '').trim();
+    }
+  }
   // An ABN as people write it: "51 824 753 556".
   const formatAbn = (abn) => { const d = String(abn || '').replace(/\D/g, ''); return d.length === 11 ? `${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8)}` : String(abn || ''); };
   const STATE_NAME = { act: 'Australian Capital Territory', nsw: 'New South Wales', nt: 'Northern Territory', qld: 'Queensland', sa: 'South Australia', tas: 'Tasmania', vic: 'Victoria', wa: 'Western Australia' };
@@ -160,7 +175,7 @@
     box('signin-status', '');
     await busy($('send-link'), 'Sending...', async () => {
       try {
-        const data = await call('POST', '/api/hse/email', { email });
+        const data = await call('POST', '/api/hse/email', { email, invite: readInvite() });
         box('signin-status', `<strong>${esc(data.message)}</strong><p>Open the email on the device you want to use, and press the link.</p>`, 'ok');
       } catch (error) {
         if (error.field === 'email') fieldError('signin-email', error.message);
@@ -227,8 +242,8 @@
     view('setup');
     box('setup-status', '');
     $('setup-invite-field').classList.toggle('hidden', !config.inviteOnly);
-    const params = new URLSearchParams(location.search);
-    if (params.get('invite')) $('setup-invite').value = params.get('invite');
+    const invite = readInvite();
+    if (invite && $('setup-invite')) $('setup-invite').value = invite;
   }
   // The ABN register can list another name for the ABN. The ABN cannot be changed later, so the
   // person checks it, then uses the register's name or keeps their own (the account shows Unverified).
@@ -1904,6 +1919,7 @@
       config = await (await fetch(apiUrl('/api/config'))).json();
     } catch { /* keep defaults */ }
     const params = new URLSearchParams(location.search);
+    const inviteKept = readInvite();
     const login = params.get('login');
     if (!token && !login && /^#\/(?:project|sub)\//.test(location.hash)) store.set(AFTER_KEY, location.hash);
     if (login && !location.hash) {
@@ -1913,7 +1929,9 @@
     if (login) store.set(AFTER_KEY, '');
     if (login) {
       // The link works once: it is taken out of the address so a reload or Back does not use it again.
-      history.replaceState(null, '', `${location.pathname}${location.hash}`);
+      // The invite stays, so setting up the account after sign-in still has the code.
+      const kept = inviteKept ? `?invite=${encodeURIComponent(inviteKept)}` : '';
+      history.replaceState(null, '', `${location.pathname}${kept}${location.hash}`);
       const before = token;
       try {
         ({ token } = await call('POST', '/api/hse/verify', { token: login }));

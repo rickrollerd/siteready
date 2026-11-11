@@ -362,7 +362,7 @@
   });
   await loadLearning('');
 
-  // Founding-member invites.
+  // Founding-member invites. The full code is shown only when it is created; the list keeps a short hint.
   const inviteLink = (code) => `${location.origin}/?invite=${encodeURIComponent(code)}`;
   async function copyInvite(code) {
     const link = inviteLink(code);
@@ -370,14 +370,19 @@
       prompt('Copy this invite link', link);
     }
   }
+  const inviteStatus = (item) => item.revokedAt ? 'Revoked' : (item.expiresAt && new Date(item.expiresAt) <= new Date() ? 'Expired' : 'Open');
   async function loadInvites() {
     const result = await api('/api/admin/invites');
     if (!result.ok) { $('invites').innerHTML = `<tr><td class="error">${esc(result.data.message || 'Not available.')}</td></tr>`; return; }
-    $('invites').innerHTML = rows('<tr><th>Code</th><th>Note</th><th>Created</th><th>By</th><th class="n">Uses</th><th class="n">Used</th><th>Last used</th><th>By</th><th></th></tr>',
-      result.data.invites.map((item) => `<tr><td><code>${esc(item.code)}</code></td><td>${esc(item.note)}</td><td>${esc(when(item.created_at))}</td><td>${esc(item.created_by)}</td><td class="n">${esc(item.max_uses)}</td><td class="n">${esc(item.use_count)}</td><td>${esc(item.last_used_at ? when(item.last_used_at) : '')}</td><td>${esc(item.last_used_by)}</td><td><button type="button" class="link" data-copy-invite="${esc(item.code)}">Copy link</button></td></tr>`),
+    $('invites').innerHTML = rows('<tr><th>Hint</th><th>Note</th><th>Created</th><th>By</th><th class="n">Uses</th><th class="n">Used</th><th>Expires</th><th>Status</th><th>Last used</th><th>By</th><th></th></tr>',
+      result.data.invites.map((item) => `<tr><td><code>…${esc(item.codeHint || '')}</code></td><td>${esc(item.note)}</td><td>${esc(when(item.createdAt))}</td><td>${esc(item.createdBy)}</td><td class="n">${esc(item.maxUses)}</td><td class="n">${esc(item.useCount)}</td><td>${esc(item.expiresAt ? day(item.expiresAt) : '')}</td><td>${esc(inviteStatus(item))}</td><td>${esc(item.lastUsedAt ? when(item.lastUsedAt) : '')}</td><td>${esc(item.lastUsedBy)}</td><td>${item.revokedAt ? '' : `<button type="button" class="link" data-revoke-invite="${esc(item.id)}">Revoke</button>`}</td></tr>`),
       'No invites yet.');
-    $('invites').querySelectorAll('[data-copy-invite]').forEach((button) => {
-      button.addEventListener('click', () => copyInvite(button.dataset.copyInvite));
+    $('invites').querySelectorAll('[data-revoke-invite]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const revoked = await api(`/api/admin/invites/${encodeURIComponent(button.dataset.revokeInvite)}/revoke`, {});
+        if (!revoked.ok) { $('invite-created').textContent = revoked.data.message || 'Could not revoke that invite.'; $('invite-created').classList.remove('hidden'); return; }
+        await loadInvites();
+      });
     });
   }
   $('invite-form').addEventListener('submit', async (event) => {
