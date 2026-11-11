@@ -1,7 +1,7 @@
 {
   "name": "SiteWrite",
   "short_name": "SiteWrite",
-  "description": "A writing aid for one task. The subcontractor finishes the statement.",
+  "description": "A Safe Work Method Statement for one construction task, drafted from the WHS law of the state the job is in.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1B1F27",
