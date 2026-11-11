@@ -25,7 +25,7 @@ const TRADES = [
   { id: 'tiling', name: 'Floor and wall tiling', signal: 'tilingWork', kinds: ['tileCut', 'tileLay', 'tileEdge'], extra: ['tileMix', 'wpLiquid'] },
   { id: 'stone', name: 'Stone benchtops', signal: 'stoneWork', kinds: ['stoneSilica', 'stoneHandle'], extra: [] },
   { id: 'flooring', name: 'Floor coverings', signal: 'floorWork', kinds: ['floorGrind', 'floorAdhesive', 'floorLevel', 'timberFloor', 'floorLay', 'floorCoating'], extra: ['pressureClean', 'tileCut', 'tileLay', 'tileMix', 'jointSealing', 'fixtures', 'floorSanding', 'accessFloor'] },
-  { id: 'waterproofing', name: 'Waterproofing', signal: 'waterproofing', kinds: ['wpPrep', 'wpLiquid', 'wpTorch', 'wpEdge'], extra: ['tileMix', 'tileLay', 'tileCut', 'wpRolls', 'glazingSeal', 'belowGroundWp', 'concreteRepair'] },
+  { id: 'waterproofing', name: 'Waterproofing', signal: 'waterproofing', kinds: ['wpPrep', 'wpLiquid', 'wpTorch', 'wpEdge'], extra: ['tileMix', 'tileLay', 'tileCut', 'wpRolls', 'wpPreApplied', 'glazingSeal', 'belowGroundWp', 'concreteRepair'] },
   { id: 'painting', name: 'Painting', signal: 'painting', kinds: ['painting', 'paintAccess', 'paintSpray', 'paintSolvent', 'paintSwing', 'paintExternal', 'lineMarking'], extra: ['pressureClean', 'floorCoating', 'rendering', 'abrasiveBlast'] },
   { id: 'roofing', name: 'Roofing', kinds: ['roof', 'roofStrip', 'gutters', 'skylight', 'tiledRoof', 'safetyMesh'], extra: ['roofBattens', 'anchorInstall', 'accessSteel', 'roofFittings'] },
   { id: 'landscaping', name: 'Landscaping', signal: 'landscape', kinds: ['landscape', 'landscapeLift', 'turf', 'paving', 'retainingWall', 'shallowTrench', 'playground'], extra: ['trench', 'earthworks', 'kitStructure', 'pressureClean'] },

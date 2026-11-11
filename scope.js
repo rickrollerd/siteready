@@ -431,7 +431,7 @@ const TITLES = Object.freeze({
   fireAtHeight: 'Sprinkler and hydrant pipework at height', passiveFire: 'Fire stopping', paintExternal: 'External painting at height', paintSpray: 'Spray painting',
   tileEdge: 'Tiling near balcony and terrace edges', cleaningHeight: 'Window and balcony cleaning', panelInstall: 'Panel installation at the slab edge',
   sawCut: 'Saw cutting', asbestos: 'Asbestos removal', asbestosCheck: 'Asbestos check', confined: 'Confined space entry', roofSpace: 'Work in the roof space',
-  floorGrind: 'Floor grinding', wpTorch: 'Torch-on membranes', stoneSilica: 'Cutting stone benchtops', steelErect: 'Steel erection at height',
+  floorGrind: 'Floor grinding', wpTorch: 'Torch-on membranes', wpPreApplied: 'Pre-applied sheet membranes', stoneSilica: 'Cutting stone benchtops', steelErect: 'Steel erection at height',
   balustradeEdge: 'Balustrades at open edges', earthworks: 'Earthworks and compaction', water: 'Work in or near water', liftShaft: 'Work at open lift shafts', landscapeLift: 'Lifting soil and plants',
   safetyScreens: 'Perimeter safety screens', tempStairs: 'Temporary stairs and stair towers', workshopFab: 'Workshop metal fabrication', floodTest: 'Flood and holiday testing of membranes',
   drainageCell: 'Drainage cell and protection board', acousticMat: 'Acoustic matting under floors', earthStakes: 'Earth stakes and earthing', caulking: 'Sealants and caulking',

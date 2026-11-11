@@ -4927,5 +4927,15 @@
   "Shaker grids, rumble grids and wheel wash units are installed, used and maintained to their supplier's instructions.": {"kind":"reg"},
   "This is friable asbestos: it is removed only by a removalist holding a Class A asbestos removal licence, with the asbestos removal supervisor present throughout the work.": {"kind":"reg"},
   "No electrical work is done on or near energised parts (within 3 m of an exposed energised part). Parts of the installation that stay energised, such as construction power, are identified, and the work is kept separated from them. If that changes, stop and prepare for energised work as the regulation requires.": {"kind":"reg"},
-  "Only authorised people enter the area, and barriers prevent contact with exposed energised parts.": {"kind":"reg"}
+  "Only authorised people enter the area, and barriers prevent contact with exposed energised parts.": {"kind":"reg"},
+  "The blinding or formwork is clean, sound and free of sharp projections, loose debris and standing water before the membrane is laid.": {"kind":"none"},
+  "Any primer or adhesive is used only as its current safety data sheet and the product instructions set out, with chemical resistant gloves and eye protection, and the area is ventilated.": {"kind":"code"},
+  "No flames, torches or other hot work are used to prepare or dry the substrate for this sheet membrane.": {"kind":"code"},
+  "Rolls are moved with trolleys or by a team lift, and long periods kneeling are rotated.": {"kind":"code"},
+  "Use knife-resistant gloves when cutting the sheets.": {"kind":"practice","orgs":2},
+  "The sheets are laid on the blinding or formwork before the pour, with laps, joints, corners, pile caps and service penetrations formed only as the product instructions and the current safety data sheet set out. No method is invented where the instructions are silent.": {"kind":"none"},
+  "No flames or torches are used to lay or join this sheet membrane.": {"kind":"code"},
+  "The membrane is protected from traffic, plant and stored materials until the concrete is poured, using the protection the product instructions set out.": {"kind":"none"},
+  "Damaged areas are repaired as the product instructions set out, before the pour.": {"kind":"none"},
+  "The concrete is poured against the membrane as the product instructions set out, and the pour crew is told not to displace or puncture it.": {"kind":"none"}
 }

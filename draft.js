@@ -735,6 +735,9 @@ function claimedSentences(task, flags) {
 
 // Waterproofing membranes.
 const WATERPROOFING = /\b(waterproof\w*|(?<!(?:ptfe|etfe|fabric|tensile) )membranes?(?!\s+(?:panels?|roof\w*))|tanking|torch[- ]on)\b/i;
+// Pre-applied / pre-pour sheet membrane on the blinding or formwork, not torch-on and not wall tanking after excavating.
+const PRE_APPLIED_SHEET = /\bpre[- ]applied\b|\bpre[- ]pour\b|\bunder[- ](?:the[- ])?slab (?:sheet )?membranes?\b|\b(?:sheet )?membranes?\b[^.]{0,50}\b(?:under[- ](?:the[- ])?slab|on the blinding|to the blinding|on the formwork|before the (?:basement |concrete |slab )?pour)\b|\b(?:under[- ](?:the[- ])?slab|on the blinding|to the blinding|on the formwork|before the (?:basement |concrete |slab )?pour)\b[^.]{0,50}\b(?:sheet )?membranes?\b/i;
+
 
 // Floor and wall tiling, not roof tiles.
 const TILING_WORK = /\b(re-?til\w*|til(?:e|es|ing|ed)|tilers?|grout\w*|screed\w*)\b/i;
@@ -8041,6 +8044,7 @@ function plainWordings(t, short, plain, on) {
   on(P(/\b(?:balcon\w*|podiums?|planters?|terraces?)\b/i) && P(/\b(?:waterproof\w*|membranes?)\b/i) && !/\b(?:torch\w*|sheet membranes?|bitumen)\b/i.test(t), 'wpLiquid', 'waterproofing');
   on(P(/^roof membranes?$/i), 'wpLiquid', 'waterproofing');
   on(P(/\btanking\b|\b(?:basement|below ground|lift pits?) (?:walls? )?waterproof\w*|\bwaterproof\w* (?:the )?(?:basement|lift pits?|below ground)\b/i), 'belowGroundWp', 'waterproofing');
+  on(P(/\bpre[- ]applied\b|\bpre[- ]pour\b|\bunder[- ](?:the[- ])?slab (?:sheet )?membranes?\b|\b(?:sheet )?membranes?\b[^.]{0,50}\b(?:on the blinding|to the blinding|under[- ](?:the[- ])?slab|before the (?:basement |concrete |slab )?pour)\b/i) && P(/\b(?:waterproof\w*|membranes?)\b/i), 'wpPreApplied', 'waterproofing');
   on(P(/^(?:silicone|sealants?|caulking|mastic)(?: joints?| work)?$|\bsealants? (?:to|around) (?:the )?(?:windows?|doors?|joints?|facades?|frames?)\b|\bseal\w* (?:the )?(?:expansion|movement|control) joints?\b/i), 'caulking');
 }
 
@@ -9879,12 +9883,13 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
       // Heat welding vinyl joins or seams is part of laying it (messy round 10, run 2: "Heat weld vinyl joins" had no step).
       || (/\b(?:heat|hot air)[- ]?weld\w*\b[^.]{0,30}\b(?:vinyl|seams?|joins?|joints?)\b|\bvinyl\b[^.]{0,30}\bweld\w*/i.test(task) && /\b(?:vinyl|lino\w*|floor\w*)\b/i.test(task)),
     waterproofing: WATERPROOFING.test(task),
-    wpPrep: WATERPROOFING.test(task) && /\b(grind\w*|prepar\w*|scabbl\w*)\b/i.test(task),
-    wpLiquid: WATERPROOFING.test(task) && /\b(install\w* (?:a |the )?(?:new )?(?:[\w-]+ ){0,2}(?:waterproofing )?membranes?(?! sheets?)|primers?|liquid|solvents?|polyurethane|apply\w*|brush\w*|roll(?:ed|ing)? on|spray\w*|waterproof (?:the |a |an )?(?:floors?|walls?|shower\w*|bathroom|wet areas?|planters?(?: box(?:es)?)?|balcon\w*|decks?|podiums?|roofs?)|waterproof\w* and (?:re-?)?til\w*)\b/i.test(task) || /\b(?:replac\w*|new|install\w*)\b[^.]{0,20}\bshower (?:bases?|trays?)\b|\bretil\w* (?:the )?shower\b/i.test(task),
+    wpPrep: WATERPROOFING.test(task) && (/\b(grind\w*|scabbl\w*)\b/i.test(task) || (/\bprepar\w*\b/i.test(task) && !PRE_APPLIED_SHEET.test(task))),
+    wpLiquid: (WATERPROOFING.test(task) && /\b(install\w* (?:a |the )?(?:new )?(?:[\w-]+ ){0,2}(?:waterproofing )?membranes?(?! sheets?)|primers?|liquid|solvents?|polyurethane|apply\w*|brush\w*|roll(?:ed|ing)? on|spray\w*|waterproof (?:the |a |an )?(?:floors?|walls?|shower\w*|bathroom|wet areas?|planters?(?: box(?:es)?)?|balcon\w*|decks?|podiums?|roofs?)|waterproof\w* and (?:re-?)?til\w*)\b/i.test(task) || /\b(?:replac\w*|new|install\w*)\b[^.]{0,20}\bshower (?:bases?|trays?)\b|\bretil\w* (?:the )?shower\b/i.test(task)) && !PRE_APPLIED_SHEET.test(task),
     wpTorch: WATERPROOFING.test(task) && /\b(torch[- ]on|torch\w*|bitumen sheet\w*)\b/i.test(task),
     wpEdge: WATERPROOFING.test(task) && /\b(roofs?|podium|balcon\w*|edges?)\b/i.test(task),
     // A membrane laid (not applied) is a sheet membrane.
     wpRolls: WATERPROOFING.test(task) && /\b(rolls?|sheet membranes?|torch[- ]on|lay\w* (?:the |a |new )?(?:[\w-]+ )?membranes?)\b/i.test(task),
+    wpPreApplied: WATERPROOFING.test(task) && PRE_APPLIED_SHEET.test(task),
     tilingWork: isTiling(task),
     // Laying tiles nearly always means cutting some on site.
     tileCut: isTiling(task) && (/\b(cut\w*|grind\w*|saws?)\b/i.test(task) || (/\b(lay\w*|tile|tiles|tiled|tiling|re-?til\w*)\b/i.test(task) && !/\b(carpet|vinyl|rubber|lino\w*) tiles?\b/i.test(task))),
@@ -10025,7 +10030,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     anchorInstall: /\b(?:install\w*|fit\w*|certif\w*)\b[^.]{0,30}\b(?:anchor points?|static lines?|lifelines?|roof anchors?|fall arrest (?:systems?|anchors?|points?)|height safety (?:systems?|anchors?))\b/i.test(task),
     jointSealing: /\b(?:seal\w*|re-?seal\w*|fill\w*|caulk\w*|replac\w*)\b[^.]{0,30}\b(?:joints|control joints|expansion joints)\b|\bjoint seal\w*/i.test(task) && /\b(floors?|slabs?|concrete|pavements?|decks?|car parks?)\b/i.test(task),
     pipeRelining: /\b(relin\w*|pipe lining|cured in place|cipp|pipe burst\w*)\b/i.test(task),
-    belowGroundWp: /\b(waterproof\w*|tanking|membranes?)\b[^.]{0,40}\b(basement|retaining|below ground|underground)\b[^.]*|\b(basement|retaining) walls?\b[^.]{0,30}\b(waterproof\w*|tanking|membranes?)\b/i.test(task) && !/\b(podium|over (?:a |the )?basement|decks?|roofs?|balcon\w*)\b/i.test(task),
+    belowGroundWp: /\b(waterproof\w*|tanking|membranes?)\b[^.]{0,40}\b(basement|retaining|below ground|underground)\b[^.]*|\b(basement|retaining) walls?\b[^.]{0,30}\b(waterproof\w*|tanking|membranes?)\b/i.test(task) && !/\b(podium|over (?:a |the )?basement|decks?|roofs?|balcon\w*)\b/i.test(task) && !(PRE_APPLIED_SHEET.test(task) && !/\b(?:walls?|retaining|lift pits?|expose\w*|excavated (?:face|walls?))\b/i.test(task)),
     deckingWork: /\b(decking|deck boards?|timber decks?|bays?|boards?|bearers?|joists?)\b/i.test(task),
     workBoat: /\b(punts?|barges?|work boats?|pontoons?|boats?)\b/i.test(task),
     concreteRepair: /\b(spall\w*|honeycombing|grind\w* (?:off )?(?:the )?fins|patch\w* (?:the )?(?:[\w-]+ )?concrete|concrete repairs?|repair\w*[^.]{0,30}\bconcrete|(?:epoxy |crack |resin )inject\w*|inject\w*[^.]{0,20}\bcracks?|seal\w* cracks? in (?:a |the )?concrete|break\w* out (?:the )?(?:damaged )?concrete|concrete cancer|(?:jack ?hammer\w*|break\w* out|cut\w* out)\b[^.]{0,30}\b(?:the )?(?:old |existing |damaged )?(?:expansion |deck |bridge )?(?:joints?|nosings?))\b/i.test(task),
