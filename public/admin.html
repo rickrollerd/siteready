@@ -64,6 +64,13 @@
       <table id="accounts"></table>
       <div id="account-detail"></div>
     </div>
+    <div class="panel">
+      <h2>Founding-member invites</h2>
+      <p class="note">Invite codes for the founding-member beta. New accounts and new SiteLink accounts need one when invite-only is on.</p>
+      <form id="invite-form"><input type="text" id="invite-note" placeholder="Note (optional)" autocomplete="off" maxlength="200" aria-label="Note"><input type="number" id="invite-uses" placeholder="Uses" value="1" min="1" style="width:60px"><button type="submit">Create invite</button></form>
+      <p class="note hidden" id="invite-created" role="status"></p>
+      <table id="invites"></table>
+    </div>
     <div class="panel" id="learning-panel">
       <h2>Monthly learning report</h2>
       <p class="note">What users changed and which check questions workers got wrong, for one month and the months before it (goal 11). Counts only: no names, businesses or sites. Candidate library changes are for a person to check; this report never changes the library. For you only: nothing here is shown to customers.</p>

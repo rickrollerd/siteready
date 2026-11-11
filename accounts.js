@@ -7,6 +7,7 @@ const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
 const { recordControlEdits, recordOwnSteps, recordAnswers, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
+const invites = require('./invites');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
 const { prepareDraft } = require('./draft');
@@ -78,7 +79,15 @@ function withCompany(input, company) {
 router.post('/auth/email', route(async (req, res) => {
   const email = auth.cleanEmail(req.body && req.body.email);
   if (!email) throw fail(400, 'Enter a valid email address.');
-  await auth.sendLoginLink(req, email);
+  let inviteCode = '';
+  if (invites.enabled()) {
+    const existing = await db.one('SELECT id FROM users WHERE email = $1', [email]);
+    if (!existing) {
+      inviteCode = invites.codeFrom(req.body);
+      if (!await invites.peek(inviteCode)) throw fail(403, invites.refusal());
+    }
+  }
+  await auth.sendLoginLink(req, email, null, '', inviteCode);
   res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes.` });
 }));
 

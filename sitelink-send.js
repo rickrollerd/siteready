@@ -25,6 +25,7 @@ const crypto = require('crypto');
 const express = require('express');
 const db = require('./db');
 const auth = require('./auth');
+const invites = require('./invites');
 const handover = require('./handover');
 const mailer = require('./mailer');
 const designFiles = require('./design-files');
@@ -694,7 +695,15 @@ publicRouter.post('/list/:token/sign-in', route(async (req, res) => {
   const found = await linkFor(req.params.token);
   const email = auth.cleanEmail(req.body && req.body.email);
   if (!email) throw Object.assign(fail(400, 'Enter a valid email address.'), { field: 'email' });
-  await auth.sendListLink(req, email, { listToken: req.params.token, source: `project-invite:${found.project.id}`, builder: found.org.name });
+  let inviteCode = '';
+  if (invites.enabled()) {
+    const existing = await db.one('SELECT id FROM users WHERE email = $1', [email]);
+    if (!existing) {
+      inviteCode = invites.codeFrom(req.body);
+      if (!await invites.peek(inviteCode)) throw fail(403, invites.refusal());
+    }
+  }
+  await auth.sendListLink(req, email, { listToken: req.params.token, source: `project-invite:${found.project.id}`, builder: found.org.name, inviteCode });
   res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes. Open it on this device to take up the list.` });
 }));
 

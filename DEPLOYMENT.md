@@ -66,6 +66,8 @@ Use test keys (`sk_test_...`) first, and subscribe with Stripe's test card 4242 
 
 Set `ADMIN_EMAILS` to your email to see sign-ups, trials, paying companies, actions and recent errors at `/admin.html`. `/api/health` reports whether the database is reachable, for an uptime monitor.
 
+Set `INVITE_ONLY=1` to gate new company and new SiteLink org sign-ups behind an admin-issued invite code. Existing accounts, team joins and reviewers are not affected.
+
 ### Step 3: Custom Domain (sitewrite.com.au)
 
 1. Buy domain from Namecheap or similar

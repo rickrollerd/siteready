@@ -8,6 +8,7 @@ const express = require('express');
 const db = require('./db');
 const { releasableFigures } = require('./industry');
 const auth = require('./auth');
+const invites = require('./invites');
 const removal = require('./business-removal');
 
 const router = express.Router();
@@ -400,6 +401,21 @@ async function warningSigns(now = Date.now()) {
 router.get('/admin/warnings', auth.requireUser, route(async (req, res) => {
   requireOwner(req);
   res.json({ limits: LIMITS, warnings: await warningSigns() });
+}));
+
+// ---- Founding-member invites ----
+
+router.get('/admin/invites', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  res.json({ invites: await invites.list() });
+}));
+
+router.post('/admin/invites', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const body = req.body || {};
+  const base = String(process.env.APP_URL || '').replace(/\/$/, '') || `${req.protocol}://${req.get('host')}`;
+  const created = await invites.create({ note: body.note, maxUses: body.maxUses, createdBy: req.user.email, base });
+  res.json({ ok: true, ...created });
 }));
 
 // ---- AI readings checked against the brief ----
