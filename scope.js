@@ -57,9 +57,18 @@ function isHeading(raw, line) {
 }
 
 function splitLines(text) {
-  return String(text || '')
+  const rows = String(text || '')
     .replace(/\r\n?/g, '\n')
-    .split('\n')
+    .split('\n');
+  // A short paste of several sentences in one paragraph, with no line breaks, is
+  // several lines (launch-readiness, 11 Nov 2026). Numbered or already line-broken
+  // scopes are left as they are.
+  const nonempty = rows.filter((raw) => raw.trim());
+  if (nonempty.length === 1) {
+    const sentences = nonempty[0].split(/(?<=\.)\s+(?=[A-Z])/).map((part) => part.trim()).filter(Boolean);
+    if (sentences.length >= 2) return sentences;
+  }
+  return rows
     // A long paragraph with several items separated by semicolons is several lines.
     .flatMap((raw) => (raw.length > 240 && raw.includes(';') ? raw.split(/;\s+/) : [raw]));
 }
