@@ -255,8 +255,8 @@
     if (!config.accounts) { bar.classList.add('hidden'); signInNotes(); return; }
     bar.classList.remove('hidden');
     if (!me) {
-      bar.innerHTML = `<span class="bar-note">Try it free: preview any SWMS. Sign in to read a scope, download, save and share.</span>
-        <button type="button" class="small" data-open="signin">Sign in or start free trial</button>`;
+      bar.innerHTML = `<span class="bar-note">Preview any SWMS without signing up. Sign in to read a scope, download, save and share.</span>
+        <button type="button" class="small" data-open="signin">Sign in</button>`;
       document.querySelectorAll('.signed-in-only').forEach((el) => el.classList.add('hidden'));
       signInNotes();
       return;
