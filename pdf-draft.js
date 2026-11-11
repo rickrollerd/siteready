@@ -237,6 +237,7 @@ function registers(doc, draft, w) {
   table(doc, { widths: [110, w - 110 - 230, 230], header: ['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], rows: (draft.emergency || []).map((item) => row(item.type, item.equipment, item.detail || ' ')) });
   if (draft.sources && (draft.sources.legislation.length || draft.sources.codes.length)) {
     heading(doc, 'Legislation and codes of practice');
+    if (draft.sources.regulator) text(doc, `The work health and safety regulator is ${draft.sources.regulator}.`, { size: 9, after: 0.3 });
     table(doc, { widths: [w / 2, w / 2], header: ['Legislation', 'Codes of practice and guidance'], rows: [row(draft.sources.legislation.join('\n'), draft.sources.codes.join('\n'))] });
   }
 }
