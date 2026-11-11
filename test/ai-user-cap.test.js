@@ -75,3 +75,12 @@ test('the third POST /api/scope/ai of the day gets 429; GET does not count', asy
   const other = await signIn('sam.cap@example.com');
   assert.notEqual((await call('POST', '/api/scope/ai', { token: other, body })).status, 429);
 });
+
+test('the third POST /api/draft/translation of the day gets 429', async () => {
+  process.env.AI_USER_DAILY_REQUESTS = '2';
+  const token = await signIn('pat.translate-cap@example.com');
+  const body = { input: { state: 'qld', task: 'Erect a modular scaffold to 6 m.', fallRisk: 'yes' }, language: 'vi' };
+  for (let n = 0; n < 2; n += 1) assert.notEqual((await call('POST', '/api/draft/translation', { token, body })).status, 429);
+  const third = await call('POST', '/api/draft/translation', { token, body });
+  assert.equal(third.status, 429);
+});
