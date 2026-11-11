@@ -40,6 +40,7 @@
   let token = store.get(KEY);
   let me = null;
   let orgs = [];
+  let config = { inviteOnly: false };
   let page = null;
   let edit = null;
   let pendingFlash = null;
@@ -225,6 +226,9 @@
   function showSetup() {
     view('setup');
     box('setup-status', '');
+    $('setup-invite-field').classList.toggle('hidden', !config.inviteOnly);
+    const params = new URLSearchParams(location.search);
+    if (params.get('invite')) $('setup-invite').value = params.get('invite');
   }
   // The ABN register can list another name for the ABN. The ABN cannot be changed later, so the
   // person checks it, then uses the register's name or keeps their own (the account shows Unverified).
@@ -235,7 +239,7 @@
     if (!$('setup-abn').value.trim()) { fieldError('setup-abn', 'Enter the company\'s ABN. It links this account to your company.'); return; }
     await busy($('setup-go'), 'Checking the ABN...', async () => {
       try {
-        const data = await call('POST', '/api/hse/orgs', { name: $('setup-name').value, abn: $('setup-abn').value, keepName });
+        const data = await call('POST', '/api/hse/orgs', { name: $('setup-name').value, abn: $('setup-abn').value, keepName, invite: $('setup-invite') ? ($('setup-invite').value || '') : '' });
         // The form goes at once: set up, it is not shown while the account loads (messy round 9: it stayed
         // about 2 seconds under "Your account is set up").
         $('view-setup').classList.add('hidden');
@@ -1896,6 +1900,9 @@
   // kept, and opened once the sign-in link is used (messy round 8: it landed on the project list).
   const AFTER_KEY = 'sitelink.after';
   (async () => {
+    try {
+      config = await (await fetch(apiUrl('/api/config'))).json();
+    } catch { /* keep defaults */ }
     const params = new URLSearchParams(location.search);
     const login = params.get('login');
     if (!token && !login && /^#\/(?:project|sub)\//.test(location.hash)) store.set(AFTER_KEY, location.hash);

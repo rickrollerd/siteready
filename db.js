@@ -1012,6 +1012,24 @@ const SCHEMA = [
     removed_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS swms_review_invites_swms ON swms_review_invites (swms_id, email)',
+  // Invite codes for the founding-member beta. Created by an admin, consumed when a new company
+  // or SiteLink org is started. max_uses and use_count keep multi-use codes; expires_at and
+  // last_used_at are for housekeeping.
+  `CREATE TABLE IF NOT EXISTS invites (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    note TEXT NOT NULL DEFAULT '',
+    created_by TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    max_uses INTEGER NOT NULL DEFAULT 1,
+    use_count INTEGER NOT NULL DEFAULT 0,
+    expires_at TIMESTAMPTZ,
+    last_used_at TIMESTAMPTZ,
+    last_used_by TEXT NOT NULL DEFAULT ''
+  )`,
+  'CREATE INDEX IF NOT EXISTS invites_code ON invites (code)',
+  // Additive: the invite used to start a sign-in, consumed when the company is created.
+  "ALTER TABLE login_tokens ADD COLUMN IF NOT EXISTS invite_code TEXT NOT NULL DEFAULT ''",
 ];
 
 // Whether the tables are set up: 'waiting' until migrate() has run, then 'ready' or 'failed'. The

@@ -16,6 +16,7 @@ const { readLogo } = require('./logo');
 const { draftToPdf } = require('./pdf-draft');
 const db = require('./db');
 const auth = require('./auth');
+const invites = require('./invites');
 const { userDailyCap } = require('./ai-user-cap');
 const accounts = require('./accounts');
 const libraryNotices = require('./library-notices');
@@ -716,7 +717,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
 
 app.get('/api/config', (_req, res) => {
   // Whether a design's file can be attached (design-files.js: the storage bucket, or a local run).
-  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month incl. GST', designFiles: { enabled: db.enabled() && designFiles.enabled(), maxMb: designFiles.MAX_MB } });
+  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month incl. GST', designFiles: { enabled: db.enabled() && designFiles.enabled(), maxMb: designFiles.MAX_MB }, inviteOnly: invites.enabled(), supportEmail: process.env.SUPPORT_EMAIL || 'sitereadyaus@gmail.com' });
 });
 
 // Ready only once the tables are set up (db.readiness): a server still setting them up, or whose set-up

@@ -362,6 +362,43 @@
   });
   await loadLearning('');
 
+  // Founding-member invites.
+  const inviteLink = (code) => `${location.origin}/?invite=${encodeURIComponent(code)}`;
+  async function copyInvite(code) {
+    const link = inviteLink(code);
+    try { await navigator.clipboard.writeText(link); } catch {
+      prompt('Copy this invite link', link);
+    }
+  }
+  async function loadInvites() {
+    const result = await api('/api/admin/invites');
+    if (!result.ok) { $('invites').innerHTML = `<tr><td class="error">${esc(result.data.message || 'Not available.')}</td></tr>`; return; }
+    $('invites').innerHTML = rows('<tr><th>Code</th><th>Note</th><th>Created</th><th>By</th><th class="n">Uses</th><th class="n">Used</th><th>Last used</th><th>By</th><th></th></tr>',
+      result.data.invites.map((item) => `<tr><td><code>${esc(item.code)}</code></td><td>${esc(item.note)}</td><td>${esc(when(item.created_at))}</td><td>${esc(item.created_by)}</td><td class="n">${esc(item.max_uses)}</td><td class="n">${esc(item.use_count)}</td><td>${esc(item.last_used_at ? when(item.last_used_at) : '')}</td><td>${esc(item.last_used_by)}</td><td><button type="button" class="link" data-copy-invite="${esc(item.code)}">Copy link</button></td></tr>`),
+      'No invites yet.');
+    $('invites').querySelectorAll('[data-copy-invite]').forEach((button) => {
+      button.addEventListener('click', () => copyInvite(button.dataset.copyInvite));
+    });
+  }
+  $('invite-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const note = $('invite-note').value.trim();
+    const maxUses = Number($('invite-uses').value) || 1;
+    const result = await api('/api/admin/invites', { note, maxUses });
+    if (!result.ok) { $('invites').insertAdjacentHTML('afterbegin', `<tr><td class="error">${esc(result.data.message || 'Not created.')}</td></tr>`); return; }
+    $('invite-note').value = '';
+    $('invite-uses').value = '1';
+    await loadInvites();
+    const link = result.data.link || inviteLink(result.data.code);
+    const shown = $('invite-created');
+    if (shown) {
+      shown.innerHTML = `Invite created. <a href="${esc(link)}">${esc(link)}</a> <button type="button" class="link" id="invite-copy">Copy link</button>`;
+      shown.classList.remove('hidden');
+      $('invite-copy').addEventListener('click', () => copyInvite(result.data.code));
+    }
+  });
+  await loadInvites();
+
   await loadAccessLog();
   fromHash();
 })();
