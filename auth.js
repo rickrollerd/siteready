@@ -79,6 +79,18 @@ function passkeySettings(req) {
   return { rpID: process.env.RP_ID || url.hostname, origin: url.origin };
 }
 
+function signInMailSentMessage() {
+  return 'If this email can be used to sign in, a message has been sent. It expires in 20 minutes.';
+}
+
+async function sendInviteNeededMail(email) {
+  await sendMail({
+    to: email,
+    subject: 'SiteWrite founding-member beta',
+    text: `SiteWrite's founding-member beta is invite-only. Request an invite at ${invites.supportEmail()}.\n\nIf you did not ask for this, you can ignore this email.`,
+  });
+}
+
 async function sendLoginLink(req, email, companyId = null, invitedBy = '', inviteCode = '') {
   const base = linkUrl(req);
   const token = newToken();
@@ -144,20 +156,27 @@ async function recordSignin(userId, req) {
 async function userForEmail(email, companyId, source = '', inviteCode = '') {
   const existing = await db.one('SELECT * FROM users WHERE email = $1', [email]);
   if (existing) return existing;
-  let company = companyId;
-  const founder = !company;
-  if (founder && invites.enabled()) {
-    await invites.consume(String(inviteCode || '').trim(), email);
-  }
-  if (!company) {
-    company = newId();
-    await db.query('INSERT INTO companies (id, email, trial_ends_at, created_at, source) VALUES ($1, $2, $3, $4, $5)',
-      [company, email, later(TRIAL_DAYS * DAY), new Date(), String(source || '').slice(0, 120)]);
-    await record('trial_started', company);
-  }
-  const id = newId();
-  await db.query('INSERT INTO users (id, company_id, email, is_admin, created_at) VALUES ($1, $2, $3, $4, $5)', [id, company, email, founder, new Date()]);
-  return db.one('SELECT * FROM users WHERE id = $1', [id]);
+  const founder = !companyId;
+  const started = { company: false };
+  const user = await db.transaction(async (tx) => {
+    const again = await tx.one('SELECT * FROM users WHERE email = $1', [email]);
+    if (again) return again;
+    if (founder && invites.enabled()) {
+      await invites.consume(String(inviteCode || '').trim(), email, tx);
+    }
+    let company = companyId;
+    if (!company) {
+      company = newId();
+      await tx.query('INSERT INTO companies (id, email, trial_ends_at, created_at, source) VALUES ($1, $2, $3, $4, $5)',
+        [company, email, later(TRIAL_DAYS * DAY), new Date(), String(source || '').slice(0, 120)]);
+      started.company = company;
+    }
+    const id = newId();
+    await tx.query('INSERT INTO users (id, company_id, email, is_admin, created_at) VALUES ($1, $2, $3, $4, $5)', [id, company, email, founder, new Date()]);
+    return tx.one('SELECT * FROM users WHERE id = $1', [id]);
+  });
+  if (started.company) await record('trial_started', started.company);
+  return user;
 }
 
 // A link is used up in one statement that also checks it is unused and in date, so two requests
@@ -253,15 +272,19 @@ async function reviewerToken(email) {
 // The main contractor's HSE lead and team (Goal 12 stage 3) sign in the same way, as reviewers, on
 // /hse.html. An invited person's email names who added them and to which account, and says how to
 // sign in once the link has expired, as an invitation is often opened later.
-async function sendHseLink(req, email, { invitedBy = '', orgName = '' } = {}) {
+async function sendHseLink(req, email, { invitedBy = '', orgName = '', inviteCode = '' } = {}) {
   // SiteLink, the builders' side (D303), is served at /sitelink as well as /hse.html.
   const page = `${linkUrl(req)}/sitelink`;
   const token = await reviewerToken(email);
+  const query = new URLSearchParams({ login: token });
+  const invite = String(inviteCode || '').trim();
+  if (invite) query.set('invite', invite);
+  const link = `${page}?${query}`;
   const opening = invitedBy && orgName ? `${invitedBy} has added you to the ${orgName} team on SiteLink by SiteWrite.` : 'Use this link to sign in to SiteLink by SiteWrite.';
   await sendMail({
     to: email,
     subject: invitedBy ? `${invitedBy} has added you to ${orgName} on SiteLink` : 'Your SiteLink sign-in link',
-    text: `${opening}\n\n${page}?login=${token}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${page} and sign in with this email address. SiteLink is free for main contractors. If you did not expect this email, you can ignore it.`,
+    text: `${opening}\n\n${link}\n\nThe link works once and expires in ${LINK_MINUTES} minutes. After that, go to ${page} and sign in with this email address. SiteLink is free for main contractors. If you did not expect this email, you can ignore it.`,
   });
 }
 
@@ -402,7 +425,7 @@ async function passkeyLogin(req) {
 
 module.exports = {
   TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl, linkUrl, appUrlProblem,
-  sendLoginLink, sendListLink, finishLogin, createSession, hasAccess,
+  sendLoginLink, sendInviteNeededMail, signInMailSentMessage, sendListLink, finishLogin, createSession, hasAccess,
   readSession, requireUser, requireAccess,
   sendReviewerLink, sendHseLink, finishReviewerLogin, readReviewer, requireReviewer,
   passkeyRegistrationOptions, passkeyRegister, passkeyLoginOptions, passkeyLogin,

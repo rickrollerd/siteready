@@ -84,11 +84,14 @@ router.post('/auth/email', route(async (req, res) => {
     const existing = await db.one('SELECT id FROM users WHERE email = $1', [email]);
     if (!existing) {
       inviteCode = invites.codeFrom(req.body);
-      if (!await invites.peek(inviteCode)) throw fail(403, invites.refusal());
+      if (!await invites.peek(inviteCode)) {
+        await auth.sendInviteNeededMail(email);
+        return res.json({ ok: true, message: auth.signInMailSentMessage() });
+      }
     }
   }
   await auth.sendLoginLink(req, email, null, '', inviteCode);
-  res.json({ ok: true, message: `A sign-in link has been sent to ${email}. It expires in 20 minutes.` });
+  res.json({ ok: true, message: invites.enabled() ? auth.signInMailSentMessage() : `A sign-in link has been sent to ${email}. It expires in 20 minutes.` });
 }));
 
 router.post('/auth/verify', route(async (req, res) => {

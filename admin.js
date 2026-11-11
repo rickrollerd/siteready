@@ -418,6 +418,13 @@ router.post('/admin/invites', auth.requireUser, route(async (req, res) => {
   res.json({ ok: true, ...created });
 }));
 
+router.post('/admin/invites/:id/revoke', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const row = await invites.revoke(req.params.id);
+  if (!row) throw auth.fail(404, 'That invite was not found.');
+  res.json({ ok: true, invite: invites.publicRow(row) });
+}));
+
 // ---- AI readings checked against the brief ----
 
 // The last 50 AI readings of a scope, each with its check against the brief (quotes word for
