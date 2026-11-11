@@ -2,6 +2,8 @@
 // emergency arrangements, sources and the suggested risk rating.
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { draftToDocx } = require('../docx-draft');
+const { draftToPdf } = require('../pdf-draft');
 const { prepareDraft } = require('../draft');
 const { MATRIX, riskFor, legislationFor } = require('../register');
 
@@ -569,4 +571,65 @@ test('Queensland drafts say who designs the scaffold, from the Scaffolding Code 
   assert.match(lines('qld', 'Erect a hung scaffold under the bridge deck.').join('\n'), /designed by an engineer/);
   assert.match(lines('qld', 'Erect a tube and coupler scaffold with a loading bay.').join('\n'), /above 33 m[\s\S]*Loading bays/);
   assert.deepEqual(lines('nsw', 'Erect a hung scaffold under the bridge deck.'), [], 'a Queensland code is not cited in NSW');
+});
+
+test("each state's SWMS names that state's work health and safety regulator", () => {
+  const names = {
+    nsw: 'SafeWork NSW',
+    vic: 'WorkSafe Victoria',
+    qld: 'Workplace Health and Safety Queensland',
+    wa: 'WorkSafe Western Australia',
+    sa: 'SafeWork SA',
+    tas: 'WorkSafe Tasmania',
+    act: 'WorkSafe ACT',
+    nt: 'NT WorkSafe',
+  };
+  const others = (state) => Object.entries(names).filter(([id]) => id !== state).map(([, name]) => name);
+  for (const [state, name] of Object.entries(names)) {
+    const draft = prepareDraft({ state, fallRisk: 'no', residential: 'no', task: 'Replace a 3m length of timber fence.' });
+    assert.equal(draft.kind, 'draft', state);
+    assert.equal(draft.sources.regulator, name, state);
+    const hay = `${draft.sources.legislation.join('\n')}\n${(draft.sources.codes || []).join('\n')}\n${draft.sources.regulator}`;
+    for (const other of others(state)) {
+      assert.ok(!hay.includes(other), `${state} should not name ${other}`);
+    }
+  }
+});
+
+test("the Word SWMS names each state's work health and safety regulator", async () => {
+  const JSZip = require('jszip');
+  const names = {
+    nsw: 'SafeWork NSW',
+    vic: 'WorkSafe Victoria',
+    qld: 'Workplace Health and Safety Queensland',
+    wa: 'WorkSafe Western Australia',
+    sa: 'SafeWork SA',
+    tas: 'WorkSafe Tasmania',
+    act: 'WorkSafe ACT',
+    nt: 'NT WorkSafe',
+  };
+  for (const [state, name] of Object.entries(names)) {
+    const draft = prepareDraft({ state, fallRisk: 'no', residential: 'no', task: 'Replace a 3m length of timber fence.' });
+    const zip = await JSZip.loadAsync(Buffer.from(await draftToDocx(draft, {})));
+    const text = (await zip.file('word/document.xml').async('string')).replace(/<[^>]+>/g, ' ').replace(/&apos;/g, "'").replace(/\s+/g, ' ');
+    assert.match(text, new RegExp(`The work health and safety regulator is ${name}\\.`), state);
+  }
+});
+
+test('the PDF SWMS names the Queensland work health and safety regulator', async () => {
+  const { execFileSync } = require('node:child_process');
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', residential: 'no', task: 'Replace a 3m length of timber fence.' });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'swms-reg-'));
+  const file = path.join(dir, 'swms.pdf');
+  try {
+    fs.writeFileSync(file, await draftToPdf(draft, {}));
+    const text = execFileSync('pdftotext', ['-layout', file, '-'], { encoding: 'utf8' }).replace(/\s+/g, ' ');
+    assert.match(text, /The work health and safety regulator is Workplace Health and Safety Queensland\./);
+    assert.doesNotMatch(text, /SafeWork NSW|WorkSafe Victoria/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
