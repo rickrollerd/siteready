@@ -123,7 +123,7 @@ Rate limit counts are kept in memory only, in the primary process, so they hold 
 
 ## Native app
 
-The native app loads `public/` from the device, so it must be told where the server is. Set `content` in `<meta name="sitewrite-api">` to the deployed server address in every page that has it (`index.html`, `admin.html`, `check.html`, `hse.html`, `list.html`, `review.html`, `sign.html` and `verify.html` in `public/`) before running `npx cap sync`. The web pages leave it blank and call the server they were loaded from.
+The native app loads `public/` from the device, so it must be told where the server is. Set `content` in `<meta name="sitewrite-api">` to the deployed server address in every page that has it (`index.html`, `admin.html`, `check.html`, `hse.html`, `list.html`, `qf.html`, `review.html`, `sign.html` and `verify.html` in `public/`) before running `npx cap sync`. The web pages leave it blank and call the server they were loaded from.
 
 ## Legislation references
 

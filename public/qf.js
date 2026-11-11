@@ -2,6 +2,10 @@
 // calls QuantityForge with its own token; nothing here holds a QuantityForge key. QuantityForge keeps
 // nothing, so the page keeps the bill and sends it back with each change.
 (() => {
+  // The web page calls the server it was loaded from; the phone app's copy names the server in
+  // <meta name="sitewrite-api">, as on the main page.
+  const API_BASE = (document.querySelector('meta[name="sitewrite-api"]')?.content || '').replace(/\/+$/, '');
+  const apiUrl = (route) => `${API_BASE}${route}`;
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   // The same sign-in as the SiteWrite app (account.js).
@@ -21,7 +25,7 @@
   const message = (html, kind = 'bad') => { $('qf-message').innerHTML = html ? `<div class="${kind}">${html}</div>` : ''; };
 
   async function api(path, { method = 'GET', json, body, headers = {} } = {}) {
-    const response = await fetch(`/api/qf/${path}`, {
+    const response = await fetch(apiUrl(`/api/qf/${path}`), {
       method,
       headers: { ...auth(), ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}), ...headers },
       body: json !== undefined ? JSON.stringify(json) : body,

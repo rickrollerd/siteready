@@ -99,7 +99,7 @@ const HSE_SCOPE = /^\/api\/hse\/subcontracts\/[^/]+\/scope$/;
 // A subcontractor's work on a builder's list (stage 6) is the whole project page, like the project zip.
 const LIST_PROGRESS = /^\/api\/from-builders\/[^/]+\/(?:progress|submit)$/;
 // The QuantityForge tab sends the whole bill back with each change (quantityforge.js).
-const QF_BILL = /^\/api\/qf\/(?:provenance|override|rate|profile|export\.csv)$/;
+const QF_BILL = /^\/api\/qf\/(?:provenance|override|rate|profile|export\.csv|review)$/;
 app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) || HSE_SCOPE.test(req.path) ? scopeJson : req.path === '/api/project.zip' || LIST_PROGRESS.test(req.path) || QF_BILL.test(req.path) ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 // SiteLink, the builders' side (D303), at its own address. /hse.html keeps working.
@@ -522,7 +522,7 @@ app.post('/api/draft/check', (req, res) => {
 app.get('/api/draft/translation', (_req, res) => {
   res.json({ enabled: draftTranslate.enabled(), languages: draftTranslate.languages() });
 });
-app.post('/api/draft/translation', auth.requireAccess, async (req, res, next) => {
+app.post('/api/draft/translation', auth.requireAccess, userDailyCap, async (req, res, next) => {
   try {
     const body = req.body || {};
     const result = prepareDraft(draftBody(body.input && typeof body.input === 'object' ? body.input : {}));
@@ -852,9 +852,22 @@ async function start() {
     // A builder check runs in one worker; another worker asked for it asks through here.
     checkJobs.relayChecks(cluster);
     cluster.on('exit', (worker, code, signal) => {
+      if (closeOnSignal.stopping) return;
       console.error(`Worker ${worker.process.pid} stopped (${signal || code}). Starting another.`);
       cluster.fork();
     });
+    if (require.main === module) {
+      const stopPrimary = () => {
+        if (closeOnSignal.stopping) return;
+        closeOnSignal.stopping = true;
+        for (const worker of Object.values(cluster.workers || {})) {
+          try { worker.process.kill('SIGTERM'); } catch { /* already gone */ }
+        }
+        setTimeout(() => process.exit(1), 25000).unref();
+      };
+      process.on('SIGTERM', stopPrimary);
+      process.on('SIGINT', stopPrimary);
+    }
     console.log(`SiteWrite server running on http://localhost:${PORT} with ${workers} workers`);
     return null;
   }
@@ -879,7 +892,42 @@ async function start() {
   server.keepAliveTimeout = 65000;
   server.headersTimeout = 66000;
   server.requestTimeout = 70000;
+  if (require.main === module) closeOnSignal(server);
   return server;
+}
+
+// Finish in-flight requests, then exit. Railway sends SIGTERM on each deploy.
+function gracefulClose(server, { timeoutMs = 25000, exit = false } = {}) {
+  return new Promise((resolve, reject) => {
+    if (!server || !server.listening) {
+      if (exit) process.exit(0);
+      resolve();
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (exit) process.exit(1);
+      reject(new Error('The server did not close in time.'));
+    }, timeoutMs);
+    if (exit) timer.unref();
+    server.close((error) => {
+      clearTimeout(timer);
+      if (exit) process.exit(error ? 1 : 0);
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
+
+function closeOnSignal(server) {
+  if (closeOnSignal.bound) return;
+  closeOnSignal.bound = true;
+  const stop = () => {
+    if (closeOnSignal.stopping) return;
+    closeOnSignal.stopping = true;
+    gracefulClose(server, { exit: true }).catch(() => process.exit(1));
+  };
+  process.on('SIGTERM', stop);
+  process.on('SIGINT', stop);
 }
 
 process.on('unhandledRejection', (error) => recordError('unhandledRejection', error));
@@ -897,4 +945,5 @@ module.exports = {
   workerCount,
   prepareDraft,
   questionsFor,
+  gracefulClose,
 };
