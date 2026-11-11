@@ -40,7 +40,7 @@ const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
 const draftTranslate = require('./draft-translate');
-const { keyProblems } = require('./secret-keys');
+const { keyProblems, isProduction } = require('./secret-keys');
 const { downloadGaps, gateChecks, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
@@ -69,6 +69,12 @@ function positiveNumber(value, fallback) {
 }
 
 const app = express();
+// Staging (and any host that is not the production environment) must not be indexed as a
+// second copy of the public site.
+app.use((req, res, next) => {
+  if (!isProduction()) res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
 // Railway and similar hosts sit behind one proxy, which adds the client address.
 // Set TRUST_PROXY to the number of proxies in front of the server (0 for none),
 // or a client could fake its address and get round the rate limit.
