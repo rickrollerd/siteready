@@ -1798,46 +1798,55 @@
     keepDraft();
   }
 
+  // One save at a time: a second press of Save, or a second Enter, while the first is on its way is ignored (D372).
+  let savingDetails = false;
   $('details').addEventListener('submit', async (event) => {
     event.preventDefault();
+    const button = $('d-save');
+    if (savingDetails || (button && button.disabled)) return;
+    savingDetails = true;
     clearErrors($('details'));
     box('d-status', '');
     box('d-problems', '');
-    await busy($('d-save'), 'Saving...', async () => {
-      try {
-        const data = await call('PUT', `/api/hse/projects/${encodeURIComponent(edit.projectId)}/site-details`, { baseRev: edit.baseRev, details: formDetails() });
-        store.set(`${DRAFT_PREFIX}${edit.projectId}`, '');
-        const projectId = edit.projectId;
-        edit = null;
-        go(`#/project/${projectId}`, esc(data.message));
-      } catch (error) {
-        if (error.status === 409) {
-          let current = error.conflict && error.conflict.current;
-          if (!current) current = (await call('GET', `/api/hse/projects/${encodeURIComponent(edit.projectId)}`)).siteDetails;
-          takeCurrent(current, (error.conflict && error.conflict.clash) || []);
-          // One note, at the first detail both changed, so the refusal and the choice are in view
-          // together on a phone (messy round 6). The older "changes are back" note is taken away.
-          box('d-note', '');
-          box('d-status', '<strong>Not saved yet.</strong> Choose which to keep above, then save.', 'warn');
-          const first = $('d-fields').querySelector('.theirs');
-          if (first) {
-            first.insertAdjacentHTML('afterbegin', `<p style="margin:0 0 6px"><strong>${esc(error.message)}</strong></p>`);
-            first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          } else {
-            box('d-problems', `<strong>${esc(error.message)}</strong>`, 'warn');
-            $('d-problems').scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        } else if (error.fields && Object.keys(error.fields).length > 1) {
-          // Every problem at once: a list at the top, and each box's own note.
-          box('d-note', '');
-          box('d-problems', `<strong>${esc(error.message)}</strong>`, 'bad');
-          box('d-status', '<strong>Not saved yet.</strong> Each box with a problem says why.', 'bad');
-          fieldErrors('d-', error.fields);
-        } else if (error.field && $(`d-${error.field}`)) { box('d-status', '<strong>Not saved yet.</strong>', 'bad'); fieldError(`d-${error.field}`, error.message); }
-        else box('d-status', esc(error.message), 'bad');
-      }
-    });
-    if (edit) saveLabel();
+    try {
+      await busy($('d-save'), 'Saving...', async () => {
+        try {
+          const data = await call('PUT', `/api/hse/projects/${encodeURIComponent(edit.projectId)}/site-details`, { baseRev: edit.baseRev, details: formDetails() });
+          store.set(`${DRAFT_PREFIX}${edit.projectId}`, '');
+          const projectId = edit.projectId;
+          edit = null;
+          go(`#/project/${projectId}`, esc(data.message));
+        } catch (error) {
+          if (error.status === 409) {
+            let current = error.conflict && error.conflict.current;
+            if (!current) current = (await call('GET', `/api/hse/projects/${encodeURIComponent(edit.projectId)}`)).siteDetails;
+            takeCurrent(current, (error.conflict && error.conflict.clash) || []);
+            // One note, at the first detail both changed, so the refusal and the choice are in view
+            // together on a phone (messy round 6). The older "changes are back" note is taken away.
+            box('d-note', '');
+            box('d-status', '<strong>Not saved yet.</strong> Choose which to keep above, then save.', 'warn');
+            const first = $('d-fields').querySelector('.theirs');
+            if (first) {
+              first.insertAdjacentHTML('afterbegin', `<p style="margin:0 0 6px"><strong>${esc(error.message)}</strong></p>`);
+              first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              box('d-problems', `<strong>${esc(error.message)}</strong>`, 'warn');
+              $('d-problems').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          } else if (error.fields && Object.keys(error.fields).length > 1) {
+            // Every problem at once: a list at the top, and each box's own note.
+            box('d-note', '');
+            box('d-problems', `<strong>${esc(error.message)}</strong>`, 'bad');
+            box('d-status', '<strong>Not saved yet.</strong> Each box with a problem says why.', 'bad');
+            fieldErrors('d-', error.fields);
+          } else if (error.field && $(`d-${error.field}`)) { box('d-status', '<strong>Not saved yet.</strong>', 'bad'); fieldError(`d-${error.field}`, error.message); }
+          else box('d-status', esc(error.message), 'bad');
+        }
+      });
+      if (edit) saveLabel();
+    } finally {
+      savingDetails = false;
+    }
   });
 
   $('d-cancel').addEventListener('click', () => {
