@@ -121,7 +121,7 @@ function showProfile() {
   preview.src = pendingLogo || '';
   preview.classList.toggle('hidden', !pendingLogo);
   document.getElementById('profile-summary').textContent = profile.name ? `· ${profile.name}` : '';
-  document.getElementById('profile').open = !profile.name;
+  document.getElementById('profile').open = !profile.name; // same rule as profile-open.js
   const company = document.getElementById('company');
   if (!company.value && profile.name) company.value = profile.name;
 }
