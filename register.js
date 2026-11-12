@@ -700,6 +700,33 @@ function addQldSources(sources, d) {
   return { legislation: [...legislation].sort(), codes: [...codes].sort() };
 }
 
+// Official name of each state's work health and safety regulator, as given on the
+// regulator's own website (checked 11 Nov 2026):
+//   NSW: SafeWork NSW (already appears on NSW codes; listed so every SWMS names it the same way)
+//   VIC: WorkSafe Victoria (already appears in some Victorian control lines)
+//   QLD: Workplace Health and Safety Queensland — https://www.worksafe.qld.gov.au/about/who-we-are/workplace-health-and-safety-queensland
+//   WA: WorkSafe Western Australia — https://www.worksafe.wa.gov.au/worksafe-privacy-collection-notice (the site also brands itself WorkSafe)
+//   SA: SafeWork SA — https://www.safework.sa.gov.au/about-us/our-role
+//   TAS: WorkSafe Tasmania — https://worksafe.tas.gov.au/topics/laws-and-compliance/acts-and-regulations
+//   ACT: WorkSafe ACT — https://www.worksafe.act.gov.au/about-worksafe-act
+//   NT: NT WorkSafe — https://worksafe.nt.gov.au/about-us
+const STATE_REGULATORS = [
+  [/New South Wales/, 'SafeWork NSW'],
+  [/Victoria/, 'WorkSafe Victoria'],
+  [/Queensland/, 'Workplace Health and Safety Queensland'],
+  [/Western Australia/, 'WorkSafe Western Australia'],
+  [/South Australia/, 'SafeWork SA'],
+  [/Tasmania/, 'WorkSafe Tasmania'],
+  [/Australian Capital Territory/, 'WorkSafe ACT'],
+  [/Northern Territory/, 'NT WorkSafe'],
+];
+
+function addRegulator(sources, stateName) {
+  const found = STATE_REGULATORS.find(([name]) => name.test(stateName || ''));
+  if (!found) return sources;
+  return { ...sources, regulator: found[1] };
+}
+
 // Each state's work health and safety Act. The regulations are the state's instrument.
 const STATE_ACTS = [
   [/New South Wales/, 'Work Health and Safety Act 2011 (NSW)', 'Work Health and Safety Regulation 2025 (NSW)'],
@@ -1192,9 +1219,9 @@ function registersFor(draft, input = {}) {
     qualifications,
     // Codes of practice are cited only where they have been matched to the state (Queensland so far).
     emergency: emergencyFor(allText, { ...input, substanceTypes: (substances.items || []).length }, rescueRisk, listed, `${task}\n${hazardText}${draft.electricalLinesOnly ? '\noverhead power lines' : ''}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
-    sources,
+    sources: addRegulator(sources, draft.state),
     jobSteps: ratedSteps(theirSlinging ? printedSteps.map((step) => (step.responsible === 'Licensed rigger' ? { ...step, responsible: 'Crane company\'s licensed rigger' } : step)) : printedSteps),
   };
 }
 
-module.exports = { plantFor, commsOrUps, MAINS_SAID, registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor, PLANT, withoutOtherTrades, RAIL_WORK };
+module.exports = { plantFor, commsOrUps, MAINS_SAID, registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor, PLANT, withoutOtherTrades, RAIL_WORK, addRegulator, STATE_REGULATORS };

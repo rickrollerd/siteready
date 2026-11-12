@@ -405,6 +405,7 @@ function registerBlocks(draft) {
   blocks.push(gridTable(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], [2400, 7400, CONTENT_WIDTH - 9800], (draft.emergency || []).map((item) => [item.type, item.equipment, item.detail])));
   if (draft.sources && (draft.sources.legislation.length || draft.sources.codes.length)) {
     blocks.push(sectionHeading('Legislation and codes of practice'));
+    if (draft.sources.regulator) blocks.push(para(`The work health and safety regulator is ${draft.sources.regulator}.`, { size: 20, before: 0, after: 80 }));
     blocks.push(gridTable(['Legislation', 'Codes of practice and guidance'], [LABEL_WIDTH + 2400, VALUE_WIDTH - 2400], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]));
   }
   return blocks;

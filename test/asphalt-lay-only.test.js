@@ -38,3 +38,10 @@ test('a plain lay and roll SWMS matches bitumen to Lay and roll asphalt', () => 
   assert.ok(!steps.some((step) => /^Saw cut asphalt$|^Reinstate asphalt$/.test(step.step)), steps.map((step) => step.step).join(' | '));
   assert.equal(rules.stepOf({ type: 'Bitumen and asphalt', product: 'Bitumen' }, steps), 'Lay and roll asphalt');
 });
+
+test('repairing line marking on a lay-and-roll job is not asphalt cutting or reinstatement', () => {
+  const task = 'Lay and roll hot asphalt wearing course on the new bypass, then repair line marking defects, under traffic control, using a paver, rollers and a tipper.';
+  const kinds = foundKinds({ state: 'nt', fallRisk: 'no', residential: 'no', task });
+  assert.ok(kinds.includes('asphaltLay'), kinds.join(', '));
+  assert.ok(!kinds.includes('asphalt'), kinds.join(', '));
+});
