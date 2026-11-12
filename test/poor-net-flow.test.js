@@ -17,8 +17,9 @@ test('the sign-on form starts only one submit at a time', () => {
 test('Prepare the statement waits for one already on its way, so a double press cannot leave the button stuck', () => {
   const src = read('app.js');
   assert.match(src, /let preparing = null;/);
-  assert.match(src, /if \(preparing\) return preparing;/);
-  assert.match(src, /preparing = prepareDraftNow/);
+  assert.match(src, /let prepareAgain = null;/);
+  assert.match(src, /if \(preparing\) \{\s*prepareAgain = \{ scroll, keep \};\s*return preparing;/);
+  assert.match(src, /preparing = runPrepareDrafts/);
 });
 
 test('Continue stays busy until the questions are back, so a double press is ignored', () => {
