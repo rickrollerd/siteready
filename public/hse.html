@@ -9,6 +9,8 @@
   <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
+    .skip { position: absolute; left: 8px; top: 8px; z-index: 100; padding: 8px 12px; background: #1f4e3d; color: #fff; font-weight: 600; text-decoration: none; border-radius: 6px; transform: translateY(-200%); }
+    .skip:focus { transform: none; }
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; overflow-wrap: anywhere; }
     .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px 48px; }
@@ -225,12 +227,14 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to the main content</a>
   <div class="wrap">
     <nav class="tabs" aria-label="SiteWrite and SiteLink">
       <a href="/">SiteWrite<span>For subcontractors</span></a>
       <a href="/sitelink" aria-current="page">SiteLink<span>For builders</span></a>
       <a href="/quantityforge" id="qf-tab" hidden>QuantityForge<span>Quantities from drawings</span></a>
     </nav>
+    <main id="main">
     <div class="top">
       <span class="brand">SiteLink <span class="by">by SiteWrite</span></span>
       <span class="who hidden" id="who-line">Signed in as <strong id="who"></strong> · <button type="button" class="link" id="you-link">Your details</button> · <button type="button" class="link" id="sign-out">Sign out</button></span>
@@ -503,6 +507,7 @@
       <p class="meta short">Every version is kept as it was saved. The newest is first.</p>
       <div class="panel short" id="v-list"></div>
     </section>
+    </main>
   </div>
   <script src="/old-keys.js"></script>
   <script src="/qf-tab.js"></script>
