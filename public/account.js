@@ -958,8 +958,14 @@
       <div class="sheet">${S.render(draft, { swmsId: id })}</div>`;
     resultEl.classList.remove('hidden');
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // One action at a time: a second press of Copy or Delete while the first is on its way is ignored
+    // (D369). A new SWMS already waits its turn through savingNow; this view did not.
+    let acting = false;
     const run = async (fn) => {
+      if (acting) return;
+      acting = true;
       try { await fn(); } catch (error) { checkRefused('saved', error); status('saved-status', error.message, true); }
+      finally { acting = false; }
     };
     // The business's own check of the revision as it prints (D290, D286): SiteWrite's check was made
     // when the SWMS was opened.
