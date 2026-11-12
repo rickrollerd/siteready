@@ -876,10 +876,39 @@ const WHERE_USED = /, where one is used\b/;
 // prints as it is (the preview), and the download waits for it (download-gate.js). Plant confirmed
 // as used is no longer "where one is used". An item of the user's own takes its notes from the
 // plant SiteWrite knows by that name, otherwise the pre-start check, and the licence the user gave.
+// Optional plant register fields the user may give after confirming the plant. Empty values are
+// left off the row, so existing plant objects stay unchanged.
+function plantRegisterFields(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const out = {};
+  for (const [key, max] of [['makeModel', 80], ['rego', 40], ['lastInspection', 80], ['operator', 80]]) {
+    const text = String(value[key] || '').replace(/\s+/g, ' ').trim().slice(0, max);
+    if (text) out[key] = text;
+  }
+  return out;
+}
+
+function plantRowLabel(item) {
+  const name = item.shown || item.item;
+  const bits = [];
+  if (item.makeModel) bits.push(`Make/model: ${item.makeModel}`);
+  if (item.rego) bits.push(`Rego/ID: ${item.rego}`);
+  if (item.lastInspection) bits.push(`Last inspection: ${item.lastInspection}`);
+  if (item.operator) bits.push(`Named operator: ${item.operator}`);
+  return bits.length ? `${name}\n${bits.join('\n')}` : name;
+}
+
+function withPlantRegister(row, choice, extra) {
+  const map = choice && choice.details && typeof choice.details === 'object' ? choice.details : {};
+  const fields = plantRegisterFields({ ...(map[row.item] || {}), ...(map[row.shown] || {}), ...(extra || {}) });
+  if (!Object.keys(fields).length) return row;
+  return { ...row, ...fields, shownLabel: plantRowLabel({ ...row, ...fields }) };
+}
+
 function confirmedPlant(plant, choice, stateId) {
   if (!choice || typeof choice !== 'object') return plant;
   const used = new Set(Array.isArray(choice.used) ? choice.used : []);
-  const kept = plant.filter((item) => used.has(localPlant(item, stateId).item)).map((item) => ({ ...item, licence: item.licence.replace(WHERE_USED, '') }));
+  const kept = plant.filter((item) => used.has(localPlant(item, stateId).item)).map((item) => withPlantRegister({ ...item, licence: item.licence.replace(WHERE_USED, '') }, choice));
   for (const own of Array.isArray(choice.added) ? choice.added : []) {
     const name = String((own && own.item) || '').trim();
     if (!name || kept.some((item) => item.item.toLowerCase() === name.toLowerCase())) continue;
@@ -898,7 +927,7 @@ function confirmedPlant(plant, choice, stateId) {
     const shown = `${name.charAt(0).toUpperCase()}${name.slice(1)}`.replace(/(?<=[A-Za-z0-9,][ \t]+)n(?=[ \t]+[A-Za-z0-9])/g, 'and');
     // The licence typed prints with its first capital: "no" reads "No" (messy round 16, A run 4 and B run 6).
     const typedLicence = bareNo ? 'No' : licence ? `${licence.charAt(0).toUpperCase()}${licence.slice(1)}` : '';
-    kept.push({ item: name, ...(shown !== name ? { shown } : {}), inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : typedLicence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) });
+    kept.push(withPlantRegister({ item: name, ...(shown !== name ? { shown } : {}), inspection: known ? known.inspection : PRESTART, licence: needs && bareNo ? needs : typedLicence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true, ...(known ? { known: known.item } : {}), ...(needs && bareNo ? { licenceAsked: licence } : {}) }, choice, own));
   }
   return kept;
 }
@@ -1224,4 +1253,4 @@ function registersFor(draft, input = {}) {
   };
 }
 
-module.exports = { plantFor, commsOrUps, MAINS_SAID, registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor, PLANT, withoutOtherTrades, RAIL_WORK, addRegulator, STATE_REGULATORS };
+module.exports = { plantFor, commsOrUps, MAINS_SAID, registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor, PLANT, withoutOtherTrades, RAIL_WORK, plantRowLabel, plantRegisterFields, addRegulator, STATE_REGULATORS };
