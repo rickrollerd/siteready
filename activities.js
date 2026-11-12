@@ -9623,6 +9623,50 @@ const ACTIVITIES = [
     }],
   },
   {
+    when: 'wpPreApplied',
+    steps: [{
+      step: 'Prepare the blinding or formwork for the sheet membrane',
+      hazards: [
+        'Sharp edges or debris puncture the membrane.',
+        'Skin, eye or breathing irritation from primers or adhesives, where they are used.',
+      ],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        SDS_EACH_PRODUCT,
+        'The blinding or formwork is clean, sound and free of sharp projections, loose debris and standing water before the membrane is laid.',
+        src('Any primer or adhesive is used only as its current safety data sheet and the product instructions set out, with chemical resistant gloves and eye protection, and the area is ventilated.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1, s 4.2')),
+        src('No flames, torches or other hot work are used to prepare or dry the substrate for this sheet membrane.', QCODE('Managing risks of hazardous chemicals', 's 4.2')),
+      ],
+    }, {
+      step: 'Lay the pre-applied sheet membrane',
+      hazards: [
+        'Cuts from knives when trimming the sheets.',
+        'Back strain handling rolls.',
+        'Skin, eye or breathing irritation from primers or adhesives, where they are used.',
+        'The laps or penetrations leak if they are not formed as the product instructions set out.',
+      ],
+      controls: [
+        SDS_EACH_PRODUCT,
+        src('Rolls are moved with trolleys or by a team lift, and long periods kneeling are rotated.', MODEL('Hazardous manual tasks', 's 4.4, s 4.7')),
+        'Use knife-resistant gloves when cutting the sheets.',
+        'The sheets are laid on the blinding or formwork before the pour, with laps, joints, corners, pile caps and service penetrations formed only as the product instructions and the current safety data sheet set out. No method is invented where the instructions are silent.',
+        src('No flames or torches are used to lay or join this sheet membrane.', QCODE('Managing risks of hazardous chemicals', 's 4.2')),
+      ],
+    }, {
+      step: 'Protect the membrane until the pour',
+      hazards: [
+        'The membrane is punctured or displaced before the concrete is poured.',
+        'People or plant walk or stand on unprotected membrane.',
+      ],
+      controls: [
+        'The membrane is protected from traffic, plant and stored materials until the concrete is poured, using the protection the product instructions set out.',
+        'Damaged areas are repaired as the product instructions set out, before the pour.',
+        'The concrete is poured against the membrane as the product instructions set out, and the pour crew is told not to displace or puncture it.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'gloveCut', 'kneePads'],
+  },
+  {
     when: 'pressureTest',
     steps: [{
       step: 'Pressure test and commission',
@@ -12036,7 +12080,7 @@ function jobStepsFor(rawFlags, factText, fallback) {
     // the fixed scaffold's tie line).
     mobileScaffoldOnly: Boolean(rawFlags.mobileScaffold) && !anyFlag(rawFlags, ['scaffold', 'scaffoldUse', 'scaffoldDismantleOnly']),
     // Paints, adhesives, sealants, membranes or solvents in the work, for the washout lines that apply only then.
-    solventWork: Boolean(rawFlags.productWords) || anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'floorLevel', 'wpLiquid', 'wpTorch', 'wpPrep', 'wpEdge', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'tileMix', 'lineMarking', 'sprayFoam', 'graffitiRemoval']),
+    solventWork: Boolean(rawFlags.productWords) || anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'floorLevel', 'wpLiquid', 'wpTorch', 'wpPrep', 'wpEdge', 'wpPreApplied', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'tileMix', 'lineMarking', 'sprayFoam', 'graffitiRemoval']),
     // Cement, concrete, mortar, grout or render in the work, for the cement wash water lines. Without a
     // paint, adhesive or solvent product either, the washout is taken as a cement one, as before.
     cementWork: Boolean(rawFlags.cementWork) || (!rawFlags.productWords && !anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'wpLiquid', 'wpTorch', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'lineMarking', 'sprayFoam', 'graffitiRemoval'])),

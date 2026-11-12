@@ -488,6 +488,7 @@ const ACTIVITY_TRADES = {
   wpTorch: ['waterproofing', 'roofing'],
   wpEdge: ['waterproofing', 'any'],
   wpRolls: ['waterproofing', 'roofing'],
+  wpPreApplied: ['waterproofing'],
   pressureTest: ['plumbing', 'mechanical', 'fire'],
   hotWater: ['plumbing'],
   water: ['any'],

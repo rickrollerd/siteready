@@ -181,7 +181,7 @@ const BY_NAME = {
   'Fix skirting and architraves': 97.8, 'Remove and fit the vanity': 87, 'Install vanities and fixtures': 87, 'Remove and replace the bath and shower': 87, 'Remove and replace the bath': 87,
   'Remove and replace the shower': 87, 'Replace the fixture': 87, 'Install signs and screens': 98, 'Install signs on posts': 98, 'Install the signs': 98,
   // Waterproofing goes on before its flood test and the tiles over it.
-  'Prepare surfaces by grinding': 87, 'Grind concrete': 'trail', 'Lay the screed': 88, 'Apply primers and liquid membranes': 88, 'Lay torch-on membranes': 88, 'Waterproof walls below ground': 88,
+  'Prepare surfaces by grinding': 87, 'Grind concrete': 'trail', 'Lay the screed': 88, 'Apply primers and liquid membranes': 88, 'Lay torch-on membranes': 88, 'Prepare the blinding or formwork for the sheet membrane': 88, 'Lay the pre-applied sheet membrane': 88, 'Protect the membrane until the pour': 88.2, 'Waterproof walls below ground': 88,
   // Joining, testing and commissioning.
   'Braze and solder pipe joints (hot work)': 90, 'Braze refrigerant pipework': 90, 'Braze medical gas pipework': 90, 'Join PVC pipe with primer and solvent cement': 90,
   'Splice and test optical fibre': 90, 'Pressure test with nitrogen': 90.5, 'Pressure test the gas line': 90.5, 'Pressure test the hydronic pipes': 90.5, 'Pressure test and commission': 90.5,
