@@ -145,20 +145,31 @@
         <p class="note">Only when the business asks, or when it is due for removal. Everything kept for it goes: its people, sites, saved SWMS with every revision, worker sign-ons, references and counts. Its ABN is kept, with no name, so it cannot have a second free trial. This cannot be undone.${paying(plan) ? ' <strong>It still has a Stripe subscription: cancel it in Stripe first.</strong>' : ''}</p>
         <form id="delete-form">
           <input type="text" id="delete-confirm" autocomplete="off" aria-label="${company.name ? 'Type the business name to confirm' : 'Type the account id to confirm'}" placeholder="${esc(company.name ? `Type ${company.name}` : `Type ${company.id}`)}">
-          <button type="submit" class="danger-button">Delete this business</button>
+          <button type="submit" class="danger-button" id="delete-go">Delete this business</button>
         </form>
         <p id="delete-result"></p>
       </div>`;
+    // One action at a time: a second press of Delete this business while the first is on its way is ignored (D370).
+    let deleting = false;
     $('delete-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (deleting) return;
       const typed = $('delete-confirm').value.trim();
       if (!typed) { $('delete-result').innerHTML = `<span class="error">Type the ${company.name ? 'business name' : 'account id'} to confirm.</span>`; return; }
-      const done = await api(`/api/admin/companies/${encodeURIComponent(company.id)}/delete`, { confirm: typed });
-      loadAccessLog();
-      if (!done.ok) { $('delete-result').innerHTML = `<span class="error">${esc(done.data.message || 'Not deleted.')}</span>`; return; }
-      const stripe = done.data.stripeCustomer ? ` Its Stripe customer record (${esc(done.data.stripeCustomer)}) is still in Stripe: delete it there too if the request covers it.` : '';
-      box.innerHTML = `<p class="done">The business was deleted on ${esc(day(done.data.deletedAt))} (account id ${esc(done.data.id)}).${stripe}</p>`;
-      history.replaceState(null, '', location.pathname);
+      deleting = true;
+      const button = $('delete-go');
+      if (button) button.disabled = true;
+      try {
+        const done = await api(`/api/admin/companies/${encodeURIComponent(company.id)}/delete`, { confirm: typed });
+        loadAccessLog();
+        if (!done.ok) { $('delete-result').innerHTML = `<span class="error">${esc(done.data.message || 'Not deleted.')}</span>`; return; }
+        const stripe = done.data.stripeCustomer ? ` Its Stripe customer record (${esc(done.data.stripeCustomer)}) is still in Stripe: delete it there too if the request covers it.` : '';
+        box.innerHTML = `<p class="done">The business was deleted on ${esc(day(done.data.deletedAt))} (account id ${esc(done.data.id)}).${stripe}</p>`;
+        history.replaceState(null, '', location.pathname);
+      } finally {
+        deleting = false;
+        if (button) button.disabled = false;
+      }
     });
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -233,16 +244,27 @@
       <div class="danger">
         <h3>Delete this SWMS</h3>
         <p class="note">When its business asks, or by your choice. The original, its text and result, who uploaded it and its learning copy all go. This cannot be undone.</p>
-        <form id="checked-delete"><button type="submit" class="danger-button">Delete this SWMS</button></form>
+        <form id="checked-delete"><button type="submit" class="danger-button" id="checked-delete-go">Delete this SWMS</button></form>
       </div>`;
     $('checked-original').addEventListener('click', () => downloadOriginal(item.id));
+    // One action at a time: a second press of Delete this SWMS while the first is on its way is ignored (D370).
+    let deletingChecked = false;
     $('checked-delete').addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (deletingChecked) return;
       if (!window.confirm('Delete this kept SWMS and everything kept for it?')) return;
-      const done = await api(`/api/admin/checked-swms/${encodeURIComponent(item.id)}/delete`, {});
-      loadAccessLog();
-      box.innerHTML = done.ok ? '<p class="done">The kept SWMS was deleted.</p>' : `<p class="error">${esc(done.data.message || 'Not deleted.')}</p>`;
-      if (done.ok) listChecked();
+      deletingChecked = true;
+      const button = $('checked-delete-go');
+      if (button) button.disabled = true;
+      try {
+        const done = await api(`/api/admin/checked-swms/${encodeURIComponent(item.id)}/delete`, {});
+        loadAccessLog();
+        box.innerHTML = done.ok ? '<p class="done">The kept SWMS was deleted.</p>' : `<p class="error">${esc(done.data.message || 'Not deleted.')}</p>`;
+        if (done.ok) listChecked();
+      } finally {
+        deletingChecked = false;
+        if (button) button.disabled = false;
+      }
     });
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -379,27 +401,40 @@
       'No invites yet.');
     $('invites').querySelectorAll('[data-revoke-invite]').forEach((button) => {
       button.addEventListener('click', async () => {
+        if (button.disabled) return;
+        button.disabled = true;
         const revoked = await api(`/api/admin/invites/${encodeURIComponent(button.dataset.revokeInvite)}/revoke`, {});
-        if (!revoked.ok) { $('invite-created').textContent = revoked.data.message || 'Could not revoke that invite.'; $('invite-created').classList.remove('hidden'); return; }
+        if (!revoked.ok) { $('invite-created').textContent = revoked.data.message || 'Could not revoke that invite.'; $('invite-created').classList.remove('hidden'); button.disabled = false; return; }
         await loadInvites();
       });
     });
   }
+  // One action at a time: a second press of Create invite while the first is on its way is ignored (D370).
+  let creatingInvite = false;
   $('invite-form').addEventListener('submit', async (event) => {
     event.preventDefault();
-    const note = $('invite-note').value.trim();
-    const maxUses = Number($('invite-uses').value) || 1;
-    const result = await api('/api/admin/invites', { note, maxUses });
-    if (!result.ok) { $('invites').insertAdjacentHTML('afterbegin', `<tr><td class="error">${esc(result.data.message || 'Not created.')}</td></tr>`); return; }
-    $('invite-note').value = '';
-    $('invite-uses').value = '1';
-    await loadInvites();
-    const link = result.data.link || inviteLink(result.data.code);
-    const shown = $('invite-created');
-    if (shown) {
-      shown.innerHTML = `Invite created. <a href="${esc(link)}">${esc(link)}</a> <button type="button" class="link" id="invite-copy">Copy link</button>`;
-      shown.classList.remove('hidden');
-      $('invite-copy').addEventListener('click', () => copyInvite(result.data.code));
+    if (creatingInvite) return;
+    creatingInvite = true;
+    const button = $('invite-go');
+    if (button) button.disabled = true;
+    try {
+      const note = $('invite-note').value.trim();
+      const maxUses = Number($('invite-uses').value) || 1;
+      const result = await api('/api/admin/invites', { note, maxUses });
+      if (!result.ok) { $('invites').insertAdjacentHTML('afterbegin', `<tr><td class="error">${esc(result.data.message || 'Not created.')}</td></tr>`); return; }
+      $('invite-note').value = '';
+      $('invite-uses').value = '1';
+      await loadInvites();
+      const link = result.data.link || inviteLink(result.data.code);
+      const shown = $('invite-created');
+      if (shown) {
+        shown.innerHTML = `Invite created. <a href="${esc(link)}">${esc(link)}</a> <button type="button" class="link" id="invite-copy">Copy link</button>`;
+        shown.classList.remove('hidden');
+        $('invite-copy').addEventListener('click', () => copyInvite(result.data.code));
+      }
+    } finally {
+      creatingInvite = false;
+      if (button) button.disabled = false;
     }
   });
   await loadInvites();
