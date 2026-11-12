@@ -215,9 +215,10 @@ test('chemical resistant gloves only where cement or a chemical is handled, not 
   const chem = forSteps(typed, 'gloveChemical');
   for (const name of ['Erect falsework and shores', 'Inspect before the pour', 'Monitor the formwork during the pour', 'Strip the formwork', 'Set up the concrete pump and placing boom']) assert.ok(!chem.includes(name), `${name}: ${chem}`);
   for (const name of ['Pump and place concrete', 'Finish concrete']) assert.ok(chem.includes(name), `${name}: ${chem}`);
-  // A formwork only SWMS has no chemical gloves, and keeps general purpose gloves for all work.
+  // Formwork release agent is handled when the deck is laid, so chemical resistant gloves are for that step only, not for erecting falsework, and general purpose gloves stay for all work.
   const formwork = draftOf({ ...SITE, task: 'Erect, strip and remove formwork, propping and back propping to suspended slabs and stairs.', kinds: ['formwork', 'propping'] });
-  assert.ok(!ticked(formwork).some((item) => item.id === 'gloveChemical'));
+  assert.deepEqual(forSteps(formwork, 'gloveChemical'), ['Lay the formwork deck']);
+  assert.ok(!allWork(formwork).includes('gloveChemical'));
   assert.ok(allWork(formwork).includes('gloveGeneral'));
 });
 
