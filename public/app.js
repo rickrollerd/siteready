@@ -1073,6 +1073,8 @@ function stateAnswered() {
 
 document.getElementById('start').addEventListener('submit', (event) => {
   event.preventDefault();
+  const continueBtn = document.getElementById('continue');
+  if (continueBtn && continueBtn.disabled) return;
   document.getElementById('start-error').textContent = '';
   // The state always follows the job address; with none, it is asked for.
   if (!stateAnswered()) return;
@@ -1112,11 +1114,12 @@ document.getElementById('start').addEventListener('submit', (event) => {
   if (scope && scope.scope) scopeWordsNow = scope.scope;
   else if (!scope) scopeWordsNow = null;
   // With no signal the plain message shows here, not nothing (goal 7).
+  if (continueBtn) continueBtn.disabled = true;
   loadQuestions().catch((error) => {
     const said = document.getElementById('start-error');
     if (error.serverDown) said.innerHTML = `${esc(error.message)} <button type="button" class="link" data-retry-continue>Try again</button>`;
     else said.textContent = error.message;
-  });
+  }).finally(() => { if (continueBtn) continueBtn.disabled = false; });
 });
 document.addEventListener('click', (event) => {
   if (!event.target.closest || !event.target.closest('[data-retry-continue]')) return;
@@ -4149,7 +4152,14 @@ function draftNote(origin, text, failed = false) {
   tag.insertAdjacentHTML('afterend', `<p class="${failed ? 'error' : 'meta'}" role="${failed ? 'alert' : 'status'}" data-draft-note>${esc(text)}${failed ? ' <button type="button" class="link" data-retry-prepare>Try again</button>' : ''}</p>`);
 }
 const DRAFT_DOWN = 'SiteWrite could not reach the server, so the draft was not updated. Your answers and the draft are kept as they were.';
+let preparing = null;
 async function prepareDraft({ scroll = true, keep = '' } = {}) {
+  if (preparing) return preparing;
+  preparing = prepareDraftNow({ scroll, keep });
+  try { return await preparing; } finally { preparing = null; }
+}
+
+async function prepareDraftNow({ scroll = true, keep = '' } = {}) {
   const spot = screenSpot(keep);
   const origin = pressedOnDraft();
   draftNote(origin, origin ? 'Updating the draft.' : '');

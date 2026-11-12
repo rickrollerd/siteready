@@ -11,6 +11,9 @@
   const QUIET = /\/api\/(address|steps\/search|abn)(\?|$)/;
   const waiting = [];
   let bar = null;
+  // Requests already on their way are cut when the phone goes offline, so the page can show
+  // Try again instead of waiting for the browser to give up (D366).
+  const inflight = new Set();
 
   // Browsers word a failed connection differently: Chrome "Failed to fetch", Safari "Load failed"
   // (older Safari "The network connection was lost."), Firefox "NetworkError when attempting to
@@ -52,16 +55,31 @@
     document.body.classList.remove('net-waiting');
   }
 
+  function attachSignal(init) {
+    const ac = new AbortController();
+    const user = init && init.signal;
+    if (user) {
+      if (user.aborted) ac.abort();
+      else user.addEventListener('abort', () => ac.abort(), { once: true });
+    }
+    inflight.add(ac);
+    return { signal: ac.signal, drop: () => inflight.delete(ac) };
+  }
+
   async function guarded(input, init) {
+    const hooked = attachSignal(init);
     try {
-      return await native(input, init);
+      return await native(input, Object.assign({}, init, { signal: hooked.signal }));
     } catch (error) {
-      if (!noSignal(error)) throw error;
+      const lost = noSignal(error) || (error && error.name === 'AbortError' && navigator.onLine === false);
+      if (!lost) throw error;
       if (QUIET.test(String(input && input.url ? input.url : input))) throw plainError();
       return new Promise((resolve, reject) => {
         waiting.push({ input, init, resolve, reject });
         show();
       });
+    } finally {
+      hooked.drop();
     }
   }
 
@@ -108,6 +126,9 @@
 
   window.fetch = guarded;
   window.addEventListener('online', () => { if (waiting.length) retry(); });
+  window.addEventListener('offline', () => {
+    inflight.forEach((ac) => { try { ac.abort(); } catch { /* already ended */ } });
+  });
   purgeSignOns();
   if (document.readyState === 'complete') registerOffline();
   else window.addEventListener('load', registerOffline);
