@@ -8,6 +8,8 @@
   <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
+    .skip { position: absolute; left: 8px; top: 8px; z-index: 100; padding: 8px 12px; background: #1f4e3d; color: #fff; font-weight: 600; text-decoration: none; border-radius: 6px; transform: translateY(-200%); }
+    .skip:focus { transform: none; }
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 17px; line-height: 1.55; color: #1c2430; background: #fff; }
     .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
@@ -20,7 +22,7 @@
     @media (max-width: 640px) { .tabs a span { font-size: 16px; } }
 
     .brand { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: #1f4e3d; text-decoration: none; }
-    .cta { display: inline-block; background: #1f4e3d; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px; padding: 11px 18px; }
+    .cta { display: inline-block; background: #1f4e3d; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px; padding: 11px 18px; min-height: 44px; box-sizing: border-box; }
     .cta.light { background: #fff; color: #1f4e3d; border: 1px solid #1f4e3d; }
     .hero { background: #eef4f1; padding: 56px 0 60px; }
     h1 { font-size: 42px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 16px; max-width: 720px; }
@@ -46,6 +48,7 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to the main content</a>
   <div class="wrap">
     <nav class="tabs" aria-label="SiteWrite and SiteLink">
       <a href="/welcome.html" aria-current="page">SiteWrite<span>For subcontractors</span></a>
@@ -54,6 +57,7 @@
     <nav class="top"><a class="brand" href="/welcome.html">SiteWrite</a><a class="cta light" href="/">Open SiteWrite</a></nav>
   </div>
 
+  <main id="main">
   <div class="hero">
     <div class="wrap">
       <h1>Site-specific SWMS, drafted to the law of the state you work in.</h1>
@@ -117,6 +121,7 @@
       <details><summary>Where is my data kept?</summary><p>In a database hosted in Singapore. Your SWMS, business details and workers' details are never sold or used for advertising. We may share or sell de-identified statistics, with names, contact details, ABNs and addresses removed; the <a href="/privacy.html">privacy policy</a> explains this and how to opt out.</p></details>
     </div>
   </section>
+  </main>
 
   <div class="wrap">
     <footer>SiteWrite prepares draft SWMS. Your business reviews, approves and is responsible for every SWMS it uses. <a href="/terms.html">Terms of use</a> · <a href="/privacy.html">Privacy</a></footer>

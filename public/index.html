@@ -10,6 +10,8 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
   <style>
+    .skip { position: absolute; left: 8px; top: 8px; z-index: 100; padding: 8px 12px; background: #1f4e3d; color: #fff; font-weight: 600; text-decoration: none; border-radius: 6px; transform: translateY(-200%); }
+    .skip:focus { transform: none; }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     body {
@@ -64,7 +66,7 @@
     .care-list li { margin: 4px 0; }
     .care-list button { width: 100%; text-align: left; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; font-weight: normal; padding: 8px 10px; }
     .step-move { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
-    .step-move button { width: 40px; min-width: 40px; height: 36px; padding: 0; font-size: 0.9em; line-height: 1; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; }
+    .step-move button { width: 44px; min-width: 44px; height: 44px; padding: 0; font-size: 0.9em; line-height: 1; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; }
     .step-move button:disabled { opacity: 0.35; cursor: default; }
     tr[draggable="true"] { cursor: grab; }
     tr.dragging { opacity: 0.5; }
@@ -141,9 +143,9 @@
       border: 1px solid #e1e6ec;
       border-radius: 6px;
     }
-    .state.disabled { color: #7b8794; background: #f7f8fa; }
+    .state.disabled { color: #5c6773; background: #f7f8fa; }
     .state input { margin: 0; }
-    .tag { margin-left: auto; font-size: 13px; color: #7b8794; }
+    .tag { margin-left: auto; font-size: 13px; color: #5c6773; }
     .actions { display: flex; gap: 8px; margin-top: 6px; }
     button {
       border: 1px solid #1f4e3d;
@@ -153,6 +155,8 @@
       padding: 9px 14px;
       font-weight: 600;
       cursor: pointer;
+      min-height: 44px;
+      box-sizing: border-box;
     }
     button.secondary { background: #fff; color: #1f4e3d; }
     button:disabled { opacity: 0.55; cursor: default; }
@@ -642,12 +646,14 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to the main content</a>
   <div class="wrap">
     <nav class="tabs" aria-label="SiteWrite and SiteLink">
       <a href="/" aria-current="page">SiteWrite<span>For subcontractors</span></a>
       <a href="/sitelink" id="sitelink-tab">SiteLink<span>For builders</span></a>
       <a href="/quantityforge" id="qf-tab" hidden>QuantityForge<span>Quantities from drawings</span></a>
     </nav>
+    <main id="main">
     <header>
       <h1>SiteWrite</h1>
       <p class="lede">A Safe Work Method Statement for one task, drafted from the WHS law and codes of practice of the state the job is in. Your business reviews it, consults the workers and approves it. <a href="/welcome.html">How it works and pricing</a></p>
@@ -936,6 +942,7 @@
           <span class="hint">Pick a trade and a task to fill in the task and its job steps, then change it to suit your job. Or write your own.</span>
         </label>
         <select id="trade"><option value="">Choose a trade</option></select>
+        <label class="visually-hidden" for="preset">Choose a task</label>
         <select id="preset" disabled><option value="">Choose a task</option></select>
         <p id="preset-note" class="meta hidden" aria-live="polite" style="margin:0 0 8px"></p>
       </div>
@@ -1029,6 +1036,7 @@
     <div id="check-bar" class="panel check-bar hidden" role="region" aria-label="SWMS being checked"></div>
     <section id="result" class="hidden"></section>
     <p class="site-footer">SiteWrite prepares draft SWMS. Your business reviews, approves and is responsible for every SWMS it uses. <a href="/terms.html">Terms of use</a> · <a href="/privacy.html">Privacy</a></p>
+    </main>
   </div>
   <script src="/old-keys.js"></script>
   <script src="/qf-tab.js"></script>
