@@ -201,6 +201,7 @@ function loadPage(given, respond, { stored = {}, location: loc = {} } = {}) {
     },
     navigator: {},
     isSecureContext: false,
+    scrollTo() {},
     requestAnimationFrame: (fn) => fn(),
     setTimeout: (fn) => { fn(); return 0; },
     setInterval: () => 0,
