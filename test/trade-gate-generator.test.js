@@ -33,3 +33,21 @@ test('the generator use activity has its step and is any trade\'s work', () => {
   assert.ok(activity.steps.every((step) => step.hazards.some((line) => /carbon monoxide/i.test(line))));
   assert.ok(COMMON.has('generatorUse'));
 });
+
+test('ordinary task words do not keep the electrical generator install steps', () => {
+  const cases = [
+    'Replace the metal roof sheets. Place a generator near the shed. Dust control when cutting the sheets.',
+    'Replace the new metal roof sheets. Place a generator near the shed',
+    'Replace the metal roof sheets and wall panels. Place a generator near the shed',
+    'Supply materials and replace the metal roof sheets. Place a generator near the shed',
+    'Emergency roof repairs. Place a generator near the shed',
+    'Replace the metal roof sheets. Keep a backup roll on site. Place a generator near the shed',
+    'Replace the metal roof sheets at the switch room. Place a generator near the shed',
+    'Place a new generator near the shed',
+  ];
+  for (const task of cases) {
+    const kinds = suggestedKinds(task, {}, {});
+    assert.ok(kinds.includes('generatorUse'), `${task} -> ${kinds.join(', ')}`);
+    assert.ok(!kinds.includes('generatorPlant'), `${task} -> ${kinds.join(', ')}`);
+  }
+});
