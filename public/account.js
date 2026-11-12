@@ -335,8 +335,15 @@
     }
   });
 
+  // A second press while a link is already being sent is ignored, so a slow site network does not
+  // post the same email twice (D367).
+  let sendingLink = false;
   $('signin-form').addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (sendingLink) return;
+    const button = $('signin-go');
+    sendingLink = true;
+    if (button) button.disabled = true;
     status('signin-status', 'Sending…');
     try {
       const body = { email: $('signin-email').value };
@@ -346,6 +353,9 @@
       status('signin-status', `${data.message} Open it on this device.`);
     } catch (error) {
       status('signin-status', error.message, true);
+    } finally {
+      sendingLink = false;
+      if (button) button.disabled = false;
     }
   });
 
