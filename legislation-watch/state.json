@@ -399,7 +399,7 @@
       "Work health and safety consultation, cooperation and coordination | /topics/laws-and-compliance/codes-of-practice/cop-folder/work-health-and-safety-consultation,-cooperation-and-coordination"
     ],
     "status": "ok",
-    "readOn": "2026-10-22"
+    "readOn": "2026-11-12"
   },
   "code:act-codes": {
     "items": [
@@ -556,7 +556,9 @@
     "32a0aec57c",
     "4479118274",
     "b5f9e069ea",
-    "86f5d6a63b"
+    "86f5d6a63b",
+    "dc7580ce84",
+    "8be146b08a"
   ],
   "alerts:nsw-construction-alerts": {
     "seen": [
@@ -1382,7 +1384,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-asbestos-manage": {
     "items": [
@@ -1391,7 +1393,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-22"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-chemicals": {
     "items": [
@@ -1409,7 +1411,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-construction": {
     "items": [
@@ -1418,7 +1420,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-demolition": {
     "items": [
@@ -1427,7 +1429,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-electrical": {
     "items": [
@@ -1436,7 +1438,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-excavation": {
     "items": [
@@ -1445,7 +1447,7 @@
       "Effective in Tasmania on and from 26 Feb 2020 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-falls": {
     "items": [
@@ -1454,7 +1456,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-manual": {
     "items": [
@@ -1463,7 +1465,7 @@
       "Effective in Tasmania on and from 5 Dec 2018 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-noise": {
     "items": [
@@ -1472,7 +1474,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-plant": {
     "items": [
@@ -1481,7 +1483,7 @@
       "Effective in Tasmania on and from 23 April 2025 | -"
     ],
     "status": "ok",
-    "readOn": "2026-11-11"
+    "readOn": "2026-11-12"
   },
   "code:tas-code-spray": {
     "items": [
