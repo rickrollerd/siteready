@@ -767,7 +767,19 @@ app.use('/api', require('./quantityforge').router());
 require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {
-  res.status(404).json({ kind: 'error', message: 'Not found.' });
+  res.status(404).json({ kind: 'error', message: 'That address is not on SiteWrite.' });
+});
+
+// Unknown pages get a short SiteWrite page, not Express's "Cannot GET" text. JSON clients
+// that asked only for JSON get the same message as an unknown /api route (D365).
+app.use((req, res) => {
+  const accept = String(req.get('accept') || '');
+  const jsonOnly = /application\/json/i.test(accept) && !/text\/html/i.test(accept);
+  if (jsonOnly) return res.status(404).json({ kind: 'error', message: 'That address is not on SiteWrite.' });
+  res.status(404);
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 // A plain message for a failure on the server, said for what the person was doing: never the database's own words, and
@@ -790,7 +802,8 @@ app.use((error, req, res, _next) => {
   // A worker sign-on key is never written to the error log.
   // Nor is a list page's link or its stop link (stage 5).
   if (status >= 500) recordError(`${req.method} ${req.path.replace(/^\/api\/sign\/[^/]+/, '/api/sign/:token').replace(/^\/api\/list\/stop\/[^/]+/, '/api/list/stop/:token').replace(/^\/api\/list\/(?!stop\/)[^/]+/, '/api/list/:token')}`, error);
-  const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : serverMessage(req.originalUrl ? req.originalUrl.split('?')[0] : req.path);
+  const tooLarge = status === 413 || error.type === 'entity.too.large';
+  const message = error.publicMessage && error.message ? error.message : tooLarge ? 'That file or request is too large. Try a smaller one.' : status < 500 ? 'The request could not be read.' : serverMessage(req.originalUrl ? req.originalUrl.split('?')[0] : req.path);
   // What a SWMS still needs before it is saved or downloaded (goal 2), for the page to show.
   const gate = error.publicMessage && Array.isArray(error.gate) ? { gate: error.gate } : {};
   // The box a refusal is about, for the page to mark (the review response's boxes).
