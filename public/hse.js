@@ -377,28 +377,39 @@
     document.title = `${data.org.name}: SiteLink`;
     renderAccount(data.org, data.team);
   }
+  // One save at a time: a second press of Save, or a second Enter, while the first is on its way is ignored (D371).
+  let savingAccount = false;
   async function saveAccount(name) {
+    if (savingAccount) return;
     const form = $('acct-form');
     clearErrors(form);
     box('acct-status', '');
     if (!name.trim()) { fieldError('acct-name', 'Enter your company name, as contractors know it.'); return; }
     const body = { name };
     if ($('acct-abn')) body.abn = $('acct-abn').value;
-    await busy($('acct-save'), 'Saving...', async () => {
-      try {
-        const data = await call('PUT', `/api/hse/orgs/${encodeURIComponent(account.org.id)}`, body);
-        renderAccount(data.org, data.team);
-        box('acct-status', esc(data.message), data.org.verified ? 'ok' : 'warn');
-      } catch (error) {
-        if (error.field === 'name' && $('acct-name')) fieldError('acct-name', error.message);
-        else if (error.field === 'abn' && $('acct-abn')) fieldError('acct-abn', error.message);
-        else box('acct-status', esc(error.message), 'bad');
-      }
-    });
+    savingAccount = true;
+    try {
+      await busy($('acct-save'), 'Saving...', async () => {
+        try {
+          const data = await call('PUT', `/api/hse/orgs/${encodeURIComponent(account.org.id)}`, body);
+          renderAccount(data.org, data.team);
+          box('acct-status', esc(data.message), data.org.verified ? 'ok' : 'warn');
+        } catch (error) {
+          if (error.field === 'name' && $('acct-name')) fieldError('acct-name', error.message);
+          else if (error.field === 'abn' && $('acct-abn')) fieldError('acct-abn', error.message);
+          else box('acct-status', esc(error.message), 'bad');
+        }
+      });
+    } finally {
+      savingAccount = false;
+    }
   }
   $('account').addEventListener('submit', (event) => {
     event.preventDefault();
-    if (event.target.id === 'acct-form') saveAccount($('acct-name').value);
+    if (event.target.id !== 'acct-form') return;
+    const button = $('acct-save');
+    if (button && button.disabled) return;
+    saveAccount($('acct-name').value);
   });
   $('account').addEventListener('click', async (event) => {
     const recheck = event.target.closest('#acct-recheck');
