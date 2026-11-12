@@ -148,7 +148,7 @@ function makeDocument() {
 // Loads the page scripts into one shared global scope, as script tags do.
 // respond(method, route, body) answers each server call with { status, body }. stored is
 // what the browser's storage holds before the page loads.
-function loadPage(given, respond, { stored = {} } = {}) {
+function loadPage(given, respond, { stored = {}, location: loc = {} } = {}) {
   // The check before download (D286) loads before the account script, as on the page.
   const scripts = given.includes('account.js') && !given.includes('human-check.js')
     ? given.flatMap((name) => (name === 'account.js' ? ['check-parts.js', 'human-check.js', name] : [name])) : given;
@@ -162,7 +162,8 @@ function loadPage(given, respond, { stored = {} } = {}) {
   };
   async function fetch(url, options = {}) {
     const method = options.method || 'GET';
-    const body = options.body ? JSON.parse(options.body) : undefined;
+    const body = options.body == null || options.body === '' ? undefined
+      : (typeof options.body === 'string' ? JSON.parse(options.body) : options.body);
     calls.push({ method, route: String(url), body });
     let answer = (await respond(method, String(url), body)) || {};
     // SiteWrite's check (D286), unless the test answers it: nothing to fix, and each part's fingerprint
@@ -180,6 +181,7 @@ function loadPage(given, respond, { stored = {} } = {}) {
       blob: async () => ({}),
     };
   }
+  const windowListeners = new Map();
   const window = {
     document,
     localStorage,
@@ -187,10 +189,20 @@ function loadPage(given, respond, { stored = {} } = {}) {
     Event: FakeEvent,
     URL: class extends URL { static createObjectURL() { return 'blob:'; } static revokeObjectURL() {} },
     URLSearchParams,
-    location: { search: '', pathname: '/', origin: 'http://localhost', href: 'http://localhost/' },
+    location: { search: '', pathname: '/', origin: 'http://localhost', href: 'http://localhost/', hash: '', ...loc },
     history: { replaceState: () => {} },
+    addEventListener: (type, fn) => {
+      if (!windowListeners.has(type)) windowListeners.set(type, []);
+      windowListeners.get(type).push(fn);
+    },
+    removeEventListener() {},
+    dispatchEvent: (event) => {
+      for (const fn of windowListeners.get(event.type) || []) fn(event);
+      return true;
+    },
     navigator: {},
     isSecureContext: false,
+    scrollTo() {},
     requestAnimationFrame: (fn) => fn(),
     setTimeout: (fn) => { fn(); return 0; },
     setInterval: () => 0,

@@ -42,7 +42,10 @@
 
   // ---- Measuring ----
   // again: measure the drawing open now with the answers given; otherwise the file and page in the form.
+  // One measure at a time: a second press of Measure, or a second Enter, while the first is on its way is ignored (D373).
+  let measuring = false;
   async function measure({ again = false } = {}) {
+    if (measuring) return;
     const file = again ? state.file : $('qf-file').files[0];
     if (!file) return message('Choose the PDF of the sheet to measure.');
     const page = again ? state.pageNo : Math.max(1, Math.floor(Number($('qf-page').value) || 1));
@@ -56,6 +59,7 @@
     if (fresh) query.set('image', '1');
     const answers = fresh ? {} : state.answers;
     message('');
+    measuring = true;
     busy(true, 'Measuring the sheet. This can take a minute.');
     try {
       const data = await api(`measure?${query}`, {
@@ -72,6 +76,7 @@
     } catch (error) {
       message(esc(error.message));
     } finally {
+      measuring = false;
       busy(false);
     }
   }
@@ -246,14 +251,17 @@
       <button type="button" class="light" data-review="reject">Reject</button>
       <div class="move">${move}</div></div>`;
   }
+  // One review at a time: a second press of Accept, Reject or Move while one is already on its way is ignored (D373).
+  let reviewing = false;
   $('line-detail').addEventListener('click', async (event) => {
     const button = event.target.closest('button[data-review]');
-    if (!button || !state.picked) return;
+    if (!button || !state.picked || reviewing) return;
     const action = button.dataset.review;
     const itemRef = state.picked;
     const json = { bill: state.bill, reviews: state.reviews, itemRef, action, profile: state.profile };
     if (action === 'reject') json.reason = ($('review-reason') && $('review-reason').value) || '';
     if (action === 'reclassify') json.toRef = $('review-to') && $('review-to').value;
+    reviewing = true;
     button.disabled = true;
     try {
       take(await api('review', { method: 'POST', json }));
@@ -262,6 +270,8 @@
     } catch (error) {
       message(esc(error.message));
       button.disabled = false;
+    } finally {
+      reviewing = false;
     }
   });
 
@@ -296,10 +306,17 @@
     if (row) pick(row.dataset.ref);
   });
 
-  async function change(input) {
+  // One change at a time: a second quantity or rate is sent after the first settles, so the bill the
+  // first returned is what goes with the second, and a redraw cannot wipe a value already typed (D373).
+  let changing = Promise.resolve();
+  function change(input) {
     const itemRef = input.dataset.ref;
     const kind = input.dataset.kind;
     const value = input.value.trim();
+    changing = changing.catch(() => {}).then(() => changeNow(itemRef, kind, value));
+    return changing;
+  }
+  async function changeNow(itemRef, kind, value) {
     try {
       const data = kind === 'quantity'
         ? await api('override', { method: 'POST', json: { bill: state.bill, itemRef, quantity: value === '' ? null : Number(value), reason: 'Changed on the QuantityForge tab', profile: state.profile, reviews: state.reviews } })
