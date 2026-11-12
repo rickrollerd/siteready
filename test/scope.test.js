@@ -220,3 +220,14 @@ test('a scope naming gabion walls and hot weather picks the gabion and hot condi
   // Without the heat line, no task gets the step.
   for (const task of tasksFromScope(text.split('\n3.')[0]).tasks) assert.ok(!task.kinds.includes('heatWork'), task.id);
 });
+
+test('a short pasted paragraph with no line breaks is still read as site work', () => {
+  const paragraph = 'Replace the metal roof sheets on the existing warehouse. Place a portable generator near the shed. Install edge protection and use a mobile scaffold to reach the roof.';
+  const paragraphRead = tasksFromScope(paragraph, 'qld');
+  assert.ok(paragraphRead.tasks.length >= 1, paragraphRead.note || 'expected at least one task');
+  const hay = JSON.stringify(paragraphRead);
+  assert.match(hay, /roof|scaffold|generator|edge/i);
+  const lined = paragraph.replace(/\. /g, '.\n');
+  const linedRead = tasksFromScope(lined, 'qld');
+  assert.ok(linedRead.tasks.length >= 1, linedRead.note || 'lined form should still work');
+});

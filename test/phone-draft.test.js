@@ -106,3 +106,12 @@ test('My SWMS: a long title or site name wraps, so each row\'s Open button keeps
   const phone = index.slice(index.lastIndexOf('@media (max-width: 640px)'));
   assert.match(phone, /details\.revisions details > summary[^{]*\{ padding: 11px 0; \}/);
 });
+
+test('the legislation section names the work health and safety regulator', async () => {
+  const p = page({ phone: false });
+  await settle();
+  const draft = { ...DRAFT, sources: { ...DRAFT.sources, regulator: 'Workplace Health and Safety Queensland' } };
+  const html = p.window.SiteWrite.render(draft, { movable: true });
+  assert.match(html, /The work health and safety regulator is Workplace Health and Safety Queensland\./);
+  assert.doesNotMatch(p.window.SiteWrite.render(DRAFT, { movable: true }), /The work health and safety regulator is /);
+});

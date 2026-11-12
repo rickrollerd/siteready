@@ -347,7 +347,7 @@
     if (!state.bill) return;
     $('qf-export').disabled = true;
     try {
-      const response = await fetch('/api/qf/export.csv', {
+      const response = await fetch(apiUrl('/api/qf/export.csv'), {
         method: 'POST',
         headers: { ...auth(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ bill: state.bill, profile: state.profile, sheet: `${state.name} page ${state.pageNo}` }),
@@ -375,7 +375,7 @@
   // ---- Start ----
   (async () => {
     try {
-      const status = await fetch('/api/qf/status').then((r) => r.json());
+      const status = await fetch(apiUrl('/api/qf/status')).then((r) => r.json());
       if (!status.enabled) return show('off');
       if (!session) return show('signin');
       const { profiles } = await api('profiles');

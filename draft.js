@@ -7282,9 +7282,11 @@ function suggestedFlags(task, facts, state) {
   if (state.statedTrade) flags = gateToTrade(flags, state.statedTrade, KIND_IDS);
   // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
   // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
-  // generator near the shed").
-  if (!(state.trades && state.trades.length) && flags.generatorPlant && !flags.electricalWork && !/\b(?:install\w*|supply|permanent|standby|emergency|backup|new|day tanks?|fuel (?:lines?|tanks?|systems?)|switch\w*|control\w*|panels?)\b/i.test(String(task || ''))) {
-    flags = { ...flags, generatorPlant: false, generatorUse: true };
+  // generator near the shed"). Only words that qualify the generator itself keep the install steps. Whole-task words such
+  // as "new" sheets, "dust control", "wall panels" or "emergency repairs" must not.
+  if (!(state.trades && state.trades.length) && flags.generatorPlant && !flags.electricalWork && !flags.generatorConnect && !flags.generatorTest) {
+    const installSaid = /\b(?:install\w*|supply and install)\b[^.]*\b(?:generators?|day tanks?)\b|\bgenerators?\b[^.]*\binstall\w*|\b(?:permanent|standby|emergency|backup)\s+generators?\b|\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b[^.]*\bgenerators?\b|\bgenerators?\b[^.]*\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b/i.test(String(task || ''));
+    if (!installSaid) flags = { ...flags, generatorPlant: false, generatorUse: true };
   }
   // A depth given once for the whole project still says how deep this SWMS's own trenches go: the trench steps then do not say
   // the trench is kept shallower than 1.5 m beside a trench over 1.5 m listed as high risk work (messy round 17, A run 2: the
