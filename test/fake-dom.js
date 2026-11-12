@@ -148,7 +148,7 @@ function makeDocument() {
 // Loads the page scripts into one shared global scope, as script tags do.
 // respond(method, route, body) answers each server call with { status, body }. stored is
 // what the browser's storage holds before the page loads.
-function loadPage(given, respond, { stored = {} } = {}) {
+function loadPage(given, respond, { stored = {}, location: loc = {} } = {}) {
   // The check before download (D286) loads before the account script, as on the page.
   const scripts = given.includes('account.js') && !given.includes('human-check.js')
     ? given.flatMap((name) => (name === 'account.js' ? ['check-parts.js', 'human-check.js', name] : [name])) : given;
@@ -180,6 +180,7 @@ function loadPage(given, respond, { stored = {} } = {}) {
       blob: async () => ({}),
     };
   }
+  const windowListeners = new Map();
   const window = {
     document,
     localStorage,
@@ -187,8 +188,17 @@ function loadPage(given, respond, { stored = {} } = {}) {
     Event: FakeEvent,
     URL: class extends URL { static createObjectURL() { return 'blob:'; } static revokeObjectURL() {} },
     URLSearchParams,
-    location: { search: '', pathname: '/', origin: 'http://localhost', href: 'http://localhost/' },
+    location: { search: '', pathname: '/', origin: 'http://localhost', href: 'http://localhost/', hash: '', ...loc },
     history: { replaceState: () => {} },
+    addEventListener: (type, fn) => {
+      if (!windowListeners.has(type)) windowListeners.set(type, []);
+      windowListeners.get(type).push(fn);
+    },
+    removeEventListener() {},
+    dispatchEvent: (event) => {
+      for (const fn of windowListeners.get(event.type) || []) fn(event);
+      return true;
+    },
     navigator: {},
     isSecureContext: false,
     requestAnimationFrame: (fn) => fn(),
