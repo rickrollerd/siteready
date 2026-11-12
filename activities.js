@@ -286,7 +286,7 @@ const WORK_IN_TRENCH = {
     step: 'Work in the trench',
     // No one works down in a tree pit while the tree is lowered in.
     unless: 'treePits',
-    hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench.'],
+    hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench, including low oxygen, hydrogen sulphide, carbon dioxide, methane or exhaust gases.'],
     controls: [
       { only: 'deepTrench', ...src('Workers do not enter any part of the trench that is not protected by the support, and do not work ahead of shoring while it is being installed.', `${QCODE('Excavation work', 's 6.3')}; ${NSWC('NSW Excavation', 's 6.3')}`) },
       { only: 'deepTrench', text: 'The support is checked before anyone enters the trench.' },
@@ -300,6 +300,7 @@ const WORK_IN_TRENCH = {
       src('A competent person frequently checks the soil, trench walls and support for fretting, slipping, slumping or swelling, and any repair or strengthening is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
       'The check is made at the start of each shift and after rain.',
       src('Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
+      src('The check covers oxygen, flammable gas, carbon monoxide and hydrogen sulphide. Carbon dioxide and methane can also collect in a deep or poorly ventilated trench. Do not enter if the atmosphere is not safe.', `${MODEL('Excavation work', 's 4.6')}; ${WHS('s 305')}`),
       src('The emergency plan covers ground slip, flooding, gas leaks and rescue from the trench.', MODEL('Excavation work', 's 3.7')),
       'No one is in the trench within reach of the bucket while the excavator is digging, trimming or backfilling that section. Workers climb out first, and the spotter stops the machine if anyone is still in.',
       { unless: 'deepTrench', ...src('Where the walls could slump onto a worker, such as in sandy, wet, fissured or previously dug ground, the trench is shored, benched or battered before entry, even when it is shallower than 1.5 m.', `${QCODE('Excavation work', 's 5.1')}; ${NSWC('NSW Excavation', 's 5.1')}`) },
@@ -439,6 +440,7 @@ const ACTIVITIES = [
           'Containment sheeting is fixed at every platform, guardrail and top and bottom ledger level, and shade cloth is tied at no more than 1200 mm centres each way.',
           'Gaps at corners and returns between scaffold runs are covered with lapped planks at least 1.2 m long that overlap by at least 300 mm and are held by the standards, or are tied or screwed down.',
           { only: 'craneInterface', text: 'Components to be lifted by crane are packed in stillages and strapped, and planks are strapped in bundles, by the scaffold crew before the crane crew slings them.' },
+          src('Galvanised tubes and fittings are not cut or ground on site unless it cannot reasonably be avoided. Where they are, local exhaust and a P2 respirator are used, because zinc fume can make people ill.', `${WHS('s 49')}; ${MODEL('Welding processes', 's 3.1, appendix B')}`),
         ],
       },
       {
@@ -461,8 +463,9 @@ const ACTIVITIES = [
       },
       {
         step: 'Dismantle the scaffold',
-        hazards: ['Scaffolders fall as edge protection is removed.', 'Components fall onto people below.'],
+        hazards: ['Scaffolders fall as edge protection is removed.', 'Components fall onto people below.', 'Disease from disturbing dry bird droppings on the structure or the scaffold.'],
         controls: [
+          src('Where bird droppings are present, wet them down before they are disturbed, wear a P2 respirator and gloves, and do not dry sweep.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
           src('Edge protection and access stay in place as long as practicable, with a platform not more than 2 m below the scaffolder.', WHS('s 306Q')),
           src('Exclusion zone below, with keep out signs and a person controlling it.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
           src('Scaffolding components are not dropped from heights when dismantling, and mechanical hoists are used to move materials.', SCAFF('s 3.6, s 4.3')),
@@ -600,7 +603,7 @@ const ACTIVITIES = [
       {
         unless: 'roofRemoveOnly',
         step: 'Fix new roofing',
-        hazards: ['Fall from height.', 'Slipping on wet or dewy roof sheets.', 'Power tool injuries.', 'Noise from cutting.', 'Skin and eye irritation from insulation, where it is installed.', 'Cuts from sheet edges and offcuts.', 'Heat and sun exposure.'],
+        hazards: ['Fall from height.', 'Slipping on wet or dewy roof sheets.', 'Power tool injuries.', 'Noise from cutting.', 'Skin and eye irritation from insulation, where it is installed.', 'Cuts from sheet edges and offcuts.', 'Heat and sun exposure.', 'Fumes and dust from cutting coated metal sheets.'],
         controls: [
           src('Edge protection is in place at the roof edges before work starts.', NSWC('NSW Work on roofs', 's 5.2')),
           'Stay inside the edge protection at all times.',
@@ -612,6 +615,7 @@ const ACTIVITIES = [
           { text: 'Where insulation and sarking are installed, handle them with long sleeves and gloves. Wear a P2 respirator where cutting releases fibres or dust.', unless: 'insulation' },
           { unless: 'roofOverDeck', text: 'Before flashing around flues, exhausts or plant on the roof, the trade that owns the plant isolates it, so hot exhaust or moving parts cannot reach the roofer.' },
           src('Touch-up paint is used as its safety data sheet says.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
+          src('Where coated metal sheets are cut or ground, the work is done in the open or with extraction, and a P2 respirator is worn. Prolonged grinding of the coating is avoided, because the coating can give off zinc and other metal fumes.', `${WHS('s 49')}; ${QCODE('Managing risks of hazardous chemicals', 's 4.1')}`),
           'Hearing protection near grinders and cutting. Eye protection with power tools. Tool lanyards and toe boards so nothing falls.',
           src('Cool drinking water, shade and clothing to shield workers from the sun, regular short breaks out of the heat, and work scheduled for cooler times.', QCODE('Hazardous manual tasks', 's 4.6')),
           'Sun protection: hat or brim, long sleeves and pants, and sunscreen.',
@@ -870,7 +874,7 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Set up the crane',
-        hazards: ['The crane overturns from poor ground or an overload.'],
+        hazards: ['The crane overturns from poor ground or an overload.', 'Hydraulic fluid leaks can irritate the skin and make the set-up area slippery.'],
         controls: [
           { fact: 'craneChart' },
           { fact: 'groundBearing' },
@@ -887,13 +891,15 @@ const ACTIVITIES = [
           'On the day of the lift, the lift supervisor walks the set-up area and load path to confirm nothing has changed since planning, such as new structures, excavations, services, other crews or ground. Any change goes back to the planner before lifting.',
           'Before the first lift each day, the operator checks the crane and its lifting gear against the daily pre-start checklist. A crane with a safety fault is locked out, not used, and reported to the principal contractor.',
           'The crane crew does not set up or work where another trade is making silica or other dust without controls, and reports it to the site supervisor.',
+          src('Hydraulic leaks are cleaned up straight away as the safety data sheet sets out, the area is made safe, and the crane is not used if a hose or fitting is damaged. Wear gloves when handling leaked fluid, and do not check a pressurised leak by hand.', `${QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1')}; ${QCODE('Managing the risks of plant in the workplace', 's 4.5')}`),
         ],
       },
       {
         step: 'Rig and lift the load',
-        hazards: ['A dropped load.', 'A person is struck or crushed by the load.'],
+        hazards: ['A dropped load.', 'A person is struck or crushed by the load.', 'Wire rope lubricant can irritate the skin and make hands slippery on the gear.'],
         controls: [
           src('Inspect lifting gear before use. Check tags and ratings.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+          src('Wear gloves when handling greased wire rope, and wash lubricant off the skin before eating or handling food.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
           src('Use tag lines to control the load.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
           src('Exclusion zone. No one goes under a suspended load.', NSWC('NSW Moving plant on construction sites', 's 5.2, s 6.4')),
           'Each load is raised just clear of its support and held while the dogger checks it hangs level and the slings are seated. If it tilts or a sling shifts, it is lowered and re-rigged before the lift continues.',
@@ -1039,7 +1045,7 @@ const ACTIVITIES = [
       {
         unless: 'formStripOnly',
         step: 'Lay the formwork deck',
-        hazards: ['A person falls from an open edge of the deck or through gaps in it.', 'Cuts, dust and noise from power saws.', 'Manual handling: carrying and placing ply sheets, often in wind.'],
+        hazards: ['A person falls from an open edge of the deck or through gaps in it.', 'Cuts, dust and noise from power saws.', 'Manual handling: carrying and placing ply sheets, often in wind.', 'Skin, eye and breathing irritation from formwork release agent.'],
         controls: [
           { fact: 'fallControl' },
           'Ply sheets are carried by two people or with sheet lifters, and sheet handling stops when wind lifts the sheets.',
@@ -1060,6 +1066,7 @@ const ACTIVITIES = [
             },
           },
           'Use power saws with guards in place, with dust extraction or a P2 respirator, and hearing protection.',
+          src('Formwork release agent is used as its safety data sheet sets out, with chemical resistant gloves and eye protection. It is not sprayed toward people, and the area is ventilated when it is applied in an enclosed space. Wash it off the skin straight away.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1, s 4.2')),
         ],
       },
       {
@@ -1370,6 +1377,7 @@ const ACTIVITIES = [
         controls: [
           src('Wear gloves and eye protection.', QCODE('Concrete pumping', 's 6.1')),
           'Wash wet concrete off the skin straight away.',
+          src('Cement burns can be delayed, and ordinary fabric gloves can hold the wet mix against the skin. Wear chemical resistant gloves, waterproof boots and long sleeves, and take off any clothing or gloves the mix has soaked. Portland cement can also cause dermatitis, including from traces of hexavalent chromium. Admixtures are used only as their safety data sheets set out.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1')),
           { unless: 'noSlabFinish', text: 'Use power trowels with guards and a working stop switch.' },
           src('Rotate finishing tasks and take breaks.', QCODE('Hazardous manual tasks', 's 4.7')),
           src('Curing compounds are used as their safety data sheet says, with gloves and eye protection.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
@@ -1428,7 +1436,7 @@ const ACTIVITIES = [
     when: 'ewp',
     steps: [{
       step: 'Use an elevating work platform',
-      hazards: ['The platform overturns or falls from an edge.', 'The operator is crushed against the structure.'],
+      hazards: ['The platform overturns or falls from an edge.', 'The operator is crushed against the structure.', 'Battery electrolyte is corrosive, and charging can give off hydrogen.', 'A high-pressure hydraulic leak can inject fluid under the skin.'],
       controls: [
         { unless: 'civilSite', ...src('Check the slab, working platform or ground can take the platform, and keep it back from edges, penetrations and open excavations.', NSWC('NSW Elevating work platforms', 's 3.2')) },
         { only: 'civilSite', text: 'Check the ground, deck or working platform can take the platform, and keep it back from edges, batters and open excavations.' },
@@ -1448,6 +1456,8 @@ const ACTIVITIES = [
         'Before tools are plugged into the platform\'s power outlet, its RCD is trip tested and the outlet earth is checked to the machine frame at the pre-start. A failed outlet is tagged out.',
         'EWP charging areas are kept away from ignition sources, and the charging lead is protected from damage.',
         'Battery EWPs are charged only from an RCD protected supply, in a dry, ventilated area away from access ways.',
+        src('Battery electrolyte is kept off skin and eyes. A spill is cleaned up as the safety data sheet sets out, with chemical resistant gloves and eye protection. Charging is kept away from ignition sources because it can give off hydrogen.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1, s 4.2')),
+        src('A damaged hydraulic hose is not used. A leak is never checked by hand. The platform is isolated and pressure is released before any hose or fitting is touched.', QCODE('Managing the risks of plant in the workplace', 's 4.5')),
         'A scissor lift is moved through a doorway only from a detachable control unit on a lead long enough for the operator to stand clear of the frame, with a spotter on the far side of the door.',
         'Every boom-type EWP used on site has a working secondary guarding device, such as a protective cage, crush bar or pressure-sensing control panel, wherever it works. A boom EWP without one is not used.',
         src('Where the platform must work near an open edge, penetration or drop, a fixed stop, such as screwed-down boards, a kerb or wheel stops, is set first so its wheels cannot reach the edge.', NSWC('NSW Elevating work platforms', 's 3.2')),
@@ -1468,6 +1478,7 @@ const ACTIVITIES = [
         { fact: 'braceArrangement' },
         { fact: 'regulatorNotified' },
         'Inspect lifting inserts and elements for damage on delivery. Do not lift a damaged element.',
+        src('Residual formwork release agent on panel faces can irritate the skin and eyes. Wear gloves when handling the elements, and wash it off the skin.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
         src('Each element has at least two braces fixed, as the erection design shows, before the crane hook is released. Where the design calls for more, all are fixed first.', TILT('s 5, s 14.1')),
         src('A panel turned on one crane\'s main and auxiliary winches is rotated only where the auxiliary winch can carry at least 75% of the panel mass and the code\'s conditions for rotation are met, or an engineer has checked the hoist rope capacities, and the panel ends up hanging from the main winch.', TILT('s 14.3')),
         'Panel rotation on two winches is directed by a rigger holding at least an intermediate rigging licence, with the anti-two-block device on each winch working, and the exclusion zone widened by 20% of the panel height.',
@@ -1475,10 +1486,12 @@ const ACTIVITIES = [
       ],
     }, {
       step: 'Grout the base',
-      hazards: ['Grout dust, and grout on the skin and in the eyes.'],
+      hazards: ['Grout dust, and grout on the skin and in the eyes.', 'Skin, eye and breathing sensitisation from epoxy adhesives and grouts used at connections.'],
       controls: [
         src('Mix bagged grout with dust control, and wear a P2 respirator.', QCODE('Silica', 's 7.4.2, s 7.6')),
         'Wear gloves and eye protection.',
+        src('Cementitious grout can burn the skin. The burn can be delayed, so wash it off straight away and take off any clothing it has soaked.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
+        src('Epoxy adhesives and grouts, and any joint sealant used at the connections, are used only as their safety data sheets set out, with chemical resistant gloves, eye protection and ventilation while mixing.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1, s 4.2')),
       ],
     }, {
       step: 'Remove the braces',
@@ -3235,10 +3248,12 @@ const ACTIVITIES = [
     when: 'steelWeld',
     steps: [{
       step: 'Weld steel',
-      hazards: ['Welding fume, including zinc fume from galvanised steel.', { only: 'aluminiumWeld', text: 'Ozone from welding aluminium.' }, 'Arc flash to people nearby.', 'Fire from sparks.', 'Electric shock.'],
+      hazards: ['Welding fume, including zinc fume from galvanised steel.', { only: 'aluminiumWeld', text: 'Ozone from welding aluminium.' }, 'Hexavalent chromium and nickel fume where stainless steel is welded or ground.', 'Arc flash to people nearby.', 'Fire from sparks.', 'Electric shock.'],
       controls: [
         { fact: 'hotWorkPermit' },
         src('Identify coatings before welding, and keep fume below the exposure standard. Galvanised steel gives off zinc oxide fume.', `${WHS('s 49')}; ${MODEL('Welding processes', 's 3.1, appendix B')}`),
+        src('Where stainless steel is welded or ground, the fume includes hexavalent chromium and nickel. Use local exhaust and the respiratory protection the safety data sheet and the fume assessment require.', `${WHS('s 49')}; ${MODEL('Welding processes', 's 3.1, appendix B')}`),
+        src('Anti-spatter sprays are used as their safety data sheets set out, with ventilation, and are kept away from ignition sources.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1, s 4.2')),
         src('The safety data sheet for the welding rods or wire is checked for the gases and fumes they give off.', `${QCODE('Welding processes', 's 3.1')}; ${NSWC('NSW Welding', 's 3.1')}`),
         src('Screens and signs protect people nearby from arc flash.', `${QCODE('Welding processes', 's 3.2')}; ${NSWC('NSW Welding', 's 3.2')}`),
         src('Hot work permit, fire-resistant barriers, fire-fighting equipment at hand, cylinders secured, and flashback arrestors fitted.', MODEL('Welding processes', 's 3.4')),
@@ -3865,6 +3880,7 @@ const ACTIVITIES = [
         'Dust is sprayed during machine demolition from fixed sprays, a misting cannon or a hose held from outside the zone falling debris can reach, never by a worker standing beside the machine.',
         'During mechanical demolition, spotters and ground workers keep two-way radio contact with the plant operators on a channel set at the pre-start.',
         'Strip-out or demolition of any part that held asbestos starts only after the clearance certificate for that part has been issued and sighted by the supervisor.',
+        src('The hazardous materials survey is checked before demolition starts, covering mercury in lamps and thermostats, polychlorinated biphenyls in old electrical fittings, refrigerant in plant, and bird droppings, as well as asbestos and lead. Lamps and fittings that may contain mercury or polychlorinated biphenyls are removed intact for licensed disposal, refrigerant is recovered by a licensed technician, and dry bird droppings are wetted down and not dry swept.', `${QCODE('Demolition', 's 3.6')}; ${QCODE('Managing risks of hazardous chemicals', 's 4.1')}`),
       ],
     }],
     ppe: ['p2', 'earMuffs', 'hivis'],
@@ -7631,6 +7647,7 @@ const ACTIVITIES = [
         src('The mixer is guarded and stopped before anyone reaches into it.', QCODE('Managing the risks of plant in the workplace', 's 3.6, s 4.1')),
         'Bags are opened with eye protection, gloves and a P2 respirator worn.',
         'Bags are opened low, and skin contact is washed off straight away.',
+        src('Cement burns from grout can be delayed. Wear chemical resistant gloves and waterproof boots, and take off any clothing the grout has soaked. Do not wait for stinging to start.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
       ],
     }],
     ppe: ['goggles', 'gloveChemical', 'p2'],
@@ -9557,10 +9574,11 @@ const ACTIVITIES = [
     when: 'wpTorch',
     steps: [{
       step: 'Lay torch-on membranes',
-      hazards: ['Fire from the torch and hot bitumen.', 'LPG cylinder leaks or flashback.', 'Burns and heat stress.'],
+      hazards: ['Fire from the torch and hot bitumen.', 'LPG cylinder leaks or flashback.', 'Burns and heat stress.', 'Bitumen fume from heating the membrane.'],
       controls: [
         { fact: 'hotWorkPermit' },
         src('Bitumen is a combustible fuel: clear rubbish and other fuel from the area, and keep fire-fighting equipment at the work area.', `${QCODE('Managing risks of hazardous chemicals', 's 4.2, s 6.3, appendix H')}; ${MODEL('Welding processes', 's 3.4')}`),
+        src('Bitumen fume is hazardous when the membrane is heated. The work is kept in the open or well ventilated, and workers wear the respiratory protection the safety data sheet requires. The membrane is not overheated.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1, s 4.2')),
         src('A hot work permit is issued before torching.', QCODE('Managing risks of hazardous chemicals', 's 4.2')),
         src('LPG cylinders are upright and secured, have a working relief valve, and valves are closed when not in use. Fittings are leak tested with detergent or leak spray.', `${QCODE('Managing risks of hazardous chemicals', 's 4.2')}; ${QCODE('Welding processes', 's 3.6')}`),
         'Flashback arrestors are fitted, and hoses have crimped or permanent clips.',
@@ -10233,6 +10251,7 @@ addAfter('slabGround', {
         src('Where the truck or pump stands on the road or footpath, the traffic management set out for the work is in place and people walking past are kept clear or diverted.', QCODE('Concrete pumping', 's 4.2.4')),
         src('Wear rubber safety boots, gloves and eye protection.', QCODE('Concrete pumping', 's 6.1')),
         'Wear chemical resistant gloves and long sleeves, and wash wet concrete off the skin straight away.',
+        src('Cement burns can be delayed. Take off any clothing or gloves the mix has soaked, and do not wait for stinging to start. Portland cement can also cause dermatitis, including from traces of hexavalent chromium. Admixtures are used only as their safety data sheets set out.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.1')),
         src('Barrow loads are kept small enough for one person to handle, and barrowing and screeding are rotated.', `${QCODE('Hazardous manual tasks', 's 4.4, s 4.7')}; ${NSWC('NSW Manual tasks', 's 4.4, s 4.6, s 4.7')}`),
         'Barrows run on boarded runs.',
         { unless: 'smallPour', ...src('Vibrators have their leads checked and tagged and are protected by an RCD.', ESR('s 140')) },

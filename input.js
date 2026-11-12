@@ -225,12 +225,36 @@ function fills(value) {
 
 // The plant the user confirmed (goal 2): the names of the plant SiteWrite listed that the crew
 // uses and does not use, and the user's own items with the licence or ticket to operate each.
+// Optional register fields (make/model, rego/ID, last inspection, named operator) may be given on
+// an added item or in details, keyed by item name. They are not required to confirm the plant.
+function plantRegisterFields(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const out = {};
+  const take = (key, max) => {
+    const text = textField(value[key], max);
+    if (text) out[key] = text;
+  };
+  take('makeModel', 80);
+  take('rego', 40);
+  take('lastInspection', 80);
+  take('operator', 80);
+  return out;
+}
+
 function plantChoice(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const names = (list) => (Array.isArray(list) ? [...new Set(list.filter((item) => typeof item === 'string').slice(0, 80).map((item) => textField(item, 200)).filter(Boolean))] : []);
   const added = Array.isArray(value.added) ? value.added.filter((item) => item && typeof item === 'object' && typeof item.item === 'string').slice(0, 30)
-    .map((item) => ({ item: textField(item.item, 200), licence: textField(item.licence, 300) })).filter((item) => item.item) : [];
-  return { used: names(value.used), notUsed: names(value.notUsed), added };
+    .map((item) => ({ item: textField(item.item, 200), licence: textField(item.licence, 300), ...plantRegisterFields(item) })).filter((item) => item.item) : [];
+  const details = {};
+  if (value.details && typeof value.details === 'object' && !Array.isArray(value.details)) {
+    for (const [name, item] of Object.entries(value.details).slice(0, 80)) {
+      const key = textField(name, 200);
+      const fields = plantRegisterFields(item);
+      if (key && Object.keys(fields).length) details[key] = fields;
+    }
+  }
+  return { used: names(value.used), notUsed: names(value.notUsed), added, ...(Object.keys(details).length ? { details } : {}) };
 }
 
 // The answers to the emergency questions for the work (goal 2, emergency.js), by question.

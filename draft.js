@@ -7285,9 +7285,11 @@ function suggestedFlags(task, facts, state) {
   if (state.statedTrade) flags = gateToTrade(flags, state.statedTrade, KIND_IDS);
   // Typed or pasted text (no trade): a generator placed or lifted with no electrical work, install or fixed plant named is
   // a portable one in use, not the electrical install steps (code review A, D316: "Replace the metal roof sheets. Place a
-  // generator near the shed").
-  if (!(state.trades && state.trades.length) && flags.generatorPlant && !flags.electricalWork && !/\b(?:install\w*|supply|permanent|standby|emergency|backup|new|day tanks?|fuel (?:lines?|tanks?|systems?)|switch\w*|control\w*|panels?)\b/i.test(String(task || ''))) {
-    flags = { ...flags, generatorPlant: false, generatorUse: true };
+  // generator near the shed"). Only words that qualify the generator itself keep the install steps. Whole-task words such
+  // as "new" sheets, "dust control", "wall panels" or "emergency repairs" must not.
+  if (!(state.trades && state.trades.length) && flags.generatorPlant && !flags.electricalWork && !flags.generatorConnect && !flags.generatorTest) {
+    const installSaid = /\b(?:install\w*|supply and install)\b[^.]*\b(?:generators?|day tanks?)\b|\bgenerators?\b[^.]*\binstall\w*|\b(?:permanent|standby|emergency|backup)\s+generators?\b|\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b[^.]*\bgenerators?\b|\bgenerators?\b[^.]*\b(?:day tanks?|fuel (?:lines?|tanks?|systems?))\b/i.test(String(task || ''));
+    if (!installSaid) flags = { ...flags, generatorPlant: false, generatorUse: true };
   }
   // A depth given once for the whole project still says how deep this SWMS's own trenches go: the trench steps then do not say
   // the trench is kept shallower than 1.5 m beside a trench over 1.5 m listed as high risk work (messy round 17, A run 2: the
@@ -7546,7 +7548,7 @@ function readWorkFlags(fullTask, facts = {}, ownCrane = false, nested = false, a
     groundChemicals: /\b(poison\w*|herbicides?|weed ?killers?|termite (?:treatment|barriers?)|termiticides?|treat\w* the ground)\b/i.test(task),
     waterConnection: /\b(water meters?|backflow (?:devices?|prevent\w*)|(?<!\b(?:lay\w*|install\w*|construct\w*|new|pe|pvc|ductile iron|di)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:pe\s+|pvc\s+)?)water mains?|town mains?|council (?:water )?mains?|incoming water suppl\w*|connect\w* (?:to |the )?(?:incoming |new )?water suppl\w*|water (?:supply )?connections?|(?:main|new) water services?)\b/i.test(task),
     liftCarWork: /\blift cars?\b/i.test(task) && !LIFT_WORK.test(task.replace(/\blift cars?\b/gi, '')),
-    asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix|potholes?|cold mix)\b/i.test(task) && (!/\b(?:lay\w*|place\w*|pav\w*)\b[^.]{0,30}\b(?:asphalt|hotmix|hot mix|bitumen)\b|\basphalt (?:laying|paving|resurfac\w*|overlay)\b/i.test(task) || /\b(?:saw\w*|cut\w*|patch\w*|reinstat\w*|potholes?|trench\w*|repair\w*|make good|cold mix|break\w* out|excavat\w*)\b/i.test(task)),
+    asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix|potholes?|cold mix)\b/i.test(task) && (!/\b(?:lay\w*|place\w*|pav\w*)\b[^.]{0,30}\b(?:asphalt|hotmix|hot mix|bitumen)\b|\basphalt (?:laying|paving|resurfac\w*|overlay)\b/i.test(task) || /\b(?:saw\w*|cut\w*|patch\w*|reinstat\w*|potholes?|trench\w*|make good|cold mix|break\w* out|excavat\w*)\b|\brepair\w*\b[^.]*\b(?:asphalt|hotmix|hot mix|bitumen|pavement|trench(?:es)?|potholes?)\b/i.test(task)),
     insulation: (/\b(insulation|glasswool|glass wool|rockwool|batts|sisalation|(?:roof|insulation|foil) blankets?)\b/i.test(task) || /\b(?:lay|install|fix|run)\w* (?:the )?blankets?\b[^.]{0,30}\b(?:roofs?|sheets?|sheeting|purlins?)\b/i.test(task)) && !MECHANICAL_WORK.test(task) && !/\b(ductwork|pipework|lagging|membranes?|waterproof\w*)\b/i.test(task) && !/\b(roof sheet\w*|roofing)\b/i.test(othersAndDenials(task).others),
     // Pressed metal frames fixed into drywalls are door frames (messy round 19, B run 6: no step stood them).
     doorHang: /\b(door ?frames?|door ?sets?|pressed metal (?:door )?frames?|metal door frames?|hang\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fit|replac)\w* (?:an? |the )(?:[\w-]+ ){0,3}door(?! hardware| and window| protection| seals?| closers?| furniture| handles?))\b/i.test(task) && !/\b(garage|roller|security|screen|fly|landing|shower|glass sliding|sliding glass) doors?\b/i.test(task),

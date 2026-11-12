@@ -383,7 +383,7 @@ function registerBlocks(draft) {
   if ((draft.plant || []).length) {
     blocks.push(sectionHeading('Plant and equipment'));
     blocks.push(para('Keep the inspection and maintenance records, and sight each licence before work.', { size: 19, color: MUTED, before: 0, after: 80 }));
-    blocks.push(gridTable(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], [3400, 6400, CONTENT_WIDTH - 9800], draft.plant.map((item) => [item.shown || item.item, item.inspection, item.licence])));
+    blocks.push(gridTable(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], [3400, 6400, CONTENT_WIDTH - 9800], draft.plant.map((item) => [item.shownLabel || item.shown || item.item, item.inspection, item.licence])));
   }
   // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
   // D256, D257). A type of substance with no product does not print.
@@ -405,6 +405,7 @@ function registerBlocks(draft) {
   blocks.push(gridTable(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], [2400, 7400, CONTENT_WIDTH - 9800], (draft.emergency || []).map((item) => [item.type, item.equipment, item.detail])));
   if (draft.sources && (draft.sources.legislation.length || draft.sources.codes.length)) {
     blocks.push(sectionHeading('Legislation and codes of practice'));
+    if (draft.sources.regulator) blocks.push(para(`The work health and safety regulator is ${draft.sources.regulator}.`, { size: 20, before: 0, after: 80 }));
     blocks.push(gridTable(['Legislation', 'Codes of practice and guidance'], [LABEL_WIDTH + 2400, VALUE_WIDTH - 2400], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]));
   }
   return blocks;

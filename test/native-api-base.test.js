@@ -9,7 +9,7 @@ const vm = require('node:vm');
 
 const PUBLIC = path.join(__dirname, '..', 'public');
 const read = (name) => fs.readFileSync(path.join(PUBLIC, name), 'utf8');
-const PAGES = ['admin', 'check', 'hse', 'list', 'review', 'verify', 'sign'];
+const PAGES = ['admin', 'check', 'hse', 'list', 'review', 'verify', 'sign', 'qf'];
 const HELPER = "const API_BASE = (document.querySelector('meta[name=\"sitewrite-api\"]')?.content || '').replace(/\\/+$/, '');";
 
 test('every page that calls the server carries the sitewrite-api meta tag once, blank on the web', () => {
@@ -31,6 +31,11 @@ test('every page script reads the meta tag and sends no request to a bare /api a
   }
   // sign.js keeps one address for the signing link and builds every request from it.
   assert.match(read('sign.js'), /const api = apiUrl\(`\/api\/sign\//);
+  // The QuantityForge tab on the main page, and leftover fetches on the QF page, must use the same helper.
+  const tab = read('qf-tab.js');
+  assert.ok(tab.includes(HELPER), 'qf-tab.js reads the meta tag');
+  assert.ok(tab.includes('const apiUrl = (route) => `${API_BASE}${route}`;'), 'qf-tab.js has apiUrl');
+  assert.deepEqual(tab.split('\n').filter((line) => /\bfetch\(\s*['"`]\/api/.test(line)), [], 'qf-tab.js: every fetch goes through apiUrl');
 });
 
 // A stand-in for the browser: any element, any property, any method.

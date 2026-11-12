@@ -216,7 +216,7 @@ function registers(doc, draft, w) {
   if ((draft.plant || []).length) {
     heading(doc, 'Plant and equipment');
     text(doc, 'Keep the inspection and maintenance records, and sight each licence before work.', { size: 8.5, color: MUTED });
-    table(doc, { widths: [150, w - 150 - 210, 210], header: ['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], rows: draft.plant.map((item) => row(item.shown || item.item, item.inspection, item.licence)) });
+    table(doc, { widths: [150, w - 150 - 210, 210], header: ['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], rows: draft.plant.map((item) => row(item.shownLabel || item.shown || item.item, item.inspection, item.licence)) });
   }
   // Each hazardous product the user listed, with the controls from its safety data sheet (substances.js,
   // D256, D257). A type of substance with no product does not print.
@@ -237,6 +237,7 @@ function registers(doc, draft, w) {
   table(doc, { widths: [110, w - 110 - 230, 230], header: ['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], rows: (draft.emergency || []).map((item) => row(item.type, item.equipment, item.detail || ' ')) });
   if (draft.sources && (draft.sources.legislation.length || draft.sources.codes.length)) {
     heading(doc, 'Legislation and codes of practice');
+    if (draft.sources.regulator) text(doc, `The work health and safety regulator is ${draft.sources.regulator}.`, { size: 9, after: 0.3 });
     table(doc, { widths: [w / 2, w / 2], header: ['Legislation', 'Codes of practice and guidance'], rows: [row(draft.sources.legislation.join('\n'), draft.sources.codes.join('\n'))] });
   }
 }

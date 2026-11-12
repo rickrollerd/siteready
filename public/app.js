@@ -3255,11 +3255,12 @@ function plantTicked(item) {
 // The plant confirmed: what is ticked now, and what is unticked now or was unticked before, though it is
 // not listed now. An item the user said is not used stays said, so its alternative is never asked again
 // in its place, and the plant can be confirmed with neither.
-function confirmedPlant(ticks, added) {
+function confirmedPlant(ticks, added, details) {
   const names = Object.keys(ticks);
   const used = names.filter((name) => ticks[name]);
   const before = ((plantChoice && plantChoice.notUsed) || []).filter((name) => !names.includes(name));
-  return { used, notUsed: [...new Set([...names.filter((name) => !ticks[name]), ...before])], added };
+  const register = details && typeof details === 'object' ? details : plantRegisterNow();
+  return { used, notUsed: [...new Set([...names.filter((name) => !ticks[name]), ...before])], added, ...(Object.keys(register).length ? { details: register } : {}) };
 }
 // The job steps that confirming the plant last added (an EWP, a mobile scaffold, a drill for concrete), said under the
 // plant so the page tells the truth (messy round 15, A run 1: a cordless drill added "Drill or cut concrete, masonry or
@@ -3269,6 +3270,29 @@ let plantAddedSteps = [];
 const plantAddedNote = () => (plantAddedSteps.length ? ` Confirming it added the job step${plantAddedSteps.length === 1 ? '' : 's'} ${plantAddedSteps.map((name) => `"${name}"`).join(' and ')}. Untick ${plantAddedSteps.length === 1 ? 'it' : 'them'} under Job steps if your crew does not do that work.` : '');
 const NOTHING_TO_ADD = /^(?:no|none|no other|nothing|nothing else|nil|n\/?a|not applicable)[.!]?$/i;
 const plantOwn = () => (plantPending && plantPending.own) || (plantChoice && plantChoice.added) || [];
+const plantRegisterOf = (name, item) => {
+  const fromChoice = (plantChoice && plantChoice.details && plantChoice.details[name]) || {};
+  const fromPending = (plantPending && plantPending.details && plantPending.details[name]) || {};
+  const fromItem = item || {};
+  return { makeModel: fromPending.makeModel || fromItem.makeModel || fromChoice.makeModel || '', rego: fromPending.rego || fromItem.rego || fromChoice.rego || '', lastInspection: fromPending.lastInspection || fromItem.lastInspection || fromChoice.lastInspection || '', operator: fromPending.operator || fromItem.operator || fromChoice.operator || '' };
+};
+const plantRegisterFieldsHtml = (name, item) => {
+  const values = plantRegisterOf(name, item);
+  const field = (key, label, max) => `<div class="field"><label for="plant-reg-${key}-${esc(name)}">${esc(label)}<span class="hint">Optional. Leave blank if you do not need it on the SWMS.</span></label><input id="plant-reg-${key}-${esc(name)}" type="text" maxlength="${max}" data-plant-register="${esc(key)}" data-plant-for="${esc(name)}" value="${esc(values[key] || '')}"></div>`;
+  return `<details class="plant-register"${values.makeModel || values.rego || values.lastInspection || values.operator ? ' open' : ''}><summary>Register details for ${esc(name)} (optional)</summary>${field('makeModel', 'Make/model', 80)}${field('rego', 'Rego/ID', 40)}${field('lastInspection', 'Last inspection', 80)}${field('operator', 'Named operator', 80)}</details>`;
+};
+function plantRegisterNow() {
+  const details = {};
+  resultEl.querySelectorAll('[data-plant-register][data-plant-for]').forEach((box) => {
+    const name = box.dataset.plantFor;
+    const key = box.dataset.plantRegister;
+    const text = String(box.value || '').trim();
+    if (!name || !key || !text) return;
+    details[name] = details[name] || {};
+    details[name][key] = text;
+  });
+  return details;
+}
 function plantBlock(draft) {
   const listed = draft.plantInferred || [];
   const gap = (draft.gate || []).find((item) => item.kind === 'plant');
@@ -3286,6 +3310,8 @@ function plantBlock(draft) {
     <fieldset class="field" id="plant-ticks" tabindex="-1"><legend>Confirm the plant and equipment for this job</legend>
       <p class="meta">SiteWrite listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. Plant that needs a job step of its own, such as an EWP or a drill for concrete, brings that step, and SiteWrite says which. Change the steps under Job steps if the method changes.</p>
       ${ticks}${own}
+      ${listed.filter((item) => plantTicked(item)).map((item) => plantRegisterFieldsHtml(item.item, item)).join('')}
+      ${plantOwn().map((item) => plantRegisterFieldsHtml(item.item, item)).join('')}
     </fieldset>
     <div class="field"><label for="plant-own-item">Add your own plant or equipment</label><input id="plant-own-item" type="text" maxlength="200" placeholder="For example: 1.7 t mini excavator"></div>
     <div class="field"><label for="plant-own-licence">Licence or ticket to operate it<span class="hint">Write No if none is needed.</span></label><input id="plant-own-licence" type="text" maxlength="300"></div>
@@ -3554,12 +3580,12 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const steps = `${removedSteps}<table class="stack steps-table"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : `${libraryRow(step, index, all)}${movable ? ownHazardRows(index) : ''}`)).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.shown || item.item, item.inspection, item.licence])) : '';
+  const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.shownLabel || item.shown || item.item, item.inspection, item.licence])) : '';
   const registers = `${plantTable || movable ? `<h4>Plant and equipment</h4>${movable ? plantBlock(draft) : ''}${plantTable || '<p class="meta">No plant prints on this SWMS.</p>'}` : ''}
     ${window.SiteWriteSubstances ? window.SiteWriteSubstances.section(draft, { movable }) : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
     ${(draft.emergency || []).length ? `<h4 id="emergency-table" tabindex="-1">Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
-    ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
+    ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', `${draft.sources.regulator ? `<p>The work health and safety regulator is ${esc(draft.sources.regulator)}.</p>` : ''}${grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]])}`, `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
   // PPE for all work, then the extra items for particular steps with their steps (D246).
   const forSteps = (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked && Array.isArray(item.steps) && item.steps.length));
   const ppe = `${forSteps.length ? '<p class="ppe-sub"><strong>For all work</strong></p>' : ''}<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.filter((item) => !(item.ticked && Array.isArray(item.steps))).map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}${group.items.some((item) => item.ticked && Array.isArray(item.steps)) ? ` <em class="meta">For particular steps (below): ${esc(group.items.filter((item) => item.ticked && Array.isArray(item.steps)).map((item) => item.label).join(', '))}</em>` : ''}</td></tr>`).join('')}</tbody></table>`
@@ -4253,26 +4279,33 @@ function plantTicksNow() {
   return ticks;
 }
 function plantChanged(own) {
-  plantPending = { ticks: plantTicksNow(), own };
+  plantPending = { ticks: plantTicksNow(), own, details: plantRegisterNow() };
   const panel = document.getElementById('plant-panel');
   if (panel && shownDraft) panel.outerHTML = plantBlock(shownDraft);
 }
 // A licence typed for an item the user added is kept with it, and used when the plant is confirmed.
 resultEl.addEventListener('input', (event) => {
+  const register = event.target.closest && event.target.closest('[data-plant-register]');
+  if (register) {
+    plantPending = { ticks: plantTicksNow(), own: plantOwn().map((item) => ({ ...item })), details: plantRegisterNow() };
+    const status = document.getElementById('plant-status');
+    if (status) status.textContent = 'You have changes. Press Confirm the plant to use them.';
+    return;
+  }
   const box = event.target.closest && event.target.closest('[data-plant-own-licence]');
   if (!box) return;
   const own = plantOwn().map((item) => ({ ...item }));
   const i = Number(box.dataset.plantOwnLicence);
   if (!own[i]) return;
   own[i].licence = box.value;
-  plantPending = { ticks: plantTicksNow(), own };
+  plantPending = { ticks: plantTicksNow(), own, details: plantRegisterNow() };
   const status = document.getElementById('plant-status');
   if (status) status.textContent = 'You have changes. Press Confirm the plant to use them.';
 });
 resultEl.addEventListener('change', (event) => {
   const box = event.target.closest && event.target.closest('[data-plant-item]');
   if (!box) return;
-  plantPending = { ticks: plantTicksNow(), own: [...plantOwn()] };
+  plantPending = { ticks: plantTicksNow(), own: [...plantOwn()], details: plantRegisterNow() };
   const status = document.getElementById('plant-status');
   if (status) status.textContent = 'You have changes. Press Confirm the plant to use them.';
 });

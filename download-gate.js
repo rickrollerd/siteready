@@ -238,7 +238,7 @@ function printedTexts(draft) {
     ...(draft.controls || []).map((item) => item && item.text),
     ...(draft.references || []).map((item) => item && item.text),
     ...(draft.emergency || []).map((row) => [row.equipment, row.detail].filter(Boolean).join('. ')),
-    ...(draft.plant || []).flatMap((row) => [row.item, row.inspection, row.licence]),
+    ...(draft.plant || []).flatMap((row) => [row.item, row.inspection, row.licence, row.makeModel, row.rego, row.lastInspection, row.operator]),
     ...(draft.qualifications || []),
   ].filter((text) => typeof text === 'string' && text);
 }
@@ -440,7 +440,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     if (!leftOpen(text) || (/First aider: _{3,}/.test(text) && asked.has('firstAider')) || given.some((value) => text.includes(value))) continue;
     if (!fromAnswer(text, answers)) other.push(['Emergency arrangements', text]);
   }
-  for (const row of draft.plant || []) for (const text of [row.item, row.inspection, row.licence]) if (leftOpen(text) && !fromAnswer(text, answers)) other.push(['Plant and equipment', text]);
+  for (const row of draft.plant || []) for (const text of [row.item, row.inspection, row.licence, row.makeModel, row.rego, row.lastInspection, row.operator]) if (leftOpen(text) && !fromAnswer(text, answers)) other.push(['Plant and equipment', text]);
   for (const text of draft.qualifications || []) if (leftOpen(text) && !fromAnswer(text, answers)) other.push(['Licences, tickets and training', text]);
   for (const row of draft.references || []) if (leftOpen(row.text) && !fromAnswer(row.text, answers)) other.push([row.label || 'Documents', row.text]);
   for (const key of ['date', 'subcontractor']) if (leftOpen(draft[key])) other.push([key === 'date' ? 'Date of the draft' : 'Subcontractor', draft[key]]);
