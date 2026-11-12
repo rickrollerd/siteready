@@ -463,8 +463,10 @@
     holding = setInterval(tick, 1000);
   }
 
+  let sending = false;
   $('sign-form').addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (sending || finished) return;
     $('sign-error').classList.add('hidden');
     document.querySelectorAll('.q.wrong').forEach((element) => element.classList.remove('wrong'));
     const explained = $('explained').checked;
@@ -480,6 +482,7 @@
       }
     }
     const reading = { sections: Object.fromEntries(data.sections.map((item) => [item.id, Math.round((seconds[item.id] || 0) * 10) / 10])) };
+    sending = true;
     $('submit').disabled = true;
     keepNow();
     try {
@@ -500,6 +503,7 @@
           const fresh = Array.isArray(body.questions) && body.questions.length > 0;
           if (fresh) await newQuestions(body.questions);
           else body.wrong.forEach((id) => { const element = $(`q-${id}`); if (element) element.classList.add('wrong'); });
+          sending = false;
           $('submit').disabled = false;
           if (body.wait) holdFor(body.wait);
           const links = (body.sections || []).filter((id) => SECTION_NAMES[id]).map((id) => `<a href="#${SECTION_NAMES[id][0]}">Go to ${SECTION_NAMES[id][1]}</a>`);
@@ -509,6 +513,7 @@
         }
         // Answered again before the wait was over.
         if (response.status === 429 && body.wait) {
+          sending = false;
           holdFor(body.wait);
           showError(esc(body.message));
           return;
@@ -516,12 +521,14 @@
         throw new Error(body.message || 'The sign-on could not be saved.');
       }
       finished = true;
+      sending = false;
       forget();
       $('sign-form').classList.add('hidden');
       $('progress').classList.add('hidden');
       show('done', body.message);
     } catch (error) {
-      showError(esc(error.message));
+      showError(esc(error.message || 'The sign-on could not be saved.'));
+      sending = false;
       $('submit').disabled = false;
     }
   });

@@ -42,12 +42,22 @@ function browser() {
   };
   async function fetch(url, init) {
     net.sent.push(String(url));
+    const aborted = () => Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' });
+    if (init && init.signal && init.signal.aborted) throw aborted();
     if (net.mode === 'down') throw new TypeError('Failed to fetch');
-    if (net.mode === 'abort') throw Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' });
+    if (net.mode === 'abort') throw aborted();
+    if (net.mode === 'hang') {
+      return new Promise((resolve, reject) => {
+        const finish = (err) => { if (init && init.signal) init.signal.removeEventListener('abort', onAbort); err ? reject(err) : resolve({ ok: true, status: 200, url: String(url), init }); };
+        const onAbort = () => finish(aborted());
+        if (init && init.signal) init.signal.addEventListener('abort', onAbort);
+        (net.releases = net.releases || []).push(() => finish(null));
+      });
+    }
     return { ok: true, status: 200, url: String(url), init };
   }
   const window = {
-    document, fetch, navigator: { onLine: true }, console, Promise, Error, TypeError, String, Object,
+    document, fetch, navigator: { onLine: true }, console, Promise, Error, TypeError, String, Object, AbortController,
     addEventListener(type, fn) { (windowListeners[type] = windowListeners[type] || []).push(fn); },
   };
   window.window = window;
@@ -56,7 +66,8 @@ function browser() {
   const bar = () => made.find((el) => el.className === 'net-bar');
   return {
     window, net, bar, bodyClasses,
-    goOnline: () => (windowListeners.online || []).forEach((fn) => fn()),
+    goOnline: () => { window.navigator.onLine = true; (windowListeners.online || []).forEach((fn) => fn()); },
+    goOffline: () => { window.navigator.onLine = false; (windowListeners.offline || []).forEach((fn) => fn()); },
   };
 }
 
@@ -141,4 +152,41 @@ test('other failures are left to the page as before', async () => {
   // Safari and Firefox word a lost connection their own way.
   assert.equal(b.window.siteWriteNet.noSignal(new TypeError('Load failed')), true);
   assert.equal(b.window.siteWriteNet.noSignal(new TypeError('NetworkError when attempting to fetch resource.')), true);
+});
+
+test('a request already on its way is cut when the phone goes offline, and Try again sends it once signal is back', async () => {
+  const b = browser();
+  b.net.mode = 'hang';
+  let done = null;
+  let failed = null;
+  b.window.fetch('/api/sign/abc', { method: 'POST', body: '{"name":"Ana"}' }).then((response) => { done = response; }, (error) => { failed = error; });
+  await settle();
+  assert.equal(done, null);
+  assert.equal(failed, null, 'a hung request has not failed yet');
+  assert.equal(b.bar(), undefined, 'no message while the request is still on its way');
+  b.goOffline();
+  await settle();
+  const bar = b.bar();
+  assert.ok(bar && bar.isConnected, 'the message is shown once the request is cut');
+  assert.equal(done, null, 'the request waits for Try again');
+  assert.equal(failed, null);
+  b.net.mode = 'up';
+  b.goOnline();
+  await settle();
+  assert.equal(done && done.url, '/api/sign/abc');
+  assert.equal(done.init.body, '{"name":"Ana"}');
+  assert.equal(bar.isConnected, false);
+  assert.equal(failed, null);
+});
+
+test('a caller\'s own abort is still left to the page, not treated as no signal', async () => {
+  const b = browser();
+  b.net.mode = 'hang';
+  const ac = new AbortController();
+  const failed = b.window.fetch('/api/draft', { signal: ac.signal }).catch((error) => error);
+  await settle();
+  ac.abort();
+  const error = await failed;
+  assert.equal(error.name, 'AbortError');
+  assert.equal(b.bar(), undefined);
 });
