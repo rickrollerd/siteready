@@ -1,6 +1,7 @@
 // Sign-in links and Face ID challenges work once (outside review, finding 5): two requests with the
 // same one at the same moment, and exactly one gets through.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_EMAIL_IP_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');

@@ -6,6 +6,7 @@
 // ranked by the number and suburb typed; a 502 on the questions said; the scaffold supervisor's note once.
 // The on-screen faults are also run in a browser (scratchpad/flow9).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

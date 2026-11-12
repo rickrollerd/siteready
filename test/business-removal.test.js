@@ -1,6 +1,7 @@
 // Deleting a whole business (privacy policy: deleted within 30 days of a request) and the list of
 // businesses due for removal 12 months after they stop paying.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.ADMIN_EMAILS = 'owner@removal.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');

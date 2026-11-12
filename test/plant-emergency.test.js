@@ -6,6 +6,7 @@
 // response line of a step still High after its controls, and the note naming the earlier step whose
 // controls also apply, as the Word and PDF files do.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const JSZip = require('jszip');

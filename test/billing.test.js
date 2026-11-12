@@ -1,4 +1,5 @@
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.STRIPE_PRICE_ID = 'price_test_49';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
 process.env.ADMIN_EMAILS = 'owner@sitewrite.example';

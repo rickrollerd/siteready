@@ -1,6 +1,7 @@
 // The contractor's own changes to the controls (task #102): lines removed, reworded and added,
 // legal lines kept, and the de-identified learning store that is off unless CONTROL_LEARNING=on.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.ADMIN_EMAILS = 'owner@edits.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');

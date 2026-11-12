@@ -4,6 +4,7 @@
 // revision. The business is told its review is back (D283); the verify page shows only the response
 // and its date (D286).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_REVIEW_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');

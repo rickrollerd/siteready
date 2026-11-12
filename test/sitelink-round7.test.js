@@ -1,6 +1,7 @@
 // SiteLink fixes from messy round 7 (16 October 2026). Made-up companies, people and sites only.
 // The staging test hooks are on here (TEST_HOOKS_SECRET), as on staging.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_AI_SCOPE_REQUESTS = '1000';
 process.env.RATE_LIMIT_MAX_REQUESTS = '5000';

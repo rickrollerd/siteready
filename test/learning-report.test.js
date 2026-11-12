@@ -2,6 +2,7 @@
 // candidates counted by different saved SWMS (not rows), changes undone, empty months, learning
 // off, what is shown of steps and lines, and the owner-only routes.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.ADMIN_EMAILS = 'owner@report.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');

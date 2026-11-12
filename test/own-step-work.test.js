@@ -8,6 +8,7 @@
 // the user's own step needed before download. Library steps that do cover it are kept. Heavy items
 // named as installed by their weight, with no step that places them, are named too.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');

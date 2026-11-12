@@ -4,6 +4,7 @@
 // pages, a glazing task whose windows lost their step and whose shopfront doors were hung before the glass, and a
 // hospital name from Places in lower case. The on-screen faults are also run in a browser (scratchpad/fix12).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

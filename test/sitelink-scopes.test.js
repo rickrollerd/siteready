@@ -5,6 +5,7 @@
 // is never readable by another account or by any subcontractor's company. The project's readings are
 // free up to PROJECT_FREE_READINGS (D302); the same file again costs nothing and does not count.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_AI_SCOPE_REQUESTS = '1000';
 process.env.RATE_LIMIT_MAX_REQUESTS = '5000';

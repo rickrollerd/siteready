@@ -1,3 +1,7 @@
+// Tests sign in many times from one address. Raise the tight verify limit unless a test sets its own
+// (the same pattern as RATE_LIMIT_EMAIL_REQUESTS = 1000 at the top of account tests).
+if (process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS === undefined) process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
+
 // An in-memory Postgres and a captured mailbox, so account tests need no setup.
 const { newDb } = require('pg-mem');
 const db = require('../db');

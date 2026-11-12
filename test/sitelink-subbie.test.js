@@ -3,6 +3,7 @@
 // its work kept on the server for that company only, and the lead's Release button (D311).
 // Made-up companies, people and sites only.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_MAX_REQUESTS = '5000';
 process.env.RATE_LIMIT_LIST_REQUESTS = '5000';

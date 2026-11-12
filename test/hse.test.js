@@ -3,6 +3,7 @@
 // set each project's site details, where each change is a new version. One account never sees
 // another's projects: every route checks the person has joined the account.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 const test = require('node:test');
 const assert = require('node:assert/strict');

@@ -6,6 +6,7 @@
 // is recorded, with an optional Builder check that counts toward the project's free readings.
 // Made-up companies, people and sites only. No paid AI reading: the stand-in client answers.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_MAX_REQUESTS = '5000';
 process.env.RATE_LIMIT_LIST_REQUESTS = '5000';

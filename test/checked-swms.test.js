@@ -3,6 +3,7 @@
 // the uploader apart; the learning copy de-identified; the owner-only view and its log; "Do not keep";
 // deletion with the business and on request; retention; the storage bucket; the report section.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.ADMIN_EMAILS = 'owner@kept.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');

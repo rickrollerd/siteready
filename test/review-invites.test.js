@@ -3,6 +3,7 @@
 // removed invitation stops an open session at once. An invitation covers the SWMS's later revisions, never
 // another SWMS. Reviewers who had responded before invitations began are invited by the migration.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_REVIEW_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
