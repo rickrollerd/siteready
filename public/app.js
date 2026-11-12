@@ -4153,10 +4153,34 @@ function draftNote(origin, text, failed = false) {
 }
 const DRAFT_DOWN = 'SiteWrite could not reach the server, so the draft was not updated. Your answers and the draft are kept as they were.';
 let preparing = null;
+let prepareAgain = null;
+// A later Prepare, or a later step edit, is not dropped while one draft is already on its way:
+// it runs once the first settles, with the latest answers (D374).
 async function prepareDraft({ scroll = true, keep = '' } = {}) {
-  if (preparing) return preparing;
-  preparing = prepareDraftNow({ scroll, keep });
-  try { return await preparing; } finally { preparing = null; }
+  if (preparing) {
+    prepareAgain = { scroll, keep };
+    return preparing;
+  }
+  preparing = runPrepareDrafts({ scroll, keep });
+  return preparing;
+}
+async function runPrepareDrafts(first) {
+  let options = first;
+  try {
+    for (;;) {
+      const result = await prepareDraftNow(options);
+      if (!prepareAgain) return result;
+      options = prepareAgain;
+      prepareAgain = null;
+    }
+  } finally {
+    const again = prepareAgain;
+    preparing = null;
+    if (again) {
+      prepareAgain = null;
+      return prepareDraft(again);
+    }
+  }
 }
 
 async function prepareDraftNow({ scroll = true, keep = '' } = {}) {
