@@ -56,6 +56,7 @@ test('security headers and rate limit headers are set', async () => {
   const response = await fetch(`${base}/api/states`);
   assert.equal(response.status, 200);
   assert.ok(response.headers.get('content-security-policy'));
+  assert.equal(response.headers.get('permissions-policy'), 'camera=(), microphone=(), geolocation=(), payment=()');
   assert.ok(response.headers.get('ratelimit-policy') || response.headers.get('ratelimit'));
 });
 

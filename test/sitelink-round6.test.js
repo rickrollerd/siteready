@@ -2,6 +2,7 @@
 // The staging test hooks are on here (TEST_HOOKS_SECRET), as on staging: an account set up by a test
 // address does not depend on the live ABN register, and a hook removes a test SiteLink account.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_AI_SCOPE_REQUESTS = '1000';
 process.env.RATE_LIMIT_MAX_REQUESTS = '5000';

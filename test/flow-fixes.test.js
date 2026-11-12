@@ -5,6 +5,7 @@
 // scope prints as a plain list of the work; the project zip holds Word and PDF; address suggestions
 // prefer the state expected and never switch it without a word.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const JSZip = require('jszip');

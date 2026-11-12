@@ -1,5 +1,6 @@
 // Per-user daily limit on AI requests (D323).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { setupAccounts, lastLinkToken } = require('./helpers');

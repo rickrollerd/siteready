@@ -1,4 +1,5 @@
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.TEST_HOOKS_SECRET = 'a'.repeat(40);
 const test = require('node:test');
 const assert = require('node:assert/strict');

@@ -6,6 +6,7 @@
 // "questions show once the state is set" after a reload with the state set. The on-screen faults are also
 // run in a browser (scratchpad/flow13).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');

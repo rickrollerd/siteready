@@ -4,6 +4,7 @@
 // saved when the project is downloaded, and the verify page shows only the business, title,
 // revision and whether it is current.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const JSZip = require('jszip');

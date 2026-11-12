@@ -1,5 +1,6 @@
 // "Read this SWMS in my language" on the main app's draft (task #94), with a stand-in for the model.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');

@@ -81,6 +81,13 @@ app.use((req, res, next) => {
 const trustProxy = Number(process.env.TRUST_PROXY ?? 1);
 app.set('trust proxy', Number.isInteger(trustProxy) && trustProxy >= 0 ? trustProxy : 1);
 app.use(helmet());
+// The web app does not use the camera, microphone, location or Payment Request APIs
+// (logo and design photos, and SiteLink files, go through a file input). Native Capacitor
+// plugins, if used later, have their own device permissions and are not governed by this header.
+app.use((_req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  next();
+});
 // The native app reads the file name, and the saved SWMS and revision a download was saved as.
 // The same headers under the app's old name, for a page opened before the change of name (D299) and
 // still open. Taken out after 28 October 2026, as the other allowances for old pages are.
@@ -159,6 +166,13 @@ app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
   failClosed: true,
 }));
 app.use(EMAIL_ROUTES, limiter('sign-in-email-ip', positiveNumber(process.env.RATE_LIMIT_EMAIL_IP_REQUESTS, emailLimit * 3), { skip: notSending, failClosed: true }));
+// Completing a sign-in link: tighter than the general API limit. The token is 32 random
+// bytes and lasts 20 minutes, so this is defence in depth. Staging and the test suite raise
+// it with RATE_LIMIT_AUTH_VERIFY_REQUESTS, as they do for the other limiters.
+app.use('/api/auth/verify', limiter('auth-verify', positiveNumber(process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS, 20), {
+  skip: notSending,
+  failClosed: true,
+}));
 // The principal contractor's review pages (goal 3): opening a SWMS, the builder check, its files and the response.
 app.use('/api/review', limiter('review', positiveNumber(process.env.RATE_LIMIT_REVIEW_REQUESTS, 60)));
 // The main contractor's pages (Goal 12): its account, team, projects and site details.

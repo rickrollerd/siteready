@@ -3,6 +3,7 @@
 // unused, the SWMS unchanged and under a day old. A sign-on sent again after its answer was lost
 // is not saved twice, and a reload after it tells the worker they are signed on.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');

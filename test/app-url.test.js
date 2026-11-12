@@ -1,6 +1,7 @@
 // Sign-in links in production (outside review, finding 3): they go only to APP_URL, an https
 // address, never to the Host header a request carries. Without a usable APP_URL none are sent.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_EMAIL_IP_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');

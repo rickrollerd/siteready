@@ -5,6 +5,7 @@
 // page; older revisions print as before; the principal contractor's response fills the review box of
 // the revision it was given on.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_REVIEW_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');

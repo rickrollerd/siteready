@@ -2,6 +2,7 @@
 // admin-issued invite when INVITE_ONLY is on. Existing accounts, company team joins and reviewers
 // are not affected. Made-up companies and people only.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_LIST_REQUESTS = '5000';
 process.env.RATE_LIMIT_LIST_SENDS = '1000';

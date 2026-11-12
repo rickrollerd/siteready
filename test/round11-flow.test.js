@@ -6,6 +6,7 @@
 // that name the work, one SWMS saved once, the review notice in view, and a 502 retried quietly. The
 // on-screen faults are also run in a browser (scratchpad/flow11).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');

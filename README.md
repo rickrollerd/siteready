@@ -108,6 +108,7 @@ See `.env.example`.
 | `RATE_LIMIT_WORD_REQUESTS` | 300 | Word files per window per client address |
 | `RATE_LIMIT_EMAIL_REQUESTS` | 10 | Sign-in emails and team invitations per window to one inbox |
 | `RATE_LIMIT_EMAIL_IP_REQUESTS` | 3 times the above | Sign-in emails and team invitations per window from one client address |
+| `RATE_LIMIT_AUTH_VERIFY_REQUESTS` | 20 | Completing a sign-in link (`POST /api/auth/verify`) per window per client address. Staging and the test suite raise this, as they do for the other limiters. |
 | `TRUST_PROXY` | 1 | Number of proxies in front of the server. Set 0 when clients connect directly, or a client can fake its address to get round the rate limit. |
 | `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. Every worker shares one rate limit count, kept in the memory of the primary process. A number higher than the memory holds (about 512 MB a worker) is cut back, and the log says so. |
 | `APP_URL` | none | The public https address, for example `https://sitewrite.com.au`, with no path. In production (a Railway environment named production, or `NODE_ENV=production` outside Railway) sign-in, reviewer and list links use only this; without a valid https address none are sent and the log says so at start. Elsewhere the request's own address is used when it is not set. |

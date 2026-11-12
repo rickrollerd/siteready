@@ -3,6 +3,7 @@
 // "None" or "Not applicable" where a question can truly have none; blanks (____) and "To be
 // completed" filled before download; and the builder check failing them (H8).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const JSZip = require('jszip');

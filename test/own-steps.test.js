@@ -7,6 +7,7 @@
 // other. With CONTROL_LEARNING on, each saved revision's steps are recorded de-identified, and the
 // monthly report lists the work users wrote steps for most, by different saved SWMS.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.ADMIN_EMAILS = 'owner@ownsteps.example';
 const test = require('node:test');
 const assert = require('node:assert/strict');

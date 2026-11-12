@@ -7,6 +7,7 @@
 // business's signed-in users only, and goes with the SWMS and the business. The builder check marks
 // down a step done to a design that does not name it (W16).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');

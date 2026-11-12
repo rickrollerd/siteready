@@ -7,6 +7,7 @@
 // accepts, method-read.test.js): the download never waits for it and the builder check does not count
 // it. A SWMS that lists none is unchanged.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');

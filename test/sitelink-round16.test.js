@@ -1,6 +1,7 @@
 // SiteLink fixes from messy round 16 (19 October 2026, staging a52feac). Made-up companies, people and
 // sites only. No paid AI reading: the stand-in client answers with a made-up fire services reading.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 process.env.RATE_LIMIT_HSE_REQUESTS = '5000';
 process.env.RATE_LIMIT_AI_SCOPE_REQUESTS = '1000';
 process.env.RATE_LIMIT_MAX_REQUESTS = '5000';

@@ -3,6 +3,7 @@
 // is flagged and listed under "What would change". Each released change marks the saved SWMS it
 // would print differently in My SWMS and emails each business's administrator one list.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');

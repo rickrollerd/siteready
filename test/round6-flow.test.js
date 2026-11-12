@@ -6,6 +6,7 @@
 // keeps the fall and crane answers; and the smaller fixes. (The finished scope reading kept through a
 // reload is tested with the reading's other page tests, in read-progress.test.js.)
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

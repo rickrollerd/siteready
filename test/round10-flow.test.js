@@ -6,6 +6,7 @@
 // "by others" leaves the crew's own step; weak answers. The on-screen faults are also run in a browser
 // (scratchpad/flow10).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { prepareDraft, questionsFor, taskLine, coverCheck, answerState } = require('../draft');

@@ -1,6 +1,7 @@
 // Every SWMS carries a revision number (owner decision, 5 Oct): a new SWMS and a copy are
 // revision 1, each saved change adds one, and the Word and PDF files print it.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
+process.env.RATE_LIMIT_AUTH_VERIFY_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const JSZip = require('jszip');
