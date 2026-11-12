@@ -872,6 +872,7 @@
     };
     const send = async () => {
       const button = $('invite-send');
+      if (!button || button.disabled) return;
       button.disabled = true;
       try {
         const data = await call('POST', `/api/swms/${id}/review-invites`, { email: $('invite-email').value });
@@ -1146,8 +1147,15 @@
     $('team-faceid').classList.toggle('hidden', !passkeysWork() || !me || me.user.hasPasskey);
   }
 
+  // A second press while an invitation is already being sent is ignored, so a slow site network does
+  // not email the same person twice (D368).
+  let sendingInvite = false;
   $('team-form').addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (sendingInvite) return;
+    const button = $('team-invite');
+    sendingInvite = true;
+    if (button) button.disabled = true;
     try {
       const data = await call('POST', '/api/company/users', { email: $('team-email').value });
       status('team-status', data.message);
@@ -1155,6 +1163,9 @@
       loadTeam();
     } catch (error) {
       status('team-status', error.message, true);
+    } finally {
+      sendingInvite = false;
+      if (button) button.disabled = false;
     }
   });
 
