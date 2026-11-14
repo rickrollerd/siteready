@@ -210,8 +210,16 @@ async function sendListLink(req, email, { listToken, source, builder, inviteCode
   });
 }
 
+// The owner's own emails (ADMIN_EMAILS, the same list that opens the admin page).
+function isOwnerEmail(email) {
+  const allowed = String(process.env.ADMIN_EMAILS || '').split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
+  return Boolean(email) && allowed.includes(String(email).trim().toLowerCase());
+}
+
 function hasAccess(company) {
   if (!company) return false;
+  // The owner signed in: full access with no trial clock (set by readSession, never stored).
+  if (company.owner_access) return true;
   // A failed card payment keeps access while Stripe retries it.
   if (['active', 'trialing', 'past_due'].includes(company.plan_status)) return true;
   return company.plan_status === 'trial' && new Date(company.trial_ends_at) > new Date();
@@ -232,6 +240,7 @@ async function readSession(req, _res, next) {
       if (user) {
         req.user = user;
         req.company = await db.one('SELECT * FROM companies WHERE id = $1', [user.company_id]);
+        if (req.company && isOwnerEmail(user.email)) req.company.owner_access = true;
         req.sessionHash = hash(token);
       }
     }
@@ -425,7 +434,7 @@ async function passkeyLogin(req) {
 
 module.exports = {
   TRIAL_DAYS, newId, newToken, hash, fail, cleanEmail, appUrl, linkUrl, appUrlProblem,
-  sendLoginLink, sendInviteNeededMail, signInMailSentMessage, sendListLink, finishLogin, createSession, hasAccess,
+  sendLoginLink, sendInviteNeededMail, signInMailSentMessage, sendListLink, finishLogin, createSession, hasAccess, isOwnerEmail,
   readSession, requireUser, requireAccess,
   sendReviewerLink, sendHseLink, finishReviewerLogin, readReviewer, requireReviewer,
   passkeyRegistrationOptions, passkeyRegister, passkeyLoginOptions, passkeyLogin,
